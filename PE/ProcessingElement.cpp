@@ -165,5 +165,179 @@ void ProcessingElement::divq(AREG y0, AREG x0) {
     this->bus(y0, NEWS);
 }
 
+// Analog Neighbour Access
+//TODO NEWS and XS,XW,etc do we need to move values? how does it work?
+void ProcessingElement::movx(AREG y, AREG x0, const news_t dir) {
+    // y = x0_dir
+    switch (dir) {
+        case north:
+            this->bus(XS, x0);
+            break;
+        case east:
+            this->bus(XW, x0);
+            break;
+        case south:
+            this->bus(XN, x0);
+            break;
+        case west:
+            this->bus(XE, x0);
+            break;
+        default:
+            break;
+    }
+    this->bus(y, NEWS);
+}
+
+void ProcessingElement::mov2x(AREG y, AREG x0, const news_t dir, const news_t dir2) {
+    // y = x0_dir_dir (note: this only works when FLAG is "all")
+    switch (dir) {
+        case north:
+            this->bus(XS, x0);
+            break;
+        case east:
+            this->bus(XW, x0);
+            break;
+        case south:
+            this->bus(XN, x0);
+            break;
+        case west:
+            this->bus(XE, x0);
+            break;
+        default:
+            break;
+    }
+    switch (dir2) {
+        case north:
+            this->bus(y, XN);
+            break;
+        case east:
+            this->bus(y, XE);
+            break;
+        case south:
+            this->bus(y, XS);
+            break;
+        case west:
+            this->bus(y, XW);
+            break;
+        default:
+            break;
+    }
+}
+
+void ProcessingElement::addx(AREG y, AREG x0, AREG x1, const news_t dir) {
+    // y = x0_dir + x1_dir
+    switch (dir) {
+        case north:
+            this->bus(XS, x0, x1);
+            break;
+        case east:
+            this->bus(XW, x0, x1);
+            break;
+        case south:
+            this->bus(XN, x0, x1);
+            break;
+        case west:
+            this->bus(XE, x0, x1);
+            break;
+        default:
+            break;
+    }
+    this->bus(y, NEWS);
+}
+
+void ProcessingElement::add2x(AREG y, AREG x0, AREG x1, const news_t dir, const news_t dir2) {
+    // y = x0_dir_dir2 + x1_dir_dir2
+    switch (dir) {
+        case north:
+            this->bus(XS, x0, x1);
+            break;
+        case east:
+            this->bus(XW, x0, x1);
+            break;
+        case south:
+            this->bus(XN, x0, x1);
+            break;
+        case west:
+            this->bus(XE, x0, x1);
+            break;
+        default:
+            break;
+    }
+    switch (dir2) {
+        case north:
+            this->bus(y, XN);
+            break;
+        case east:
+            this->bus(y, XE);
+            break;
+        case south:
+            this->bus(y, XS);
+            break;
+        case west:
+            this->bus(y, XW);
+            break;
+        default:
+            break;
+    }
+}
+
+void ProcessingElement::subx(AREG y, AREG x0, const news_t dir, AREG x1) {
+    // y = x0_dir - x1
+    switch (dir) {
+        case north:
+            this->bus(XS, x0);
+            break;
+        case east:
+            this->bus(XW, x0);
+            break;
+        case south:
+            this->bus(XN, x0);
+            break;
+        case west:
+            this->bus(XE, x0);
+            break;
+        default:
+            break;
+    }
+    this->bus(y, NEWS, x1);
+}
+
+void ProcessingElement::sub2x(AREG y, AREG x0, const news_t dir, const news_t dir2, AREG x1) {
+    // y = x0_dir_dir2 - x1
+    switch (dir) {
+        case north:
+            this->bus(XS, x0);
+            break;
+        case east:
+            this->bus(XW, x0);
+            break;
+        case south:
+            this->bus(XN, x0);
+            break;
+        case west:
+            this->bus(XE, x0);
+            break;
+        default:
+            break;
+    }
+    switch (dir2) {
+        case north:
+            this->bus(y, XN, x1);
+            break;
+        case east:
+            this->bus(y, XE, x1);
+            break;
+        case south:
+            this->bus(y, XS, x1);
+            break;
+        case west:
+            this->bus(y, XW, x1);
+            break;
+        default:
+            break;
+    }
+}
+
+
 
 

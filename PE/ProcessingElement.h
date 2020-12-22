@@ -9,10 +9,13 @@
 #include "AREG.h"
 #include "DREG.h"
 
+enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
+
 class ProcessingElement {
 private:
     bool FLAG;
     AREG NEWS;
+    AREG XN, XE, XS, XW;
 public:
     // Analog Register Transfer
     void bus(AREG a);
