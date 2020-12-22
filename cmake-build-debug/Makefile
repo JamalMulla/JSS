@@ -123,6 +123,141 @@ Simulator/fast:
 	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/build
 .PHONY : Simulator/fast
 
+PE/AREG.o: PE/AREG.cpp.o
+
+.PHONY : PE/AREG.o
+
+# target to build an object file
+PE/AREG.cpp.o:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/AREG.cpp.o
+.PHONY : PE/AREG.cpp.o
+
+PE/AREG.i: PE/AREG.cpp.i
+
+.PHONY : PE/AREG.i
+
+# target to preprocess a source file
+PE/AREG.cpp.i:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/AREG.cpp.i
+.PHONY : PE/AREG.cpp.i
+
+PE/AREG.s: PE/AREG.cpp.s
+
+.PHONY : PE/AREG.s
+
+# target to generate assembly for a file
+PE/AREG.cpp.s:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/AREG.cpp.s
+.PHONY : PE/AREG.cpp.s
+
+PE/ASRC.o: PE/ASRC.cpp.o
+
+.PHONY : PE/ASRC.o
+
+# target to build an object file
+PE/ASRC.cpp.o:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/ASRC.cpp.o
+.PHONY : PE/ASRC.cpp.o
+
+PE/ASRC.i: PE/ASRC.cpp.i
+
+.PHONY : PE/ASRC.i
+
+# target to preprocess a source file
+PE/ASRC.cpp.i:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/ASRC.cpp.i
+.PHONY : PE/ASRC.cpp.i
+
+PE/ASRC.s: PE/ASRC.cpp.s
+
+.PHONY : PE/ASRC.s
+
+# target to generate assembly for a file
+PE/ASRC.cpp.s:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/ASRC.cpp.s
+.PHONY : PE/ASRC.cpp.s
+
+PE/DREG.o: PE/DREG.cpp.o
+
+.PHONY : PE/DREG.o
+
+# target to build an object file
+PE/DREG.cpp.o:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/DREG.cpp.o
+.PHONY : PE/DREG.cpp.o
+
+PE/DREG.i: PE/DREG.cpp.i
+
+.PHONY : PE/DREG.i
+
+# target to preprocess a source file
+PE/DREG.cpp.i:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/DREG.cpp.i
+.PHONY : PE/DREG.cpp.i
+
+PE/DREG.s: PE/DREG.cpp.s
+
+.PHONY : PE/DREG.s
+
+# target to generate assembly for a file
+PE/DREG.cpp.s:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/DREG.cpp.s
+.PHONY : PE/DREG.cpp.s
+
+PE/DSRC.o: PE/DSRC.cpp.o
+
+.PHONY : PE/DSRC.o
+
+# target to build an object file
+PE/DSRC.cpp.o:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/DSRC.cpp.o
+.PHONY : PE/DSRC.cpp.o
+
+PE/DSRC.i: PE/DSRC.cpp.i
+
+.PHONY : PE/DSRC.i
+
+# target to preprocess a source file
+PE/DSRC.cpp.i:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/DSRC.cpp.i
+.PHONY : PE/DSRC.cpp.i
+
+PE/DSRC.s: PE/DSRC.cpp.s
+
+.PHONY : PE/DSRC.s
+
+# target to generate assembly for a file
+PE/DSRC.cpp.s:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/DSRC.cpp.s
+.PHONY : PE/DSRC.cpp.s
+
+PE/ProcessingElement.o: PE/ProcessingElement.cpp.o
+
+.PHONY : PE/ProcessingElement.o
+
+# target to build an object file
+PE/ProcessingElement.cpp.o:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.o
+.PHONY : PE/ProcessingElement.cpp.o
+
+PE/ProcessingElement.i: PE/ProcessingElement.cpp.i
+
+.PHONY : PE/ProcessingElement.i
+
+# target to preprocess a source file
+PE/ProcessingElement.cpp.i:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.i
+.PHONY : PE/ProcessingElement.cpp.i
+
+PE/ProcessingElement.s: PE/ProcessingElement.cpp.s
+
+.PHONY : PE/ProcessingElement.s
+
+# target to generate assembly for a file
+PE/ProcessingElement.cpp.s:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.s
+.PHONY : PE/ProcessingElement.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -159,6 +294,21 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... Simulator"
 	@echo "... edit_cache"
+	@echo "... PE/AREG.o"
+	@echo "... PE/AREG.i"
+	@echo "... PE/AREG.s"
+	@echo "... PE/ASRC.o"
+	@echo "... PE/ASRC.i"
+	@echo "... PE/ASRC.s"
+	@echo "... PE/DREG.o"
+	@echo "... PE/DREG.i"
+	@echo "... PE/DREG.s"
+	@echo "... PE/DSRC.o"
+	@echo "... PE/DSRC.i"
+	@echo "... PE/DSRC.s"
+	@echo "... PE/ProcessingElement.o"
+	@echo "... PE/ProcessingElement.i"
+	@echo "... PE/ProcessingElement.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

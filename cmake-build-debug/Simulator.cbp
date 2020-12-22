@@ -82,6 +82,36 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/AREG.cpp">
+			<Option target="Simulator"/>
+		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/AREG.h">
+			<Option target="Simulator"/>
+		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/ASRC.cpp">
+			<Option target="Simulator"/>
+		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/ASRC.h">
+			<Option target="Simulator"/>
+		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/DREG.cpp">
+			<Option target="Simulator"/>
+		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/DREG.h">
+			<Option target="Simulator"/>
+		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/DSRC.cpp">
+			<Option target="Simulator"/>
+		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/DSRC.h">
+			<Option target="Simulator"/>
+		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.cpp">
+			<Option target="Simulator"/>
+		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.h">
+			<Option target="Simulator"/>
+		</Unit>
 		<Unit filename="/home/jm1417/CLionProjects/Simulator/main.cpp">
 			<Option target="Simulator"/>
 		</Unit>

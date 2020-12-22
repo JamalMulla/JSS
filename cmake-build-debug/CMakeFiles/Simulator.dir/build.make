@@ -70,17 +70,92 @@ CMakeFiles/Simulator.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Simulator.dir/main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jm1417/CLionProjects/Simulator/main.cpp -o CMakeFiles/Simulator.dir/main.cpp.s
 
+CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.o: CMakeFiles/Simulator.dir/flags.make
+CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.o: ../PE/ProcessingElement.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.o -c /home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.cpp
+
+CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.cpp > CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.i
+
+CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.cpp -o CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.s
+
+CMakeFiles/Simulator.dir/PE/AREG.cpp.o: CMakeFiles/Simulator.dir/flags.make
+CMakeFiles/Simulator.dir/PE/AREG.cpp.o: ../PE/AREG.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Simulator.dir/PE/AREG.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Simulator.dir/PE/AREG.cpp.o -c /home/jm1417/CLionProjects/Simulator/PE/AREG.cpp
+
+CMakeFiles/Simulator.dir/PE/AREG.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Simulator.dir/PE/AREG.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jm1417/CLionProjects/Simulator/PE/AREG.cpp > CMakeFiles/Simulator.dir/PE/AREG.cpp.i
+
+CMakeFiles/Simulator.dir/PE/AREG.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Simulator.dir/PE/AREG.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jm1417/CLionProjects/Simulator/PE/AREG.cpp -o CMakeFiles/Simulator.dir/PE/AREG.cpp.s
+
+CMakeFiles/Simulator.dir/PE/DREG.cpp.o: CMakeFiles/Simulator.dir/flags.make
+CMakeFiles/Simulator.dir/PE/DREG.cpp.o: ../PE/DREG.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Simulator.dir/PE/DREG.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Simulator.dir/PE/DREG.cpp.o -c /home/jm1417/CLionProjects/Simulator/PE/DREG.cpp
+
+CMakeFiles/Simulator.dir/PE/DREG.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Simulator.dir/PE/DREG.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jm1417/CLionProjects/Simulator/PE/DREG.cpp > CMakeFiles/Simulator.dir/PE/DREG.cpp.i
+
+CMakeFiles/Simulator.dir/PE/DREG.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Simulator.dir/PE/DREG.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jm1417/CLionProjects/Simulator/PE/DREG.cpp -o CMakeFiles/Simulator.dir/PE/DREG.cpp.s
+
+CMakeFiles/Simulator.dir/PE/ASRC.cpp.o: CMakeFiles/Simulator.dir/flags.make
+CMakeFiles/Simulator.dir/PE/ASRC.cpp.o: ../PE/ASRC.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Simulator.dir/PE/ASRC.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Simulator.dir/PE/ASRC.cpp.o -c /home/jm1417/CLionProjects/Simulator/PE/ASRC.cpp
+
+CMakeFiles/Simulator.dir/PE/ASRC.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Simulator.dir/PE/ASRC.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jm1417/CLionProjects/Simulator/PE/ASRC.cpp > CMakeFiles/Simulator.dir/PE/ASRC.cpp.i
+
+CMakeFiles/Simulator.dir/PE/ASRC.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Simulator.dir/PE/ASRC.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jm1417/CLionProjects/Simulator/PE/ASRC.cpp -o CMakeFiles/Simulator.dir/PE/ASRC.cpp.s
+
+CMakeFiles/Simulator.dir/PE/DSRC.cpp.o: CMakeFiles/Simulator.dir/flags.make
+CMakeFiles/Simulator.dir/PE/DSRC.cpp.o: ../PE/DSRC.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/Simulator.dir/PE/DSRC.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Simulator.dir/PE/DSRC.cpp.o -c /home/jm1417/CLionProjects/Simulator/PE/DSRC.cpp
+
+CMakeFiles/Simulator.dir/PE/DSRC.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Simulator.dir/PE/DSRC.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jm1417/CLionProjects/Simulator/PE/DSRC.cpp > CMakeFiles/Simulator.dir/PE/DSRC.cpp.i
+
+CMakeFiles/Simulator.dir/PE/DSRC.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Simulator.dir/PE/DSRC.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jm1417/CLionProjects/Simulator/PE/DSRC.cpp -o CMakeFiles/Simulator.dir/PE/DSRC.cpp.s
+
 # Object files for target Simulator
 Simulator_OBJECTS = \
-"CMakeFiles/Simulator.dir/main.cpp.o"
+"CMakeFiles/Simulator.dir/main.cpp.o" \
+"CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.o" \
+"CMakeFiles/Simulator.dir/PE/AREG.cpp.o" \
+"CMakeFiles/Simulator.dir/PE/DREG.cpp.o" \
+"CMakeFiles/Simulator.dir/PE/ASRC.cpp.o" \
+"CMakeFiles/Simulator.dir/PE/DSRC.cpp.o"
 
 # External object files for target Simulator
 Simulator_EXTERNAL_OBJECTS =
 
 Simulator: CMakeFiles/Simulator.dir/main.cpp.o
+Simulator: CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.o
+Simulator: CMakeFiles/Simulator.dir/PE/AREG.cpp.o
+Simulator: CMakeFiles/Simulator.dir/PE/DREG.cpp.o
+Simulator: CMakeFiles/Simulator.dir/PE/ASRC.cpp.o
+Simulator: CMakeFiles/Simulator.dir/PE/DSRC.cpp.o
 Simulator: CMakeFiles/Simulator.dir/build.make
 Simulator: CMakeFiles/Simulator.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable Simulator"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable Simulator"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Simulator.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
