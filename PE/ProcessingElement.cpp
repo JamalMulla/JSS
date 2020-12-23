@@ -338,6 +338,209 @@ void ProcessingElement::sub2x(AREG y, AREG x0, const news_t dir, const news_t di
     }
 }
 
+// Asynchronized Blur
+
+// Digital Logic Operations
+void ProcessingElement::OR(DREG d, DREG d0, DREG d1) {
+
+}
+
+void ProcessingElement::OR(DREG d, DREG d0, DREG d1, DREG d2) {
+
+}
+
+void ProcessingElement::OR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
+
+}
+
+void ProcessingElement::NOT(DREG d, DREG d0) {
+
+}
+
+void ProcessingElement::NOR(DREG d, DREG d0, DREG d1) {
+
+}
+
+void ProcessingElement::NOR(DREG d, DREG d0, DREG d1, DREG d2) {
+
+}
+
+void ProcessingElement::NOR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
+
+}
+
+void ProcessingElement::NOT(DREG Rl) {
+    // logic operation Rl := NOT Rl
+    Rl.set(not Rl.get());
+}
+
+void ProcessingElement::OR(DREG Rl, DREG Rx) {
+    // logic operation Rl := Rl OR Rx
+    Rl.set(Rl.get() or Rx.get());
+}
+
+void ProcessingElement::NOR(DREG Rl, DREG Rx) {
+    // logic operation Rl := Rl NOR Rx
+    Rl.set(not (Rl.get() or Rx.get()));
+}
+
+void ProcessingElement::AND(DREG Ra, DREG Rx, DREG Ry) {
+    //  Ra := Rx AND Ry; R0 = NOT Ry; R12 = NOT RX
+    this->SET(RF);
+    this->NOT(RP, Rx);
+    this->NOT(RF, Ry);
+    this->NOR(Ra, RF, RP);
+}
+
+void ProcessingElement::NAND(DREG Ra, DREG Rx, DREG Ry) {
+    // Ra := Rx NAND Ry; R0 = NOT Ry; R12 = NOT RX
+    this->SET(RF);
+    this->NOT(RP, Rx);
+    this->NOT(RF, Ry);
+    this->OR(Ra, RF, RP);
+}
+
+void ProcessingElement::ANDX(DREG Ra, DREG Rb, DREG Rx) {
+    // Ra := Rb AND Rx; Rb := NOT Rx; R0 = NOT Rb
+    this->NOT(RF, Rb);
+    this->NOT(Rb, Rx);
+    this->NOR(Ra, RF, Rb);
+}
+
+void ProcessingElement::NANDX(DREG Ra, DREG Rb, DREG Rx) {
+    // Ra := Rx NAND Ry; Rb := NOT Rx; R0 = NOT Rb
+    this->NOT(RF, Rb);
+    this->NOT(Rb, Rx);
+    this->OR(Ra, RF, Rb);
+}
+
+void ProcessingElement::IMP(DREG Rl, DREG Rx, DREG Ry) {
+    // Rl := Rx IMP Ry (logical implication)
+    //    Truth Table:
+    //    Rx  Ry    Rl
+    //    0   0     1
+    //    0   1     0
+    //    1   0     1
+    //    1   1     1
+    this->NOT(RF, Ry);
+    this->OR(RS, Rx, RF);
+}
+
+void ProcessingElement::NIMP(DREG Rl, DREG Rx, DREG Ry) {
+    // Rl := Rx NIMP Ry
+    this->NOT(RF, Ry);
+    this->NOR(RS, Rx, RF);
+}
+
+void ProcessingElement::XOR(DREG Rl, DREG Rx, DREG Ry) {
+    // Rl := Rx XOR Ry, Rx := *
+    this->NOT(RF, Ry);
+    this->NOR(Rl, Rx, RF);
+    this->NOT(RF, Rx);
+    this->NOR(Rx, Ry, RF);
+    this->OR(Rl, Rx);
+}
+
+// Digital Register Transfer
+void ProcessingElement::WHERE(DREG d) {
+
+}
+
+void ProcessingElement::WHERE(DREG d0, DREG d1) {
+
+}
+
+void ProcessingElement::WHERE(DREG d0, DREG d1, DREG d2) {
+
+}
+
+void ProcessingElement::ALL() {
+
+}
+
+void ProcessingElement::SET(DREG d0) {
+
+}
+
+void ProcessingElement::SET(DREG d0, DREG d1) {
+
+}
+
+void ProcessingElement::SET(DREG d0, DREG d1, DREG d2) {
+
+}
+
+void ProcessingElement::SET(DREG d0, DREG d1, DREG d2, DREG d3) {
+
+}
+
+void ProcessingElement::CLR(DREG d0) {
+
+}
+
+void ProcessingElement::CLR(DREG d0, DREG d1) {
+
+}
+
+void ProcessingElement::CLR(DREG d0, DREG d1, DREG d2) {
+
+}
+
+void ProcessingElement::CLR(DREG d0, DREG d1, DREG d2, DREG d3) {
+
+}
+
+void ProcessingElement::MOV(DREG d, DREG d0) {
+
+}
+
+void ProcessingElement::MUX(DREG Rl, DREG Rx, DREG Ry, DREG Rz) {
+    // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
+    this->SET(RF);
+    this->MOV(RP, Rz);
+    this->MOV(RF, Rx);
+    this->MOV(RP, Ry);
+    this->MOV(Rl, RP);
+}
+
+void ProcessingElement::CLR_IF(DREG Rl, DREG Rx) {
+    // Rl := 0 IF Rx = 1, Rl := Rl IF Rx = 0
+    this->NOT(RF, Rl);
+    this->NOR(Rl, RF, Rx);
+}
+
+void ProcessingElement::REFRESH(DREG Rl) {
+    // refresh a DREG to prevent decay after a long time (e.g. > 1.5 seconds) without any operations
+    //TODO do we need to do anything here? Maybe add a small delay?
+}
+
+// Digital Neighbour Access
+void ProcessingElement::DNEWS0(DREG d, DREG d0) {
+
+}
+
+void ProcessingElement::DNEWS1(DREG d, DREG d0) {
+
+}
+
+void ProcessingElement::DNEWS(DREG Ra, DREG Rx, const int dir, const bool boundary) {
+
+}
+
+// Digital Propagation
+void ProcessingElement::PROP0() {
+    // async-propagation on RP, masked by RF
+}
+
+void ProcessingElement::PROP1() {
+
+}
+
+
+
+
+
+
 
 
 

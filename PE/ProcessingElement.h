@@ -14,8 +14,11 @@ enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
 class ProcessingElement {
 private:
     bool FLAG;
+    AREG A, B, C, D, E, F;
     AREG NEWS;
     AREG XN, XE, XS, XW;
+    //Old names R0..R12
+    DREG RF, RS, RW, RN, RE, S0, S1, S2, S3, S4, S5, S6, RP;
 public:
     // Analog Register Transfer
     void bus(AREG a);

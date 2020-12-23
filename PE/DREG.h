@@ -7,6 +7,9 @@
 
 
 class DREG {
+public:
+    void set(bool val);
+    bool get();
 
 };
 
