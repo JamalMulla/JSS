@@ -17,6 +17,7 @@ ProcessingElement::ProcessingElement() {
     XE = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
     XS = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
     XW = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    FLAG = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8U, 255);
 }
 
 // Analog Register Transfer
@@ -206,22 +207,44 @@ void ProcessingElement::divq(AREG& y0, const AREG& x0) {
 }
 
 // Analog Neighbour Access
-//TODO NEWS and XS,XW,etc do we need to move values? how does it work? Neighbours are moved into NEWS
+//TODO Neighbours are moved into NEWS
 void ProcessingElement::movx(AREG& y, const AREG& x0, const news_t dir) {
     // y = x0_dir
+    // We want y to have x0_dir but it's a push not a pull. We will push the value into the NEWS of the right one
+    //NEWS is target. Source is RECT
+
+    //TODO What is write on read??
+    cv::UMat intermediate;
     switch (dir) {
-        case north:
-            this->bus(XS, x0);
+        case north: {
+            this->bus(intermediate, x0);
+            //Move to NEWS
+            auto chunk = cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            intermediate(cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(NEWS(chunk), FLAG(chunk));
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, SCAMP_WIDTH, 1)));
             break;
-        case east:
-            this->bus(XW, x0);
+        }
+        case east: {
+            this->bus(intermediate, x0);
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            intermediate(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0),FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
             break;
-        case south:
-            this->bus(XN, x0);
+        }
+        case south: {
+            this->bus(intermediate, x0);
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            intermediate(cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0),FLAG(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH,1)));
             break;
-        case west:
-            this->bus(XE, x0);
+        }
+        case west: {
+            this->bus(intermediate, x0);
+            auto chunk = cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            intermediate(cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(0, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, 1, SCAMP_HEIGHT)));
             break;
+        }
         default:
             break;
     }
