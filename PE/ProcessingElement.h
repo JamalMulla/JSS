@@ -5,57 +5,60 @@
 #ifndef SIMULATOR_PROCESSINGELEMENT_H
 #define SIMULATOR_PROCESSINGELEMENT_H
 
-
-#include "AREG.h"
-#include "DREG.h"
+#include "opencv2/opencv.hpp"
 
 enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
 
+typedef cv::UMat AREG;
+typedef cv::UMat DREG;
+
 class ProcessingElement {
 private:
-    bool FLAG;
+    cv::UMat FLAG;
     AREG A, B, C, D, E, F;
     AREG NEWS;
     AREG XN, XE, XS, XW;
     //Old names R0..R12
     DREG RF, RS, RW, RN, RE, S0, S1, S2, S3, S4, S5, S6, RP;
 public:
+    //Constructor
+    ProcessingElement();
     // Analog Register Transfer
-    void bus(AREG a);
-    void bus(AREG a, AREG a0);
-    void bus(AREG a, AREG a0, AREG a1);
-    void bus(AREG a, AREG a0, AREG a1, AREG a2);
-    void bus(AREG a, AREG a0, AREG a1, AREG a2, AREG a3);
-    void bus2(AREG a, AREG b);
-    void bus2(AREG a, AREG b, AREG a0);
-    void bus2(AREG a, AREG b, AREG a0, AREG a1);
-    void bus3(AREG a, AREG b, AREG c, AREG a0);
-    void where(AREG a);
-    void where(AREG a0, AREG a1);
-    void where(AREG a0, AREG a1, AREG a2);
+    void bus(AREG& a);
+    void bus(AREG& a, const AREG& a0);
+    void bus(AREG& a, const AREG& a0, const AREG& a1);
+    void bus(AREG& a, const AREG& a0, const AREG& a1, const AREG& a2);
+    void bus(AREG& a, const AREG& a0, const AREG& a1, const AREG& a2, const AREG& a3);
+    void bus2(AREG& a, AREG& b);
+    void bus2(AREG& a, AREG& b, const AREG& a0);
+    void bus2(AREG& a, AREG& b, const AREG& a0, const AREG& a1);
+    void bus3(AREG& a, AREG& b, AREG& c, const AREG& a0);
+    void where(const AREG& a);
+    void where(const AREG& a0, const AREG& a1);
+    void where(const AREG& a0, const AREG& a1, const AREG& a2);
     void all();
-    void mov(AREG y, AREG x0);
+    void mov(AREG& y, const AREG& x0);
 
     // Analog Arithmetic
-    void res(AREG a);
-    void res(AREG a,AREG b);
-    void add(AREG y, AREG x0, AREG x1);
-    void add(AREG y, AREG x0, AREG x1, AREG x2);
-    void sub(AREG y, AREG x0, AREG x1);
-    void neg(AREG y, AREG x0);
-    void abs(AREG y, AREG x0);
-    void div(AREG y0, AREG y1, AREG y2);
-    void div(AREG y0, AREG y1, AREG y2, AREG x0);
-    void diva(AREG y0, AREG y1, AREG y2);
-    void divq(AREG y0, AREG x0);
+    void res(AREG& a);
+    void res(AREG& a, AREG& b);
+    void add(AREG& y, const AREG& x0, const AREG& x1);
+    void add(AREG& y, const AREG& x0, const AREG& x1, const AREG& x2);
+    void sub(AREG& y, const AREG& x0, const AREG& x1);
+    void neg(AREG& y, const AREG& x0);
+    void abs(AREG& y, const AREG& x0);
+    void div(AREG& y0, AREG& y1, AREG& y2);
+    void div(AREG& y0, AREG& y1, AREG& y2, const AREG& x0);
+    void diva(AREG& y0, AREG& y1, AREG& y2);
+    void divq(AREG& y0, const AREG& x0);
 
     // Analog Neighbour Access
-    void movx(AREG y, AREG x0, const news_t dir);
-    void mov2x(AREG y, AREG x0, const news_t dir, const news_t dir2);
-    void addx(AREG y, AREG x0, AREG x1, const news_t dir);
-    void add2x(AREG y, AREG x0, AREG x1, const news_t dir, const news_t dir2);
-    void subx(AREG y, AREG x0, const news_t dir, AREG x1);
-    void sub2x(AREG y, AREG x0, const news_t dir, const news_t dir2, AREG x1);
+    void movx(AREG& y, const AREG& x0, news_t dir);
+    void mov2x(AREG& y, const AREG& x0, news_t dir, news_t dir2);
+    void addx(AREG& y, const AREG& x0, const AREG& x1, news_t dir);
+    void add2x(AREG& y, const AREG& x0, const AREG& x1, news_t dir, news_t dir2);
+    void subx(AREG& y, const AREG& x0, news_t dir, const AREG& x1);
+    void sub2x(AREG& y, const AREG& x0, news_t dir, news_t dir2, const AREG& x1);
 
     // Asynchronized Blur
 
@@ -99,12 +102,14 @@ public:
     // Digital Neighbour Access
     void DNEWS0(DREG d, DREG d0);
     void DNEWS1(DREG d, DREG d0);
-    void DNEWS(DREG Ra, DREG Rx, const int dir, const bool boundary);
+    void DNEWS(DREG Ra, DREG Rx, int dir, bool boundary);
 
     // Digital Propagation
     void PROP0();
     void PROP1();
 
+    int SCAMP_HEIGHT = 256;
+    int SCAMP_WIDTH = 256;
 };
 
 

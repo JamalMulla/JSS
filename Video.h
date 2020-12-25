@@ -7,7 +7,7 @@
 
 class Video {
 public:
-    void capture();
+    static void capture();
 };
 
 

@@ -4,7 +4,6 @@
 #include "Video.h"
 
 int main() {
-    Video video;
-    video.capture();
+    Video::capture();
     return 0;
 }

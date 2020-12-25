@@ -6,9 +6,15 @@
 
 #IncludeRegexTransform: 
 
+/home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.h
+opencv2/opencv.hpp
+/home/jm1417/CLionProjects/Simulator/PE/opencv2/opencv.hpp
+
 /home/jm1417/CLionProjects/Simulator/Video.cpp
 Video.h
 /home/jm1417/CLionProjects/Simulator/Video.h
+PE/ProcessingElement.h
+/home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.h
 opencv2/core.hpp
 -
 opencv2/videoio.hpp

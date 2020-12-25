@@ -4,134 +4,166 @@
 
 #include "ProcessingElement.h"
 
+
+ProcessingElement::ProcessingElement() {
+    A = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    B = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    C = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    D = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    E = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    F = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    NEWS = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    XN = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    XE = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    XS = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    XW = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+}
+
 // Analog Register Transfer
-void ProcessingElement::bus(AREG a) {
+void ProcessingElement::bus(AREG& a) {
     //a = 0 + error
-    a.set(0);
+    a.setTo(0.0, FLAG);
 }
 
-void ProcessingElement::bus(AREG a, AREG a0) {
+void ProcessingElement::bus(AREG& a, const AREG& a0) {
     //a = -a0 + error
-    a.set(-a0.get());
+    cv::bitwise_not(a0, a, FLAG);
 }
 
-void ProcessingElement::bus(AREG a, AREG a0, AREG a1) {
+void ProcessingElement::bus(AREG& a, const AREG& a0, const AREG& a1) {
     //a = -(a0 + a1) + error
-    a.set(-(a0.get() + a1.get()));
+    cv::UMat intermediate;
+    cv::add(a0, a1, intermediate, FLAG);
+    cv::bitwise_not(intermediate, a, FLAG);
 }
 
-void ProcessingElement::bus(AREG a, AREG a0, AREG a1, AREG a2) {
+void ProcessingElement::bus(AREG& a, const AREG& a0, const AREG& a1, const AREG& a2) {
     //a = -(a0 + a1 + a2) + error
-    a.set(-(a0.get() + a1.get() + a2.get()));
+    cv::UMat intermediate;
+    cv::add(a0, a1, intermediate, FLAG);
+    cv::add(intermediate, a2, intermediate, FLAG);
+    cv::bitwise_not(intermediate, a, FLAG);
 }
 
-void ProcessingElement::bus(AREG a, AREG a0, AREG a1, AREG a2, AREG a3) {
+void ProcessingElement::bus(AREG& a, const AREG& a0, const AREG& a1, const AREG& a2, const AREG& a3) {
     //a = -(a0 + a1 + a2 + a3) + error
-    a.set(-(a0.get() + a1.get() + a2.get() + a3.get()));
+    cv::UMat intermediate;
+    cv::add(a0, a1, intermediate, FLAG);
+    cv::add(intermediate, a2, intermediate, FLAG);
+    cv::add(intermediate, a3, intermediate, FLAG);
+    cv::bitwise_not(intermediate, a, FLAG);
 }
 
-void ProcessingElement::bus2(AREG a, AREG b) {
+void ProcessingElement::bus2(AREG& a, AREG& b) {
     //a,b = 0 + error
-    a.set(0);
-    b.set(0);
+    a.setTo(0.0, FLAG);
+    b.setTo(0.0, FLAG);
 }
 
-void ProcessingElement::bus2(AREG a, AREG b, AREG a0) {
+void ProcessingElement::bus2(AREG& a, AREG& b, const AREG& a0) {
     //a,b = -0.5*a0 + error + noise
-    double val = -0.5 * a0.get();
-    a.set(val);
-    b.set(val);
+    cv::UMat intermediate;
+    cv::divide(2, a0, intermediate);
+    cv::bitwise_not(intermediate, intermediate, FLAG);
+    intermediate.copyTo(a, FLAG);
+    intermediate.copyTo(b, FLAG);
 }
 
-void ProcessingElement::bus2(AREG a, AREG b, AREG a0, AREG a1) {
+void ProcessingElement::bus2(AREG& a, AREG& b, const AREG& a0, const AREG& a1) {
     //a,b = -0.5*(a0 + a1) + error + noise
-    double val = -0.5 * (a0.get() + a1.get());
-    a.set(val);
-    b.set(val);
+    cv::UMat intermediate;
+    cv::add(a0, a1, intermediate, FLAG);
+    cv::divide(2, intermediate, intermediate);
+    cv::bitwise_not(intermediate, intermediate, FLAG);
+    intermediate.copyTo(a, FLAG);
+    intermediate.copyTo(b, FLAG);
 }
 
-void ProcessingElement::bus3(AREG a, AREG b, AREG c, AREG a0) {
+void ProcessingElement::bus3(AREG& a, AREG& b, AREG& c, const AREG& a0) {
     //a,b,c = -0.33*a0 + error + noise
-    double val = -0.33 * a0.get();
-    a.set(val);
-    b.set(val);
-    c.set(val);
+    cv::UMat intermediate;
+    cv::divide(3, a0, intermediate);
+    cv::bitwise_not(intermediate, intermediate, FLAG);
+    intermediate.copyTo(a, FLAG);
+    intermediate.copyTo(b, FLAG);
+    intermediate.copyTo(c, FLAG);
 }
 
-void ProcessingElement::where(AREG a) {
+void ProcessingElement::where(const AREG& a) {
     //FLAG := a > 0.
-    this->FLAG = a.get() > 0;
+    cv::UMat intermediate;
+    cv::threshold(a, intermediate, 0, 255, cv::THRESH_BINARY);
+    intermediate.convertTo(FLAG, CV_8U, 2, 1);
 }
 
-void ProcessingElement::where(AREG a0, AREG a1) {
+void ProcessingElement::where(const AREG& a0, const AREG& a1) {
     //FLAG := (a0 + a1) > 0.
-    this->FLAG = (a0.get() + a1.get()) > 0;
+    cv::UMat intermediate;
+    cv::add(a0, a1, intermediate, FLAG);
+    threshold(intermediate, intermediate, 0, 255, cv::THRESH_BINARY);
+    intermediate.convertTo(FLAG, CV_8U, 2, 1);
 }
 
-void ProcessingElement::where(AREG a0, AREG a1, AREG a2) {
+void ProcessingElement::where(const AREG& a0, const AREG& a1, const AREG& a2) {
     //FLAG := (a0 + a1 + a2) > 0.
-    this->FLAG = (a0.get() + a1.get() + a2.get()) > 0;
+    cv::UMat intermediate;
+    cv::add(a0, a1, intermediate, FLAG);
+    cv::add(intermediate, a2, intermediate, FLAG);
+    threshold(intermediate, intermediate, 0, 255, cv::THRESH_BINARY);
+    intermediate.convertTo(FLAG, CV_8U, 2, 1);
 }
 
 void ProcessingElement::all() {
     //FLAG := 1.
-    this->FLAG = true;
+    this->FLAG.setTo(1);
 }
 
-void ProcessingElement::mov(AREG y, AREG x0) {
+void ProcessingElement::mov(AREG& y, const AREG& x0) {
     //y = x0
-    if (!FLAG) return;
     this->bus(NEWS, x0);
     this->bus(y, NEWS);
 }
 
 // Analog Arithmetic
-void ProcessingElement::res(AREG a) {
+void ProcessingElement::res(AREG& a) {
     // a = 0
-    if (!FLAG) return;
     this->bus(NEWS);
     this->bus(a, NEWS);
 }
 
-void ProcessingElement::res(AREG a, AREG b) {
+void ProcessingElement::res(AREG& a, AREG& b) {
     // a = 0, b := 0
-    if (!FLAG) return;
     this->bus(NEWS);
     this->bus(a, NEWS);
     this->bus(b, NEWS);
 }
 
-void ProcessingElement::add(AREG y, AREG x0, AREG x1) {
+void ProcessingElement::add(AREG& y, const AREG& x0, const AREG& x1) {
     // y = x0 + x1
-    if (!FLAG) return;
     this->bus(NEWS, x0, x1);
     this->bus(y, NEWS);
 }
 
-void ProcessingElement::add(AREG y, AREG x0, AREG x1, AREG x2) {
+void ProcessingElement::add(AREG& y, const AREG& x0, const AREG& x1, const AREG& x2) {
     // y = x0 + x1 + x2
-    if (!FLAG) return;
     this->bus(NEWS, x0, x1, x2);
     this->bus(y, NEWS);
 }
 
-void ProcessingElement::sub(AREG y, AREG x0, AREG x1) {
+void ProcessingElement::sub(AREG& y, const AREG& x0, const AREG& x1) {
     // y = x0 - x1
-    if (!FLAG) return;
     this->bus(NEWS, x0);
     this->bus(y, NEWS, x1);
 }
 
-void ProcessingElement::neg(AREG y, AREG x0) {
+void ProcessingElement::neg(AREG& y, const AREG& x0) {
     // y = -x0
-    if (!FLAG) return;
     this->bus(NEWS);
     this->bus(y, NEWS, x0);
 }
 
-void ProcessingElement::abs(AREG y, AREG x0) {
+void ProcessingElement::abs(AREG& y, const AREG& x0) {
     // y = |x0|
-    if (!FLAG) return;
     this->bus(NEWS);
     this->bus(y, NEWS, x0);
     this->bus(NEWS, x0);
@@ -140,9 +172,8 @@ void ProcessingElement::abs(AREG y, AREG x0) {
     this->all();
 }
 
-void ProcessingElement::div(AREG y0, AREG y1, AREG y2) {
+void ProcessingElement::div(AREG& y0, AREG& y1, AREG& y2) {
     // y0 := 0.5*y2; y1 := -0.5*y2 + error, y2 := y2 + error
-    if (!FLAG) return;
     this->bus2(y0, y1, y2);
     this->bus(NEWS, y2, y1);
     this->bus(y2, NEWS, y0);
@@ -150,9 +181,8 @@ void ProcessingElement::div(AREG y0, AREG y1, AREG y2) {
     this->bus(y0, y1);
 }
 
-void ProcessingElement::div(AREG y0, AREG y1, AREG y2, AREG x0) {
+void ProcessingElement::div(AREG& y0, AREG& y1, AREG& y2, const AREG& x0) {
     // y0 := 0.5*x0; y1 := -0.5*x0 + error, y2 := x0 + error
-    if (!FLAG) return;
     this->bus2(y0, y1, x0);
     this->bus(NEWS, x0, y1);
     this->bus(y2,NEWS, y0);
@@ -160,9 +190,8 @@ void ProcessingElement::div(AREG y0, AREG y1, AREG y2, AREG x0) {
     this->bus(y0, y1);
 }
 
-void ProcessingElement::diva(AREG y0, AREG y1, AREG y2) {
+void ProcessingElement::diva(AREG& y0, AREG& y1, AREG& y2) {
     // y0 := 0.5*y0; y1 := -0.5*y0 + error, y2 := -0.5*y0 + error
-    if (!FLAG) return;
     this->bus2(y1, y2, y0);
     this->bus(NEWS, y1, y0);
     this->bus(y0, NEWS, y2);
@@ -170,18 +199,16 @@ void ProcessingElement::diva(AREG y0, AREG y1, AREG y2) {
     this->bus(y0, y1);
 }
 
-void ProcessingElement::divq(AREG y0, AREG x0) {
+void ProcessingElement::divq(AREG& y0, const AREG& x0) {
     // y0 := 0.5*x0 + error
-    if (!FLAG) return;
     this->bus2(y0, NEWS, x0);
     this->bus(y0, NEWS);
 }
 
 // Analog Neighbour Access
 //TODO NEWS and XS,XW,etc do we need to move values? how does it work? Neighbours are moved into NEWS
-void ProcessingElement::movx(AREG y, AREG x0, const news_t dir) {
+void ProcessingElement::movx(AREG& y, const AREG& x0, const news_t dir) {
     // y = x0_dir
-    if (!FLAG) return;
     switch (dir) {
         case north:
             this->bus(XS, x0);
@@ -201,9 +228,8 @@ void ProcessingElement::movx(AREG y, AREG x0, const news_t dir) {
     this->bus(y, NEWS);
 }
 
-void ProcessingElement::mov2x(AREG y, AREG x0, const news_t dir, const news_t dir2) {
+void ProcessingElement::mov2x(AREG& y, const AREG& x0, const news_t dir, const news_t dir2) {
     // y = x0_dir_dir (note: this only works when FLAG is "all")
-    if (!FLAG) return;
     switch (dir) {
         case north:
             this->bus(XS, x0);
@@ -238,9 +264,8 @@ void ProcessingElement::mov2x(AREG y, AREG x0, const news_t dir, const news_t di
     }
 }
 
-void ProcessingElement::addx(AREG y, AREG x0, AREG x1, const news_t dir) {
+void ProcessingElement::addx(AREG& y, const AREG& x0, const AREG& x1, const news_t dir) {
     // y = x0_dir + x1_dir
-    if (!FLAG) return;
     switch (dir) {
         case north:
             this->bus(XS, x0, x1);
@@ -260,9 +285,8 @@ void ProcessingElement::addx(AREG y, AREG x0, AREG x1, const news_t dir) {
     this->bus(y, NEWS);
 }
 
-void ProcessingElement::add2x(AREG y, AREG x0, AREG x1, const news_t dir, const news_t dir2) {
+void ProcessingElement::add2x(AREG& y, const AREG& x0, const AREG& x1, const news_t dir, const news_t dir2) {
     // y = x0_dir_dir2 + x1_dir_dir2
-    if (!FLAG) return;
     switch (dir) {
         case north:
             this->bus(XS, x0, x1);
@@ -297,9 +321,8 @@ void ProcessingElement::add2x(AREG y, AREG x0, AREG x1, const news_t dir, const 
     }
 }
 
-void ProcessingElement::subx(AREG y, AREG x0, const news_t dir, AREG x1) {
+void ProcessingElement::subx(AREG& y, const AREG& x0, const news_t dir, const AREG& x1) {
     // y = x0_dir - x1
-    if (!FLAG) return;
     switch (dir) {
         case north:
             this->bus(XS, x0);
@@ -319,9 +342,8 @@ void ProcessingElement::subx(AREG y, AREG x0, const news_t dir, AREG x1) {
     this->bus(y, NEWS, x1);
 }
 
-void ProcessingElement::sub2x(AREG y, AREG x0, const news_t dir, const news_t dir2, AREG x1) {
+void ProcessingElement::sub2x(AREG& y, const AREG& x0, const news_t dir, const news_t dir2, const AREG& x1) {
     // y = x0_dir_dir2 - x1
-    if (!FLAG) return;
     switch (dir) {
         case north:
             this->bus(XS, x0);
@@ -389,25 +411,21 @@ void ProcessingElement::NOR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
 
 void ProcessingElement::NOT(DREG Rl) {
     // logic operation Rl := NOT Rl
-    if (!FLAG) return;
-    Rl.set(not Rl.get());
+    //Rl.set(not Rl.get());
 }
 
 void ProcessingElement::OR(DREG Rl, DREG Rx) {
     // logic operation Rl := Rl OR Rx
-    if (!FLAG) return;
-    Rl.set(Rl.get() or Rx.get());
+    //Rl.set(Rl.get() or Rx.get());
 }
 
 void ProcessingElement::NOR(DREG Rl, DREG Rx) {
     // logic operation Rl := Rl NOR Rx
-    if (!FLAG) return;
-    Rl.set(not (Rl.get() or Rx.get()));
+    //Rl.set(not (Rl.get() or Rx.get()));
 }
 
 void ProcessingElement::AND(DREG Ra, DREG Rx, DREG Ry) {
     //  Ra := Rx AND Ry; R0 = NOT Ry; R12 = NOT RX
-    if (!FLAG) return;
     this->SET(RF);
     this->NOT(RP, Rx);
     this->NOT(RF, Ry);
@@ -416,7 +434,6 @@ void ProcessingElement::AND(DREG Ra, DREG Rx, DREG Ry) {
 
 void ProcessingElement::NAND(DREG Ra, DREG Rx, DREG Ry) {
     // Ra := Rx NAND Ry; R0 = NOT Ry; R12 = NOT RX
-    if (!FLAG) return;
     this->SET(RF);
     this->NOT(RP, Rx);
     this->NOT(RF, Ry);
@@ -425,7 +442,6 @@ void ProcessingElement::NAND(DREG Ra, DREG Rx, DREG Ry) {
 
 void ProcessingElement::ANDX(DREG Ra, DREG Rb, DREG Rx) {
     // Ra := Rb AND Rx; Rb := NOT Rx; R0 = NOT Rb
-    if (!FLAG) return;
     this->NOT(RF, Rb);
     this->NOT(Rb, Rx);
     this->NOR(Ra, RF, Rb);
@@ -433,7 +449,6 @@ void ProcessingElement::ANDX(DREG Ra, DREG Rb, DREG Rx) {
 
 void ProcessingElement::NANDX(DREG Ra, DREG Rb, DREG Rx) {
     // Ra := Rx NAND Ry; Rb := NOT Rx; R0 = NOT Rb
-    if (!FLAG) return;
     this->NOT(RF, Rb);
     this->NOT(Rb, Rx);
     this->OR(Ra, RF, Rb);
@@ -447,21 +462,18 @@ void ProcessingElement::IMP(DREG Rl, DREG Rx, DREG Ry) {
     //    0   1     0
     //    1   0     1
     //    1   1     1
-    if (!FLAG) return;
     this->NOT(RF, Ry);
     this->OR(RS, Rx, RF);
 }
 
 void ProcessingElement::NIMP(DREG Rl, DREG Rx, DREG Ry) {
     // Rl := Rx NIMP Ry
-    if (!FLAG) return;
     this->NOT(RF, Ry);
     this->NOR(RS, Rx, RF);
 }
 
 void ProcessingElement::XOR(DREG Rl, DREG Rx, DREG Ry) {
     // Rl := Rx XOR Ry, Rx := *
-    if (!FLAG) return;
     this->NOT(RF, Ry);
     this->NOR(Rl, Rx, RF);
     this->NOT(RF, Rx);
@@ -524,7 +536,6 @@ void ProcessingElement::MOV(DREG d, DREG d0) {
 
 void ProcessingElement::MUX(DREG Rl, DREG Rx, DREG Ry, DREG Rz) {
     // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
-    if (!FLAG) return;
     this->SET(RF);
     this->MOV(RP, Rz);
     this->MOV(RF, Rx);
@@ -534,7 +545,6 @@ void ProcessingElement::MUX(DREG Rl, DREG Rx, DREG Ry, DREG Rz) {
 
 void ProcessingElement::CLR_IF(DREG Rl, DREG Rx) {
     // Rl := 0 IF Rx = 1, Rl := Rl IF Rx = 0
-    if (!FLAG) return;
     this->NOT(RF, Rl);
     this->NOR(Rl, RF, Rx);
 }
@@ -554,7 +564,6 @@ void ProcessingElement::DNEWS1(DREG d, DREG d0) {
 }
 
 void ProcessingElement::DNEWS(DREG Ra, DREG Rx, const int dir, const bool boundary) {
-    if (!FLAG) return;
     this->CLR(RS, RW, RN, RE);
     // set multiple dreg (upto 4) can be done via one icw
     if(dir&south){

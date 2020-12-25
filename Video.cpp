@@ -3,6 +3,7 @@
 //
 
 #include "Video.h"
+#include "PE/ProcessingElement.h"
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
@@ -40,7 +41,11 @@ void Video::capture() {
          << "Press any key to terminate" << endl;
 
     //target of conversion which makes it the input register
-    UMat A;
+    UMat A(scamp_height, scamp_width, CV_32F);
+    UMat B(scamp_height, scamp_width, CV_32F);
+
+    ProcessingElement pe;
+
     for (;;) {
         // wait for a new frame from camera and store it into 'frame'
         cap.read(frame);
@@ -54,10 +59,20 @@ void Video::capture() {
         int height = frame.rows;
         Mat cropFrame = frame(Rect((width-height)/2, 0, height-1, height-1));
         resize(cropFrame, cropFrame, cvSize(scamp_width, scamp_height));
-        //cropFrame.convertTo(A, CV_32F, 1, -128);
+        //alpha = contrast
+        //beta = brightness
+        cropFrame.convertTo(A, CV_32F, 0.1, -2);
+
+        //kernel
+        pe.movx(B, A, south);
+        pe.add(B, B, A);
+        pe.movx(A, B, north);
+        pe.addx(B, B, A, east);
+        pe.sub2x(A, B, west, west, B);
+
 
         // show live and wait for a key with timeout long enough to show images
-        imshow("Live", cropFrame);
+        imshow("Live", A);
         if (waitKey(5) >= 0)
             break;
     }
