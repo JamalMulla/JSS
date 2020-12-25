@@ -7,6 +7,8 @@
 
 
 class AREG {
+private:
+    double val;
 public:
     void set(double val);
     double get();

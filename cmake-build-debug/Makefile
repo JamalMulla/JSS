@@ -258,6 +258,33 @@ PE/ProcessingElement.cpp.s:
 	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.s
 .PHONY : PE/ProcessingElement.cpp.s
 
+Video.o: Video.cpp.o
+
+.PHONY : Video.o
+
+# target to build an object file
+Video.cpp.o:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/Video.cpp.o
+.PHONY : Video.cpp.o
+
+Video.i: Video.cpp.i
+
+.PHONY : Video.i
+
+# target to preprocess a source file
+Video.cpp.i:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/Video.cpp.i
+.PHONY : Video.cpp.i
+
+Video.s: Video.cpp.s
+
+.PHONY : Video.s
+
+# target to generate assembly for a file
+Video.cpp.s:
+	$(MAKE) -f CMakeFiles/Simulator.dir/build.make CMakeFiles/Simulator.dir/Video.cpp.s
+.PHONY : Video.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -309,6 +336,9 @@ help:
 	@echo "... PE/ProcessingElement.o"
 	@echo "... PE/ProcessingElement.i"
 	@echo "... PE/ProcessingElement.s"
+	@echo "... Video.o"
+	@echo "... Video.i"
+	@echo "... Video.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

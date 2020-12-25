@@ -3,3 +3,7 @@
 //
 
 #include "ASRC.h"
+
+double ASRC::get() {
+    return this->val;
+}

@@ -7,6 +7,8 @@
 
 
 class ASRC {
+private:
+    double val;
 public:
     double get();
 };

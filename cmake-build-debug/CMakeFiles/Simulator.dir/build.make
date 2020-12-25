@@ -135,6 +135,19 @@ CMakeFiles/Simulator.dir/PE/DSRC.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Simulator.dir/PE/DSRC.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jm1417/CLionProjects/Simulator/PE/DSRC.cpp -o CMakeFiles/Simulator.dir/PE/DSRC.cpp.s
 
+CMakeFiles/Simulator.dir/Video.cpp.o: CMakeFiles/Simulator.dir/flags.make
+CMakeFiles/Simulator.dir/Video.cpp.o: ../Video.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/Simulator.dir/Video.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Simulator.dir/Video.cpp.o -c /home/jm1417/CLionProjects/Simulator/Video.cpp
+
+CMakeFiles/Simulator.dir/Video.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Simulator.dir/Video.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jm1417/CLionProjects/Simulator/Video.cpp > CMakeFiles/Simulator.dir/Video.cpp.i
+
+CMakeFiles/Simulator.dir/Video.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Simulator.dir/Video.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jm1417/CLionProjects/Simulator/Video.cpp -o CMakeFiles/Simulator.dir/Video.cpp.s
+
 # Object files for target Simulator
 Simulator_OBJECTS = \
 "CMakeFiles/Simulator.dir/main.cpp.o" \
@@ -142,7 +155,8 @@ Simulator_OBJECTS = \
 "CMakeFiles/Simulator.dir/PE/AREG.cpp.o" \
 "CMakeFiles/Simulator.dir/PE/DREG.cpp.o" \
 "CMakeFiles/Simulator.dir/PE/ASRC.cpp.o" \
-"CMakeFiles/Simulator.dir/PE/DSRC.cpp.o"
+"CMakeFiles/Simulator.dir/PE/DSRC.cpp.o" \
+"CMakeFiles/Simulator.dir/Video.cpp.o"
 
 # External object files for target Simulator
 Simulator_EXTERNAL_OBJECTS =
@@ -153,9 +167,58 @@ Simulator: CMakeFiles/Simulator.dir/PE/AREG.cpp.o
 Simulator: CMakeFiles/Simulator.dir/PE/DREG.cpp.o
 Simulator: CMakeFiles/Simulator.dir/PE/ASRC.cpp.o
 Simulator: CMakeFiles/Simulator.dir/PE/DSRC.cpp.o
+Simulator: CMakeFiles/Simulator.dir/Video.cpp.o
 Simulator: CMakeFiles/Simulator.dir/build.make
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_aruco.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_bgsegm.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_bioinspired.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_ccalib.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_dnn_objdetect.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_dnn_superres.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_dpm.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_face.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_freetype.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_fuzzy.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_hdf.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_hfs.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_img_hash.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_line_descriptor.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_quality.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_reg.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_rgbd.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_saliency.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_shape.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_stereo.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_structured_light.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_superres.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_surface_matching.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_tracking.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_videostab.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_viz.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_xobjdetect.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_xphoto.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_datasets.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_plot.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_text.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_dnn.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_ml.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_phase_unwrapping.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_optflow.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_ximgproc.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_video.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_videoio.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_imgcodecs.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_flann.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.4.2.0
+Simulator: /usr/lib/x86_64-linux-gnu/libopencv_core.so.4.2.0
 Simulator: CMakeFiles/Simulator.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable Simulator"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable Simulator"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Simulator.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

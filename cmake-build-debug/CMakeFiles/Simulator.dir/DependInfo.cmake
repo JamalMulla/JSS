@@ -9,12 +9,14 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/home/jm1417/CLionProjects/Simulator/PE/DREG.cpp" "/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles/Simulator.dir/PE/DREG.cpp.o"
   "/home/jm1417/CLionProjects/Simulator/PE/DSRC.cpp" "/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles/Simulator.dir/PE/DSRC.cpp.o"
   "/home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.cpp" "/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles/Simulator.dir/PE/ProcessingElement.cpp.o"
+  "/home/jm1417/CLionProjects/Simulator/Video.cpp" "/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles/Simulator.dir/Video.cpp.o"
   "/home/jm1417/CLionProjects/Simulator/main.cpp" "/home/jm1417/CLionProjects/Simulator/cmake-build-debug/CMakeFiles/Simulator.dir/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
+  "/usr/include/opencv4"
   )
 
 # Targets to which this target links.

@@ -26,6 +26,8 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/Compiler/GNU-C.cmake"
   "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/Compiler/GNU-CXX.cmake"
   "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/Compiler/GNU.cmake"
+  "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/FindPackageHandleStandardArgs.cmake"
+  "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/FindPackageMessage.cmake"
   "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/Internal/CMakeCheckCompilerFlag.cmake"
   "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/Platform/Linux-GNU-C.cmake"
   "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/Platform/Linux-GNU-CXX.cmake"
@@ -33,6 +35,10 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/Platform/Linux.cmake"
   "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/Platform/UnixPaths.cmake"
   "/home/jm1417/Downloads/clion-2019.2.5/bin/cmake/linux/share/cmake-3.15/Modules/ProcessorCount.cmake"
+  "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVConfig-version.cmake"
+  "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVConfig.cmake"
+  "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVModules-release.cmake"
+  "/usr/lib/x86_64-linux-gnu/cmake/opencv4/OpenCVModules.cmake"
   )
 
 # The corresponding makefile is:

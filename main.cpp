@@ -1,6 +1,10 @@
 #include <iostream>
+#include "opencv2/opencv.hpp"
+
+#include "Video.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    Video video;
+    video.capture();
     return 0;
 }

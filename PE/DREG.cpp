@@ -3,3 +3,11 @@
 //
 
 #include "DREG.h"
+
+void DREG::set(bool val) {
+    this->val = val;
+}
+
+bool DREG::get() {
+    return this->val;
+}

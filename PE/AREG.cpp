@@ -3,3 +3,11 @@
 //
 
 #include "AREG.h"
+
+void AREG::set(double val) {
+    this->val = val;
+}
+
+double AREG::get() {
+    return this->val;
+}

@@ -7,6 +7,8 @@
 
 
 class DREG {
+private:
+    double val;
 public:
     void set(bool val);
     bool get();
