@@ -8,7 +8,10 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
 #include <iostream>
+#include <chrono>
 #include <cstdio>
+#include <time.h>
+#include <stdio.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgproc/imgproc_c.h>
 
@@ -36,15 +39,45 @@ void Video::capture() {
         cerr << "ERROR! Unable to open camera\n";
         return;
     }
-    //--- GRAB AND WRITE LOOP
-    cout << "Start grabbing" << endl
-         << "Press any key to terminate" << endl;
 
     //target of conversion which makes it the input register
-    UMat A(scamp_height, scamp_width, CV_32F);
-    UMat B(scamp_height, scamp_width, CV_32F);
+    UMat A(scamp_height, scamp_width, CV_8S);
+    UMat B(scamp_height, scamp_width, CV_8S);
+    UMat C(scamp_height, scamp_width, CV_8S);
 
     ProcessingElement pe;
+
+//    // start and end times
+//    chrono::time_point<chrono::high_resolution_clock> start, end;
+//    start = chrono::high_resolution_clock::now();
+//    // fps calculated using number of frames / seconds
+//    double fps;
+//    // frame counter
+//    int counter = 0;
+//    // floating point seconds elapsed since start
+//    double sec;
+//    while ( true ) {
+////        auto time_since_last_frame = chrono::high_resolution_clock::now() - last_frame_download;
+////        std::cout << (1e3/chrono::duration_cast<chrono::milliseconds>(time_since_last_frame).count()) << "fps\r";
+//
+//        cap.read(frame);
+//
+//        end = chrono::high_resolution_clock::now();
+//
+//        // calculate current FPS
+//        ++counter;
+//        sec = chrono::duration_cast<chrono::milliseconds>(end - start).count()/1000;
+//
+//        fps = counter / sec;
+//
+//        // will print out Inf until sec is greater than 0
+//        cout << fps << " fps\r" << std::flush;
+////        printf("FPS = %.2f\n", fps);
+//
+//        imshow("Result", frame);
+//        if (waitKey(1) == 27) break;
+//
+//    }
 
     for (;;) {
         // wait for a new frame from camera and store it into 'frame'
@@ -61,20 +94,33 @@ void Video::capture() {
         resize(cropFrame, cropFrame, cvSize(scamp_width, scamp_height));
         //alpha = contrast
         //beta = brightness
-        cropFrame.convertTo(A, CV_32F, 0.1, -2);
+        cropFrame.convertTo(A, CV_8S, 1, -128);
 
-        //kernel
-        pe.movx(B, A, south);
-        pe.add(B, B, A);
-        pe.movx(A, B, north);
-        pe.addx(B, B, A, east);
-        pe.sub2x(A, B, west, west, B);
+        //sobel kernel
+         pe.movx(B, A, south);
+         pe.add(B, B, A);
+         pe.movx(A, B, north);
+         pe.addx(B, B, A, east);
+         pe.sub2x(A, B, west, west, B);
 
+        //multiple sobel
+//        pe.movx(C, A, south);
+//        pe.add(B, C, A);
+//        pe.addx(A, C, A, north);
+//        pe.add2x(A, B, A, east, east);
+//        pe.sub2x(B, A, west, west, A);
+//        pe.movx(A, B, west);
+//        pe.movx(B, B, west);
 
+//        double minVal, maxVal;
+//        minMaxLoc(A, &minVal, &maxVal); //find minimum and maximum intensities
+//        Mat draw;
+//        A.convertTo(draw, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
         // show live and wait for a key with timeout long enough to show images
         imshow("Live", A);
-        if (waitKey(5) >= 0)
-            break;
+        waitKey(1);
+//        if (waitKey(5) >= 0)
+//            break;
     }
     // the camera will be deinitialized automatically in VideoCapture destructor
 }

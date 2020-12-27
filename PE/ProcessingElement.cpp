@@ -6,17 +6,17 @@
 
 
 ProcessingElement::ProcessingElement() {
-    A = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
-    B = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
-    C = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
-    D = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
-    E = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
-    F = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
-    NEWS = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
-    XN = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
-    XE = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
-    XS = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
-    XW = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_32F);
+    A = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    B = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    C = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    D = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    E = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    F = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    NEWS = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    XN = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    XE = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    XS = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    XW = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
     FLAG = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8U, 255);
 }
 
@@ -253,35 +253,70 @@ void ProcessingElement::movx(AREG& y, const AREG& x0, const news_t dir) {
 
 void ProcessingElement::mov2x(AREG& y, const AREG& x0, const news_t dir, const news_t dir2) {
     // y = x0_dir_dir (note: this only works when FLAG is "all")
+    cv::UMat intermediate;
     switch (dir) {
-        case north:
-            this->bus(XS, x0);
+        case north: {
+            this->bus(intermediate, x0);
+            //Move to NEWS
+            auto chunk = cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            intermediate(cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(NEWS(chunk), FLAG(chunk));
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, SCAMP_WIDTH, 1)));
             break;
-        case east:
-            this->bus(XW, x0);
+        }
+        case east: {
+            this->bus(intermediate, x0);
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            intermediate(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0),FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
             break;
-        case south:
-            this->bus(XN, x0);
+        }
+        case south: {
+            this->bus(intermediate, x0);
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            intermediate(cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0),FLAG(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH,1)));
             break;
-        case west:
-            this->bus(XE, x0);
+        }
+        case west: {
+            this->bus(intermediate, x0);
+            auto chunk = cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            intermediate(cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(0, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, 1, SCAMP_HEIGHT)));
             break;
+        }
         default:
             break;
     }
+    cv::UMat intermediate2;
     switch (dir2) {
-        case north:
-            this->bus(y, XN);
+        case north: {
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            NEWS(cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(intermediate2(chunk),FLAG(chunk));
+            intermediate2(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0),FLAG(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH,1)));
+            this->bus(y, intermediate2);
             break;
-        case east:
-            this->bus(y, XE);
+        }
+        case east: {
+            auto chunk = cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(intermediate2(chunk),FLAG(chunk));
+            intermediate2(cv::Rect(0, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, 1, SCAMP_HEIGHT)));
+            this->bus(y, intermediate2);
             break;
-        case south:
-            this->bus(y, XS);
+        }
+        case south: {
+            auto chunk = cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(intermediate2(chunk), FLAG(chunk));
+            intermediate2(cv::Rect(0, 0, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, SCAMP_WIDTH, 1)));
+            this->bus(y, intermediate2);
             break;
-        case west:
-            this->bus(y, XW);
+        }
+        case west: {
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            NEWS(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(intermediate2(chunk),FLAG(chunk));
+            intermediate2(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0),FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
+            this->bus(y, intermediate2);
             break;
+        }
         default:
             break;
     }
@@ -289,19 +324,37 @@ void ProcessingElement::mov2x(AREG& y, const AREG& x0, const news_t dir, const n
 
 void ProcessingElement::addx(AREG& y, const AREG& x0, const AREG& x1, const news_t dir) {
     // y = x0_dir + x1_dir
+    cv::UMat intermediate;
     switch (dir) {
-        case north:
-            this->bus(XS, x0, x1);
+        case north: {
+            this->bus(intermediate, x0, x1);
+            //Move to NEWS
+            auto chunk = cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            intermediate(cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(NEWS(chunk), FLAG(chunk));
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, SCAMP_WIDTH, 1)));
             break;
-        case east:
-            this->bus(XW, x0, x1);
+        }
+        case east: {
+            this->bus(intermediate, x0, x1);
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            intermediate(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0),FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
             break;
-        case south:
-            this->bus(XN, x0, x1);
+        }
+        case south: {
+            this->bus(intermediate, x0, x1);
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            intermediate(cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0),FLAG(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH,1)));
             break;
-        case west:
-            this->bus(XE, x0, x1);
+        }
+        case west: {
+            this->bus(intermediate, x0, x1);
+            auto chunk = cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            intermediate(cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(0, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, 1, SCAMP_HEIGHT)));
             break;
+        }
         default:
             break;
     }
@@ -310,35 +363,70 @@ void ProcessingElement::addx(AREG& y, const AREG& x0, const AREG& x1, const news
 
 void ProcessingElement::add2x(AREG& y, const AREG& x0, const AREG& x1, const news_t dir, const news_t dir2) {
     // y = x0_dir_dir2 + x1_dir_dir2
+    cv::UMat intermediate;
     switch (dir) {
-        case north:
-            this->bus(XS, x0, x1);
+        case north: {
+            this->bus(intermediate, x0, x1);
+            //Move to NEWS
+            auto chunk = cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            intermediate(cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(NEWS(chunk), FLAG(chunk));
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, SCAMP_WIDTH, 1)));
             break;
-        case east:
-            this->bus(XW, x0, x1);
+        }
+        case east: {
+            this->bus(intermediate, x0, x1);
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            intermediate(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0),FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
             break;
-        case south:
-            this->bus(XN, x0, x1);
+        }
+        case south: {
+            this->bus(intermediate, x0, x1);
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            intermediate(cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0),FLAG(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH,1)));
             break;
-        case west:
-            this->bus(XE, x0, x1);
+        }
+        case west: {
+            this->bus(intermediate, x0, x1);
+            auto chunk = cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            intermediate(cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(0, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, 1, SCAMP_HEIGHT)));
             break;
+        }
         default:
             break;
     }
+    cv::UMat intermediate2(256, 256, CV_8S);
     switch (dir2) {
-        case north:
-            this->bus(y, XN);
+        case north: {
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            NEWS(cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(intermediate2(chunk),FLAG(chunk));
+            intermediate2(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0),FLAG(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH,1)));
+            this->bus(y, intermediate2);
             break;
-        case east:
-            this->bus(y, XE);
+        }
+        case east: {
+            auto chunk = cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(intermediate2(chunk),FLAG(chunk));
+            intermediate2(cv::Rect(0, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, 1, SCAMP_HEIGHT)));
+            this->bus(y, intermediate2);
             break;
-        case south:
-            this->bus(y, XS);
+        }
+        case south: {
+            auto chunk = cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(intermediate2(chunk), FLAG(chunk));
+            intermediate2(cv::Rect(0, 0, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, SCAMP_WIDTH, 1)));
+            this->bus(y, intermediate2);
             break;
-        case west:
-            this->bus(y, XW);
+        }
+        case west: {
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            NEWS(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(intermediate2(chunk),FLAG(chunk));
+            intermediate2(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0),FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
+            this->bus(y, intermediate2);
             break;
+        }
         default:
             break;
     }
@@ -367,35 +455,70 @@ void ProcessingElement::subx(AREG& y, const AREG& x0, const news_t dir, const AR
 
 void ProcessingElement::sub2x(AREG& y, const AREG& x0, const news_t dir, const news_t dir2, const AREG& x1) {
     // y = x0_dir_dir2 - x1
+    cv::UMat intermediate;
     switch (dir) {
-        case north:
-            this->bus(XS, x0);
+        case north: {
+            this->bus(intermediate, x0);
+            //Move to NEWS
+            auto chunk = cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            intermediate(cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(NEWS(chunk), FLAG(chunk));
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, SCAMP_WIDTH, 1)));
             break;
-        case east:
-            this->bus(XW, x0);
+        }
+        case east: {
+            this->bus(intermediate, x0);
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            intermediate(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0),FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
             break;
-        case south:
-            this->bus(XN, x0);
+        }
+        case south: {
+            this->bus(intermediate, x0);
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            intermediate(cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0),FLAG(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH,1)));
             break;
-        case west:
-            this->bus(XE, x0);
+        }
+        case west: {
+            this->bus(intermediate, x0);
+            auto chunk = cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            intermediate(cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(NEWS(chunk),FLAG(chunk));
+            NEWS(cv::Rect(0, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, 1, SCAMP_HEIGHT)));
             break;
+        }
         default:
             break;
     }
+    cv::UMat intermediate2(256, 256, CV_8S);
     switch (dir2) {
-        case north:
-            this->bus(y, XN, x1);
+        case north: {
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            NEWS(cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(intermediate2(chunk),FLAG(chunk));
+            intermediate2(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0),FLAG(cv::Rect(0, SCAMP_HEIGHT - 1, SCAMP_WIDTH,1)));
+            this->bus(y, intermediate2, x1);
             break;
-        case east:
-            this->bus(y, XE, x1);
+        }
+        case east: {
+            auto chunk = cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(intermediate2(chunk),FLAG(chunk));
+            intermediate2(cv::Rect(0, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, 1, SCAMP_HEIGHT)));
+            this->bus(y, intermediate2, x1);
             break;
-        case south:
-            this->bus(y, XS, x1);
+        }
+        case south: {
+            auto chunk = cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
+            NEWS(cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(intermediate2(chunk), FLAG(chunk));
+            intermediate2(cv::Rect(0, 0, SCAMP_WIDTH, 1)).setTo(cv::Scalar(0), FLAG(cv::Rect(0, 0, SCAMP_WIDTH, 1)));
+            this->bus(y, intermediate2, x1);
             break;
-        case west:
-            this->bus(y, XW, x1);
+        }
+        case west: {
+            auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
+            NEWS(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(intermediate2(chunk),FLAG(chunk));
+            intermediate2(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(0),FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
+            this->bus(y, intermediate2, x1);
             break;
+        }
         default:
             break;
     }

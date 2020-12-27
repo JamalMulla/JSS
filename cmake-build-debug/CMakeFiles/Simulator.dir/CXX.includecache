@@ -6,13 +6,37 @@
 
 #IncludeRegexTransform: 
 
-/home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.cpp
-ProcessingElement.h
-/home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.h
-
 /home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.h
 opencv2/opencv.hpp
 /home/jm1417/CLionProjects/Simulator/PE/opencv2/opencv.hpp
+
+/home/jm1417/CLionProjects/Simulator/Video.cpp
+Video.h
+/home/jm1417/CLionProjects/Simulator/Video.h
+PE/ProcessingElement.h
+/home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.h
+opencv2/core.hpp
+-
+opencv2/videoio.hpp
+-
+opencv2/highgui.hpp
+-
+iostream
+-
+chrono
+-
+cstdio
+-
+time.h
+-
+stdio.h
+-
+opencv2/imgproc.hpp
+-
+opencv2/imgproc/imgproc_c.h
+-
+
+/home/jm1417/CLionProjects/Simulator/Video.h
 
 /usr/include/opencv4/opencv2/calib3d.hpp
 opencv2/core.hpp
@@ -85,6 +109,16 @@ opencv2/core/check.hpp
 /usr/include/opencv4/opencv2/core/check.hpp
 opencv2/core/base.hpp
 -
+
+/usr/include/opencv4/opencv2/core/core_c.h
+opencv2/core/types_c.h
+/usr/include/opencv4/opencv2/core/opencv2/core/types_c.h
+cxcore.h
+/usr/include/opencv4/opencv2/core/cxcore.h
+cxcore.h
+/usr/include/opencv4/opencv2/core/cxcore.h
+opencv2/core/utility.hpp
+/usr/include/opencv4/opencv2/core/opencv2/core/utility.hpp
 
 /usr/include/opencv4/opencv2/core/cuda.hpp
 opencv2/core.hpp
@@ -327,6 +361,24 @@ opencv2/core/cvstd.hpp
 /usr/include/opencv4/opencv2/core/opencv2/core/cvstd.hpp
 opencv2/core/matx.hpp
 /usr/include/opencv4/opencv2/core/opencv2/core/matx.hpp
+
+/usr/include/opencv4/opencv2/core/types_c.h
+ipl.h
+-
+ipl/ipl.h
+-
+opencv2/core/cvdef.h
+/usr/include/opencv4/opencv2/core/opencv2/core/cvdef.h
+assert.h
+-
+stdlib.h
+-
+string.h
+-
+float.h
+-
+opencv2/core.hpp
+/usr/include/opencv4/opencv2/core/opencv2/core.hpp
 
 /usr/include/opencv4/opencv2/core/utility.hpp
 opencv2/core.hpp
@@ -853,6 +905,14 @@ opencv2/core.hpp
 /usr/include/opencv4/opencv2/imgproc.hpp
 opencv2/core.hpp
 /usr/include/opencv4/opencv2/opencv2/core.hpp
+
+/usr/include/opencv4/opencv2/imgproc/imgproc_c.h
+opencv2/imgproc/types_c.h
+/usr/include/opencv4/opencv2/imgproc/opencv2/imgproc/types_c.h
+
+/usr/include/opencv4/opencv2/imgproc/types_c.h
+opencv2/core/core_c.h
+/usr/include/opencv4/opencv2/imgproc/opencv2/core/core_c.h
 
 /usr/include/opencv4/opencv2/ml.hpp
 opencv2/core.hpp
