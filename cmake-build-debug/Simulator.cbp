@@ -114,6 +114,12 @@
 		<Unit filename="/home/jm1417/CLionProjects/Simulator/PE/ProcessingElement.h">
 			<Option target="Simulator"/>
 		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/Test.cpp">
+			<Option target="Simulator"/>
+		</Unit>
+		<Unit filename="/home/jm1417/CLionProjects/Simulator/Test.h">
+			<Option target="Simulator"/>
+		</Unit>
 		<Unit filename="/home/jm1417/CLionProjects/Simulator/Video.cpp">
 			<Option target="Simulator"/>
 		</Unit>

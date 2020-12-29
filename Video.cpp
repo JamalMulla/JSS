@@ -18,6 +18,14 @@
 using namespace cv;
 using namespace std;
 
+Mat Video::draw_analogue_register(AREG& reg){
+    double minVal, maxVal;
+    minMaxLoc(reg, &minVal, &maxVal); //find minimum and maximum intensities
+    Mat draw;
+    reg.convertTo(draw, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+    return draw;
+}
+
 void Video::capture() {
 
     int scamp_width = 256;
@@ -41,9 +49,10 @@ void Video::capture() {
     }
 
     //target of conversion which makes it the input register
-    UMat A(scamp_height, scamp_width, CV_8S);
-    UMat B(scamp_height, scamp_width, CV_8S);
-    UMat C(scamp_height, scamp_width, CV_8S);
+    AREG source(scamp_height, scamp_width, CV_8S);
+    AREG A(scamp_height, scamp_width, CV_8S);
+    AREG B(scamp_height, scamp_width, CV_8S);
+    AREG C(scamp_height, scamp_width, CV_8S);
 
     ProcessingElement pe;
 
@@ -94,8 +103,9 @@ void Video::capture() {
         resize(cropFrame, cropFrame, cvSize(scamp_width, scamp_height));
         //alpha = contrast
         //beta = brightness
-        cropFrame.convertTo(A, CV_8S, 1, -128);
-
+        cropFrame.convertTo(source, CV_8S);
+        source.copyTo(A);
+        imshow("A", Video::draw_analogue_register(A));
         //sobel kernel
          pe.movx(B, A, south);
          pe.add(B, B, A);
@@ -112,12 +122,12 @@ void Video::capture() {
 //        pe.movx(A, B, west);
 //        pe.movx(B, B, west);
 
-//        double minVal, maxVal;
-//        minMaxLoc(A, &minVal, &maxVal); //find minimum and maximum intensities
-//        Mat draw;
-//        A.convertTo(draw, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+
         // show live and wait for a key with timeout long enough to show images
-        imshow("Live", A);
+        imshow("Source", Video::draw_analogue_register(source));
+        imshow("A", Video::draw_analogue_register(A));
+        imshow("B", Video::draw_analogue_register(B));
+        imshow("C", Video::draw_analogue_register(C));
         waitKey(1);
 //        if (waitKey(5) >= 0)
 //            break;

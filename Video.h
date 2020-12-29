@@ -5,8 +5,12 @@
 #ifndef SIMULATOR_VIDEO_H
 #define SIMULATOR_VIDEO_H
 
+#include <opencv2/core/mat.hpp>
+#include "PE/ProcessingElement.h"
+
 class Video {
 public:
+    static cv::Mat draw_analogue_register(AREG &reg);
     static void capture();
 };
 

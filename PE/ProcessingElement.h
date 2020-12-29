@@ -9,20 +9,30 @@
 
 enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
 
-typedef cv::UMat AREG;
-typedef cv::UMat DREG;
+typedef cv::Mat AREG;
+typedef cv::Mat DREG;
+
+#define SCAMP_HEIGHT 256
+#define SCAMP_WIDTH 256
 
 class ProcessingElement {
 private:
+public:
     cv::UMat FLAG;
     AREG A, B, C, D, E, F;
     AREG NEWS;
     AREG XN, XE, XS, XW;
     //Old names R0..R12
     DREG RF, RS, RW, RN, RE, S0, S1, S2, S3, S4, S5, S6, RP;
-public:
     //Constructor
     ProcessingElement();
+
+    //Helpers
+    /*Pushes value from register to NEWS of dir PE. Fills with 0s*/
+    void pushToNews(AREG& src, news_t dir);
+    /*Pulls value from NEWS of dir to current PE. Fills with 0s*/
+    void pullFromNews(AREG& dst, news_t dir);
+
     // Analog Register Transfer
     void bus(AREG& a);
     void bus(AREG& a, const AREG& a0);
@@ -107,9 +117,6 @@ public:
     // Digital Propagation
     void PROP0();
     void PROP1();
-
-    int SCAMP_HEIGHT = 256;
-    int SCAMP_WIDTH = 256;
 };
 
 
