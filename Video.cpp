@@ -50,9 +50,6 @@ void Video::capture() {
 
     //target of conversion which makes it the input register
     AREG source(scamp_height, scamp_width, CV_8S);
-    AREG A(scamp_height, scamp_width, CV_8S);
-    AREG B(scamp_height, scamp_width, CV_8S);
-    AREG C(scamp_height, scamp_width, CV_8S);
 
     ProcessingElement pe;
 
@@ -103,15 +100,16 @@ void Video::capture() {
         resize(cropFrame, cropFrame, cvSize(scamp_width, scamp_height));
         //alpha = contrast
         //beta = brightness
-        cropFrame.convertTo(source, CV_8S);
-        source.copyTo(A);
-        imshow("A", Video::draw_analogue_register(A));
+        cropFrame.convertTo(pe.PIX, CV_8S);
+        //source.copyTo(pe.PIX);
+
         //sobel kernel
-         pe.movx(B, A, south);
-         pe.add(B, B, A);
-         pe.movx(A, B, north);
-         pe.addx(B, B, A, east);
-         pe.sub2x(A, B, west, west, B);
+        pe.get_image(pe.A, pe.D);
+        pe.movx(pe.B, pe.A, south);
+        pe.add(pe.B, pe.B, pe.A);
+        pe.movx(pe.A, pe.B, north);
+        pe.addx(pe.B, pe.B, pe.A, east);
+        pe.sub2x(pe.A, pe.B, west, west, pe.B);
 
         //multiple sobel
 //        pe.movx(C, A, south);
@@ -124,10 +122,11 @@ void Video::capture() {
 
 
         // show live and wait for a key with timeout long enough to show images
-        imshow("Source", Video::draw_analogue_register(source));
-        imshow("A", Video::draw_analogue_register(A));
-        imshow("B", Video::draw_analogue_register(B));
-        imshow("C", Video::draw_analogue_register(C));
+        imshow("Source", Video::draw_analogue_register(pe.PIX));
+        imshow("A",Video::draw_analogue_register(pe.A));
+        imshow("B", Video::draw_analogue_register(pe.B));
+        imshow("NEWS", Video::draw_analogue_register(pe.NEWS));
+        //imshow("C", Video::draw_analogue_register(C));
         waitKey(1);
 //        if (waitKey(5) >= 0)
 //            break;

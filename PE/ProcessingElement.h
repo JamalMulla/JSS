@@ -19,6 +19,7 @@ class ProcessingElement {
 private:
 public:
     cv::UMat FLAG;
+    AREG PIX, IN;
     AREG A, B, C, D, E, F;
     AREG NEWS;
     AREG XN, XE, XS, XW;
@@ -32,6 +33,18 @@ public:
     void pushToNews(AREG& src, news_t dir);
     /*Pulls value from NEWS of dir to current PE. Fills with 0s*/
     void pullFromNews(AREG& dst, news_t dir);
+
+    // Misc
+    void nop();
+
+    // Image Capturing
+    void rpix();
+    void get_image(AREG& y);
+    void get_image(AREG& y, AREG& h);
+    void respix();
+    void respix(AREG& y);
+    void getpix(AREG& y, AREG& pix_res);
+    void getpix(AREG& y, AREG& h, AREG& pix_res);
 
     // Analog Register Transfer
     void bus(AREG& a);

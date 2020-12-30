@@ -6,6 +6,8 @@
 
 
 ProcessingElement::ProcessingElement() {
+    IN = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    PIX = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
     A = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
     B = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
     C = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
@@ -56,7 +58,8 @@ void ProcessingElement::pullFromNews(AREG& dst, news_t dir) {
     switch (dir) {
         case east: {
             auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
-            NEWS(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(dst(chunk), FLAG(chunk));
+            auto n = NEWS(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT));
+            n.copyTo(dst(chunk), FLAG(chunk));
             dst(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(-1), FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
             break;
         }
@@ -81,6 +84,63 @@ void ProcessingElement::pullFromNews(AREG& dst, news_t dir) {
         default:
             break;
     }
+}
+
+// Misc
+
+void ProcessingElement::nop() {}
+
+// Image Capturing
+void ProcessingElement::rpix() {
+    //reset PIX
+}
+
+void ProcessingElement::get_image(AREG &y) {
+    //y := half-range image, and reset PIX
+    this->bus(NEWS, PIX);
+    this->rpix();
+    this->rpix();
+    this->nop();
+    this->bus(y, NEWS, PIX);
+}
+
+void ProcessingElement::get_image(AREG &y, AREG &h) {
+    //y := full-range image, h := negative half-range image, and reset PIX
+    this->bus(NEWS, PIX);
+    this->bus(h,PIX);
+    this->rpix();
+    this->rpix();
+    this->nop();
+    this->bus(y, h, NEWS, PIX);
+}
+
+void ProcessingElement::respix() {
+    //reset PIX
+    this->rpix();
+    this->rpix();
+    this->nop();
+}
+
+void ProcessingElement::respix(AREG &y) {
+    //reset PIX, keep its reset level in y
+    this->rpix();
+    this->rpix();
+    this->nop();
+    this->bus(NEWS, PIX);
+    this->bus(y, NEWS);
+}
+
+void ProcessingElement::getpix(AREG &y, AREG &pix_res) {
+    //y := half-range image, supplying the reset level of PIX
+    this->bus(NEWS,PIX);
+    this->bus(y,NEWS, pix_res);
+}
+
+void ProcessingElement::getpix(AREG &y, AREG &h, AREG &pix_res) {
+    //y := full-range, h := half-range image, supplying the reset level of PIX
+    this->bus(h,PIX);
+    this->bus(NEWS, PIX);
+    this->bus(y, h, NEWS, pix_res);
 }
 
 // Analog Register Transfer
@@ -273,8 +333,6 @@ void ProcessingElement::divq(AREG& y0, const AREG& x0) {
 //TODO Neighbours are moved into NEWS
 void ProcessingElement::movx(AREG& y, const AREG& x0, const news_t dir) {
     // y = x0_dir
-    // We want y to have x0_dir but it's a push not a pull. We will push the value into the NEWS of the right one
-    //NEWS is target. Source is RECT
 
     //TODO What is write on read??
     AREG intermediate;
