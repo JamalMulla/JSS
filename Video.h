@@ -10,7 +10,7 @@
 
 class Video {
 public:
-    static cv::Mat draw_analogue_register(AREG &reg);
+    static cv::Mat draw_analogue_register(AREG& reg, const std::string& window);
     static void capture();
 };
 

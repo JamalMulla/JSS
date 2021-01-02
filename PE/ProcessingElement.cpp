@@ -6,19 +6,19 @@
 
 
 ProcessingElement::ProcessingElement() {
-    IN = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    PIX = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    A = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    B = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    C = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    D = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    E = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    F = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    NEWS = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    XN = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    XE = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    XS = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
-    XW = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    IN = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    PIX = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    A = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    B = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    C = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    D = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    E = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    F = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    NEWS = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    XN = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    XE = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    XS = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    XW = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
     FLAG = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8U, 255);
 }
 
@@ -151,7 +151,9 @@ void ProcessingElement::bus(AREG& a) {
 
 void ProcessingElement::bus(AREG& a, const AREG& a0) {
     //a = -a0 + error
-    cv::bitwise_not(a0, a, FLAG);
+    a = -a0;
+    //cv::divide(-1, a0, a);
+    //cv::bitwise_not(a0, a, FLAG);
 }
 
 void ProcessingElement::bus(AREG& a, const AREG& a0, const AREG& a1) {
@@ -166,7 +168,8 @@ void ProcessingElement::bus(AREG& a, const AREG& a0, const AREG& a1, const AREG&
     AREG intermediate;
     cv::add(a0, a1, intermediate, FLAG);
     cv::add(intermediate, a2, intermediate, FLAG);
-    cv::bitwise_not(intermediate, a, FLAG);
+    a = -intermediate;
+    //cv::bitwise_not(intermediate, a, FLAG);
 }
 
 void ProcessingElement::bus(AREG& a, const AREG& a0, const AREG& a1, const AREG& a2, const AREG& a3) {
@@ -217,7 +220,7 @@ void ProcessingElement::where(const AREG& a) {
     //FLAG := a > 0.
     AREG intermediate;
     cv::threshold(a, intermediate, 0, 255, cv::THRESH_BINARY);
-    intermediate.convertTo(FLAG, CV_8U, 2, 1);
+    intermediate.convertTo(FLAG, MAT_TYPE, 2, 1);
 }
 
 void ProcessingElement::where(const AREG& a0, const AREG& a1) {
@@ -225,7 +228,7 @@ void ProcessingElement::where(const AREG& a0, const AREG& a1) {
     AREG intermediate;
     cv::add(a0, a1, intermediate, FLAG);
     threshold(intermediate, intermediate, 0, 255, cv::THRESH_BINARY);
-    intermediate.convertTo(FLAG, CV_8U, 2, 1);
+    intermediate.convertTo(FLAG, MAT_TYPE, 2, 1);
 }
 
 void ProcessingElement::where(const AREG& a0, const AREG& a1, const AREG& a2) {
@@ -234,7 +237,7 @@ void ProcessingElement::where(const AREG& a0, const AREG& a1, const AREG& a2) {
     cv::add(a0, a1, intermediate, FLAG);
     cv::add(intermediate, a2, intermediate, FLAG);
     threshold(intermediate, intermediate, 0, 255, cv::THRESH_BINARY);
-    intermediate.convertTo(FLAG, CV_8U, 2, 1);
+    intermediate.convertTo(FLAG, MAT_TYPE, 2, 1);
 }
 
 void ProcessingElement::all() {
@@ -348,7 +351,7 @@ void ProcessingElement::movx(AREG& y, const AREG& x0, const news_t dir) {
 void ProcessingElement::mov2x(AREG& y, const AREG& x0, const news_t dir, const news_t dir2) {
     // y = x0_dir_dir (note: this only works when FLAG is "all")
     AREG intermediate;
-    AREG intermediate2(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    AREG intermediate2(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
     //std::cout << "Y: " << x0 << std::endl;
     this->bus(intermediate, x0);
 //    std::cout << "int: " << intermediate << std::endl;
@@ -374,7 +377,7 @@ void ProcessingElement::add2x(AREG& y, const AREG& x0, const AREG& x1, const new
     // y = x0_dir_dir2 + x1_dir_dir2
 
     AREG intermediate;
-    AREG intermediate2(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    AREG intermediate2(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
 
     this->bus(intermediate, x0, x1);
     this->pushToNews(intermediate, dir);
@@ -393,7 +396,7 @@ void ProcessingElement::subx(AREG& y, const AREG& x0, const news_t dir, const AR
 void ProcessingElement::sub2x(AREG& y, const AREG& x0, const news_t dir, const news_t dir2, const AREG& x1) {
     // y = x0_dir_dir2 - x1
     AREG intermediate;
-    AREG intermediate2(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8S);
+    AREG intermediate2(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
     this->bus(intermediate, x0);
     this->pushToNews(intermediate, dir);
     this->pullFromNews(intermediate2, dir2);

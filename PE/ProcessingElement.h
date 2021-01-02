@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_PROCESSINGELEMENT_H
 #define SIMULATOR_PROCESSINGELEMENT_H
 
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 
 enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
 
@@ -14,6 +14,7 @@ typedef cv::Mat DREG;
 
 #define SCAMP_HEIGHT 256
 #define SCAMP_WIDTH 256
+#define MAT_TYPE CV_8U
 
 class ProcessingElement {
 private:
