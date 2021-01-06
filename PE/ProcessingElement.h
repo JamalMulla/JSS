@@ -14,7 +14,7 @@ typedef cv::Mat DREG;
 
 #define SCAMP_HEIGHT 256
 #define SCAMP_WIDTH 256
-#define MAT_TYPE CV_8U
+#define MAT_TYPE CV_8S
 
 class ProcessingElement {
 private:

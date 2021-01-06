@@ -2,7 +2,9 @@
 // Created by jm1417 on 22/12/2020.
 //
 
+#include <opencv2/imgproc/types_c.h>
 #include "ProcessingElement.h"
+#include "../Video.h"
 
 
 ProcessingElement::ProcessingElement() {
@@ -20,6 +22,27 @@ ProcessingElement::ProcessingElement() {
     XS = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
     XW = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
     FLAG = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8U, 255);
+}
+
+
+bool matIsEqual(const cv::Mat mat1, const cv::Mat mat2){
+    // treat two empty mat as identical as well
+    if (mat1.empty() && mat2.empty()) {
+        return true;
+    }
+    // if dimensionality of two mat is not identical, these two mat is not identical
+    if (mat1.cols != mat2.cols || mat1.rows != mat2.rows || mat1.dims != mat2.dims) {
+        return false;
+    }
+    cv::Mat diff;
+    cv::compare(mat1, mat2, diff, cv::CMP_NE);
+    int nz = cv::countNonZero(diff);
+    return nz==0;
+}
+
+void printMatrix(const cv::Mat& mat, std::string m) {
+    std::cout << mat.size << std::endl;
+    std::cout << m << " " << mat << std::endl;
 }
 
 void ProcessingElement::pushToNews(AREG& src, news_t dir) {
@@ -56,26 +79,26 @@ void ProcessingElement::pushToNews(AREG& src, news_t dir) {
 
 void ProcessingElement::pullFromNews(AREG& dst, news_t dir) {
     switch (dir) {
-        case east: {
+        case west: {
             auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
             auto n = NEWS(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT));
             n.copyTo(dst(chunk), FLAG(chunk));
             dst(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(-1), FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
             break;
         }
-        case west: {
+        case east: {
             auto chunk = cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
             NEWS(cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(dst(chunk), FLAG(chunk));
             dst(cv::Rect(0, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(-1), FLAG(cv::Rect(0, 0, 1, SCAMP_HEIGHT)));
             break;
         }
-        case north: {
+        case south: {
             auto chunk = cv::Rect(0, 1, SCAMP_WIDTH, SCAMP_HEIGHT - 1);
             NEWS(cv::Rect(0, 0, SCAMP_WIDTH, SCAMP_HEIGHT - 1)).copyTo(dst(chunk), FLAG(chunk));
             dst(cv::Rect(0, 0, SCAMP_WIDTH, 1)).setTo(cv::Scalar(-1), FLAG(cv::Rect(0, 0, SCAMP_WIDTH, 1)));
             break;
         }
-        case south: {
+        case north: {
             auto chunk = cv::Rect(0, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT);
             NEWS(cv::Rect(1, 0, SCAMP_WIDTH - 1, SCAMP_HEIGHT)).copyTo(dst(chunk), FLAG(chunk));
             dst(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)).setTo(cv::Scalar(-1), FLAG(cv::Rect(SCAMP_WIDTH - 1, 0, 1, SCAMP_HEIGHT)));
@@ -93,6 +116,7 @@ void ProcessingElement::nop() {}
 // Image Capturing
 void ProcessingElement::rpix() {
     //reset PIX
+    this->PIX.setTo(0);
 }
 
 void ProcessingElement::get_image(AREG &y) {
@@ -107,7 +131,7 @@ void ProcessingElement::get_image(AREG &y) {
 void ProcessingElement::get_image(AREG &y, AREG &h) {
     //y := full-range image, h := negative half-range image, and reset PIX
     this->bus(NEWS, PIX);
-    this->bus(h,PIX);
+    this->bus(h, PIX);
     this->rpix();
     this->rpix();
     this->nop();
@@ -151,9 +175,7 @@ void ProcessingElement::bus(AREG& a) {
 
 void ProcessingElement::bus(AREG& a, const AREG& a0) {
     //a = -a0 + error
-    a = -a0;
-    //cv::divide(-1, a0, a);
-    //cv::bitwise_not(a0, a, FLAG);
+    cv::bitwise_not(a0, a, FLAG);
 }
 
 void ProcessingElement::bus(AREG& a, const AREG& a0, const AREG& a1) {
@@ -168,8 +190,8 @@ void ProcessingElement::bus(AREG& a, const AREG& a0, const AREG& a1, const AREG&
     AREG intermediate;
     cv::add(a0, a1, intermediate, FLAG);
     cv::add(intermediate, a2, intermediate, FLAG);
-    a = -intermediate;
-    //cv::bitwise_not(intermediate, a, FLAG);
+    //a = -intermediate;
+    cv::bitwise_not(intermediate, a, FLAG);
 }
 
 void ProcessingElement::bus(AREG& a, const AREG& a0, const AREG& a1, const AREG& a2, const AREG& a3) {
@@ -397,10 +419,18 @@ void ProcessingElement::sub2x(AREG& y, const AREG& x0, const news_t dir, const n
     // y = x0_dir_dir2 - x1
     AREG intermediate;
     AREG intermediate2(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
+    //imshow("x0", x0);
+//    std::cout << "x0\n" << x0 << std::endl;
+//    std::cout << "NEWS BEFORE\n" << NEWS << std::endl;
     this->bus(intermediate, x0);
+//    imshow("intermediate", intermediate);
     this->pushToNews(intermediate, dir);
+//    std::cout << "NEWS AFTER\n" << NEWS << std::endl;
+//    imshow("NEWS", NEWS);
     this->pullFromNews(intermediate2, dir2);
+//    imshow("x1", x1);
     this->bus(y, intermediate2, x1);
+//    imshow("y", y);
 }
 
 // Asynchronized Blur
@@ -619,11 +649,6 @@ void ProcessingElement::PROP0() {
 void ProcessingElement::PROP1() {
 
 }
-
-
-
-
-
 
 
 

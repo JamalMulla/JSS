@@ -10,8 +10,8 @@
 #include <iostream>
 #include <chrono>
 #include <cstdio>
-#include <time.h>
-#include <stdio.h>
+#include <ctime>
+#include <cstdio>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgproc/imgproc_c.h>
 
@@ -28,19 +28,19 @@ Mat Video::draw_analogue_register(AREG& reg, const string& window){
     //Mat draw;
     //reg.convertTo(draw, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
 
-    cv::Mat out;
-    Size size(256, 256);
-    cv::resize(reg, out, size);
+//    cv::Mat out;
+//    Size size(256, 256);
+//    cv::resize(reg, out, size);
     setMouseCallback(window, onMouse, &reg);
-    return out;
+    return reg;
 }
 
 // Function onMouse displays cursor values
 void onMouse(int event, int x, int y, int, void* reg) {
     if ( event != cv::EVENT_MOUSEMOVE )return;
     AREG* r = static_cast<AREG*>(reg);
-//    x *= SCAMP_WIDTH;
-//    y *= SCAMP_HEIGHT;
+////    x *= SCAMP_WIDTH;
+////    y *= SCAMP_HEIGHT;
     std::cout<<"("<<x<<", "<<y<<") ......  "<< (int) (*r).at<int8_t>(y,x) <<'\n';
 }
 
@@ -112,10 +112,16 @@ void Video::capture() {
         //beta = brightness
 
         //cropFrame.copyTo(pe.PIX);
-        cropFrame.convertTo(pe.PIX, MAT_TYPE, 1, -64);
+        cv::Mat in;
+        //cropFrame.convertTo(in, MAT_TYPE, 0.4, -128);
+        cropFrame.convertTo(in, MAT_TYPE, 0.6, -32);
+        cv::add(pe.PIX, in, pe.PIX);
+
+        imshow("PIX", draw_analogue_register(pe.PIX, "PIX"));
+
+        pe.get_image(pe.A, pe.D);
 
         //sobel kernel
-        pe.get_image(pe.A, pe.D);
 //        pe.movx(pe.B, pe.A, south);
 //        pe.add(pe.B, pe.B, pe.A);
 //        pe.movx(pe.A, pe.B, north);
@@ -123,17 +129,18 @@ void Video::capture() {
 //        pe.sub2x(pe.A, pe.B, west, west, pe.B);
 
         //multiple sobel
-//        pe.movx(C, A, south);
-//        pe.add(B, C, A);
-//        pe.addx(A, C, A, north);
-//        pe.add2x(A, B, A, east, east);
-//        pe.sub2x(B, A, west, west, A);
-//        pe.movx(A, B, west);
-//        pe.movx(B, B, west);
+        pe.neg(pe.C, pe.A);
+        pe.subx(pe.B, pe.A, south, pe.C);
+        pe.subx(pe.D, pe.A, north, pe.C);
+        pe.subx(pe.C, pe.C, west, pe.A);
+        pe.movx(pe.A, pe.C, east);
+        pe.addx(pe.C, pe.C, pe.A, north);
+        pe.addx(pe.B, pe.B, pe.D, east);
+        pe.sub2x(pe.A, pe.B, west, west, pe.B);
+        pe.sub2x(pe.B, pe.C, south, south, pe.C);
 
 
         // show live and wait for a key with timeout long enough to show images
-        imshow("Source", draw_analogue_register(pe.PIX, "Source"));
         imshow("A", draw_analogue_register(pe.A, "A"));
         imshow("B", draw_analogue_register(pe.B, "B"));
         imshow("D", draw_analogue_register(pe.D, "D"));
