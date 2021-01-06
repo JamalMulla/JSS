@@ -16,10 +16,24 @@ typedef cv::Mat DREG;
 #define SCAMP_WIDTH 256
 #define MAT_TYPE CV_8S
 
+#define R1 RS
+#define R2 RW
+#define R3 RN
+#define R4 RE
+#define R5 S0
+#define R6 S1
+#define R7 S2
+#define R8 S3
+#define R9 S4
+#define R10 S5
+#define R11 S6
+#define R12 RP
+#define R0 RF
+
 class ProcessingElement {
 private:
 public:
-    cv::UMat FLAG;
+    cv::Mat FLAG;
     AREG PIX, IN;
     AREG A, B, C, D, E, F;
     AREG NEWS;
@@ -87,46 +101,46 @@ public:
     // Asynchronized Blur
 
     // Digital Logic Operations
-    void OR(DREG d, DREG d0, DREG d1);
-    void OR(DREG d, DREG d0, DREG d1, DREG d2);
-    void OR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3);
-    void NOT(DREG d, DREG d0);
-    void NOR(DREG d, DREG d0, DREG d1);
-    void NOR(DREG d, DREG d0, DREG d1, DREG d2);
-    void NOR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3);
-    void NOT(DREG Rl);
-    void OR(DREG Rl, DREG Rx);
-    void NOR(DREG Rl, DREG Rx);
-    void AND(DREG Ra, DREG Rx, DREG Ry);
-    void NAND(DREG Ra, DREG Rx, DREG Ry);
-    void ANDX(DREG Ra, DREG Rb, DREG Rx);
-    void NANDX(DREG Ra, DREG Rb, DREG Rx);
-    void IMP(DREG Rl, DREG Rx, DREG Ry);
-    void NIMP(DREG Rl, DREG Rx, DREG Ry);
-    void XOR(DREG Rl, DREG Rx, DREG Ry);
+    void OR(DREG& d, DREG& d0, DREG& d1);
+    void OR(DREG& d, DREG& d0, DREG& d1, DREG& d2);
+    void OR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& d3);
+    void NOT(DREG& d, DREG& d0);
+    void NOR(DREG& d, DREG& d0, DREG& d1);
+    void NOR(DREG& d, DREG& d0, DREG& d1, DREG& d2);
+    void NOR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& d3);
+    void NOT(DREG& Rl);
+    void OR(DREG& Rl, DREG& Rx);
+    void NOR(DREG& Rl, DREG& Rx);
+    void AND(DREG& Ra, DREG& Rx, DREG& Ry);
+    void NAND(DREG& Ra, DREG& Rx, DREG& Ry);
+    void ANDX(DREG& Ra, DREG& Rb, DREG& Rx);
+    void NANDX(DREG& Ra, DREG& Rb, DREG& Rx);
+    void IMP(DREG& Rl, DREG& Rx, DREG& Ry);
+    void NIMP(DREG& Rl, DREG& Rx, DREG& Ry);
+    void XOR(DREG& Rl, DREG& Rx, DREG& Ry);
 
     // Digital Register Transfer
-    void WHERE(DREG d);
-    void WHERE(DREG d0, DREG d1);
-    void WHERE(DREG d0, DREG d1, DREG d2);
+    void WHERE(DREG& d);
+    void WHERE(DREG& d0, DREG& d1);
+    void WHERE(DREG& d0, DREG& d1, DREG& d2);
     void ALL();
-    void SET(DREG d0);
-    void SET(DREG d0, DREG d1);
-    void SET(DREG d0, DREG d1, DREG d2);
-    void SET(DREG d0, DREG d1, DREG d2, DREG d3);
-    void CLR(DREG d0);
-    void CLR(DREG d0, DREG d1);
-    void CLR(DREG d0, DREG d1, DREG d2);
-    void CLR(DREG d0, DREG d1, DREG d2, DREG d3);
-    void MOV(DREG d, DREG d0);
-    void MUX(DREG Rl, DREG Rx, DREG Ry, DREG Rz);
-    void CLR_IF(DREG Rl, DREG Rx);
-    void REFRESH(DREG Rl);
+    void SET(DREG& d0);
+    void SET(DREG& d0, DREG& d1);
+    void SET(DREG& d0, DREG& d1, DREG& d2);
+    void SET(DREG& d0, DREG& d1, DREG& d2, DREG& d3);
+    void CLR(DREG& d0);
+    void CLR(DREG& d0, DREG& d1);
+    void CLR(DREG& d0, DREG& d1, DREG& d2);
+    void CLR(DREG& d0, DREG& d1, DREG& d2, DREG& d3);
+    void MOV(DREG& d, DREG& d0);
+    void MUX(DREG& Rl, DREG& Rx, DREG& Ry, DREG& Rz);
+    void CLR_IF(DREG& Rl, DREG& Rx);
+    void REFRESH(DREG& Rl);
 
     // Digital Neighbour Access
-    void DNEWS0(DREG d, DREG d0);
-    void DNEWS1(DREG d, DREG d0);
-    void DNEWS(DREG Ra, DREG Rx, int dir, bool boundary);
+    void DNEWS0(DREG& d, DREG& d0);
+    void DNEWS1(DREG& d, DREG& d0);
+    void DNEWS(DREG& Ra, DREG& Rx, int dir, bool boundary);
 
     // Digital Propagation
     void PROP0();

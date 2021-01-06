@@ -119,7 +119,16 @@ void Video::capture() {
 
         imshow("PIX", draw_analogue_register(pe.PIX, "PIX"));
 
-        pe.get_image(pe.A, pe.D);
+        //pe.get_image(pe.A, pe.D);
+
+
+        pe.get_image(pe.C,pe.D);
+        pe.sub(pe.A, pe.C, pe.E);
+        pe.where(pe.A);
+        pe.MOV(pe.R5, pe.FLAG);
+        pe.all();
+
+        imshow("R5", pe.R5);
 
         //sobel kernel
 //        pe.movx(pe.B, pe.A, south);
@@ -129,22 +138,22 @@ void Video::capture() {
 //        pe.sub2x(pe.A, pe.B, west, west, pe.B);
 
         //multiple sobel
-        pe.neg(pe.C, pe.A);
-        pe.subx(pe.B, pe.A, south, pe.C);
-        pe.subx(pe.D, pe.A, north, pe.C);
-        pe.subx(pe.C, pe.C, west, pe.A);
-        pe.movx(pe.A, pe.C, east);
-        pe.addx(pe.C, pe.C, pe.A, north);
-        pe.addx(pe.B, pe.B, pe.D, east);
-        pe.sub2x(pe.A, pe.B, west, west, pe.B);
-        pe.sub2x(pe.B, pe.C, south, south, pe.C);
+//        pe.neg(pe.C, pe.A);
+//        pe.subx(pe.B, pe.A, south, pe.C);
+//        pe.subx(pe.D, pe.A, north, pe.C);
+//        pe.subx(pe.C, pe.C, west, pe.A);
+//        pe.movx(pe.A, pe.C, east);
+//        pe.addx(pe.C, pe.C, pe.A, north);
+//        pe.addx(pe.B, pe.B, pe.D, east);
+//        pe.sub2x(pe.A, pe.B, west, west, pe.B);
+//        pe.sub2x(pe.B, pe.C, south, south, pe.C);
 
 
         // show live and wait for a key with timeout long enough to show images
-        imshow("A", draw_analogue_register(pe.A, "A"));
-        imshow("B", draw_analogue_register(pe.B, "B"));
-        imshow("D", draw_analogue_register(pe.D, "D"));
-        imshow("NEWS", draw_analogue_register(pe.NEWS, "NEWS"));
+//        imshow("A", draw_analogue_register(pe.A, "A"));
+//        imshow("B", draw_analogue_register(pe.B, "B"));
+//        imshow("D", draw_analogue_register(pe.D, "D"));
+//        imshow("NEWS", draw_analogue_register(pe.NEWS, "NEWS"));
         //imshow("C", Video::draw_analogue_register(C));
         waitKey(1);
 //        if (waitKey(5) >= 0)

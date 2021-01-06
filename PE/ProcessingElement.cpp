@@ -4,7 +4,6 @@
 
 #include <opencv2/imgproc/types_c.h>
 #include "ProcessingElement.h"
-#include "../Video.h"
 
 
 ProcessingElement::ProcessingElement() {
@@ -21,7 +20,7 @@ ProcessingElement::ProcessingElement() {
     XE = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
     XS = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
     XW = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
-    FLAG = cv::UMat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8U, 255);
+    FLAG = cv::Mat(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8U, 255);
 }
 
 
@@ -170,7 +169,7 @@ void ProcessingElement::getpix(AREG &y, AREG &h, AREG &pix_res) {
 // Analog Register Transfer
 void ProcessingElement::bus(AREG& a) {
     //a = 0 + error
-    a.setTo(0.0, FLAG);
+    a.setTo(0, FLAG);
 }
 
 void ProcessingElement::bus(AREG& a, const AREG& a0) {
@@ -205,14 +204,14 @@ void ProcessingElement::bus(AREG& a, const AREG& a0, const AREG& a1, const AREG&
 
 void ProcessingElement::bus2(AREG& a, AREG& b) {
     //a,b = 0 + error
-    a.setTo(0.0, FLAG);
-    b.setTo(0.0, FLAG);
+    a.setTo(0, FLAG);
+    b.setTo(0, FLAG);
 }
 
 void ProcessingElement::bus2(AREG& a, AREG& b, const AREG& a0) {
     //a,b = -0.5*a0 + error + noise
     AREG intermediate;
-    cv::divide(2, a0, intermediate);
+    cv::multiply(1/2, a0, intermediate);
     cv::bitwise_not(intermediate, intermediate, FLAG);
     intermediate.copyTo(a, FLAG);
     intermediate.copyTo(b, FLAG);
@@ -222,7 +221,7 @@ void ProcessingElement::bus2(AREG& a, AREG& b, const AREG& a0, const AREG& a1) {
     //a,b = -0.5*(a0 + a1) + error + noise
     AREG intermediate;
     cv::add(a0, a1, intermediate, FLAG);
-    cv::divide(2, intermediate, intermediate);
+    cv::multiply(1/2, intermediate, intermediate);
     cv::bitwise_not(intermediate, intermediate, FLAG);
     intermediate.copyTo(a, FLAG);
     intermediate.copyTo(b, FLAG);
@@ -231,7 +230,7 @@ void ProcessingElement::bus2(AREG& a, AREG& b, const AREG& a0, const AREG& a1) {
 void ProcessingElement::bus3(AREG& a, AREG& b, AREG& c, const AREG& a0) {
     //a,b,c = -0.33*a0 + error + noise
     AREG intermediate;
-    cv::divide(3, a0, intermediate);
+    cv::multiply(1/3, a0, intermediate);
     cv::bitwise_not(intermediate, intermediate, FLAG);
     intermediate.copyTo(a, FLAG);
     intermediate.copyTo(b, FLAG);
@@ -240,13 +239,15 @@ void ProcessingElement::bus3(AREG& a, AREG& b, AREG& c, const AREG& a0) {
 
 void ProcessingElement::where(const AREG& a) {
     //FLAG := a > 0.
-    AREG intermediate;
-    cv::threshold(a, intermediate, 0, 255, cv::THRESH_BINARY);
-    intermediate.convertTo(FLAG, MAT_TYPE, 2, 1);
+    AREG intermediate(SCAMP_HEIGHT, SCAMP_WIDTH, CV_8U);
+    AREG in;
+    a.convertTo(in, CV_8U);
+    cv::threshold(in, FLAG, 127, 255, cv::THRESH_BINARY);
 }
 
 void ProcessingElement::where(const AREG& a0, const AREG& a1) {
     //FLAG := (a0 + a1) > 0.
+    //TODO do same as above with threshold
     AREG intermediate;
     cv::add(a0, a1, intermediate, FLAG);
     threshold(intermediate, intermediate, 0, 255, cv::THRESH_BINARY);
@@ -374,17 +375,10 @@ void ProcessingElement::mov2x(AREG& y, const AREG& x0, const news_t dir, const n
     // y = x0_dir_dir (note: this only works when FLAG is "all")
     AREG intermediate;
     AREG intermediate2(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
-    //std::cout << "Y: " << x0 << std::endl;
     this->bus(intermediate, x0);
-//    std::cout << "int: " << intermediate << std::endl;
-//    std::cout << "NEWS before: " << NEWS << std::endl;
     this->pushToNews(intermediate, dir);
-//    std::cout << "NEWS: " << NEWS << std::endl;
     this->pullFromNews(intermediate2, dir2);
-//    std::cout << "NEWS: " << NEWS << std::endl;
     this->bus(y, intermediate2);
-//    std::cout << "Y: " << y << std::endl;
-
 }
 
 void ProcessingElement::addx(AREG& y, const AREG& x0, const AREG& x1, const news_t dir) {
@@ -419,67 +413,68 @@ void ProcessingElement::sub2x(AREG& y, const AREG& x0, const news_t dir, const n
     // y = x0_dir_dir2 - x1
     AREG intermediate;
     AREG intermediate2(SCAMP_HEIGHT, SCAMP_WIDTH, MAT_TYPE);
-    //imshow("x0", x0);
-//    std::cout << "x0\n" << x0 << std::endl;
-//    std::cout << "NEWS BEFORE\n" << NEWS << std::endl;
     this->bus(intermediate, x0);
-//    imshow("intermediate", intermediate);
     this->pushToNews(intermediate, dir);
-//    std::cout << "NEWS AFTER\n" << NEWS << std::endl;
-//    imshow("NEWS", NEWS);
     this->pullFromNews(intermediate2, dir2);
-//    imshow("x1", x1);
     this->bus(y, intermediate2, x1);
-//    imshow("y", y);
 }
 
 // Asynchronized Blur
 
 // Digital Logic Operations
-void ProcessingElement::OR(DREG d, DREG d0, DREG d1) {
+void ProcessingElement::OR(DREG& d, DREG& d0, DREG& d1) {
+    // d := d0 OR d1
+    cv::bitwise_or(d0, d1, d, FLAG);
+}
+
+void ProcessingElement::OR(DREG& d, DREG& d0, DREG& d1, DREG& d2) {
+    // d := d0 OR d1 OR d2
+    cv::bitwise_or(d0, d1, d, FLAG);
+    cv::bitwise_or(d, d2, d, FLAG);
+}
+
+void ProcessingElement::OR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& d3) {
+    // d := d0 OR d1 OR d2 OR d3
+    cv::bitwise_or(d0, d1, d, FLAG);
+    cv::bitwise_or(d, d2, d, FLAG);
+    cv::bitwise_or(d, d3, d, FLAG);
+}
+
+void ProcessingElement::NOT(DREG& d, DREG& d0) {
+    // d := NOT d0
+    cv::bitwise_not(d0, d);
+}
+
+void ProcessingElement::NOR(DREG& d, DREG& d0, DREG& d1) {
+    // d := NOT(d0 OR d1)
+    this->OR(d, d0, d1);
+    this->NOT(d);
+}
+
+void ProcessingElement::NOR(DREG& d, DREG& d0, DREG& d1, DREG& d2) {
 
 }
 
-void ProcessingElement::OR(DREG d, DREG d0, DREG d1, DREG d2) {
+void ProcessingElement::NOR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& d3) {
 
 }
 
-void ProcessingElement::OR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
-
-}
-
-void ProcessingElement::NOT(DREG d, DREG d0) {
-
-}
-
-void ProcessingElement::NOR(DREG d, DREG d0, DREG d1) {
-
-}
-
-void ProcessingElement::NOR(DREG d, DREG d0, DREG d1, DREG d2) {
-
-}
-
-void ProcessingElement::NOR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
-
-}
-
-void ProcessingElement::NOT(DREG Rl) {
+void ProcessingElement::NOT(DREG& Rl) {
     // logic operation Rl := NOT Rl
-    //Rl.set(not Rl.get());
+    cv::bitwise_not(Rl, Rl);
 }
 
-void ProcessingElement::OR(DREG Rl, DREG Rx) {
+void ProcessingElement::OR(DREG& Rl, DREG& Rx) {
     // logic operation Rl := Rl OR Rx
-    //Rl.set(Rl.get() or Rx.get());
+    this->OR(Rl, Rl, Rx);
 }
 
-void ProcessingElement::NOR(DREG Rl, DREG Rx) {
+void ProcessingElement::NOR(DREG& Rl, DREG& Rx) {
     // logic operation Rl := Rl NOR Rx
-    //Rl.set(not (Rl.get() or Rx.get()));
+    this->NOR(Rl, Rl, Rx);
 }
 
-void ProcessingElement::AND(DREG Ra, DREG Rx, DREG Ry) {
+void ProcessingElement::AND(DREG& Ra, DREG& Rx, DREG& Ry) {
     //  Ra := Rx AND Ry; R0 = NOT Ry; R12 = NOT RX
     this->SET(RF);
     this->NOT(RP, Rx);
@@ -487,7 +482,7 @@ void ProcessingElement::AND(DREG Ra, DREG Rx, DREG Ry) {
     this->NOR(Ra, RF, RP);
 }
 
-void ProcessingElement::NAND(DREG Ra, DREG Rx, DREG Ry) {
+void ProcessingElement::NAND(DREG& Ra, DREG& Rx, DREG& Ry) {
     // Ra := Rx NAND Ry; R0 = NOT Ry; R12 = NOT RX
     this->SET(RF);
     this->NOT(RP, Rx);
@@ -495,21 +490,21 @@ void ProcessingElement::NAND(DREG Ra, DREG Rx, DREG Ry) {
     this->OR(Ra, RF, RP);
 }
 
-void ProcessingElement::ANDX(DREG Ra, DREG Rb, DREG Rx) {
+void ProcessingElement::ANDX(DREG& Ra, DREG& Rb, DREG& Rx) {
     // Ra := Rb AND Rx; Rb := NOT Rx; R0 = NOT Rb
     this->NOT(RF, Rb);
     this->NOT(Rb, Rx);
     this->NOR(Ra, RF, Rb);
 }
 
-void ProcessingElement::NANDX(DREG Ra, DREG Rb, DREG Rx) {
+void ProcessingElement::NANDX(DREG& Ra, DREG& Rb, DREG& Rx) {
     // Ra := Rx NAND Ry; Rb := NOT Rx; R0 = NOT Rb
     this->NOT(RF, Rb);
     this->NOT(Rb, Rx);
     this->OR(Ra, RF, Rb);
 }
 
-void ProcessingElement::IMP(DREG Rl, DREG Rx, DREG Ry) {
+void ProcessingElement::IMP(DREG& Rl, DREG& Rx, DREG& Ry) {
     // Rl := Rx IMP Ry (logical implication)
     //    Truth Table:
     //    Rx  Ry    Rl
@@ -521,13 +516,13 @@ void ProcessingElement::IMP(DREG Rl, DREG Rx, DREG Ry) {
     this->OR(RS, Rx, RF);
 }
 
-void ProcessingElement::NIMP(DREG Rl, DREG Rx, DREG Ry) {
+void ProcessingElement::NIMP(DREG& Rl, DREG& Rx, DREG& Ry) {
     // Rl := Rx NIMP Ry
     this->NOT(RF, Ry);
     this->NOR(RS, Rx, RF);
 }
 
-void ProcessingElement::XOR(DREG Rl, DREG Rx, DREG Ry) {
+void ProcessingElement::XOR(DREG& Rl, DREG& Rx, DREG& Ry) {
     // Rl := Rx XOR Ry, Rx := *
     this->NOT(RF, Ry);
     this->NOR(Rl, Rx, RF);
@@ -537,59 +532,89 @@ void ProcessingElement::XOR(DREG Rl, DREG Rx, DREG Ry) {
 }
 
 // Digital Register Transfer
-void ProcessingElement::WHERE(DREG d) {
-
+void ProcessingElement::WHERE(DREG& d) {
+    // FLAG := d.
+    this->FLAG.setTo(d);
 }
 
-void ProcessingElement::WHERE(DREG d0, DREG d1) {
-
+void ProcessingElement::WHERE(DREG& d0, DREG& d1) {
+    // FLAG := d0 OR d1.
+    DREG intermediate;
+    this->OR(intermediate, d0, d1);
+    this->FLAG.setTo(intermediate);
 }
 
-void ProcessingElement::WHERE(DREG d0, DREG d1, DREG d2) {
-
+void ProcessingElement::WHERE(DREG& d0, DREG& d1, DREG& d2) {
+    // FLAG := d0 OR d1 OR d2.
+    DREG intermediate;
+    this->OR(intermediate, d0, d1, d2);
+    this->FLAG.setTo(intermediate);
 }
 
 void ProcessingElement::ALL() {
-
+    // FLAG := 1, same as all.
+    this->FLAG.setTo(1);
 }
 
-void ProcessingElement::SET(DREG d0) {
-
+void ProcessingElement::SET(DREG& d0) {
+    // d0 := 1
+    d0.setTo(1);
 }
 
-void ProcessingElement::SET(DREG d0, DREG d1) {
-
+void ProcessingElement::SET(DREG& d0, DREG& d1) {
+    // d0, d1 := 1
+    d0.setTo(1);
+    d1.setTo(1);
 }
 
-void ProcessingElement::SET(DREG d0, DREG d1, DREG d2) {
-
+void ProcessingElement::SET(DREG& d0, DREG& d1, DREG& d2) {
+    // 	d0, d1, d2 := 1
+    d0.setTo(1);
+    d1.setTo(1);
+    d2.setTo(1);
 }
 
-void ProcessingElement::SET(DREG d0, DREG d1, DREG d2, DREG d3) {
-
+void ProcessingElement::SET(DREG& d0, DREG& d1, DREG& d2, DREG& d3) {
+    // d0, d1, d2, d3 := 1
+    d0.setTo(1);
+    d1.setTo(1);
+    d2.setTo(1);
+    d3.setTo(1);
 }
 
-void ProcessingElement::CLR(DREG d0) {
-
+void ProcessingElement::CLR(DREG& d0) {
+    // d0 := 0
+    d0.setTo(0);
 }
 
-void ProcessingElement::CLR(DREG d0, DREG d1) {
-
+void ProcessingElement::CLR(DREG& d0, DREG& d1) {
+    // d0, d1 := 0
+    d0.setTo(0);
+    d1.setTo(0);
 }
 
-void ProcessingElement::CLR(DREG d0, DREG d1, DREG d2) {
-
+void ProcessingElement::CLR(DREG& d0, DREG& d1, DREG& d2) {
+    // d0, d1, d2 := 0
+    d0.setTo(0);
+    d1.setTo(0);
+    d2.setTo(0);
 }
 
-void ProcessingElement::CLR(DREG d0, DREG d1, DREG d2, DREG d3) {
-
+void ProcessingElement::CLR(DREG& d0, DREG& d1, DREG& d2, DREG& d3) {
+    // 	d0, d1, d2, d3 := 0
+    d0.setTo(0);
+    d1.setTo(0);
+    d2.setTo(0);
+    d3.setTo(0);
 }
 
-void ProcessingElement::MOV(DREG d, DREG d0) {
-
+void ProcessingElement::MOV(DREG& d, DREG& d0) {
+    // d := d0
+    //TODO is this enough?
+    cv::copyTo(d0, d, FLAG);
 }
 
-void ProcessingElement::MUX(DREG Rl, DREG Rx, DREG Ry, DREG Rz) {
+void ProcessingElement::MUX(DREG& Rl, DREG& Rx, DREG& Ry, DREG& Rz) {
     // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
     this->SET(RF);
     this->MOV(RP, Rz);
@@ -598,29 +623,29 @@ void ProcessingElement::MUX(DREG Rl, DREG Rx, DREG Ry, DREG Rz) {
     this->MOV(Rl, RP);
 }
 
-void ProcessingElement::CLR_IF(DREG Rl, DREG Rx) {
+void ProcessingElement::CLR_IF(DREG& Rl, DREG& Rx) {
     // Rl := 0 IF Rx = 1, Rl := Rl IF Rx = 0
     this->NOT(RF, Rl);
     this->NOR(Rl, RF, Rx);
 }
 
-void ProcessingElement::REFRESH(DREG Rl) {
-    // refresh a DREG to prevent decay after a long time (e.g. > 1.5 seconds) without any operations
+void ProcessingElement::REFRESH(DREG& Rl) {
+    // refresh a DREG& to prevent decay after a long time (e.g. > 1.5 seconds) without any operations
     //TODO do we need to do anything here? Maybe add a small delay?
 }
 
 // Digital Neighbour Access
-void ProcessingElement::DNEWS0(DREG d, DREG d0) {
+void ProcessingElement::DNEWS0(DREG& d, DREG& d0) {
 
 }
 
-void ProcessingElement::DNEWS1(DREG d, DREG d0) {
+void ProcessingElement::DNEWS1(DREG& d, DREG& d0) {
 
 }
 
-void ProcessingElement::DNEWS(DREG Ra, DREG Rx, const int dir, const bool boundary) {
+void ProcessingElement::DNEWS(DREG& Ra, DREG& Rx, const int dir, const bool boundary) {
     this->CLR(RS, RW, RN, RE);
-    // set multiple dreg (upto 4) can be done via one icw
+    // set multiple DREG& (upto 4) can be done via one icw
     if(dir&south){
         this->SET(RS);
     }
