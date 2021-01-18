@@ -12,9 +12,9 @@ enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
 typedef cv::Mat AREG;
 typedef cv::Mat DREG;
 
-#define SCAMP_HEIGHT 256
-#define SCAMP_WIDTH 256
-#define MAT_TYPE CV_8S
+#define SCAMP_HEIGHT 128
+#define SCAMP_WIDTH 128
+#define MAT_TYPE CV_16S
 
 class ProcessingElement {
 private:

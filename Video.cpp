@@ -18,31 +18,35 @@
 using namespace cv;
 using namespace std;
 
+#define START_TIMER() auto TIME_START = std::chrono::high_resolution_clock::now()
+#define END_TIMER() auto TIME_END = std::chrono::high_resolution_clock::now(); std::cout << "Elapsed time: " \
+<< std::chrono::duration_cast<std::chrono::microseconds>(TIME_END-TIME_START).count() << " ms\n"
+
 void onMouse( int event, int x, int y, int, void* );
 
 ProcessingElement pe;
 
 Mat Video::draw_analogue_register(AREG& reg, const string& window){
-    //double minVal, maxVal;
-    //minMaxLoc(reg, &minVal, &maxVal); //find minimum and maximum intensities
-    //Mat draw;
-    //reg.convertTo(draw, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+    double minVal, maxVal;
+    minMaxLoc(reg, &minVal, &maxVal); //find minimum and maximum intensities
+    Mat draw;
+    reg.convertTo(draw, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
 
 //    cv::Mat out;
 //    Size size(256, 256);
 //    cv::resize(reg, out, size);
-    setMouseCallback(window, onMouse, &reg);
-    return reg;
+    //setMouseCallback(window, onMouse, &reg);
+    return draw;
 }
 
 // Function onMouse displays cursor values
-void onMouse(int event, int x, int y, int, void* reg) {
-    if ( event != cv::EVENT_MOUSEMOVE )return;
-    AREG* r = static_cast<AREG*>(reg);
-////    x *= SCAMP_WIDTH;
-////    y *= SCAMP_HEIGHT;
-    std::cout<<"("<<x<<", "<<y<<") ......  "<< (int) (*r).at<int8_t>(y,x) <<'\n';
-}
+//void onMouse(int event, int x, int y, int, void* reg) {
+//    if ( event != cv::EVENT_MOUSEMOVE )return;
+//    AREG* r = static_cast<AREG*>(reg);
+//////    x *= SCAMP_WIDTH;
+//////    y *= SCAMP_HEIGHT;
+//    std::cout<<"("<<x<<", "<<y<<") ......  "<< (int) (*r).at<int8_t>(y,x) <<'\n';
+//}
 
 void Video::capture() {
     Mat frame;
@@ -114,7 +118,7 @@ void Video::capture() {
         //cropFrame.copyTo(pe.PIX);
         cv::Mat in;
         //cropFrame.convertTo(in, MAT_TYPE, 0.4, -128);
-        cropFrame.convertTo(in, MAT_TYPE, 0.6, -32);
+        cropFrame.convertTo(in, CV_16S);
         cv::add(pe.PIX, in, pe.PIX);
 
         imshow("PIX", draw_analogue_register(pe.PIX, "PIX"));
@@ -122,22 +126,25 @@ void Video::capture() {
         pe.get_image(pe.A, pe.D);
 
         //sobel kernel
-//        pe.movx(pe.B, pe.A, south);
-//        pe.add(pe.B, pe.B, pe.A);
-//        pe.movx(pe.A, pe.B, north);
-//        pe.addx(pe.B, pe.B, pe.A, east);
-//        pe.sub2x(pe.A, pe.B, west, west, pe.B);
+        START_TIMER();
+        pe.movx(pe.B, pe.A, south);
+        pe.add(pe.B, pe.B, pe.A);
+        pe.movx(pe.A, pe.B, north);
+        pe.addx(pe.B, pe.B, pe.A, east);
+        pe.sub2x(pe.A, pe.B, west, west, pe.B);
+        END_TIMER();
+
 
         //multiple sobel
-        pe.neg(pe.C, pe.A);
-        pe.subx(pe.B, pe.A, south, pe.C);
-        pe.subx(pe.D, pe.A, north, pe.C);
-        pe.subx(pe.C, pe.C, west, pe.A);
-        pe.movx(pe.A, pe.C, east);
-        pe.addx(pe.C, pe.C, pe.A, north);
-        pe.addx(pe.B, pe.B, pe.D, east);
-        pe.sub2x(pe.A, pe.B, west, west, pe.B);
-        pe.sub2x(pe.B, pe.C, south, south, pe.C);
+//        pe.neg(pe.C, pe.A);
+//        pe.subx(pe.B, pe.A, south, pe.C);
+//        pe.subx(pe.D, pe.A, north, pe.C);
+//        pe.subx(pe.C, pe.C, west, pe.A);
+//        pe.movx(pe.A, pe.C, east);
+//        pe.addx(pe.C, pe.C, pe.A, north);
+//        pe.addx(pe.B, pe.B, pe.D, east);
+//        pe.sub2x(pe.A, pe.B, west, west, pe.B);
+//        pe.sub2x(pe.B, pe.C, south, south, pe.C);
 
 
         // show live and wait for a key with timeout long enough to show images
