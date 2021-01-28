@@ -20,7 +20,7 @@ using namespace std;
 
 #define START_TIMER() auto TIME_START = std::chrono::high_resolution_clock::now()
 #define END_TIMER() auto TIME_END = std::chrono::high_resolution_clock::now(); std::cout << "Elapsed time: " \
-<< std::chrono::duration_cast<std::chrono::microseconds>(TIME_END-TIME_START).count() << " ms\n"
+<< std::chrono::duration_cast<std::chrono::microseconds>(TIME_END-TIME_START).count() << " microseconds\n"
 
 void onMouse( int event, int x, int y, int, void* );
 
@@ -123,16 +123,16 @@ void Video::capture() {
 
         imshow("PIX", draw_analogue_register(pe.PIX, "PIX"));
 
-        //pe.get_image(pe.A, pe.D);
+        pe.get_image(pe.A, pe.D);
 
-
-        pe.get_image(pe.C,pe.D);
-        pe.sub(pe.A, pe.C, pe.E);
-        pe.where(pe.A);
-        pe.MOV(pe.R5, pe.FLAG);
-        pe.all();
-
-        imshow("R5", pe.R5);
+//
+//        pe.get_image(pe.C,pe.D);
+//        pe.sub(pe.A, pe.C, pe.E);
+//        pe.where(pe.A);
+//        pe.MOV(pe.R5, pe.FLAG);
+//        pe.all();
+//
+//        imshow("R5", pe.R5);
 
         //sobel kernel
         START_TIMER();
@@ -157,14 +157,12 @@ void Video::capture() {
 
 
         // show live and wait for a key with timeout long enough to show images
-//        imshow("A", draw_analogue_register(pe.A, "A"));
-//        imshow("B", draw_analogue_register(pe.B, "B"));
-//        imshow("D", draw_analogue_register(pe.D, "D"));
-//        imshow("NEWS", draw_analogue_register(pe.NEWS, "NEWS"));
-        //imshow("C", Video::draw_analogue_register(C));
+        imshow("A", draw_analogue_register(pe.A, "A"));
+        imshow("B", draw_analogue_register(pe.B, "B"));
+        //imshow("D", draw_analogue_register(pe.D, "D"));
+        imshow("NEWS", draw_analogue_register(pe.NEWS, "NEWS"));
         waitKey(1);
 //        if (waitKey(5) >= 0)
 //            break;
     }
-    // the camera will be deinitialized automatically in VideoCapture destructor
 }

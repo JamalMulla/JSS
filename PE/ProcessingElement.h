@@ -2,7 +2,7 @@
 // Created by jm1417 on 22/12/2020.
 //
 
-#ifndef SIMULATOR_PROCESSINGELEMENT_H
+#ifndef SIMULATOR_PROCESSING_ELEMENT_H
 #define SIMULATOR_PROCESSINGELEMENT_H
 
 #include <opencv2/opencv.hpp>
@@ -12,8 +12,8 @@ enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
 typedef cv::Mat AREG;
 typedef cv::Mat DREG;
 
-#define SCAMP_HEIGHT 128
-#define SCAMP_WIDTH 128
+#define SCAMP_HEIGHT 256
+#define SCAMP_WIDTH 256
 #define MAT_TYPE CV_16S
 
 #define R1 RS
@@ -148,4 +148,4 @@ public:
 };
 
 
-#endif //SIMULATOR_PROCESSINGELEMENT_H
+#endif //SIMULATOR_PROCESSING_ELEMENT_H

@@ -356,7 +356,6 @@ void ProcessingElement::divq(AREG& y0, const AREG& x0) {
 }
 
 // Analog Neighbour Access
-//TODO Neighbours are moved into NEWS
 void ProcessingElement::movx(AREG& y, const AREG& x0, const news_t dir) {
     // y = x0_dir
 
