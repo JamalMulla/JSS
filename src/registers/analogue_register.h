@@ -5,10 +5,11 @@
 #ifndef SIMULATOR_ANALOGUE_REGISTER_H
 #define SIMULATOR_ANALOGUE_REGISTER_H
 
-
 #include "../base/component.h"
+#include "register.h"
 
-class AnalogueRegister : public Component {
+class AnalogueRegister : public Register {
+public:
 
 };
 

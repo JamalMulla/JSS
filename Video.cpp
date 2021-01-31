@@ -3,7 +3,7 @@
 //
 
 #include "Video.h"
-#include "PE/ProcessingElement.h"
+#include "PE/PE.h"
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
@@ -24,7 +24,7 @@ using namespace std;
 
 void onMouse( int event, int x, int y, int, void* );
 
-ProcessingElement pe;
+PE pe;
 
 Mat Video::draw_analogue_register(AREG& reg, const string& window){
     double minVal, maxVal;

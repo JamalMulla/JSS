@@ -5,10 +5,14 @@
 #ifndef SIMULATOR_DIGITAL_REGISTER_H
 #define SIMULATOR_DIGITAL_REGISTER_H
 
-#include "../base/component.h"
+#include <opencv2/core/mat.hpp>
+#include "register.h"
+#include "../../architectures/scamp5.h"
 
-class DigitalRegister : public Component {
-
+class DigitalRegister : public Register {
+public:
+    void set();
+    void clear();
 };
 
 

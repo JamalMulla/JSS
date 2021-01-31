@@ -6,7 +6,7 @@
 #define SIMULATOR_VIDEO_H
 
 #include <opencv2/core/mat.hpp>
-#include "PE/ProcessingElement.h"
+#include "PE/PE.h"
 
 class Video {
 public:

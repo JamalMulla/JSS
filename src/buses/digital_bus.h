@@ -6,7 +6,7 @@
 #define SIMULATOR_DIGITAL_BUS_H
 
 
-class digital_bus {
+class DigitalBus {
 
 };
 

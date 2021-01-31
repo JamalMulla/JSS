@@ -3,7 +3,7 @@
 //
 
 #include "Test.h"
-#include "PE/ProcessingElement.h"
+#include "PE/PE.h"
 #include <opencv2/core.hpp>
 #include <iostream>
 
@@ -15,7 +15,7 @@ void Test::test_matrices() {
 //    cv::Mat NEWS = cv::Mat(3, 3, CV_8S, data_news);
 //    cv::Mat FLAG = cv::Mat(3, 3, CV_8U, cv::Scalar(255));
 //
-//    ProcessingElement pe;
+//    PE pe;
 //
 //    //pe.movx(y, x0, north);
 //    pe.mov2x(y, x0, north, east);

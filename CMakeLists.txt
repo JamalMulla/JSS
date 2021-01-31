@@ -24,7 +24,7 @@ if(WIN32)
 ENDIF()
 
 
-add_executable(${PROJECT_NAME} main.cpp PE/ProcessingElement.cpp PE/ProcessingElement.h PE/AREG.cpp PE/AREG.h PE/DREG.cpp PE/DREG.h PE/ASRC.cpp PE/ASRC.h PE/DSRC.cpp PE/DSRC.h Video.cpp Video.h Test.cpp Test.h src/base/component.cpp src/base/component.h src/registers/analogue_register.cpp src/registers/analogue_register.h src/registers/digital_register.cpp src/registers/digital_register.h src/units/alu.cpp src/units/alu.h src/buses/analogue_bus.cpp src/buses/analogue_bus.h src/buses/digital_bus.cpp src/buses/digital_bus.h src/base/photodiode.cpp src/base/photodiode.h Scamp_5.cpp Scamp_5.h src/base/array.cpp src/base/array.h src/base/processing_element.cpp src/base/processing_element.h)
+add_executable(${PROJECT_NAME} main.cpp PE/PE.cpp PE/PE.h PE/AREG.cpp PE/AREG.h PE/DREG.cpp PE/DREG.h PE/ASRC.cpp PE/ASRC.h PE/DSRC.cpp PE/DSRC.h Video.cpp Video.h Test.cpp Test.h src/base/component.cpp src/base/component.h src/registers/analogue_register.cpp src/registers/analogue_register.h src/registers/digital_register.cpp src/registers/digital_register.h src/buses/analogue_bus.cpp src/buses/analogue_bus.h src/buses/digital_bus.cpp src/buses/digital_bus.h src/base/photodiode.cpp src/base/photodiode.h Scamp_5.cpp Scamp_5.h src/base/array.cpp src/base/array.h src/base/processing_element.cpp src/base/processing_element.h src/units/comparator.cpp src/units/comparator.h src/units/Squarer.cpp src/units/Squarer.h architectures/scamp5.cpp architectures/scamp5.h src/registers/register.cpp src/registers/register.h)
 
 target_include_directories( ${PROJECT_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS})
 if(WIN32)

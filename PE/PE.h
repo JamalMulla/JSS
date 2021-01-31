@@ -30,7 +30,7 @@ typedef cv::Mat DREG;
 #define R12 RP
 #define R0 RF
 
-class ProcessingElement {
+class PE {
 private:
 public:
     cv::Mat FLAG;
@@ -41,7 +41,7 @@ public:
     //Old names R0..R12
     DREG RF, RS, RW, RN, RE, S0, S1, S2, S3, S4, S5, S6, RP;
     //Constructor
-    ProcessingElement();
+    PE();
 
     //Helpers
     /*Pushes value from register to NEWS of dir PE. Fills with 0s*/

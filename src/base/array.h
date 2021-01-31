@@ -8,14 +8,15 @@
 
 #include <utility>
 
-#include "../../PE/ProcessingElement.h"
+#include "processing_element.h"
 
 class Array {
-private:
+protected:
     int rows;
     int columns;
     ProcessingElement pe;
 
+public:
     Array(int rows, int columns, ProcessingElement pe)
         : rows(rows), columns(columns), pe(std::move(pe))
     {
