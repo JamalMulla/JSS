@@ -25,7 +25,6 @@ public:
     static void IMP(DREG& Rl, DREG& Rx, DREG& Ry, DREG& FLAG);
     static void NIMP(DREG& Rl, DREG& Rx, DREG& Ry, DREG& FLAG);
     static void XOR(DREG& Rl, DREG& Rx, DREG& Ry, DREG& FLAG);
-
     static void MOV(DREG& d, DREG& d0, DREG& FLAG);
     static void MUX(DREG& Rl, DREG& Rx, DREG& Ry, DREG& Rz, DREG& FLAG);
     static void CLR_IF(DREG& Rl, DREG& Rx, DREG& FLAG);

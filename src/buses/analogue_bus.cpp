@@ -166,6 +166,40 @@ void AnalogueBus::divq(AREG &y0, const AREG &x0, AREG &intermediate, DREG &FLAG)
     AnalogueBus::bus(y0, intermediate, FLAG);
 }
 
+void AnalogueBus::push_north(AREG &a, AREG& b, int offset, DREG &FLAG) {
+    // Push value of register a north by offset into register b
+    auto chunk = cv::Rect(0, 0, a.value().cols, a.value().rows - offset);
+    a.value()(cv::Rect(0, offset, a.value().cols, a.value().rows - offset)).copyTo(b.value()(chunk), FLAG.value()(chunk));
+    auto fill = cv::Rect(0, a.value().rows - offset, a.value().cols, offset);
+    b.value()(fill).setTo(cv::Scalar(0), FLAG.value()(fill));
+}
+
+void AnalogueBus::push_east(AREG &a, AREG &b, int offset, DREG &FLAG) {
+    // Push value of register a east by offset into register b
+    auto chunk = cv::Rect(offset, 0, a.value().cols - offset, a.value().rows);
+    a.value()(cv::Rect(0, 0, a.value().cols - offset, a.value().rows)).copyTo(b.value()(chunk), FLAG.value()(chunk));
+    auto fill = cv::Rect(0, 0, offset, a.value().rows - offset);
+    b.value()(fill).setTo(cv::Scalar(0), FLAG.value()(fill));
+}
+
+void AnalogueBus::push_south(AREG &a, AREG &b, int offset, DREG &FLAG) {
+    // Push value of register a south by offset into register b
+    auto chunk = cv::Rect(0, offset, a.value().cols, a.value().rows - offset);
+    a.value()(cv::Rect(0, 0, a.value().cols, a.value().rows - offset)).copyTo(b.value()(chunk), FLAG.value()(chunk));
+    auto fill = cv::Rect(0, 0, a.value().cols, offset);
+    b.value()(fill).setTo(cv::Scalar(0), FLAG.value()(fill));
+}
+
+void AnalogueBus::push_west(AREG &a, AREG &b, int offset, DREG &FLAG) {
+    // Push value of register a west by offset into register b
+    auto chunk = cv::Rect(0, 0, a.value().cols - offset, a.value().rows);
+    a.value()(cv::Rect(1, 0, a.value().cols - offset, a.value().rows)).copyTo(b.value()(chunk), FLAG.value()(chunk));
+    auto fill = cv::Rect(a.value().cols - offset, 0, offset, a.value().rows);
+    b.value()(fill).setTo(cv::Scalar(0), FLAG.value()(fill));
+}
+
+
+
 
 
 

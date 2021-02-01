@@ -266,13 +266,9 @@ void PE::movx(AREG& y, const AREG& x0, const news_t dir) {
 
     //TODO What is write on read??
     AREG intermediate;
-    //std::cout << "x0: " << x0 << std::endl;
     this->bus(intermediate, x0);
-    //std::cout << "Intermediate: " << intermediate << std::endl;
     this->pushToNews(intermediate, dir);
-    //std::cout << "NEWS: " << NEWS << std::endl;
     this->bus(y, NEWS);
-    //std::cout << "Y: " << y << std::endl;
 }
 
 void PE::mov2x(AREG& y, const AREG& x0, const news_t dir, const news_t dir2) {
