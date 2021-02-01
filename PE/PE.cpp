@@ -326,114 +326,114 @@ void PE::sub2x(AREG& y, const AREG& x0, const news_t dir, const news_t dir2, con
 // Asynchronized Blur
 
 // Digital Logic Operations
-void PE::OR(DREG& d, DREG& d0, DREG& d1) {
-    // d := d0 OR d1
-    cv::bitwise_or(d0, d1, d, FLAG);
-}
-
-void PE::OR(DREG& d, DREG& d0, DREG& d1, DREG& d2) {
-    // d := d0 OR d1 OR d2
-    cv::bitwise_or(d0, d1, d, FLAG);
-    cv::bitwise_or(d, d2, d, FLAG);
-}
-
-void PE::OR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& d3) {
-    // d := d0 OR d1 OR d2 OR d3
-    cv::bitwise_or(d0, d1, d, FLAG);
-    cv::bitwise_or(d, d2, d, FLAG);
-    cv::bitwise_or(d, d3, d, FLAG);
-}
-
-void PE::NOT(DREG& d, DREG& d0) {
-    // d := NOT d0
-    cv::bitwise_not(d0, d);
-}
-
-void PE::NOR(DREG& d, DREG& d0, DREG& d1) {
-    // d := NOT(d0 OR d1)
-    this->OR(d, d0, d1);
-    this->NOT(d);
-}
-
-void PE::NOR(DREG& d, DREG& d0, DREG& d1, DREG& d2) {
-
-}
-
-void PE::NOR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& d3) {
-
-}
-
-void PE::NOT(DREG& Rl) {
-    // logic operation Rl := NOT Rl
-    cv::bitwise_not(Rl, Rl);
-}
-
-void PE::OR(DREG& Rl, DREG& Rx) {
-    // logic operation Rl := Rl OR Rx
-    this->OR(Rl, Rl, Rx);
-}
-
-void PE::NOR(DREG& Rl, DREG& Rx) {
-    // logic operation Rl := Rl NOR Rx
-    this->NOR(Rl, Rl, Rx);
-}
-
-void PE::AND(DREG& Ra, DREG& Rx, DREG& Ry) {
-    //  Ra := Rx AND Ry; R0 = NOT Ry; R12 = NOT RX
-    this->SET(RF);
-    this->NOT(RP, Rx);
-    this->NOT(RF, Ry);
-    this->NOR(Ra, RF, RP);
-}
-
-void PE::NAND(DREG& Ra, DREG& Rx, DREG& Ry) {
-    // Ra := Rx NAND Ry; R0 = NOT Ry; R12 = NOT RX
-    this->SET(RF);
-    this->NOT(RP, Rx);
-    this->NOT(RF, Ry);
-    this->OR(Ra, RF, RP);
-}
-
-void PE::ANDX(DREG& Ra, DREG& Rb, DREG& Rx) {
-    // Ra := Rb AND Rx; Rb := NOT Rx; R0 = NOT Rb
-    this->NOT(RF, Rb);
-    this->NOT(Rb, Rx);
-    this->NOR(Ra, RF, Rb);
-}
-
-void PE::NANDX(DREG& Ra, DREG& Rb, DREG& Rx) {
-    // Ra := Rx NAND Ry; Rb := NOT Rx; R0 = NOT Rb
-    this->NOT(RF, Rb);
-    this->NOT(Rb, Rx);
-    this->OR(Ra, RF, Rb);
-}
-
-void PE::IMP(DREG& Rl, DREG& Rx, DREG& Ry) {
-    // Rl := Rx IMP Ry (logical implication)
-    //    Truth Table:
-    //    Rx  Ry    Rl
-    //    0   0     1
-    //    0   1     0
-    //    1   0     1
-    //    1   1     1
-    this->NOT(RF, Ry);
-    this->OR(RS, Rx, RF);
-}
-
-void PE::NIMP(DREG& Rl, DREG& Rx, DREG& Ry) {
-    // Rl := Rx NIMP Ry
-    this->NOT(RF, Ry);
-    this->NOR(RS, Rx, RF);
-}
-
-void PE::XOR(DREG& Rl, DREG& Rx, DREG& Ry) {
-    // Rl := Rx XOR Ry, Rx := *
-    this->NOT(RF, Ry);
-    this->NOR(Rl, Rx, RF);
-    this->NOT(RF, Rx);
-    this->NOR(Rx, Ry, RF);
-    this->OR(Rl, Rx);
-}
+//void PE::OR(DREG& d, DREG& d0, DREG& d1) {
+//    // d := d0 OR d1
+//    cv::bitwise_or(d0, d1, d, FLAG);
+//}
+//
+//void PE::OR(DREG& d, DREG& d0, DREG& d1, DREG& d2) {
+//    // d := d0 OR d1 OR d2
+//    cv::bitwise_or(d0, d1, d, FLAG);
+//    cv::bitwise_or(d, d2, d, FLAG);
+//}
+//
+//void PE::OR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& d3) {
+//    // d := d0 OR d1 OR d2 OR d3
+//    cv::bitwise_or(d0, d1, d, FLAG);
+//    cv::bitwise_or(d, d2, d, FLAG);
+//    cv::bitwise_or(d, d3, d, FLAG);
+//}
+//
+//void PE::NOT(DREG& d, DREG& d0) {
+//    // d := NOT d0
+//    cv::bitwise_not(d0, d);
+//}
+//
+//void PE::NOR(DREG& d, DREG& d0, DREG& d1) {
+//    // d := NOT(d0 OR d1)
+//    this->OR(d, d0, d1);
+//    this->NOT(d);
+//}
+//
+//void PE::NOR(DREG& d, DREG& d0, DREG& d1, DREG& d2) {
+//
+//}
+//
+//void PE::NOR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& d3) {
+//
+//}
+//
+//void PE::NOT(DREG& Rl) {
+//    // logic operation Rl := NOT Rl
+//    cv::bitwise_not(Rl, Rl);
+//}
+//
+//void PE::OR(DREG& Rl, DREG& Rx) {
+//    // logic operation Rl := Rl OR Rx
+//    this->OR(Rl, Rl, Rx);
+//}
+//
+//void PE::NOR(DREG& Rl, DREG& Rx) {
+//    // logic operation Rl := Rl NOR Rx
+//    this->NOR(Rl, Rl, Rx);
+//}
+//
+//void PE::AND(DREG& Ra, DREG& Rx, DREG& Ry) {
+//    //  Ra := Rx AND Ry; R0 = NOT Ry; R12 = NOT RX
+//    this->SET(RF);
+//    this->NOT(RP, Rx);
+//    this->NOT(RF, Ry);
+//    this->NOR(Ra, RF, RP);
+//}
+//
+//void PE::NAND(DREG& Ra, DREG& Rx, DREG& Ry) {
+//    // Ra := Rx NAND Ry; R0 = NOT Ry; R12 = NOT RX
+//    this->SET(RF);
+//    this->NOT(RP, Rx);
+//    this->NOT(RF, Ry);
+//    this->OR(Ra, RF, RP);
+//}
+//
+//void PE::ANDX(DREG& Ra, DREG& Rb, DREG& Rx) {
+//    // Ra := Rb AND Rx; Rb := NOT Rx; R0 = NOT Rb
+//    this->NOT(RF, Rb);
+//    this->NOT(Rb, Rx);
+//    this->NOR(Ra, RF, Rb);
+//}
+//
+//void PE::NANDX(DREG& Ra, DREG& Rb, DREG& Rx) {
+//    // Ra := Rx NAND Ry; Rb := NOT Rx; R0 = NOT Rb
+//    this->NOT(RF, Rb);
+//    this->NOT(Rb, Rx);
+//    this->OR(Ra, RF, Rb);
+//}
+//
+//void PE::IMP(DREG& Rl, DREG& Rx, DREG& Ry) {
+//    // Rl := Rx IMP Ry (logical implication)
+//    //    Truth Table:
+//    //    Rx  Ry    Rl
+//    //    0   0     1
+//    //    0   1     0
+//    //    1   0     1
+//    //    1   1     1
+//    this->NOT(RF, Ry);
+//    this->OR(RS, Rx, RF);
+//}
+//
+//void PE::NIMP(DREG& Rl, DREG& Rx, DREG& Ry) {
+//    // Rl := Rx NIMP Ry
+//    this->NOT(RF, Ry);
+//    this->NOR(RS, Rx, RF);
+//}
+//
+//void PE::XOR(DREG& Rl, DREG& Rx, DREG& Ry) {
+//    // Rl := Rx XOR Ry, Rx := *
+//    this->NOT(RF, Ry);
+//    this->NOR(Rl, Rx, RF);
+//    this->NOT(RF, Rx);
+//    this->NOR(Rx, Ry, RF);
+//    this->OR(Rl, Rx);
+//}
 
 // Digital Register Transfer
 void PE::WHERE(DREG& d) {
