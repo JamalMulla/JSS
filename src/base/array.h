@@ -17,11 +17,7 @@ protected:
     ProcessingElement pe;
 
 public:
-    Array(int rows, int columns, ProcessingElement pe)
-        : rows(rows), columns(columns), pe(std::move(pe))
-    {
-
-    }
+    Array(int rows, int columns, ProcessingElement pe);
 };
 
 
