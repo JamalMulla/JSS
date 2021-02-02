@@ -6,11 +6,10 @@
 #define SIMULATOR_REGISTER_H
 
 #include <opencv2/core/mat.hpp>
-#include "../base/component.h"
 
 typedef cv::Mat Data;
 
-class Register : public Component {
+class Register {
     Data value_;
 public:
     Data & value()       { return value_; }

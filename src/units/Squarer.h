@@ -5,10 +5,7 @@
 #ifndef SIMULATOR_SQUARER_H
 #define SIMULATOR_SQUARER_H
 
-
-#include "../base/component.h"
-
-class Squarer : public Component {
+class Squarer {
 
 };
 

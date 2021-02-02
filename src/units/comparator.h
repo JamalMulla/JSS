@@ -5,10 +5,7 @@
 #ifndef SIMULATOR_COMPARATOR_H
 #define SIMULATOR_COMPARATOR_H
 
-
-#include "../base/component.h"
-
-class Comparator : public Component {
+class Comparator {
 
 };
 

@@ -4,5 +4,8 @@
 
 #include "array.h"
 
+#include <utility>
+
 Array::Array(int rows, int columns, ProcessingElement pe)
-    : rows(rows), columns(columns), pe(std::move(pe)) { }
+    : rows_(rows), columns_(columns), pe(std::move(pe)) { }
+

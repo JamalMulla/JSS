@@ -26,17 +26,11 @@ public:
     AnalogueBus analogue_bus;
     DigitalBus local_read_bus;
     DigitalBus local_write_bus;
-    AnalogueRegister news;
-    DigitalRegister flag;
-    ProcessingElement(int num_analogue_regs, int num_digital_regs) {
-        for (int i = 0; i < num_analogue_regs; i++) {
-            analogue_registers.emplace_back(AnalogueRegister());
-        }
-        for (int i = 0; i < num_digital_regs; i++) {
-            digital_registers.emplace_back(DigitalRegister());
-        }
-    }
-};
+
+    ProcessingElement(int rows, int columns, int num_analogue_regs, int num_digital_regs);
+
+
+    };
 
 
 #endif //SIMULATOR_PROCESSING_ELEMENT_H

@@ -8,19 +8,20 @@
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/videoio.hpp>
-#include "component.h"
+#include "../registers/analogue_register.h"
 
-class Photodiode : public Component {
+class Photodiode {
 private:
     cv::VideoCapture *capture;
-    cv::Size* size;
+    cv::Size *size;
     cv::Mat frame;
     int rows_;
     int columns_;
 public:
+    Photodiode();
     Photodiode(int rows, int columns);
     void reset();
-    [[nodiscard]] const cv::Mat& read() const;
+    void read(AnalogueRegister& reg);
     ~Photodiode();
 };
 

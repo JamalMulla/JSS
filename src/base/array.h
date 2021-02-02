@@ -12,12 +12,13 @@
 
 class Array {
 protected:
-    int rows;
-    int columns;
-    ProcessingElement pe;
+    int rows_;
+    int columns_;
 
 public:
-    Array(int rows, int columns, ProcessingElement pe);
+    Array(int rows, int columns, ProcessingElement  pe);
+
+    ProcessingElement pe;
 };
 
 
