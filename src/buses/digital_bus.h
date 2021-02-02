@@ -10,24 +10,24 @@
 class DigitalBus {
 public:
     // Digital Logic Operations
-    static void OR(DREG& d, DREG& d0, DREG& d1, DREG& FLAG);
-    static void OR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& FLAG);
-    static void OR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& d3, DREG& FLAG);
-    static void NOT(DREG& d, DREG& d0, DREG& FLAG);
-    static void NOR(DREG& d, DREG& d0, DREG& d1, DREG& FLAG);
-    static void NOR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& FLAG);
-    static void NOR(DREG& d, DREG& d0, DREG& d1, DREG& d2, DREG& d3, DREG& FLAG);
-    static void NOT(DREG& Rl, DREG& FLAG);
-    static void OR(DREG& Rl, DREG& Rx, DREG& FLAG);
-    static void NOR(DREG& Rl, DREG& Rx, DREG& FLAG);
-    static void AND(DREG& Ra, DREG& Rx, DREG& Ry, DREG& FLAG);
-    static void NAND(DREG& Ra, DREG& Rx, DREG& Ry, DREG& FLAG);
-    static void IMP(DREG& Rl, DREG& Rx, DREG& Ry, DREG& FLAG);
-    static void NIMP(DREG& Rl, DREG& Rx, DREG& Ry, DREG& FLAG);
-    static void XOR(DREG& Rl, DREG& Rx, DREG& Ry, DREG& FLAG);
-    static void MOV(DREG& d, DREG& d0, DREG& FLAG);
-    static void MUX(DREG& Rl, DREG& Rx, DREG& Ry, DREG& Rz, DREG& FLAG);
-    static void CLR_IF(DREG& Rl, DREG& Rx, DREG& FLAG);
+    static void OR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& FLAG);
+    static void OR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& FLAG);
+    static void OR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& d3, DigitalRegister& FLAG);
+    static void NOT(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& FLAG);
+    static void NOR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& FLAG);
+    static void NOR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& FLAG);
+    static void NOR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& d3, DigitalRegister& FLAG);
+    static void NOT(DigitalRegister& Rl, DigitalRegister& FLAG);
+    static void OR(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
+    static void NOR(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
+    static void AND(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
+    static void NAND(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
+    static void IMP(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
+    static void NIMP(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
+    static void XOR(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
+    static void MOV(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& FLAG);
+    static void MUX(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& Rz, DigitalRegister& FLAG);
+    static void CLR_IF(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
 };
 
 

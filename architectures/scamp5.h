@@ -116,15 +116,15 @@ public:
 
     // Asynchronized Blur
     void blurset();
-    void blur(AREG a, AREG a0);
-    void blurh(AREG a, AREG a0);
-    void blurv(AREG a, AREG a0);
-    void gauss(AREG y, AREG x, const int iterations);
-    void gaussh(AREG y, AREG x, const int iterations);
-    void gaussv(AREG y, AREG x, const int iterations);
-    void newsblur(AREG y, AREG x, const int iterations);
-    void newsblurh(AREG y, AREG x, const int iterations);
-    void newsblurv(AREG y, AREG x, const int iterations);
+    void blur(AREG& a, AREG& a0);
+    void blurh(AREG& a, AREG& a0);
+    void blurv(AREG& a, AREG& a0);
+    void gauss(AREG& y, AREG& x, const int iterations);
+    void gaussh(AREG& y, AREG& x, const int iterations);
+    void gaussv(AREG& y, AREG& x, const int iterations);
+    void newsblur(AREG& y, AREG& x, const int iterations);
+    void newsblurh(AREG& y, AREG& x, const int iterations);
+    void newsblurv(AREG& y, AREG& x, const int iterations);
 
     // Digital Logic Operations
     void OR(DREG& d, DREG& d0, DREG& d1);

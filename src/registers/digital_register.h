@@ -12,7 +12,9 @@
 class DigitalRegister : public Register {
 public:
     void set();
+    void set(const DigitalRegister& FLAG);
     void clear();
+    void clear(const DigitalRegister& FLAG);
 };
 
 

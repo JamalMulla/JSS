@@ -8,6 +8,8 @@
 #include "../../architectures/scamp5.h"
 
 class AnalogueBus {
+
+
 public:
     // Analogue Register Transfer
     void bus(AnalogueRegister& a, const DigitalRegister& FLAG);
@@ -42,10 +44,10 @@ public:
 
     void move_neighbour(AnalogueRegister& a, AnalogueRegister& b, int offset_x, int offset_y, DigitalRegister& FLAG);
 
-    void push_north(AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
-    void push_east(AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
-    void push_south(AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
-    void push_west(AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
+    void push_north(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
+    void push_east(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
+    void push_south(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
+    void push_west(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
 
     void push_north(AnalogueRegister& reg, int offset, DigitalRegister& FLAG);
     void push_east(AnalogueRegister& reg, int offset, DigitalRegister& FLAG);
