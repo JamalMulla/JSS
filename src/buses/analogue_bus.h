@@ -5,10 +5,11 @@
 #ifndef SIMULATOR_ANALOGUE_BUS_H
 #define SIMULATOR_ANALOGUE_BUS_H
 
-#include "../../architectures/scamp5.h"
+
+#include "../registers/analogue_register.h"
+#include "../registers/digital_register.h"
 
 class AnalogueBus {
-
 
 public:
     // Analogue Register Transfer

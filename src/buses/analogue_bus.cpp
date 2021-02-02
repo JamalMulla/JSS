@@ -2,6 +2,8 @@
 // Created by jm1417 on 28/01/2021.
 //
 
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 #include "analogue_bus.h"
 
 void AnalogueBus::bus(AnalogueRegister &a, const DigitalRegister &FLAG) {

@@ -35,7 +35,7 @@ class SCAMP5 {
 private:
     ProcessingElement pe = ProcessingElement(SCAMP_HEIGHT, SCAMP_WIDTH, 9, 14);
     Array array = Array(SCAMP_HEIGHT, SCAMP_WIDTH, pe);
-
+public:
     //Analogue registers
     AREG& PIX = array.pe.analogue_registers[0];
     AREG& IN = array.pe.analogue_registers[1];
@@ -62,9 +62,6 @@ private:
     DREG& S5 = array.pe.digital_registers[11];
     DREG& S6 = array.pe.digital_registers[12];
     DREG& RP = array.pe.digital_registers[13];
-
-
-public:
 
     // Misc
     void nop();
@@ -171,8 +168,6 @@ public:
     // Digital Propagation
     void PROP0();
     void PROP1();
-
-
 
 };
 

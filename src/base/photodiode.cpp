@@ -9,11 +9,13 @@
 Photodiode::Photodiode() : rows_(0), columns_(0) {
     this->capture = new cv::VideoCapture(0);
     this->size = new cv::Size(0, 0);
+    std::cout << "Empty photodiode created" << std::endl;
 }
 
 Photodiode::Photodiode(int rows, int columns) : rows_(rows), columns_(columns) {
     this->capture = new cv::VideoCapture(0);
     this->size = new cv::Size(columns, rows);
+    std::cout << "Photodiode of size " << rows << "x" << columns << " created" << std::endl;
 }
 
 void Photodiode::reset() {

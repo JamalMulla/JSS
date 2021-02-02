@@ -2,6 +2,7 @@
 // Created by jm1417 on 28/01/2021.
 //
 
+#include <opencv2/core.hpp>
 #include "digital_bus.h"
 
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &d1, DigitalRegister &FLAG) {

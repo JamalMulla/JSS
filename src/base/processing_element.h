@@ -5,16 +5,14 @@
 #ifndef SIMULATOR_PROCESSING_ELEMENT_H
 #define SIMULATOR_PROCESSING_ELEMENT_H
 
-
+#include <vector>
 #include "photodiode.h"
-#include "../registers/analogue_register.h"
 #include "../registers/digital_register.h"
-#include "../buses/analogue_bus.h"
-#include "../buses/digital_bus.h"
 #include "../units/Squarer.h"
 #include "../units/comparator.h"
-#include <vector>
-#include <iostream>
+#include "../buses/analogue_bus.h"
+#include "../buses/digital_bus.h"
+
 
 class ProcessingElement {
 public:

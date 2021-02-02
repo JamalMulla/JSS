@@ -7,7 +7,6 @@
 
 #include <opencv2/core/mat.hpp>
 #include "register.h"
-#include "../../architectures/scamp5.h"
 
 class DigitalRegister : public Register {
 public:
