@@ -12,13 +12,13 @@
 
 class Photodiode {
 private:
-    cv::VideoCapture *capture;
-    cv::Size *size;
+    std::shared_ptr<cv::VideoCapture> capture;
+    std::shared_ptr<cv::Size> size;
+    std::shared_ptr<cv::Rect> crop_rect;
     cv::Mat frame;
     int rows_;
     int columns_;
 public:
-    Photodiode();
     Photodiode(int rows, int columns);
     void reset();
     void read(AnalogueRegister& reg);

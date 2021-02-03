@@ -22,7 +22,6 @@ int main() {
     SCAMP5 scamp5;
 
     while(true) {
-        scamp5.rpix();
         scamp5.get_image(scamp5.A, scamp5.D);
         scamp5.movx(scamp5.B, scamp5.A, south);
         scamp5.add(scamp5.B, scamp5.B, scamp5.A);
@@ -30,6 +29,7 @@ int main() {
         scamp5.addx(scamp5.B, scamp5.B, scamp5.A, east);
         scamp5.sub2x(scamp5.A, scamp5.B, west, west, scamp5.B);
 
+        cv::imshow("PIX", draw_analogue_register(scamp5.PIX.value(), "PIX"));
         cv::imshow("A", draw_analogue_register(scamp5.A.value(), "A"));
         cv::imshow("B", draw_analogue_register(scamp5.B.value(), "B"));
         cv::imshow("NEWS", draw_analogue_register(scamp5.NEWS.value(), "NEWS"));

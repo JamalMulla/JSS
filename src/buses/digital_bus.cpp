@@ -80,14 +80,14 @@ void DigitalBus::IMP(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &
     //    0   1     0
     //    1   0     1
     //    1   1     1
-    DigitalRegister intermediate;
+    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
     DigitalBus::NOT(intermediate, Ry, FLAG);
     DigitalBus::OR(Rl, Rx, intermediate, FLAG);
 }
 
 void DigitalBus::NIMP(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &Ry, DigitalRegister &FLAG) {
     // Rl := Rx NIMP Ry
-    DigitalRegister intermediate;
+    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
     DigitalBus::NOT(intermediate, FLAG);
     DigitalBus::NOR(Rl, Rx, intermediate, FLAG);
 }
@@ -105,8 +105,8 @@ void DigitalBus::MOV(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &F
 void DigitalBus::MUX(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &Ry, DigitalRegister &Rz, DigitalRegister &FLAG) {
     // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
     // R1 = (Ry.~Rx) + (Rz.Rx)
-    DigitalRegister intermediate;
-    DigitalRegister intermediate2;
+    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
+    DigitalRegister intermediate2(Rl.value().rows, Rl.value().cols);
     cv::bitwise_not(Rx.value(), intermediate.value());
     DigitalBus::AND(intermediate2, Ry, intermediate, FLAG);
     DigitalBus::AND(intermediate, Rz, Rx, FLAG);
@@ -115,7 +115,7 @@ void DigitalBus::MUX(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &
 
 void DigitalBus::CLR_IF(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &FLAG) {
     // Rl := 0 IF Rx = 1, Rl := Rl IF Rx = 0
-    DigitalRegister intermediate;
+    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
     DigitalBus::NOT(intermediate, Rl);
     DigitalBus::NOR(Rl, intermediate, Rx);
 }

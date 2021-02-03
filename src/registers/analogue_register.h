@@ -9,7 +9,7 @@
 
 class AnalogueRegister : public Register {
 public:
-
+    AnalogueRegister(int rows, int columns);
 };
 
 

@@ -10,8 +10,10 @@
 typedef cv::Mat Data;
 
 class Register {
+protected:
     Data value_;
 public:
+    Register(int rows, int columns, int type);
     Data & value()       { return value_; }
     [[nodiscard]] const Data & value() const { return value_; }
 };

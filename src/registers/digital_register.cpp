@@ -4,6 +4,9 @@
 
 #include "digital_register.h"
 
+DigitalRegister::DigitalRegister(int rows, int columns)
+    : Register(rows, columns, CV_8U) { }
+
 void DigitalRegister::set() {
     this->value().setTo(1);
 }

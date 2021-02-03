@@ -3,3 +3,6 @@
 //
 
 #include "register.h"
+
+Register::Register(int rows, int columns, int type)
+    : value_(rows, columns, type) {}

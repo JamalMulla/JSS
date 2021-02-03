@@ -238,7 +238,7 @@ void SCAMP5::mov2x(AREG &y, const AREG &x0, news_t dir, news_t dir2) {
 
 void SCAMP5::addx(AREG &y, const AREG &x0, const AREG &x1, news_t dir) {
     // y := x0_dir + x1_dir
-    AREG intermediate;
+    AREG intermediate(y.value().rows, y.value().cols);
     this->bus(intermediate, x0, x1);
     switch (dir) {
         case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 1, FLAG); break;
@@ -252,7 +252,7 @@ void SCAMP5::addx(AREG &y, const AREG &x0, const AREG &x1, news_t dir) {
 
 void SCAMP5::add2x(AREG &y, const AREG &x0, const AREG &x1, news_t dir, news_t dir2) {
     // y := x0_dir_dir2 + x1_dir_dir2
-    AREG intermediate;
+    AREG intermediate(y.value().rows, y.value().cols);
     this->bus(intermediate, x0, x1);
     this->neg(intermediate, intermediate);
     switch (dir) {
@@ -461,14 +461,14 @@ void SCAMP5::WHERE(DREG &d) {
 
 void SCAMP5::WHERE(DREG &d0, DREG &d1) {
     // FLAG := d0 OR d1.
-    DREG intermediate;
+    DREG intermediate(d0.value().rows, d0.value().cols);
     this->OR(intermediate, d0, d1);
     this->FLAG.value().setTo(intermediate.value());
 }
 
 void SCAMP5::WHERE(DREG &d0, DREG &d1, DREG &d2) {
     // FLAG := d0 OR d1 OR d2.
-    DREG intermediate;
+    DREG intermediate(d0.value().rows, d0.value().cols);
     this->OR(intermediate, d0, d1, d2);
     this->FLAG.value().setTo(intermediate.value());
 }
