@@ -7,6 +7,7 @@
 SCAMP5::SCAMP5() {
     // Initially all PEs are active
     this->FLAG.value().setTo(1);
+    this->R5.value().setTo(0);
 }
 
 
@@ -596,10 +597,4 @@ void SCAMP5::PROP0() {
 void SCAMP5::PROP1() {
     // async-propagation on R12, masked by R0 when boundaries are considered '1'
 }
-
-
-
-
-
-
 

@@ -77,7 +77,8 @@ void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegiste
 
 void AnalogueBus::conditional_positive_set(const AnalogueRegister &a, DigitalRegister &b){
     //value := 1 if a > 0
-    cv::threshold(a.value(), b.value(), 0, 1, cv::THRESH_BINARY);
+    cv::threshold(a.value(), b.value(), 127, 1, cv::THRESH_BINARY);
+    b.value().convertTo(b.value(), CV_8U);
 }
 
 void AnalogueBus::conditional_positive_set(const AnalogueRegister &a0, const AnalogueRegister &a1, DigitalRegister &b) {
@@ -85,6 +86,7 @@ void AnalogueBus::conditional_positive_set(const AnalogueRegister &a0, const Ana
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate);
     threshold(intermediate, b.value(), 0, 1, cv::THRESH_BINARY);
+    b.value().convertTo(b.value(), CV_8U);
 }
 
 void AnalogueBus::conditional_positive_set(const AnalogueRegister &a0, const AnalogueRegister &a1, const AnalogueRegister &a2, DigitalRegister &b) {
@@ -93,6 +95,7 @@ void AnalogueBus::conditional_positive_set(const AnalogueRegister &a0, const Ana
     cv::add(a0.value(), a1.value(), intermediate);
     cv::add(intermediate, a2.value(), intermediate);
     threshold(intermediate, b.value(), 0, 1, cv::THRESH_BINARY);
+    b.value().convertTo(b.value(), CV_8U);
 }
 
 void AnalogueBus::mov(AnalogueRegister &y, const AnalogueRegister &x0, AnalogueRegister &intermediate, DigitalRegister &FLAG) {

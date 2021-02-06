@@ -69,6 +69,7 @@ public:
     // Misc
     void nop();
 
+
     // Image Capturing
     void rpix();
     void get_image(AREG& y);
@@ -119,12 +120,12 @@ public:
     void blur(AREG& a, AREG& a0);
     void blurh(AREG& a, AREG& a0);
     void blurv(AREG& a, AREG& a0);
-    void gauss(AREG& y, AREG& x, const int iterations);
-    void gaussh(AREG& y, AREG& x, const int iterations);
-    void gaussv(AREG& y, AREG& x, const int iterations);
-    void newsblur(AREG& y, AREG& x, const int iterations);
-    void newsblurh(AREG& y, AREG& x, const int iterations);
-    void newsblurv(AREG& y, AREG& x, const int iterations);
+    void gauss(AREG& y, AREG& x, int iterations);
+    void gaussh(AREG& y, AREG& x, int iterations);
+    void gaussv(AREG& y, AREG& x, int iterations);
+    void newsblur(AREG& y, AREG& x, int iterations);
+    void newsblurh(AREG& y, AREG& x, int iterations);
+    void newsblurv(AREG& y, AREG& x, int iterations);
 
     // Digital Logic Operations
     void OR(DREG& d, DREG& d0, DREG& d1);
@@ -173,6 +174,15 @@ public:
     void PROP1();
 
 };
+
+
+
+
+#define scamp5_kernel_begin() { using namespace SCAMP_NAME;
+#define scamp5_kernel_end()    }
+
+#define scamp5_dynamic_kernel_begin() { using namespace SCAMP5_PE; using namespace scamp5_kernel_api; scamp5_kernel kn; kn.begin();
+#define scamp5_dynamic_kernel_end()   kn.end(); }
 
 
 #endif //SIMULATOR_SCAMP5_H

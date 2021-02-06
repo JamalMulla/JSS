@@ -19,21 +19,30 @@ cv::Mat draw_analogue_register(cv::Mat& reg, const std::string& window){
 }
 
 int main() {
-    SCAMP5 scamp5;
+    SCAMP5 s;
 
     while(true) {
-        scamp5.get_image(scamp5.A, scamp5.D);
-        scamp5.movx(scamp5.B, scamp5.A, south);
-        scamp5.add(scamp5.B, scamp5.B, scamp5.A);
-        scamp5.movx(scamp5.A, scamp5.B, north);
-        scamp5.addx(scamp5.B, scamp5.B, scamp5.A, east);
-        scamp5.sub2x(scamp5.A, scamp5.B, west, west, scamp5.B);
 
-        cv::imshow("PIX", draw_analogue_register(scamp5.PIX.value(), "PIX"));
-        cv::imshow("A", draw_analogue_register(scamp5.A.value(), "A"));
-        cv::imshow("B", draw_analogue_register(scamp5.B.value(), "B"));
-        cv::imshow("D", draw_analogue_register(scamp5.D.value(), "D"));
-        cv::imshow("NEWS", draw_analogue_register(scamp5.NEWS.value(), "NEWS"));
+        s.get_image(s.C,s.D);
+        s.sub(s.A, s.C, s.E);
+        s.where(s.A);
+        s.MOV(s.R5,s.FLAG);
+        s.all();
+
+
+//        s.get_image(s.A, s.D);
+//        s.movx(s.B, s.A, south);
+//        s.add(s.B, s.B, s.A);
+//        s.movx(s.A, s.B, north);
+//        s.addx(s.B, s.B, s.A, east);
+//        s.sub2x(s.A, s.B, west, west, s.B);
+
+
+        cv::imshow("PIX", draw_analogue_register(s.PIX.value(), "PIX"));
+        cv::imshow("A", draw_analogue_register(s.A.value(), "A"));
+        cv::imshow("B", draw_analogue_register(s.B.value(), "B"));
+        cv::imshow("R5", draw_analogue_register(s.R5.value(), "R5"));
+        cv::imshow("NEWS", draw_analogue_register(s.NEWS.value(), "NEWS"));
         cv::waitKey(1);
     }
 
