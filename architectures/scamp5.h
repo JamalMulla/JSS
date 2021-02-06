@@ -63,6 +63,9 @@ public:
     DREG& S6 = array.pe.digital_registers[12];
     DREG& RP = array.pe.digital_registers[13];
 
+
+    SCAMP5();
+
     // Misc
     void nop();
 

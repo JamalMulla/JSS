@@ -32,6 +32,7 @@ int main() {
         cv::imshow("PIX", draw_analogue_register(scamp5.PIX.value(), "PIX"));
         cv::imshow("A", draw_analogue_register(scamp5.A.value(), "A"));
         cv::imshow("B", draw_analogue_register(scamp5.B.value(), "B"));
+        cv::imshow("D", draw_analogue_register(scamp5.D.value(), "D"));
         cv::imshow("NEWS", draw_analogue_register(scamp5.NEWS.value(), "NEWS"));
         cv::waitKey(1);
     }

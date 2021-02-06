@@ -5,4 +5,4 @@
 #include "analogue_register.h"
 
 AnalogueRegister::AnalogueRegister(int rows, int columns)
-    : Register(rows, columns, CV_32F) { }
+    : Register(rows, columns, CV_16S) { }

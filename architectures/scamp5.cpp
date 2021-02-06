@@ -4,6 +4,12 @@
 
 #include "scamp5.h"
 
+SCAMP5::SCAMP5() {
+    // Initially all PEs are active
+    this->FLAG.value().setTo(1);
+}
+
+
 void SCAMP5::nop() { }
 
 void SCAMP5::rpix() {
@@ -62,10 +68,12 @@ void SCAMP5::getpix(AREG &y, AREG &h, AREG &pix_res) {
 }
 
 void SCAMP5::bus(AREG &a) {
+    // a = 0 + error
     this->pe.analogue_bus.bus(a, FLAG);
 }
 
 void SCAMP5::bus(AREG &a, const AREG &a0) {
+    // a = -a0 + error
     this->pe.analogue_bus.bus(a, a0, FLAG);
 }
 
@@ -588,7 +596,6 @@ void SCAMP5::PROP0() {
 void SCAMP5::PROP1() {
     // async-propagation on R12, masked by R0 when boundaries are considered '1'
 }
-
 
 
 

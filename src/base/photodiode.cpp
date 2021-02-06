@@ -14,28 +14,32 @@ Photodiode::Photodiode(int rows, int columns) : rows_(rows), columns_(columns) {
         exit(1);
     }
     this->size = std::make_shared<cv::Size>(columns, rows);
-    std::cout << "Photodiode of size " << rows << "x" << columns << " created" << std::endl;
+    this->frame = cv::Mat(rows_, columns_, CV_16S);
     this->reset();
 }
 
 void Photodiode::reset() {
-    if (this->capture == nullptr) {
-        std::cerr << "No video capture defined" << std::endl;
-    }
-    this->capture->read(this->frame);
-    if (this->frame.empty()) {
-        std::cerr << "ERROR! blank frame grabbed" << std::endl;
-    }
-
-    cv::cvtColor(this->frame, this->frame, cv::COLOR_BGR2GRAY);
-    int width = frame.cols;
-    int height = frame.rows;
-    cv::Mat cropFrame = this->frame(cv::Rect((width-height)/2, 0, height-1, height-1));
-    cv::resize(cropFrame, cropFrame, *this->size);
-    cropFrame.convertTo(this->frame, CV_32F);
+    this->frame.setTo(0);
 }
 
 void Photodiode::read(AnalogueRegister& reg) {
+    if (this->capture == nullptr) {
+        std::cerr << "No video capture defined" << std::endl;
+    }
+    cv::Mat temp(rows_, columns_, CV_32S);
+    *this->capture >> temp;
+    if (temp.empty()) {
+        std::cerr << "ERROR! blank frame grabbed" << std::endl;
+    }
+
+    cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
+
+    int width = temp.cols;
+    int height = temp.rows;
+    cv::Mat cropFrame = temp(cv::Rect((width-height)/2, 0, height-1, height-1));
+    cv::resize(cropFrame, cropFrame, *this->size);
+    cropFrame.convertTo(temp, CV_16S);
+    cv::add(this->frame, temp, this->frame);
     this->frame.copyTo(reg.value());
 }
 
