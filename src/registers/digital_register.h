@@ -12,9 +12,11 @@ class DigitalRegister : public Register {
 public:
     DigitalRegister(int rows, int columns);
     void set();
-    void set(const DigitalRegister& FLAG);
     void clear();
-    void clear(const DigitalRegister& FLAG);
+
+    Data read() override;
+    void write(Data data) override;
+    void write(int data) override;
 };
 
 

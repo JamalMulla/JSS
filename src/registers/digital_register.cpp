@@ -7,18 +7,25 @@
 DigitalRegister::DigitalRegister(int rows, int columns)
     : Register(rows, columns, CV_8U) { }
 
-void DigitalRegister::set() {
-    this->value().setTo(1);
+Data DigitalRegister::read() {
+    return this->value();
 }
 
-void DigitalRegister::set(const DigitalRegister& FLAG) {
-    this->value().setTo(1, FLAG.value());
+void DigitalRegister::write(Data data) {
+    this->value().setTo(data);
+}
+
+void DigitalRegister::write(int data) {
+    this->value().setTo(data);
+}
+
+void DigitalRegister::set() {
+    this->write(1);
 }
 
 void DigitalRegister::clear() {
-    this->value().setTo(0);
+    this->write(0);
 }
 
-void DigitalRegister::clear(const DigitalRegister& FLAG) {
-    this->value().setTo(0, FLAG.value());
-}
+
+

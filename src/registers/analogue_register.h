@@ -10,6 +10,11 @@
 class AnalogueRegister : public Register {
 public:
     AnalogueRegister(int rows, int columns);
+
+    Data read() override;
+    void write(Data data) override;
+    void write(int data) override;
+
 };
 
 

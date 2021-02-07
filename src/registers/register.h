@@ -16,6 +16,10 @@ public:
     Register(int rows, int columns, int type);
     Data & value()       { return value_; }
     [[nodiscard]] const Data & value() const { return value_; }
+
+    virtual Data read() = 0;
+    virtual void write(Data data) = 0;
+    virtual void write(int data) = 0;
 };
 
 
