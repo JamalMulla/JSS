@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.15)
 project(Simulator)
 
 find_package( OpenCV REQUIRED )
@@ -8,17 +8,6 @@ IF (UNIX)
     AUX_SOURCE_DIRECTORY(ocv_stages SOURCE_FILES)
 ENDIF()
 
-#AUX_SOURCE_DIRECTORY(ocv_stages SOURCE_FILES)
-
-#if (CMAKE_BUILD_TYPE EQUAL "Release")
-#    message("Release mode")
-#    include(cmake-build-release/conanbuildinfo.cmake)
-#else()
-#    message("Debug mode")
-#    include(cmake-build-debug/conanbuildinfo.cmake)
-#endif ()
-
-#conan_basic_setup()
 if(WIN32)
     link_directories("C:/OpenCV-4.5.1/opencv/build/x64/vc15/lib")
 ENDIF()

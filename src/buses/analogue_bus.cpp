@@ -85,7 +85,7 @@ void AnalogueBus::conditional_positive_set(const AnalogueRegister &a0, const Ana
     //value := 1 if (a0 + a1) > 0.
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate);
-    threshold(intermediate, b.value(), 0, 1, cv::THRESH_BINARY);
+    threshold(intermediate, b.value(), 127, 1, cv::THRESH_BINARY);
     b.value().convertTo(b.value(), CV_8U);
 }
 
@@ -94,7 +94,7 @@ void AnalogueBus::conditional_positive_set(const AnalogueRegister &a0, const Ana
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate);
     cv::add(intermediate, a2.value(), intermediate);
-    threshold(intermediate, b.value(), 0, 1, cv::THRESH_BINARY);
+    threshold(intermediate, b.value(), 127, 1, cv::THRESH_BINARY);
     b.value().convertTo(b.value(), CV_8U);
 }
 

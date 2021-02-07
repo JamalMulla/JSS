@@ -14,7 +14,6 @@ class Photodiode {
 private:
     std::shared_ptr<cv::VideoCapture> capture;
     std::shared_ptr<cv::Size> size;
-    std::shared_ptr<cv::Rect> crop_rect;
     cv::Mat frame;
     int rows_;
     int columns_;

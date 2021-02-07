@@ -38,7 +38,7 @@ void Photodiode::read(AnalogueRegister& reg) {
     int height = temp.rows;
     cv::Mat cropFrame = temp(cv::Rect((width-height)/2, 0, height-1, height-1));
     cv::resize(cropFrame, cropFrame, *this->size);
-    cropFrame.convertTo(temp, CV_16S);
+    cropFrame.convertTo(temp, CV_16S, -1, 1);
     cv::add(this->frame, temp, this->frame);
     this->frame.copyTo(reg.value());
 }

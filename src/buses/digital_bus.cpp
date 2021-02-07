@@ -99,7 +99,7 @@ void DigitalBus::XOR(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &
 
 void DigitalBus::MOV(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &FLAG) {
     // d := d0
-    cv::copyTo(d0.value(), d.value(), FLAG.value());
+    cv::copyTo(d0.value(), d.value(), cv::noArray());
 }
 
 void DigitalBus::MUX(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &Ry, DigitalRegister &Rz, DigitalRegister &FLAG) {
