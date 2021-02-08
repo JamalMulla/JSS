@@ -10,13 +10,14 @@
 
 class DigitalRegister : public Register {
 public:
-    DigitalRegister(int rows, int columns);
+    DigitalRegister(int rows, int columns, MemoryType memory_type);
     void set();
     void clear();
 
     Data read() override;
     void write(Data data) override;
     void write(int data) override;
+    void print_stats() override;
 };
 
 

@@ -594,4 +594,3 @@ void SCAMP5::PROP0() {
 void SCAMP5::PROP1() {
     // async-propagation on R12, masked by R0 when boundaries are considered '1'
 }
-

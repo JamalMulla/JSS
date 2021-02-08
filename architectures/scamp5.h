@@ -174,7 +174,6 @@ public:
     // Digital Propagation
     void PROP0();
     void PROP1();
-
 };
 
 

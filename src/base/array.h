@@ -9,8 +9,9 @@
 #include <utility>
 
 #include "processing_element.h"
+#include "component.h"
 
-class Array {
+class Array : public Component {
 protected:
     int rows_;
     int columns_;
@@ -19,6 +20,9 @@ public:
     Array(int rows, int columns, ProcessingElement  pe);
 
     ProcessingElement pe;
+
+    void print_stats() override;
+
 };
 
 

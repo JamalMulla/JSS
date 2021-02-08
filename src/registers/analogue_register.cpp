@@ -5,7 +5,7 @@
 #include "analogue_register.h"
 
 AnalogueRegister::AnalogueRegister(int rows, int columns)
-    : Register(rows, columns, CV_16S) { }
+    : Register(rows, columns, CV_16S, MemoryType()) { }
 
 Data AnalogueRegister::read() {
     return this->value();

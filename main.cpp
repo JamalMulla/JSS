@@ -68,8 +68,13 @@ int main() {
 
     std::cout << std::endl;
 
+    s.print_stats();
+
     std::cout << "FLAG reads: " << s.FLAG.get_reads() << " FLAG writes: " << s.FLAG.get_writes() << std::endl;
     std::cout << "R5 reads: " << s.R5.get_reads() << " R5 writes: " << s.R5.get_writes() << std::endl;
+
+    //in uwatts
+    std::cout << "Power for FLAG reads: " << ((s.FLAG.get_reads() * 0.5655) / (1e+7)) / 10 << "w" << std::endl;
 
     return 0;
 }

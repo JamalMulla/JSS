@@ -9,8 +9,9 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/videoio.hpp>
 #include "../registers/analogue_register.h"
+#include "component.h"
 
-class Photodiode {
+class Photodiode : public Component {
 private:
     std::shared_ptr<cv::VideoCapture> capture;
     std::shared_ptr<cv::Size> size;
@@ -21,6 +22,7 @@ public:
     Photodiode(int rows, int columns);
     void reset();
     void read(AnalogueRegister& reg);
+    void print_stats() override;
     ~Photodiode();
 };
 
