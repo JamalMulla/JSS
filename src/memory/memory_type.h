@@ -7,14 +7,16 @@
 
 
 class MemoryType {
-protected:
-    float write_access_time; // In ns
-    float read_access_time; // In ns
-    float write_power_draw; // In μW
-    float read_power_draw; // In μW
+public:
+    double write_access_time; // In ns
+    double read_access_time; // In ns
+    double write_power_draw; // In μW
+    double read_power_draw; // In μW
 
 public:
     MemoryType(float write_access_time, float read_access_time, float write_power_draw, float read_power_draw);
+
+    MemoryType();
 
 };
 

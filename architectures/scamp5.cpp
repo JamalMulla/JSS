@@ -3,10 +3,12 @@
 //
 
 #include "scamp5.h"
+#include "../src/stats.h"
 
 SCAMP5::SCAMP5() {
     // Initially all PEs are active
     this->FLAG.write(1);
+    stats::set_clock_rate(1e7);
 }
 
 void SCAMP5::nop() { }
@@ -593,4 +595,8 @@ void SCAMP5::PROP0() {
 
 void SCAMP5::PROP1() {
     // async-propagation on R12, masked by R0 when boundaries are considered '1'
+}
+
+void SCAMP5::print_stats() {
+    this->array.print_stats();
 }

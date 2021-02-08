@@ -14,7 +14,7 @@
 #include "../buses/digital_bus.h"
 
 
-class ProcessingElement {
+class ProcessingElement : public Component {
 public:
     Photodiode photodiode;
     std::vector<AnalogueRegister> analogue_registers;
@@ -26,7 +26,7 @@ public:
     DigitalBus local_write_bus;
 
     ProcessingElement(int rows, int columns, int num_analogue_regs, int num_digital_regs);
-
+    void print_stats() override;
 
     };
 

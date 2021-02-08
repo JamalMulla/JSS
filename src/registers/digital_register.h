@@ -7,10 +7,11 @@
 
 #include <opencv2/core/mat.hpp>
 #include "register.h"
+#include "../memory/dram/dram_3t.h"
 
 class DigitalRegister : public Register {
 public:
-    DigitalRegister(int rows, int columns, MemoryType memory_type);
+    DigitalRegister(int rows, int columns, const MemoryType& memory_type = DRAM_3T());
     void set();
     void clear();
 

@@ -7,11 +7,7 @@
 
 
 class Component {
-protected:
-    long clock_speed = -1;
 public:
-    void set_clock_speed(long clock_speed);
-    long get_clock_speed();
 
     virtual void print_stats() = 0;
 };

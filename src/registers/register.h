@@ -15,10 +15,11 @@ class Register : public Component {
 protected:
     MemoryType memory_type_;
     Data value_;
-    cv::Mat read_counter;  // Number of reads
-    cv::Mat write_counter; // Number of writes
-    cv::Mat energy;        // Amount of energy consumed
-    
+    cv::Mat read_counter;           // Number of reads
+    cv::Mat write_counter;          // Number of writes
+    cv::Mat read_energy_counter;    // Energy consumed by reads
+    cv::Mat write_energy_counter;   // Energy consumed by writes
+
 public:
     Register(int rows, int columns, int type, MemoryType memoryType);
     Data & value()       { return value_; }
@@ -29,6 +30,9 @@ public:
 
     int get_reads();
     int get_writes();
+    double get_read_energy();
+    double get_write_energy();
+    double get_total_energy();
 
     virtual Data read() = 0;
     virtual void write(Data data) = 0;

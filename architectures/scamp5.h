@@ -174,6 +174,9 @@ public:
     // Digital Propagation
     void PROP0();
     void PROP1();
+
+    // Simulator specific methods
+    void print_stats();
 };
 
 

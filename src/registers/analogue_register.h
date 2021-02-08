@@ -14,7 +14,7 @@ public:
     Data read() override;
     void write(Data data) override;
     void write(int data) override;
-
+    void print_stats() override;
 };
 
 
