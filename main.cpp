@@ -22,14 +22,17 @@ cv::Mat draw_analogue_register(cv::Mat& reg, const std::string& window){
 int main() {
     SCAMP5 s;
 
-    while(true) {
+    int i = 0;
+    while(i < 200) {
 
-        s.E.value().setTo(10);
+        s.E.value().setTo(0);
         s.get_image(s.C,s.D);
         s.sub(s.A, s.C, s.E);
         s.where(s.A);
         s.MOV(s.R5,s.FLAG);
         s.all();
+
+
 
 //        Sobel
 //        s.get_image(s.A, s.D);
@@ -59,8 +62,14 @@ int main() {
         cv::imshow("R5", draw_analogue_register(s.R5.value(), "R5"));
         cv::imshow("NEWS", draw_analogue_register(s.NEWS.value(), "NEWS"));
         cv::waitKey(1);
+        i++;
+        std::cout << "\rIteration " << i << std::flush;
     }
 
+    std::cout << std::endl;
+
+    std::cout << "FLAG reads: " << s.FLAG.get_reads() << " FLAG writes: " << s.FLAG.get_writes() << std::endl;
+    std::cout << "R5 reads: " << s.R5.get_reads() << " R5 writes: " << s.R5.get_writes() << std::endl;
 
     return 0;
 }

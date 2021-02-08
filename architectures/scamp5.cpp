@@ -6,7 +6,7 @@
 
 SCAMP5::SCAMP5() {
     // Initially all PEs are active
-    this->FLAG.value().setTo(1);
+    this->FLAG.write(1);
 }
 
 void SCAMP5::nop() { }

@@ -14,9 +14,6 @@ enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
 typedef AnalogueRegister AREG;
 typedef DigitalRegister DREG;
 
-#define SCAMP_HEIGHT 256
-#define SCAMP_WIDTH 256
-
 #define RS  R1
 #define RW  R2
 #define RN  R3
@@ -32,8 +29,13 @@ typedef DigitalRegister DREG;
 #define RF  R0
 
 class SCAMP5 {
+public:
+    const int SCAMP_HEIGHT = 256;
+    const int SCAMP_WIDTH = 256;
+    const int ANALOGUE_REGISTERS = 9;
+    const int DIGITAL_REGISTERS = 14;
 private:
-    ProcessingElement pe = ProcessingElement(SCAMP_HEIGHT, SCAMP_WIDTH, 9, 14);
+    ProcessingElement pe = ProcessingElement(SCAMP_HEIGHT, SCAMP_WIDTH, ANALOGUE_REGISTERS, DIGITAL_REGISTERS);
     Array array = Array(SCAMP_HEIGHT, SCAMP_WIDTH, pe);
 public:
     //Analogue registers

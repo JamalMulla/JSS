@@ -47,6 +47,7 @@ public:
     static void MOV_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& FLAG);
     static void MUX_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& Rz, DigitalRegister& FLAG);
     static void CLR_IF_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
+
 };
 
 
