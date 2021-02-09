@@ -45,15 +45,23 @@ public:
 
     void move_neighbour(AnalogueRegister& a, AnalogueRegister& b, int offset_x, int offset_y, DigitalRegister& FLAG);
 
-    void push_north(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
-    void push_east(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
-    void push_south(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
-    void push_west(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
+//    void push_north(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
+//    void push_east(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
+//    void push_south(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
+//    void push_west(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
+
+    // Get registers in direction
+    void get_east(const AnalogueRegister &src, AnalogueRegister& dst, int offset);
+    void get_west(const AnalogueRegister &src, AnalogueRegister& dst, int offset);
+    void get_north(const AnalogueRegister &src, AnalogueRegister& dst, int offset);
+    void get_south(const AnalogueRegister &src, AnalogueRegister& dst, int offset);
 
     void push_north(AnalogueRegister& reg, int offset, DigitalRegister& FLAG);
     void push_east(AnalogueRegister& reg, int offset, DigitalRegister& FLAG);
     void push_south(AnalogueRegister& reg, int offset, DigitalRegister& FLAG);
     void push_west(AnalogueRegister& reg, int offset, DigitalRegister& FLAG);
+
+
 };
 
 

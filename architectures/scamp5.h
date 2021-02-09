@@ -32,7 +32,7 @@ class SCAMP5 {
 public:
     const int SCAMP_HEIGHT = 256;
     const int SCAMP_WIDTH = 256;
-    const int ANALOGUE_REGISTERS = 9;
+    const int ANALOGUE_REGISTERS = 13;
     const int DIGITAL_REGISTERS = 14;
 private:
     ProcessingElement pe = ProcessingElement(SCAMP_HEIGHT, SCAMP_WIDTH, ANALOGUE_REGISTERS, DIGITAL_REGISTERS);
@@ -48,6 +48,10 @@ public:
     AREG& D = array.pe.analogue_registers[6];
     AREG& E = array.pe.analogue_registers[7];
     AREG& F = array.pe.analogue_registers[8];
+    AREG& XE = array.pe.analogue_registers[9];
+    AREG& XW = array.pe.analogue_registers[10];
+    AREG& XN = array.pe.analogue_registers[11];
+    AREG& XS = array.pe.analogue_registers[12];
 
     //Digital registers
     DREG& FLAG = array.pe.digital_registers[0];
