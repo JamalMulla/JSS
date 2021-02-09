@@ -16,13 +16,13 @@ int main() {
 
     int i = 0;
     while(i < 2000) {
-
-        s.scamp5_in(s.E, 0);
-        s.get_image(s.C,s.D);
-        s.sub(s.A, s.C, s.E);
-        s.where(s.A);
-        s.MOV(s.R5,s.FLAG);
-        s.all();
+//
+//        s.scamp5_in(s.E, 10);
+//        s.get_image(s.C,s.D);
+//        s.sub(s.A, s.C, s.E);
+//        s.where(s.A);
+//        s.MOV(s.R5,s.FLAG);
+//        s.all();
 
 
 //        Sobel
@@ -44,6 +44,33 @@ int main() {
 //        s.addx(s.B, s.B, s.D, east);
 //        s.sub2x(s.A, s.B, west, west, s.B);
 //        s.sub2x(s.B, s.C, south, south, s.C);
+
+        // Gaussian 5x5
+        s.get_image(s.A, s.D);
+        s.div(s.E, s.C, s.A);
+        s.diva(s.E, s.C, s.B);
+        s.diva(s.E, s.C, s.B);
+        s.diva(s.E, s.C, s.B);
+        s.diva(s.E, s.C, s.B);
+        s.neg(s.C, s.E);
+        s.neg(s.B, s.C);
+        s.diva(s.B, s.C, s.F);
+        s.movx(s.C, s.B, south);
+        s.movx(s.F, s.B, north);
+        s.add(s.D, s.B, s.E);
+        s.add(s.B, s.B, s.E, s.D);
+        s.addx(s.D, s.E, s.D, north);
+        s.add(s.C, s.C, s.E, s.F);
+        s.mov2x(s.A, s.C, west, north);
+        s.add2x(s.F, s.E, s.F, north, north);
+        s.add2x(s.D, s.E, s.D, south, south);
+        s.add2x(s.E, s.D, s.E, north, north);
+        s.add(s.A, s.F, s.C, s.A);
+        s.add2x(s.A, s.A, s.E, west, south);
+        s.add(s.B, s.B, s.D, s.E);
+        s.add2x(s.C, s.C, s.A, east, east);
+        s.add(s.A, s.B, s.A, s.C);
+
 
 
         utility::display_register("PIX", s.PIX);
