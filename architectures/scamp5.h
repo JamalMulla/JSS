@@ -175,6 +175,68 @@ public:
     void PROP0();
     void PROP1();
 
+    // Vision system functions
+    //   Analogue
+    void scamp5_get_image(AREG& yf, AREG& yh, int gain=1);
+    void scamp5_in(AREG& areg, int8_t value, AREG* temp = nullptr);
+    void scamp5_load_in(AREG& areg, int8_t value, AREG* temp = nullptr);
+    void scamp5_load_in(int8_t value);
+    void scamp5_load_dac(AREG& areg, int16_t value, AREG& temp);
+    void scamp5_load_dac(int16_t value);
+    void scamp5_shift(AREG& areg, int h, int v);
+    void scamp5_diffuse();
+    void scamp5_read_areg();
+    void scamp5_global_sum_16();
+    void scamp5_global_sum_64();
+    void scamp5_global_sum_fast();
+
+    //    Digital
+    void scamp5_global_or();
+    void scamp5_global_count();
+    void scamp5_flood();
+    void scamp5_load_point();
+    void scamp5_load_rect();
+    void scamp5_load_pattern();
+    void scamp5_select_point();
+    void scamp5_select_rect();
+    void scamp5_select_pattern();
+    void scamp5_draw_begin();
+    void scamp5_draw_end();
+    void scamp5_draw_pixel();
+    void scamp5_draw_point();
+    void scamp5_draw_rect();
+    void scamp5_draw_line();
+    void scamp5_draw_circle();
+    void scamp5_draw_negate();
+
+    //    Image Readout
+    void scamp5_scan_areg();
+    void scamp5_scan_areg_8x8();
+    void scamp5_scan_areg_mean_8x8();
+    void scamp5_scan_dreg();
+    void scamp5_display_image();
+    void scamp5_display_image_patch();
+    void scamp5_output_image();
+    void scamp5_output_bitstack_begin();
+    void scamp5_output_bitstack_bit();
+    void scamp5_output_bitstack_end();
+
+
+    //    Events Readout
+    void scamp5_scan_events();
+    void scamp5_scan_boundingbox();
+    void scamp5_display_events();
+    void scamp5_display_boundingbox();
+    void scamp5_output_events();
+    void scamp5_output_boundingbox();
+
+    //    Other Functions
+    void scamp5_bind_io_agent();
+    void scamp5_get_io_agent();
+
+
+    // Simulator specific methods
+    void print_stats();
 };
 
 

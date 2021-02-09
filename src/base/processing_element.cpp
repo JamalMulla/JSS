@@ -13,3 +13,12 @@ ProcessingElement::ProcessingElement(int rows, int columns, int num_analogue_reg
         digital_registers.emplace_back(DigitalRegister(rows, columns));
     }
 }
+
+void ProcessingElement::print_stats() {
+    for (auto & analogue : analogue_registers) {
+        analogue.print_stats();
+    }
+    for (auto & digital : digital_registers) {
+        digital.print_stats();
+    }
+}

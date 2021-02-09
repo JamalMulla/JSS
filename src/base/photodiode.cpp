@@ -43,6 +43,10 @@ void Photodiode::read(AnalogueRegister& reg) {
     this->frame.copyTo(reg.value());
 }
 
+void Photodiode::print_stats() {
+
+}
+
 Photodiode::~Photodiode() {
 }
 
