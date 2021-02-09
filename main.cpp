@@ -17,12 +17,12 @@ int main() {
     int i = 0;
     while(i < 2000) {
 
-//        s.E.value().setTo(0);
-//        s.get_image(s.C,s.D);
-//        s.sub(s.A, s.C, s.E);
-//        s.where(s.A);
-//        s.MOV(s.R5,s.FLAG);
-//        s.all();
+        s.scamp5_in(s.E, 0);
+        s.get_image(s.C,s.D);
+        s.sub(s.A, s.C, s.E);
+        s.where(s.A);
+        s.MOV(s.R5,s.FLAG);
+        s.all();
 
 
 //        Sobel
@@ -34,16 +34,16 @@ int main() {
 //        s.sub2x(s.A, s.B, west, west, s.B);
 
         // Multiple Sobel
-        s.get_image(s.A, s.D);
-        s.neg(s.C, s.A);
-        s.subx(s.B, s.A, south, s.C);
-        s.subx(s.D, s.A, north, s.C);
-        s.subx(s.C, s.C, west, s.A);
-        s.movx(s.A, s.C, east);
-        s.addx(s.C, s.C, s.A, north);
-        s.addx(s.B, s.B, s.D, east);
-        s.sub2x(s.A, s.B, west, west, s.B);
-        s.sub2x(s.B, s.C, south, south, s.C);
+//        s.get_image(s.A, s.D);
+//        s.neg(s.C, s.A);
+//        s.subx(s.B, s.A, south, s.C);
+//        s.subx(s.D, s.A, north, s.C);
+//        s.subx(s.C, s.C, west, s.A);
+//        s.movx(s.A, s.C, east);
+//        s.addx(s.C, s.C, s.A, north);
+//        s.addx(s.B, s.B, s.D, east);
+//        s.sub2x(s.A, s.B, west, west, s.B);
+//        s.sub2x(s.B, s.C, south, south, s.C);
 
 
         utility::display_register("PIX", s.PIX);

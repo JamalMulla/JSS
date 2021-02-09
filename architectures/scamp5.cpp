@@ -600,3 +600,36 @@ void SCAMP5::PROP1() {
 void SCAMP5::print_stats() {
     this->array.print_stats();
 }
+
+void SCAMP5::scamp5_get_image(AREG &yf, AREG &yh, int gain) {
+    // 	put the exposure result in PIX to AREGs and reset PIX
+}
+
+void SCAMP5::scamp5_in(AREG &areg, int8_t value, AREG *temp) {
+    // load an analog value to the AREG with error&noise correctio
+    // TODO noise
+    if (temp == nullptr) {
+        temp = &NEWS;
+    }
+    IN.value().setTo(value);
+    bus(*temp, IN);
+    bus(areg, *temp);
+}
+
+void SCAMP5::scamp5_load_in(AREG &areg, int8_t value, AREG *temp) {
+    // load a analog value to the AREG plane without error&noise correction
+    // TODO noise
+    if (temp == nullptr) {
+        temp = &NEWS;
+    }
+    IN.value().setTo(value);
+    bus(*temp, IN);
+    bus(areg, *temp);
+}
+
+void SCAMP5::scamp5_load_in(int8_t value) {
+    // 	load a analog value to IN without error&noise correction
+    IN.value().setTo(value);
+}
+
+
