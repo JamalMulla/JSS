@@ -16,8 +16,7 @@ int main() {
 
     int i = 0;
     while(i < 2000) {
-//
-        // s.scamp5_in(s.B, 10);
+        s.scamp5_in(s.E, 0);
 //        s.get_image(s.C,s.D);
 //        s.sub(s.A, s.C, s.E);
 //        s.where(s.A);
