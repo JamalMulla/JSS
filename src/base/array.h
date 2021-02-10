@@ -11,7 +11,7 @@
 #include "processing_element.h"
 #include "component.h"
 
-#define MAT_TYPE CV_8S
+#define MAT_TYPE CV_16S
 
 class Array : public Component {
 protected:

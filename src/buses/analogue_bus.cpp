@@ -50,9 +50,7 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, DigitalRegister
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, const AnalogueRegister &a0, DigitalRegister &FLAG) {
     //a,b = -0.5*a0 + error + noise
     Data intermediate;
-    //std::cout << "Sum before" << cv::sum(a0.value()) << std::endl;
     cv::multiply(a0.value(), 0.5, intermediate);
-    //std::cout << "Sum after" << cv::sum(intermediate) << std::endl;
     cv::bitwise_not(intermediate, intermediate, FLAG.value());
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());

@@ -27,7 +27,7 @@ void Photodiode::read(AnalogueRegister& reg) {
     if (this->capture == nullptr) {
         std::cerr << "No video capture defined" << std::endl;
     }
-    cv::Mat temp(rows_, columns_, CV_16S);
+    cv::Mat temp(rows_, columns_, CV_32S);
     *this->capture >> temp;
     if (temp.empty()) {
         std::cerr << "ERROR! blank frame grabbed" << std::endl;
