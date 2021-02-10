@@ -25,6 +25,7 @@ void SCAMP5::get_image(AREG &y) {
     this->rpix();
     this->rpix();
     this->nop();
+    this->pe.photodiode.read(PIX);
     this->bus(y, NEWS, PIX);
 }
 
@@ -36,7 +37,9 @@ void SCAMP5::get_image(AREG &y, AREG &h) {
     this->rpix();
     this->rpix();
     this->nop();
+    this->pe.photodiode.read(PIX);
     this->bus(y, h, NEWS, PIX);
+
 }
 
 void SCAMP5::respix() {
@@ -51,18 +54,21 @@ void SCAMP5::respix(AREG &y) {
     this->rpix();
     this->rpix();
     this->nop();
+    this->pe.photodiode.read(PIX);
     this->bus(NEWS, PIX);
     this->bus(y, NEWS);
 }
 
 void SCAMP5::getpix(AREG &y, AREG &pix_res) {
     //y := half-range image, supplying the reset level of PIX
+    this->pe.photodiode.read(PIX);
     this->bus(NEWS,PIX);
     this->bus(y,NEWS, pix_res);
 }
 
 void SCAMP5::getpix(AREG &y, AREG &h, AREG &pix_res) {
     //y := full-range, h := half-range image, supplying the reset level of PIX
+    this->pe.photodiode.read(PIX);
     this->bus(h,PIX);
     this->bus(NEWS, PIX);
     this->bus(y, h, NEWS, pix_res);

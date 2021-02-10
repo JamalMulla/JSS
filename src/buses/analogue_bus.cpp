@@ -4,6 +4,7 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <iostream>
 #include "analogue_bus.h"
 
 void AnalogueBus::bus(AnalogueRegister &a, const DigitalRegister &FLAG) {
@@ -49,7 +50,9 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, DigitalRegister
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, const AnalogueRegister &a0, DigitalRegister &FLAG) {
     //a,b = -0.5*a0 + error + noise
     Data intermediate;
-    cv::multiply(0.5, a0.value(), intermediate);
+    //std::cout << "Sum before" << cv::sum(a0.value()) << std::endl;
+    cv::multiply(a0.value(), 0.5, intermediate);
+    //std::cout << "Sum after" << cv::sum(intermediate) << std::endl;
     cv::bitwise_not(intermediate, intermediate, FLAG.value());
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());
@@ -59,7 +62,7 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, const AnalogueR
     //a,b = -0.5*(a0 + a1) + error + noise
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate, FLAG.value());
-    cv::multiply(0.5, intermediate, intermediate);
+    cv::multiply(intermediate, 0.5, intermediate);
     cv::bitwise_not(intermediate, intermediate, FLAG.value());
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());
