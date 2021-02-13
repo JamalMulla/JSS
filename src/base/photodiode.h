@@ -18,10 +18,12 @@ private:
     cv::Mat frame;
     int rows_;
     int columns_;
+    double time_taken = 0;
 public:
     Photodiode(int rows, int columns);
     void reset();
     void read(AnalogueRegister& reg);
+    double last_frame_time();
     void print_stats(CycleCounter counter) override;
     ~Photodiode();
 };

@@ -40,8 +40,16 @@ double CycleCounter::to_seconds(long clock_rate) {
     return this->counter/clock_rate;
 }
 
+long CycleCounter::to_cycles(double seconds, long clock_rate) {
+    return seconds * clock_rate;
+}
+
 std::ostream &operator<<(std::ostream &os, const CycleCounter &cc) {
-    os << cc.counter << " cycles";
+    os << cc.counter;
     return os;
+}
+
+unsigned long long CycleCounter::get_cycles() {
+    return this->counter;
 }
 

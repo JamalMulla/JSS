@@ -28,6 +28,7 @@ void Photodiode::read(AnalogueRegister& reg) {
         std::cerr << "No video capture defined" << std::endl;
     }
     cv::Mat temp(rows_, columns_, CV_32S);
+    auto TIME_START = std::chrono::high_resolution_clock::now();
     *this->capture >> temp;
     if (temp.empty()) {
         std::cerr << "ERROR! blank frame grabbed" << std::endl;
@@ -42,6 +43,13 @@ void Photodiode::read(AnalogueRegister& reg) {
     cropFrame.convertTo(temp, MAT_TYPE);
     cv::add(this->frame, temp, this->frame);
     this->frame.copyTo(reg.value());
+    auto TIME_END = std::chrono::high_resolution_clock::now();
+    long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(TIME_END-TIME_START).count();
+    time_taken = time_in_nano*1e-9;
+}
+
+double Photodiode::last_frame_time() {
+    return time_taken;
 }
 
 void Photodiode::print_stats(CycleCounter counter) {

@@ -35,7 +35,9 @@ void SCAMP5::get_image(AREG &y) {
 void SCAMP5::get_image(AREG &y, AREG &h) {
     //y := full-range image, h := negative half-range image, and reset PIX
     this->pe.photodiode.read(PIX);
-    cycles+=20;
+    double seconds = this->pe.photodiode.last_frame_time();
+    int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
+    cycles+=c;
     this->bus(NEWS, PIX);
     this->bus(h, PIX);
     this->rpix();
@@ -666,6 +668,8 @@ void SCAMP5::PROP1() {
 
 void SCAMP5::print_stats(CycleCounter counter) {
     std::cout << "Total number of cycles: " << counter << std::endl;
+    std::cout << "Equivalent in seconds: " << counter.get_cycles()/stats::CLOCK_RATE << " s" << std::endl;
+
     this->array.print_stats(counter);
 }
 
