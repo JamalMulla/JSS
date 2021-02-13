@@ -22,7 +22,7 @@ public:
     Photodiode(int rows, int columns);
     void reset();
     void read(AnalogueRegister& reg);
-    void print_stats() override;
+    void print_stats(CycleCounter counter) override;
     ~Photodiode();
 };
 

@@ -14,11 +14,11 @@ ProcessingElement::ProcessingElement(int rows, int columns, int num_analogue_reg
     }
 }
 
-void ProcessingElement::print_stats() {
+void ProcessingElement::print_stats(CycleCounter counter) {
     for (auto & analogue : analogue_registers) {
-        analogue.print_stats();
+        analogue.print_stats(counter);
     }
     for (auto & digital : digital_registers) {
-        digital.print_stats();
+        digital.print_stats(counter);
     }
 }

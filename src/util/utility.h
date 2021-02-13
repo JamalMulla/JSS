@@ -6,10 +6,11 @@
 #define SIMULATOR_UTILITY_H
 
 #include <string>
-#include "registers/register.h"
+#include "../registers/register.h"
 
 namespace utility {
 
+    // Vision
     void display_register(const std::string& window_name, Register& reg);
 
 }

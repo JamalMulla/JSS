@@ -4,12 +4,9 @@
 
 #include "array.h"
 
-#include <utility>
-
-Array::Array(int rows, int columns, ProcessingElement pe)
+Array::Array(int rows, int columns, const ProcessingElement& pe)
     : rows_(rows), columns_(columns), pe(std::move(pe)) { }
 
-void Array::print_stats() {
-    this->pe.print_stats();
+void Array::print_stats(CycleCounter counter) {
+    this->pe.print_stats(counter);
 }
-

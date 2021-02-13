@@ -3,7 +3,7 @@
 //
 
 #include "scamp5.h"
-#include "../src/stats.h"
+#include "../src/metrics/stats.h"
 
 SCAMP5::SCAMP5() {
     // Initially all PEs are active
@@ -11,16 +11,20 @@ SCAMP5::SCAMP5() {
     stats::set_clock_rate(1e7);
 }
 
-void SCAMP5::nop() { }
+void SCAMP5::nop() {
+    cycles++;
+}
 
 void SCAMP5::rpix() {
     //reset PIX
     this->pe.photodiode.reset();
+    cycles++;
 }
 
 void SCAMP5::get_image(AREG &y) {
     //y := half-range image, and reset PIX
     this->pe.photodiode.read(PIX);
+    cycles+=20;
     this->bus(NEWS, PIX);
     this->rpix();
     this->rpix();
@@ -31,6 +35,7 @@ void SCAMP5::get_image(AREG &y) {
 void SCAMP5::get_image(AREG &y, AREG &h) {
     //y := full-range image, h := negative half-range image, and reset PIX
     this->pe.photodiode.read(PIX);
+    cycles+=20;
     this->bus(NEWS, PIX);
     this->bus(h, PIX);
     this->rpix();
@@ -53,6 +58,7 @@ void SCAMP5::respix(AREG &y) {
     this->rpix();
     this->nop();
     this->pe.photodiode.read(PIX);
+    cycles+=20;
     this->bus(NEWS, PIX);
     this->bus(y, NEWS);
 }
@@ -60,6 +66,7 @@ void SCAMP5::respix(AREG &y) {
 void SCAMP5::getpix(AREG &y, AREG &pix_res) {
     //y := half-range image, supplying the reset level of PIX
     this->pe.photodiode.read(PIX);
+    cycles+=20;
     this->bus(NEWS,PIX);
     this->bus(y,NEWS, pix_res);
 }
@@ -67,6 +74,7 @@ void SCAMP5::getpix(AREG &y, AREG &pix_res) {
 void SCAMP5::getpix(AREG &y, AREG &h, AREG &pix_res) {
     //y := full-range, h := half-range image, supplying the reset level of PIX
     this->pe.photodiode.read(PIX);
+    cycles+=20;
     this->bus(h,PIX);
     this->bus(NEWS, PIX);
     this->bus(y, h, NEWS, pix_res);
@@ -75,59 +83,79 @@ void SCAMP5::getpix(AREG &y, AREG &h, AREG &pix_res) {
 void SCAMP5::bus(AREG &a) {
     // a = 0 + error
     this->pe.analogue_bus.bus(a, FLAG);
+    cycles++;
 }
 
 void SCAMP5::bus(AREG &a, const AREG &a0) {
     // a = -a0 + error
     this->pe.analogue_bus.bus(a, a0, FLAG);
+    cycles++;
 }
 
 void SCAMP5::bus(AREG &a, const AREG &a0, const AREG &a1) {
+    //a = -(a0 + a1) + error
     this->pe.analogue_bus.bus(a, a0, a1,FLAG);
+    cycles+=4; // 2 reads, 1 add, 1 write
 }
 
 void SCAMP5::bus(AREG &a, const AREG &a0, const AREG &a1, const AREG &a2) {
+    //a = -(a0 + a1 + a2) + error
     this->pe.analogue_bus.bus(a, a0, a1, a2,FLAG);
+    cycles+=5;  // 3 reads, 1 add, 1 write
 }
 
 void SCAMP5::bus(AREG &a, const AREG &a0, const AREG &a1, const AREG &a2, const AREG &a3) {
+    //a = -(a0 + a1 + a2 + a3) + error
     this->pe.analogue_bus.bus(a, a0, a1, a2,a3, FLAG);
+    cycles+=6;  // 4 reads, 1 add, 1 write
 }
 
 void SCAMP5::bus2(AREG &a, AREG &b) {
+    //a,b = 0 + error
     this->pe.analogue_bus.bus2(a, b, FLAG);
+    cycles+=2;  // 2 writes
 }
 
 void SCAMP5::bus2(AREG &a, AREG &b, const AREG &a0) {
+    //a,b = -0.5*a0 + error + noise
     this->pe.analogue_bus.bus2(a, b, a0,FLAG);
+    cycles+=3;  // 1 read, 2 writes
 }
 
 void SCAMP5::bus2(AREG &a, AREG &b, const AREG &a0, const AREG &a1) {
+    //a,b = -0.5*(a0 + a1) + error + noise
     this->pe.analogue_bus.bus2(a, b, a0, a1,FLAG);
+    cycles+=5;  // 2 reads, 1 add, 2 writes
 }
 
 void SCAMP5::bus3(AREG &a, AREG &b, AREG &c, const AREG &a0) {
+    //a,b,c = -0.33*a0 + error + noise
     this->pe.analogue_bus.bus3(a, b, c, a0, FLAG);
+    cycles+=2;  // 1 read, 3 writes
 }
 
 void SCAMP5::where(const AREG &a) {
     //FLAG := a > 0.
     this->pe.analogue_bus.conditional_positive_set(a, FLAG);
+    cycles+=2; // 1 read, 1 write
 }
 
 void SCAMP5::where(const AREG &a0, const AREG &a1) {
     //FLAG := (a0 + a1) > 0.
     this->pe.analogue_bus.conditional_positive_set(a0, a1, FLAG);
+    cycles+=4;  // 2 reads, 1 add, 1 write
 }
 
 void SCAMP5::where(const AREG &a0, const AREG &a1, const AREG &a2) {
     //FLAG := (a0 + a1 + a2) > 0.
     this->pe.analogue_bus.conditional_positive_set(a0, a1, a2, FLAG);
+    cycles+=5;  // 3 reads, 1 add, 1 write
 }
 
 void SCAMP5::all() {
     //FLAG := 1.
     this->FLAG.set();
+    cycles+=1;  // 1 writes
 }
 
 void SCAMP5::mov(AREG &y, const AREG &x0) {
@@ -373,41 +401,50 @@ void SCAMP5::newsblurv(AREG &y, AREG &x, const int iterations) {
 void SCAMP5::OR(DREG &d, DREG &d0, DREG &d1) {
     // d := d0 OR d1
     DigitalBus::OR(d, d0);
+    cycles+=4;  // 2 reads, 1 or, 1 write
 }
 
 void SCAMP5::OR(DREG &d, DREG &d0, DREG &d1, DREG &d2) {
     // d := d0 OR d1 OR d2
     DigitalBus::OR(d, d0, d1, d2);
+    cycles+=5;  // 3 reads, 1 or, 1 write
 }
 
 void SCAMP5::OR(DREG &d, DREG &d0, DREG &d1, DREG &d2, DREG &d3) {
     // d := d0 OR d1 OR d2 OR d3
     DigitalBus::OR(d, d0, d1, d2, d3);
+    cycles+=6;  // 4 reads, 1 or, 1 write
 }
 
 void SCAMP5::NOT(DREG &d, DREG &d0) {
     // d := NOT d0
     DigitalBus::NOT(d, d0);
+    cycles+=3;  // 1 read, 1 op, 1 write
+
 }
 
 void SCAMP5::NOR(DREG &d, DREG &d0, DREG &d1) {
-    // d := NOT(d0 OR d1)
+    // d := NOR(d0 OR d1)
     DigitalBus::NOR(d, d0, d1);
+    cycles+=5;  // 2 reads, 2 op, 1 write
 }
 
 void SCAMP5::NOR(DREG &d, DREG &d0, DREG &d1, DREG &d2) {
-    // d := NOT(d0 OR d1 OR d2)
+    // d := NOR(d0 OR d1 OR d2)
     DigitalBus::NOR(d, d0, d1, d2);
+    cycles+=6;  // 3 reads, 2 op, 1 write
 }
 
 void SCAMP5::NOR(DREG &d, DREG &d0, DREG &d1, DREG &d2, DREG &d3) {
-    // d := NOT(d0 OR d1 OR d2 OR d3)
+    // d := NOTRd0 OR d1 OR d2 OR d3)
     DigitalBus::NOR(d, d0, d1, d2,d3);
+    cycles+=7;  // 4 reads, 2 op, 1 write
 }
 
 void SCAMP5::NOT(DREG &Rl) {
     // Rl := NOT Rl
     this->NOT(Rl, Rl);
+    cycles+=4;  // 2 reads, 1 not, 1 write
 }
 
 void SCAMP5::OR(DREG &Rl, DREG &Rx) {
@@ -480,6 +517,7 @@ void SCAMP5::XOR(DREG &Rl, DREG &Rx, DREG &Ry) {
 void SCAMP5::WHERE(DREG &d) {
     // FLAG := d.
     this->FLAG.value().setTo(d.value());
+    cycles+=2;  // 1 read, 1 write
 }
 
 void SCAMP5::WHERE(DREG &d0, DREG &d1) {
@@ -487,6 +525,7 @@ void SCAMP5::WHERE(DREG &d0, DREG &d1) {
     DREG intermediate(d0.value().rows, d0.value().cols);
     this->OR(intermediate, d0, d1);
     this->FLAG.value().setTo(intermediate.value());
+    cycles++;  // 1 write
 }
 
 void SCAMP5::WHERE(DREG &d0, DREG &d1, DREG &d2) {
@@ -494,22 +533,26 @@ void SCAMP5::WHERE(DREG &d0, DREG &d1, DREG &d2) {
     DREG intermediate(d0.value().rows, d0.value().cols);
     this->OR(intermediate, d0, d1, d2);
     this->FLAG.value().setTo(intermediate.value());
+    cycles++;  // 1 write
 }
 
 void SCAMP5::ALL() {
     // FLAG := 1, same as all.
     this->FLAG.set();
+    cycles++;  // 1 write
 }
 
 void SCAMP5::SET(DREG &d0) {
     // d0 := 1
     d0.set();
+    cycles++;  // 1 write
 }
 
 void SCAMP5::SET(DREG &d0, DREG &d1) {
     // d0, d1 := 1
     d0.set();
     d1.set();
+    cycles+=2;  // 2 writes
 }
 
 void SCAMP5::SET(DREG &d0, DREG &d1, DREG &d2) {
@@ -517,6 +560,7 @@ void SCAMP5::SET(DREG &d0, DREG &d1, DREG &d2) {
     d0.set();
     d1.set();
     d2.set();
+    cycles+=3;  // 3 writes
 }
 
 void SCAMP5::SET(DREG &d0, DREG &d1, DREG &d2, DREG &d3) {
@@ -525,17 +569,20 @@ void SCAMP5::SET(DREG &d0, DREG &d1, DREG &d2, DREG &d3) {
     d1.set();
     d2.set();
     d3.set();
+    cycles+=4;  // 4 writes
 }
 
 void SCAMP5::CLR(DREG &d0) {
     // d0 := 0
     d0.clear();
+    cycles++;  // 1 write
 }
 
 void SCAMP5::CLR(DREG &d0, DREG &d1) {
     // d0, d1 := 0
     d0.clear();
     d1.clear();
+    cycles+=2;  // 2 writes
 }
 
 void SCAMP5::CLR(DREG &d0, DREG &d1, DREG &d2) {
@@ -543,6 +590,7 @@ void SCAMP5::CLR(DREG &d0, DREG &d1, DREG &d2) {
     d0.clear();
     d1.clear();
     d2.clear();
+    cycles+=3;  // 3 writes
 }
 
 void SCAMP5::CLR(DREG &d0, DREG &d1, DREG &d2, DREG &d3) {
@@ -551,21 +599,25 @@ void SCAMP5::CLR(DREG &d0, DREG &d1, DREG &d2, DREG &d3) {
     d1.clear();
     d2.clear();
     d3.clear();
+    cycles+=4;  // 4 writes
 }
 
 void SCAMP5::MOV(DREG &d, DREG &d0) {
     // d := d0
     DigitalBus::MOV(d, d0);
+    cycles+=2;  // 1 read, 1 write
 }
 
 void SCAMP5::MUX(DREG &Rl, DREG &Rx, DREG &Ry, DREG &Rz) {
     // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
     DigitalBus::MUX(Rl, Rx, Ry, Rz);
+    cycles+=4;  // 3 reads, 1 write, some op?
 }
 
 void SCAMP5::CLR_IF(DREG &Rl, DREG &Rx) {
     // Rl := 0 IF Rx = 1, Rl := Rl IF Rx = 0
     DigitalBus::CLR_IF(Rl, Rx);
+    cycles+=2;  // 1 read, up to 1 write, some op for if?
 }
 
 void SCAMP5::REFRESH(DREG &Rl) {
@@ -612,8 +664,9 @@ void SCAMP5::PROP1() {
     // async-propagation on R12, masked by R0 when boundaries are considered '1'
 }
 
-void SCAMP5::print_stats() {
-    this->array.print_stats();
+void SCAMP5::print_stats(CycleCounter counter) {
+    std::cout << "Total number of cycles: " << counter << std::endl;
+    this->array.print_stats(counter);
 }
 
 void SCAMP5::scamp5_get_image(AREG &yf, AREG &yh, int gain) {
@@ -627,6 +680,7 @@ void SCAMP5::scamp5_in(AREG &areg, int8_t value, AREG *temp) {
         temp = &NEWS;
     }
     IN.value().setTo(value);
+    cycles++;
     bus(*temp, IN);
     bus(areg, *temp);
 }
@@ -638,6 +692,7 @@ void SCAMP5::scamp5_load_in(AREG &areg, int8_t value, AREG *temp) {
         temp = &NEWS;
     }
     IN.value().setTo(value);
+    cycles++;
     bus(*temp, IN);
     bus(areg, *temp);
 }
@@ -645,6 +700,7 @@ void SCAMP5::scamp5_load_in(AREG &areg, int8_t value, AREG *temp) {
 void SCAMP5::scamp5_load_in(int8_t value) {
     // 	load a analog value to IN without error&noise correction
     IN.value().setTo(value);
+    cycles++;
 }
 
 

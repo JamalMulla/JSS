@@ -44,7 +44,7 @@ void Photodiode::read(AnalogueRegister& reg) {
     this->frame.copyTo(reg.value());
 }
 
-void Photodiode::print_stats() {
+void Photodiode::print_stats(CycleCounter counter) {
 
 }
 

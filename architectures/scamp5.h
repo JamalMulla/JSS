@@ -34,6 +34,7 @@ public:
     const int SCAMP_WIDTH = 256;
     const int ANALOGUE_REGISTERS = 13;
     const int DIGITAL_REGISTERS = 14;
+    CycleCounter cycles;
 private:
     ProcessingElement pe = ProcessingElement(SCAMP_HEIGHT, SCAMP_WIDTH, ANALOGUE_REGISTERS, DIGITAL_REGISTERS);
     Array array = Array(SCAMP_HEIGHT, SCAMP_WIDTH, pe);
@@ -240,7 +241,7 @@ public:
 
 
     // Simulator specific methods
-    void print_stats();
+    void print_stats(CycleCounter counter);
 
 };
 

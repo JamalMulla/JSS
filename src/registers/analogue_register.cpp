@@ -21,6 +21,6 @@ void AnalogueRegister::write(int data) {
     this->value().setTo(data);
 }
 
-void AnalogueRegister::print_stats() {
+void AnalogueRegister::print_stats(CycleCounter counter) {
 
 }

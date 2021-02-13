@@ -38,7 +38,7 @@ public:
     virtual void write(Data data) = 0;
     virtual void write(int data) = 0;
 
-    void print_stats() override = 0;
+    void print_stats(CycleCounter counter) override = 0;
 };
 
 

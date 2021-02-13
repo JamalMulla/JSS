@@ -26,7 +26,7 @@ public:
     DigitalBus local_write_bus;
 
     ProcessingElement(int rows, int columns, int num_analogue_regs, int num_digital_regs);
-    void print_stats() override;
+    void print_stats(CycleCounter counter) override;
 
     };
 

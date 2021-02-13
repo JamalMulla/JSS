@@ -19,11 +19,11 @@ protected:
     int columns_;
 
 public:
-    Array(int rows, int columns, ProcessingElement  pe);
+    Array(int rows, int columns, const ProcessingElement& pe);
 
     ProcessingElement pe;
 
-    void print_stats() override;
+    void print_stats(CycleCounter counter) override;
 
 };
 

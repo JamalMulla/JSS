@@ -6,10 +6,12 @@
 #define SIMULATOR_COMPONENT_H
 
 
+#include "../metrics/cycle_counter.h"
+
 class Component {
 public:
 
-    virtual void print_stats() = 0;
+    virtual void print_stats(CycleCounter counter) = 0;
 };
 
 
