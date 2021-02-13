@@ -242,10 +242,6 @@ public:
     // Simulator specific methods
     void print_stats();
 
-    void pushToNews(AREG &src, AREG &dst, news_t dir);
-
-
-    void pullFromNews(AREG &dst, AREG &src, news_t dir);
 };
 
 

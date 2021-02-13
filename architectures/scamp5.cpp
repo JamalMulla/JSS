@@ -25,7 +25,6 @@ void SCAMP5::get_image(AREG &y) {
     this->rpix();
     this->rpix();
     this->nop();
-    this->pe.photodiode.read(PIX);
     this->bus(y, NEWS, PIX);
 }
 
@@ -37,7 +36,6 @@ void SCAMP5::get_image(AREG &y, AREG &h) {
     this->rpix();
     this->rpix();
     this->nop();
-    this->pe.photodiode.read(PIX);
     this->bus(y, h, NEWS, PIX);
 
 }
@@ -194,77 +192,6 @@ void SCAMP5::div(AREG &y0, AREG &y1, AREG &y2) {
     this->bus(y0, y1);
 }
 
-void SCAMP5::pushToNews(AREG& src, AREG& dst, news_t dir) {
-    int width = src.value().cols;
-    int height = src.value().rows;
-    switch (dir) {
-        case east: {
-            auto chunk = cv::Rect(1, 0, width - 1, height);
-            src.value()(cv::Rect(0, 0, width - 1, height)).copyTo(dst.value()(chunk), FLAG.value()(chunk));
-            dst.value()(cv::Rect(0, 0, 1, height)).setTo(cv::Scalar(-1), FLAG.value()(cv::Rect(0, 0, 1, height)));
-            break;
-        }
-        case west: {
-            auto chunk = cv::Rect(0, 0, width - 1, height);
-            src.value()(cv::Rect(1, 0, width - 1, height)).copyTo(dst.value()(chunk), FLAG.value()(chunk));
-            dst.value()(cv::Rect(width - 1, 0, 1, height)).setTo(cv::Scalar(-1), FLAG.value()(cv::Rect(width - 1, 0, 1, height)));
-            break;
-        }
-        case north: {
-            auto chunk = cv::Rect(0, 0, width, height - 1);
-            src.value()(cv::Rect(0, 1, width, height - 1)).copyTo(dst.value()(chunk), FLAG.value()(chunk));
-            dst.value()(cv::Rect(0, height - 1, width, 1)).setTo(cv::Scalar(-1), FLAG.value()(cv::Rect(0, height - 1, width,1)));
-            break;
-        }
-        case south: {
-            auto chunk = cv::Rect(0, 1, width, height - 1);
-            src.value()(cv::Rect(0, 0, width, height - 1)).copyTo(dst.value()(chunk), FLAG.value()(chunk));
-            dst.value()(cv::Rect(0, 0, width, 1)).setTo(cv::Scalar(-1), FLAG.value()(cv::Rect(0, 0, width, 1)));
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-
-void SCAMP5::pullFromNews(AREG& dst, AREG& src, news_t dir) {
-    int width = src.value().cols;
-    int height = src.value().rows;
-    switch (dir) {
-        case west: {
-            auto chunk = cv::Rect(0, 0, width - 1, height);
-            auto n = src.value()(cv::Rect(1, 0, width - 1, height));
-            n.copyTo(dst.value()(chunk), FLAG.value()(chunk));
-            dst.value()(cv::Rect(width - 1, 0, 1, height)).setTo(cv::Scalar(-1), FLAG.value()(cv::Rect(width - 1, 0, 1, height)));
-            break;
-        }
-        case east: {
-            auto chunk = cv::Rect(1, 0, width - 1, height);
-            src.value()(cv::Rect(0, 0, width - 1, height)).copyTo(dst.value()(chunk), FLAG.value()(chunk));
-            dst.value()(cv::Rect(0, 0, 1, height)).setTo(cv::Scalar(-1), FLAG.value()(cv::Rect(0, 0, 1, height)));
-            break;
-        }
-        case south: {
-            auto chunk = cv::Rect(0, 1, width, height - 1);
-            src.value()(cv::Rect(0, 0, width, height - 1)).copyTo(dst.value()(chunk), FLAG.value()(chunk));
-            dst.value()(cv::Rect(0, 0, width, 1)).setTo(cv::Scalar(-1), FLAG.value()(cv::Rect(0, 0, width, 1)));
-            break;
-        }
-        case north: {
-            auto chunk = cv::Rect(0, 0, width - 1, height);
-            src.value()(cv::Rect(1, 0, width - 1, height)).copyTo(dst.value()(chunk), FLAG.value()(chunk));
-            dst.value()(cv::Rect(width - 1, 0, 1, height)).setTo(cv::Scalar(-1), FLAG.value()(cv::Rect(width - 1, 0, 1, height)));
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-
-
-
 void SCAMP5::div(AREG &y0, AREG &y1, AREG &y2, const AREG &x0) {
     // y0 := 0.5*x0; y1 := -0.5*x0 + error, y2 := x0 + error
     this->bus2(y0, y1, x0);
@@ -289,95 +216,55 @@ void SCAMP5::divq(AREG &y0, const AREG &x0) {
     this->bus(y0, NEWS);
 }
 
-
-// TODO Check neighbour access implementations
-
 void SCAMP5::movx(AREG &y, const AREG &x0, news_t dir) {
     // y = x0_dir
-//    switch (dir) {
-//        case north: {
-//            this->pe.analogue_bus.get_south(NEWS, XS, 1);
-//            this->bus(XS, x0);
-//            break;
-//        }
-//        case east: {
-//            this->pe.analogue_bus.get_west(NEWS, XW, 1);
-//            this->bus(XW, x0);
-//            break;
-//        }
-//        case west: {
-//            this->pe.analogue_bus.get_east(NEWS, XE, 1);
-//            this->bus(XE, x0);
-//            break;
-//        }
-//        case south:{
-//            this->pe.analogue_bus.get_north(NEWS, XN, 1);
-//            this->bus(XN, x0);
-//            break;
-//        }
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    cv::bitwise_not(NEWS.value(), NEWS.value(), FLAG.value());
-//=======
-//    switch (dir) {
-//        case north: this->pe.analogue_bus.push_south(x0, NEWS, 2, FLAG); break;
-//        case east: this->pe.analogue_bus.push_west(x0, NEWS, 2, FLAG); break;
-//        case west: this->pe.analogue_bus.push_east(x0, NEWS, 2, FLAG); break;
-//        case south: this->pe.analogue_bus.push_north(x0, NEWS, 2, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    this->bus(y, NEWS);
     AREG intermediate(y.value().rows, y.value().cols);
     this->bus(intermediate, x0);
-    this->pushToNews(intermediate, NEWS, dir);
+    switch (dir) {
+        case south: this->pe.analogue_bus.push_north(intermediate, NEWS, 1, FLAG); break;
+        case west: this->pe.analogue_bus.push_east(intermediate, NEWS, 1, FLAG); break;
+        case east: this->pe.analogue_bus.push_west(intermediate, NEWS, 1, FLAG); break;
+        case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 1, FLAG); break;
+        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    }
     this->bus(y, NEWS);
 }
 
 void SCAMP5::mov2x(AREG &y, const AREG &x0, news_t dir, news_t dir2) {
     // y = x0_dir_dir (note: this only works when FLAG is "all")
-//    switch (dir) {
-//        case north: this->pe.analogue_bus.push_south(x0, NEWS, 2, FLAG); break;
-//        case east: this->pe.analogue_bus.push_west(x0, NEWS, 2, FLAG); break;
-//        case west: this->pe.analogue_bus.push_east(x0, NEWS, 2, FLAG); break;
-//        case south: this->pe.analogue_bus.push_north(x0, NEWS, 2, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    switch (dir2) {
-//        case north: this->pe.analogue_bus.push_north(NEWS, y, 2, FLAG); break;
-//        case east: this->pe.analogue_bus.push_east(NEWS, y, 2, FLAG); break;
-//        case west: this->pe.analogue_bus.push_west(NEWS, y, 2, FLAG); break;
-//        case south: this->pe.analogue_bus.push_south(NEWS, y, 2, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
     AREG intermediate(y.value().rows, y.value().cols);
     AREG intermediate2(y.value().rows, y.value().cols);
     this->bus(intermediate, x0);
-    this->pushToNews(intermediate, NEWS, dir);
-    this->pullFromNews(intermediate2, NEWS, dir2);
+    switch (dir) {
+        case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 1, FLAG); break;
+        case east: this->pe.analogue_bus.push_west(intermediate, NEWS, 1, FLAG); break;
+        case west: this->pe.analogue_bus.push_east(intermediate, NEWS, 1, FLAG); break;
+        case south: this->pe.analogue_bus.push_north(intermediate, NEWS, 1, FLAG); break;
+        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    }
+    switch (dir2) {
+        case north: this->pe.analogue_bus.push_north(NEWS, intermediate2, 1, FLAG); break;
+        case east: this->pe.analogue_bus.push_east(NEWS, intermediate2, 1, FLAG); break;
+        case west: this->pe.analogue_bus.push_west(NEWS, intermediate2, 1, FLAG); break;
+        case south: this->pe.analogue_bus.push_south(NEWS, intermediate2, 1, FLAG); break;
+        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    }
+
     this->bus(y, intermediate2);
 }
 
 void SCAMP5::addx(AREG &y, const AREG &x0, const AREG &x1, news_t dir) {
     // y := x0_dir + x1_dir
     AREG intermediate(y.value().rows, y.value().cols);
-//    this->bus(intermediate, x0, x1);
-//    switch (dir) {
-//        case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 2, FLAG); break;
-//        case east: this->pe.analogue_bus.push_west(intermediate, NEWS, 2, FLAG); break;
-//        case west: this->pe.analogue_bus.push_east(intermediate, NEWS, 2, FLAG); break;
-//        case south: this->pe.analogue_bus.push_north(intermediate, NEWS, 2, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    this->bus(y, NEWS);
-//    switch (dir) {
-//        case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 1, FLAG); break;
-//        case east: this->pe.analogue_bus.push_west(intermediate, NEWS, 1, FLAG); break;
-//        case west: this->pe.analogue_bus.push_east(intermediate, NEWS, 1, FLAG); break;
-//        case south: this->pe.analogue_bus.push_north(intermediate, NEWS, 1, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
     this->bus(intermediate, x0, x1);
-    this->pushToNews(intermediate, NEWS, dir);
+    switch (dir) {
+        case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 1, FLAG); break;
+        case east: this->pe.analogue_bus.push_west(intermediate, NEWS, 1, FLAG); break;
+        case west: this->pe.analogue_bus.push_east(intermediate, NEWS, 1, FLAG); break;
+        case south: this->pe.analogue_bus.push_north(intermediate, NEWS, 1, FLAG); break;
+        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    }
+
     this->bus(y, NEWS);
 }
 
@@ -385,106 +272,57 @@ void SCAMP5::add2x(AREG &y, const AREG &x0, const AREG &x1, news_t dir, news_t d
     // y := x0_dir_dir2 + x1_dir_dir2
     AREG intermediate(y.value().rows, y.value().cols);
     AREG intermediate2(y.value().rows, y.value().cols);
-//    this->bus(intermediate, x0, x1);
-//    this->neg(intermediate, intermediate);
-//    switch (dir) {
-//        case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 2, FLAG); break;
-//        case east: this->pe.analogue_bus.push_west(intermediate, NEWS, 2, FLAG); break;
-//        case west: this->pe.analogue_bus.push_east(intermediate, NEWS, 2, FLAG); break;
-//        case south: this->pe.analogue_bus.push_north(intermediate, NEWS, 2, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    switch (dir2) {
-//        case north: this->pe.analogue_bus.push_north(NEWS, y, 2, FLAG); break;
-//        case east: this->pe.analogue_bus.push_east(NEWS, y, 2, FLAG); break;
-//        case west: this->pe.analogue_bus.push_west(NEWS, y, 2, FLAG); break;
-//        case south: this->pe.analogue_bus.push_south(NEWS, y, 2, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    switch (dir) {
-//        case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 1, FLAG); break;
-//        case east: this->pe.analogue_bus.push_west(intermediate, NEWS, 1, FLAG); break;
-//        case west: this->pe.analogue_bus.push_east(intermediate, NEWS, 1, FLAG); break;
-//        case south: this->pe.analogue_bus.push_north(intermediate, NEWS, 1, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    switch (dir2) {
-//        case north: this->pe.analogue_bus.push_north(NEWS, y, 1, FLAG); break;
-//        case east: this->pe.analogue_bus.push_east(NEWS, y, 1, FLAG); break;
-//        case west: this->pe.analogue_bus.push_west(NEWS, y, 1, FLAG); break;
-//        case south: this->pe.analogue_bus.push_south(NEWS, y, 1, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    cv::bitwise_not(y.value(), y.value(), FLAG.value());
     this->bus(intermediate, x0, x1);
-    this->pushToNews(intermediate, NEWS, dir);
-    this->pullFromNews(intermediate2, NEWS, dir2);
+    switch (dir) {
+        case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 1, FLAG); break;
+        case east: this->pe.analogue_bus.push_west(intermediate, NEWS, 1, FLAG); break;
+        case west: this->pe.analogue_bus.push_east(intermediate, NEWS, 1, FLAG); break;
+        case south: this->pe.analogue_bus.push_north(intermediate, NEWS, 1, FLAG); break;
+        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    }
+    switch (dir2) {
+        case north: this->pe.analogue_bus.pull_north(NEWS, intermediate2, 1, FLAG); break;
+        case east: this->pe.analogue_bus.pull_east(NEWS, intermediate2, 1, FLAG); break;
+        case west: this->pe.analogue_bus.pull_west(NEWS, intermediate2, 1, FLAG); break;
+        case south: this->pe.analogue_bus.pull_south(NEWS, intermediate2, 1, FLAG); break;
+        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    }
     this->bus(y, intermediate2);
 }
 
 void SCAMP5::subx(AREG &y, const AREG &x0, news_t dir, const AREG &x1) {
     // y := x0_dir - x1
-//    switch (dir) {
-//        case north: this->pe.analogue_bus.push_south(x0, NEWS, 1, FLAG); break;
-//        case east: this->pe.analogue_bus.push_west(x0, NEWS, 1, FLAG); break;
-//        case west: this->pe.analogue_bus.push_east(x0, NEWS, 1, FLAG); break;
-//        case south: this->pe.analogue_bus.push_north(x0, NEWS, 1, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    cv::bitwise_not(NEWS.value(), NEWS.value(), FLAG.value());
-//    switch (dir) {
-//        case north: this->pe.analogue_bus.push_south(x0, NEWS, 2, FLAG); break;
-//        case east: this->pe.analogue_bus.push_west(x0, NEWS, 2, FLAG); break;
-//        case west: this->pe.analogue_bus.push_east(x0, NEWS, 2, FLAG); break;
-//        case south: this->pe.analogue_bus.push_north(x0, NEWS, 2, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    this->bus(y, NEWS, x1);
     AREG intermediate(y.value().rows, y.value().cols);
     this->bus(intermediate, x0);
-    this->pushToNews(intermediate, NEWS, dir);
+    switch (dir) {
+        case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 1, FLAG); break;
+        case east: this->pe.analogue_bus.push_west(intermediate, NEWS, 1, FLAG); break;
+        case west: this->pe.analogue_bus.push_east(intermediate, NEWS, 1, FLAG); break;
+        case south: this->pe.analogue_bus.push_north(intermediate, NEWS, 1, FLAG); break;
+        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    }
     this->bus(y, NEWS, x1);
 }
 
 void SCAMP5::sub2x(AREG &y, const AREG &x0, news_t dir, news_t dir2, const AREG &x1) {
     // y := x0_dir_dir2 - x1
-//    switch (dir) {
-//        case north: this->pe.analogue_bus.push_south(x0, NEWS, 1, FLAG); break;
-//        case east: this->pe.analogue_bus.push_west(x0, NEWS, 1, FLAG); break;
-//        case west: this->pe.analogue_bus.push_east(x0, NEWS, 1, FLAG); break;
-//        case south: this->pe.analogue_bus.push_north(x0, NEWS, 1, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    cv::bitwise_not(NEWS.value(), NEWS.value(), FLAG.value());
-//    AREG intermediate(y.value().rows, y.value().cols);
-//    switch (dir2) {
-//        case north: this->pe.analogue_bus.push_north(NEWS, intermediate, 1, FLAG); break;
-//        case east: this->pe.analogue_bus.push_east(NEWS, intermediate, 1, FLAG); break;
-//        case west: this->pe.analogue_bus.push_west(NEWS, intermediate, 1, FLAG); break;
-//        case south: this->pe.analogue_bus.push_south(NEWS, intermediate, 1, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    this->bus(y, intermediate, x1);
-//    switch (dir) {
-//        case north: this->pe.analogue_bus.push_south(x0, NEWS, 2, FLAG); break;
-//        case east: this->pe.analogue_bus.push_west(x0, NEWS, 2, FLAG); break;
-//        case west: this->pe.analogue_bus.push_east(x0, NEWS, 2, FLAG); break;
-//        case south: this->pe.analogue_bus.push_north(x0, NEWS, 2, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    switch (dir2) {
-//        case north: this->pe.analogue_bus.push_north(NEWS, y, 2, FLAG); break;
-//        case east: this->pe.analogue_bus.push_east(NEWS, y, 2, FLAG); break;
-//        case west: this->pe.analogue_bus.push_west(NEWS, y, 2, FLAG); break;
-//        case south: this->pe.analogue_bus.push_south(NEWS, y, 2, FLAG); break;
-//        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-//    }
-//    this->bus(y, NEWS, x1);
     AREG intermediate(y.value().rows, y.value().cols);
     AREG intermediate2(y.value().rows, y.value().cols);
     this->bus(intermediate, x0);
-    this->pushToNews(intermediate, NEWS, dir);
-    this->pullFromNews(intermediate2, NEWS, dir2);
+    switch (dir) {
+        case north: this->pe.analogue_bus.push_south(intermediate, NEWS, 1, FLAG); break;
+        case east: this->pe.analogue_bus.push_west(intermediate, NEWS, 1, FLAG); break;
+        case west: this->pe.analogue_bus.push_east(intermediate, NEWS, 1, FLAG); break;
+        case south: this->pe.analogue_bus.push_north(intermediate, NEWS, 1, FLAG); break;
+        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    }
+    switch (dir2) {
+        case north: this->pe.analogue_bus.pull_north(NEWS, intermediate2, 1, FLAG); break;
+        case east: this->pe.analogue_bus.pull_east(NEWS, intermediate2, 1, FLAG); break;
+        case west: this->pe.analogue_bus.pull_west(NEWS, intermediate2, 1, FLAG); break;
+        case south: this->pe.analogue_bus.pull_south(NEWS, intermediate2, 1, FLAG); break;
+        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    }
     this->bus(y, intermediate2, x1);
 }
 
