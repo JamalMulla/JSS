@@ -4,6 +4,7 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <iostream>
 #include "analogue_bus.h"
 
 void AnalogueBus::bus(AnalogueRegister &a, const DigitalRegister &FLAG) {
@@ -49,7 +50,7 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, DigitalRegister
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, const AnalogueRegister &a0, DigitalRegister &FLAG) {
     //a,b = -0.5*a0 + error + noise
     Data intermediate;
-    cv::multiply(0.5, a0.value(), intermediate);
+    cv::multiply(a0.value(), 0.5, intermediate);
     cv::bitwise_not(intermediate, intermediate, FLAG.value());
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());
@@ -59,7 +60,7 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, const AnalogueR
     //a,b = -0.5*(a0 + a1) + error + noise
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate, FLAG.value());
-    cv::multiply(0.5, intermediate, intermediate);
+    cv::multiply(intermediate, 0.5, intermediate);
     cv::bitwise_not(intermediate, intermediate, FLAG.value());
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());
@@ -171,36 +172,105 @@ void AnalogueBus::divq(AnalogueRegister &y0, const AnalogueRegister &x0, Analogu
     AnalogueBus::bus(y0, intermediate, FLAG);
 }
 
-void AnalogueBus::push_north(const AnalogueRegister &a, AnalogueRegister& b, int offset, DigitalRegister &FLAG) {
-    // Push value of register a north by offset into register b
-    auto chunk = cv::Rect(0, 0, a.value().cols, a.value().rows - offset);
-    a.value()(cv::Rect(0, offset, a.value().cols, a.value().rows - offset)).copyTo(b.value()(chunk), FLAG.value()(chunk));
-    auto fill = cv::Rect(0, a.value().rows - offset, a.value().cols, offset);
-    b.value()(fill).setTo(cv::Scalar(0), FLAG.value()(fill));
+void AnalogueBus::push_north(const AnalogueRegister &src, AnalogueRegister& dst, int offset, DigitalRegister &FLAG) {
+    // Push value of register src north by offset into register dst
+    int width = src.value().cols;
+    int height = src.value().rows;
+    auto src_rect = cv::Rect(0, 0, width, height - offset);
+    auto dst_rect = cv::Rect(0, offset, width, height - offset);
+    auto fill_rect = cv::Rect(0, 0, src.value().cols, offset);
+    src.value()(src_rect).copyTo(dst.value()(dst_rect), FLAG.value()(dst_rect));
+    dst.value()(fill_rect).setTo(cv::Scalar(0), FLAG.value()(fill_rect));
 }
 
-void AnalogueBus::push_east(const AnalogueRegister &a, AnalogueRegister &b, int offset, DigitalRegister &FLAG) {
-    // Push value of register a east by offset into register b
-    auto chunk = cv::Rect(offset, 0, a.value().cols - offset, a.value().rows);
-    a.value()(cv::Rect(0, 0, a.value().cols - offset, a.value().rows)).copyTo(b.value()(chunk), FLAG.value()(chunk));
-    auto fill = cv::Rect(0, 0, offset, a.value().rows - offset);
-    b.value()(fill).setTo(cv::Scalar(0), FLAG.value()(fill));
+void AnalogueBus::push_east(const AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
+    // Push value of register src east by offset into register dst
+    int width = src.value().cols;
+    int height = src.value().rows;
+    auto src_rect = cv::Rect(0, 0, width - offset, height);
+    auto dst_rect = cv::Rect(offset, 0, width - offset, height);
+    auto fill_rect = cv::Rect(0, 0, offset, height);
+    auto a = src.value()(src_rect);
+    a.copyTo(dst.value()(dst_rect), FLAG.value()(dst_rect));
+    dst.value()(fill_rect).setTo(cv::Scalar(0), FLAG.value()(fill_rect));
 }
 
-void AnalogueBus::push_south(const AnalogueRegister &a, AnalogueRegister &b, int offset, DigitalRegister &FLAG) {
-    // Push value of register a south by offset into register b
-    auto chunk = cv::Rect(0, offset, a.value().cols, a.value().rows - offset);
-    a.value()(cv::Rect(0, 0, a.value().cols, a.value().rows - offset)).copyTo(b.value()(chunk), FLAG.value()(chunk));
-    auto fill = cv::Rect(0, 0, a.value().cols, offset);
-    b.value()(fill).setTo(cv::Scalar(0), FLAG.value()(fill));
+void AnalogueBus::push_south(const AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
+    // Push value of register src south by offset into register dst
+    int width = src.value().cols;
+    int height = src.value().rows;
+    auto src_rect = cv::Rect(0, offset, width, height - offset);
+    auto dst_rect = cv::Rect(0, 0, width, height - offset);
+    auto fill_rect = cv::Rect(0, height - offset, width, offset);
+    src.value()(src_rect).copyTo(dst.value()(dst_rect), FLAG.value()(dst_rect));
+    dst.value()(fill_rect).setTo(cv::Scalar(0), FLAG.value()(fill_rect));
 }
 
-void AnalogueBus::push_west(const AnalogueRegister &a, AnalogueRegister &b, int offset, DigitalRegister &FLAG) {
-    // Push value of register a west by offset into register b
-    auto chunk = cv::Rect(0, 0, a.value().cols - offset, a.value().rows);
-    a.value()(cv::Rect(1, 0, a.value().cols - offset, a.value().rows)).copyTo(b.value()(chunk), FLAG.value()(chunk));
-    auto fill = cv::Rect(a.value().cols - offset, 0, offset, a.value().rows);
-    b.value()(fill).setTo(cv::Scalar(0), FLAG.value()(fill));
+void AnalogueBus::push_west(const AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
+    // Push value of register src west by offset into register dst
+    int width = src.value().cols;
+    int height = src.value().rows;
+    auto src_rect = cv::Rect(offset, 0, width - offset, height);
+    auto dst_rect = cv::Rect(0, 0, width - offset, height);
+    auto fill_rect = cv::Rect(width - offset, 0, offset, height);
+    src.value()(src_rect).copyTo(dst.value()(dst_rect), FLAG.value()(dst_rect));
+    dst.value()(fill_rect).setTo(cv::Scalar(0), FLAG.value()(fill_rect));
+}
+
+void AnalogueBus::pull_north(const AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
+    // Pull value from north src by offset into register dst
+    this->push_south(src, dst, offset, FLAG);
+}
+
+void AnalogueBus::pull_east(const AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
+    // Pull value from east src by offset into register dst
+    this->push_west(src, dst, offset, FLAG);
+}
+
+void AnalogueBus::pull_south(const AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
+    // Pull value from south src by offset into register dst
+    this->push_north(src, dst, offset, FLAG);
+}
+
+void AnalogueBus::pull_west(const AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
+    // Pull value from south src by offset into register dst
+    this->push_east(src, dst, offset, FLAG);
+}
+
+void AnalogueBus::get_east(const AnalogueRegister &src, AnalogueRegister& dst, int offset) {
+    // x, y, width, height
+    auto read_chunk = cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
+    auto write_chunk = cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
+    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+    auto fill = cv::Rect(src.value().cols, 0, offset, src.value().rows);
+    dst.value()(fill).setTo(cv::Scalar(0));
+}
+
+void AnalogueBus::get_west(const AnalogueRegister &src, AnalogueRegister& dst, int offset) {
+    // x, y, width, height
+    auto read_chunk = cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
+    auto write_chunk = cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
+    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+    auto fill = cv::Rect(0, 0, offset, src.value().rows);
+    dst.value()(fill).setTo(cv::Scalar(0));
+}
+
+void AnalogueBus::get_north(const AnalogueRegister &src, AnalogueRegister& dst, int offset) {
+    // x, y, width, height
+    auto read_chunk = cv::Rect(0, offset, src.value().cols, src.value().rows - offset);
+    auto write_chunk = cv::Rect(0, 0, src.value().cols, src.value().rows - offset);
+    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+    auto fill = cv::Rect(0, 0, src.value().cols, offset);
+    dst.value()(fill).setTo(cv::Scalar(0));
+}
+
+void AnalogueBus::get_south(const AnalogueRegister &src, AnalogueRegister& dst, int offset) {
+    // x, y, width, height
+    auto read_chunk = cv::Rect(0, 0, src.value().cols, src.value().rows - offset);
+    auto write_chunk = cv::Rect(0, offset, src.value().cols, src.value().rows - offset);
+    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+    auto fill = cv::Rect(0, src.value().rows - offset, src.value().cols, offset);
+    dst.value()(fill).setTo(cv::Scalar(0));
 }
 
 

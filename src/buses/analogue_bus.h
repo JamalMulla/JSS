@@ -41,19 +41,26 @@ public:
     void diva(AnalogueRegister& y0, AnalogueRegister& y1, AnalogueRegister& y2, AnalogueRegister& intermediate, DigitalRegister& FLAG);
     void divq(AnalogueRegister& y0, const AnalogueRegister& x0, AnalogueRegister& intermediate, DigitalRegister& FLAG);
 
-    // Analogue Neighbour Access
+    // Neighbour Access
 
-    void move_neighbour(AnalogueRegister& a, AnalogueRegister& b, int offset_x, int offset_y, DigitalRegister& FLAG);
+    void push_north(const AnalogueRegister& src, AnalogueRegister& dst, int offset, DigitalRegister& FLAG);
+    void push_east(const AnalogueRegister& src, AnalogueRegister& dst, int offset, DigitalRegister& FLAG);
+    void push_south(const AnalogueRegister& src, AnalogueRegister& dst, int offset, DigitalRegister& FLAG);
+    void push_west(const AnalogueRegister& src, AnalogueRegister& dst, int offset, DigitalRegister& FLAG);
 
-    void push_north(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
-    void push_east(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
-    void push_south(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
-    void push_west(const AnalogueRegister& a, AnalogueRegister& b, int offset, DigitalRegister& FLAG);
+    void pull_north(const AnalogueRegister& src, AnalogueRegister& dst, int offset, DigitalRegister& FLAG);
+    void pull_east(const AnalogueRegister& src, AnalogueRegister& dst, int offset, DigitalRegister& FLAG);
+    void pull_south(const AnalogueRegister& src, AnalogueRegister& dst, int offset, DigitalRegister& FLAG);
+    void pull_west(const AnalogueRegister& src, AnalogueRegister& dst, int offset, DigitalRegister& FLAG);
 
-    void push_north(AnalogueRegister& reg, int offset, DigitalRegister& FLAG);
-    void push_east(AnalogueRegister& reg, int offset, DigitalRegister& FLAG);
-    void push_south(AnalogueRegister& reg, int offset, DigitalRegister& FLAG);
-    void push_west(AnalogueRegister& reg, int offset, DigitalRegister& FLAG);
+
+    // Get registers in direction
+    void get_east(const AnalogueRegister& src, AnalogueRegister& dst, int offset);
+    void get_west(const AnalogueRegister& src, AnalogueRegister& dst, int offset);
+    void get_north(const AnalogueRegister& src, AnalogueRegister& dst, int offset);
+    void get_south(const AnalogueRegister& src, AnalogueRegister& dst, int offset);
+
+
 };
 
 

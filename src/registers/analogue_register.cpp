@@ -4,9 +4,10 @@
 
 #include "analogue_register.h"
 #include "../memory/si/si.h"
+#include "../base/array.h"
 
 AnalogueRegister::AnalogueRegister(int rows, int columns)
-    : Register(rows, columns, CV_16S, SI()) { }
+    : Register(rows, columns, MAT_TYPE, SI()) { }
 
 Data AnalogueRegister::read() {
     return this->value();
