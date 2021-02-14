@@ -45,36 +45,35 @@ private:
     Array array = Array(SCAMP_HEIGHT, SCAMP_WIDTH, pe);
 public:
     //Analogue registers
-    AREG& PIX = array.pe.analogue_registers[0];
-    AREG& IN = array.pe.analogue_registers[1];
-    AREG& NEWS = array.pe.analogue_registers[2];
-    AREG& A = array.pe.analogue_registers[3];
-    AREG& B = array.pe.analogue_registers[4];
-    AREG& C = array.pe.analogue_registers[5];
-    AREG& D = array.pe.analogue_registers[6];
-    AREG& E = array.pe.analogue_registers[7];
-    AREG& F = array.pe.analogue_registers[8];
-    AREG& XE = array.pe.analogue_registers[9];
-    AREG& XW = array.pe.analogue_registers[10];
-    AREG& XN = array.pe.analogue_registers[11];
-    AREG& XS = array.pe.analogue_registers[12];
+    AREG& PIX = array.pe.analogue_registers[0]("PIX");
+    AREG& IN = array.pe.analogue_registers[1]("IN");
+    AREG& NEWS = array.pe.analogue_registers[2]("NEWS");
+    AREG& A = array.pe.analogue_registers[3]("A");
+    AREG& B = array.pe.analogue_registers[4]("B");
+    AREG& C = array.pe.analogue_registers[5]("C");
+    AREG& D = array.pe.analogue_registers[6]("D");
+    AREG& E = array.pe.analogue_registers[7]("E");
+    AREG& F = array.pe.analogue_registers[8]("F");
+    AREG& XE = array.pe.analogue_registers[9]("XE");
+    AREG& XW = array.pe.analogue_registers[10]("XW");
+    AREG& XN = array.pe.analogue_registers[11]("XN");
+    AREG& XS = array.pe.analogue_registers[12]("XS");
 
     //Digital registers
-    DREG& FLAG = array.pe.digital_registers[0];
-    DREG& RF = array.pe.digital_registers[1];
-    DREG& RS = array.pe.digital_registers[2];
-    DREG& RW = array.pe.digital_registers[3];
-    DREG& RN = array.pe.digital_registers[4];
-    DREG& RE = array.pe.digital_registers[5];
-    DREG& S0 = array.pe.digital_registers[6];
-    DREG& S1 = array.pe.digital_registers[7];
-    DREG& S2 = array.pe.digital_registers[8];
-    DREG& S3 = array.pe.digital_registers[9];
-    DREG& S4 = array.pe.digital_registers[10];
-    DREG& S5 = array.pe.digital_registers[11];
-    DREG& S6 = array.pe.digital_registers[12];
-    DREG& RP = array.pe.digital_registers[13];
-
+    DREG& FLAG = array.pe.digital_registers[0]("FLAG");
+    DREG& RF = array.pe.digital_registers[1]("RF");
+    DREG& RS = array.pe.digital_registers[2]("RS");
+    DREG& RW = array.pe.digital_registers[3]("RW");
+    DREG& RN = array.pe.digital_registers[4]("RN");
+    DREG& RE = array.pe.digital_registers[5]("RE");
+    DREG& S0 = array.pe.digital_registers[6]("S0");
+    DREG& S1 = array.pe.digital_registers[7]("S1");
+    DREG& S2 = array.pe.digital_registers[8]("S2");
+    DREG& S3 = array.pe.digital_registers[9]("S3");
+    DREG& S4 = array.pe.digital_registers[10]("S4");
+    DREG& S5 = array.pe.digital_registers[11]("S5");
+    DREG& S6 = array.pe.digital_registers[12]("S6");
+    DREG& RP = array.pe.digital_registers[13]("RP");
 
     SCAMP5();
 

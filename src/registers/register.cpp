@@ -58,3 +58,8 @@ const Data &Register::value() const {
     return this->value_;
 }
 
+void Register::change_memory_type(const MemoryType &memory_type) {
+    this->memory_type_ = memory_type;
+}
+
+

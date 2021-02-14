@@ -4,11 +4,13 @@
 
 #include "scamp5.h"
 #include "../src/metrics/stats.h"
+#include "../src/memory/sram/sram_6t.h"
 
 SCAMP5::SCAMP5() {
     // Initially all PEs are active
     this->FLAG.write(1);
     stats::set_clock_rate(1e7);
+    this->FLAG.change_memory_type(SRAM_6T());
 }
 
 void SCAMP5::nop() {

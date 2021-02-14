@@ -15,6 +15,7 @@ class Register : public Component {
 protected:
     MemoryType memory_type_;
     Data value_;
+    std::string name_;
     cv::Mat read_counter;           // Number of reads
     cv::Mat write_counter;          // Number of writes
     cv::Mat read_energy_counter;    // Energy consumed by reads
@@ -22,8 +23,11 @@ protected:
 
 public:
     Register(int rows, int columns, int type, MemoryType memoryType);
+
     Data & value();
     [[nodiscard]] const Data & value() const;
+
+    void change_memory_type(const MemoryType& memory_type);
 
     void inc_read(const cv::_InputOutputArray& mask = cv::noArray());
     void inc_write(const cv::_InputOutputArray& mask = cv::noArray());

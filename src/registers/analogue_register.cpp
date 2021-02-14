@@ -24,3 +24,8 @@ void AnalogueRegister::write(int data) {
 void AnalogueRegister::print_stats(CycleCounter counter) {
 
 }
+
+AnalogueRegister &AnalogueRegister::operator()(const std::string &name) {
+    this->name_= name;
+    return *this;
+}

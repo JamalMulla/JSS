@@ -9,6 +9,11 @@
 DigitalRegister::DigitalRegister(int rows, int columns, const MemoryType& memory_type)
     : Register(rows, columns, CV_8U, memory_type) { }
 
+DigitalRegister& DigitalRegister::operator()(const std::string& name) {
+    this->name_ = name;
+    return *this;
+}
+
 Data DigitalRegister::read() {
     this->inc_read();
     return this->value();
@@ -39,6 +44,8 @@ void DigitalRegister::print_stats(CycleCounter counter) {
     // Keep track of energy usage.
     // So each write do + write_access_time (in) * write_power_draw
     // and same for read
+
+    std::cout << "Register: " << this->name_ << std::endl;
 
     std::cout << "Energy consumed by reads: " << this->get_read_energy() << " joules" << std::endl;
     std::cout << "Energy consumed by writes: " << this->get_write_energy() << " joules" << std::endl;
