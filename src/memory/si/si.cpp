@@ -4,5 +4,6 @@
 
 #include "si.h"
 
+// TODO power
 SI::SI()
-    : MemoryType(0, 0, 440, 400){}
+    : MemoryType(0, 0, 0.00044, 0.00044){}

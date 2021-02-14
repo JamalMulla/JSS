@@ -63,7 +63,8 @@ void DigitalRegister::print_stats(const CycleCounter &counter) {
 
 void DigitalRegister::write_stats(const CycleCounter &counter, json &j) {
     double runtime = counter.to_seconds(stats::CLOCK_RATE);
-    j[this->name_] =
+    auto reg_stats = json::object();
+    reg_stats[this->name_] =
             {{"Energy (J)",
                      {
                              {"Reads", this->get_read_energy()},
@@ -85,6 +86,7 @@ void DigitalRegister::write_stats(const CycleCounter &counter, json &j) {
 
              }
             };
+    j.push_back(reg_stats);
 }
 
 

@@ -10,8 +10,8 @@ Register::Register(int rows, int columns, int type, MemoryType memoryType)
     :value_(rows, columns, type),
     read_counter(rows, columns, CV_32S),
     write_counter(rows, columns, CV_32S),
-    read_energy_counter(rows, columns, CV_32F),
-    write_energy_counter(rows, columns, CV_32F),
+    read_energy_counter(rows, columns, CV_64F),
+    write_energy_counter(rows, columns, CV_64F),
     memory_type_(memoryType){}
 
 void Register::inc_read(const cv::_InputOutputArray& mask) {

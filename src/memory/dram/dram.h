@@ -10,7 +10,7 @@
 
 class DRAM : public MemoryType {
 protected:
-    float retention_time_; // In ns
+    float retention_time_; // In S
 public:
     DRAM(float write_access_time, float read_access_time, float write_power_draw, float read_power_draw, float retention_time);
 };

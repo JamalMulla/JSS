@@ -6,4 +6,4 @@
 
 // TODO Find better power estimates
 SRAM_6T::SRAM_6T()
-        : SRAM(60, 50) {}
+        : SRAM(6.305e-8, 5.805e-8) {}
