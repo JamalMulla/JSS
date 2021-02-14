@@ -9,7 +9,8 @@
 #include "../memory_type.h"
 
 class SI : public MemoryType {
-
+public:
+    SI();
 };
 
 

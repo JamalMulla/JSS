@@ -6,10 +6,10 @@
 #include "digital_register.h"
 #include "../metrics/stats.h"
 
-DigitalRegister::DigitalRegister(int rows, int columns, const MemoryType& memory_type)
-    : Register(rows, columns, CV_8U, memory_type) { }
+DigitalRegister::DigitalRegister(int rows, int columns, const MemoryType &memory_type)
+        : Register(rows, columns, CV_8U, memory_type) {}
 
-DigitalRegister& DigitalRegister::operator()(const std::string& name) {
+DigitalRegister &DigitalRegister::operator()(const std::string &name) {
     this->name_ = name;
     return *this;
 }
@@ -37,7 +37,7 @@ void DigitalRegister::clear() {
     this->write(0);
 }
 
-void DigitalRegister::print_stats(const CycleCounter& counter) {
+void DigitalRegister::print_stats(const CycleCounter &counter) {
     // power x time = energy
     // energy / time = power
 
@@ -54,30 +54,37 @@ void DigitalRegister::print_stats(const CycleCounter& counter) {
     //convert number of cycles to seconds based off clock rate
     double runtime_in_seconds = counter.to_seconds(stats::CLOCK_RATE);
 
-    std::cout << "Average power for reads: " << this->get_read_energy()/runtime_in_seconds << " watts" << std::endl;
-    std::cout << "Average power for writes: " << this->get_write_energy()/runtime_in_seconds << " watts" << std::endl;
-    std::cout << "Total average power: " << this->get_total_energy()/runtime_in_seconds << " watts" << std::endl;
+    std::cout << "Average power for reads: " << this->get_read_energy() / runtime_in_seconds << " watts" << std::endl;
+    std::cout << "Average power for writes: " << this->get_write_energy() / runtime_in_seconds << " watts" << std::endl;
+    std::cout << "Total average power: " << this->get_total_energy() / runtime_in_seconds << " watts" << std::endl;
 
 
 }
 
-void DigitalRegister::write_stats(const CycleCounter &counter, json& j) {
+void DigitalRegister::write_stats(const CycleCounter &counter, json &j) {
     double runtime = counter.to_seconds(stats::CLOCK_RATE);
     j[this->name_] =
-        { {"Energy (J)",
-           {
-              {"Reads", this->get_read_energy()},
-              {"Writes", this->get_write_energy()},
-              {"Total", this->get_total_energy()},
-           }},
-          {"Power (W)",
-           {
-              {"Reads", this->get_read_energy()/runtime},
-              {"Writes", this->get_write_energy()/runtime},
-              {"Total", this->get_total_energy()/runtime},
-           }
-          }
-        };
+            {{"Energy (J)",
+                     {
+                             {"Reads", this->get_read_energy()},
+                             {"Writes", this->get_write_energy()},
+                             {"Total", this->get_total_energy()},
+                     }},
+             {"Power (W)",
+                     {
+                             {"Reads", this->get_read_energy() / runtime},
+                             {"Writes", this->get_write_energy() / runtime},
+                             {"Total", this->get_total_energy() / runtime},
+                     }
+             },
+             {"Accesses",
+                     {
+                             {"Reads", this->get_reads()},
+                             {"Writes", this->get_writes()}
+                     }
+
+             }
+            };
 }
 
 

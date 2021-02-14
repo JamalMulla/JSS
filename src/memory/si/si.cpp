@@ -3,3 +3,6 @@
 //
 
 #include "si.h"
+
+SI::SI()
+    : MemoryType(0, 0, 440, 400){}

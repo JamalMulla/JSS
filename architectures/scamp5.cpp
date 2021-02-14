@@ -5,6 +5,7 @@
 #include "scamp5.h"
 #include "../src/metrics/stats.h"
 #include "../src/memory/sram/sram_6t.h"
+#include <filesystem>
 
 SCAMP5::SCAMP5() {
     // Initially all PEs are active
@@ -90,25 +91,25 @@ void SCAMP5::bus(AREG &a) {
     cycles++;
 }
 
-void SCAMP5::bus(AREG &a, const AREG &a0) {
+void SCAMP5::bus(AREG &a, AREG &a0) {
     // a = -a0 + error
     this->pe.analogue_bus.bus(a, a0, FLAG);
     cycles++;
 }
 
-void SCAMP5::bus(AREG &a, const AREG &a0, const AREG &a1) {
+void SCAMP5::bus(AREG &a, AREG &a0, AREG &a1) {
     //a = -(a0 + a1) + error
     this->pe.analogue_bus.bus(a, a0, a1,FLAG);
     cycles+=4; // 2 reads, 1 add, 1 write
 }
 
-void SCAMP5::bus(AREG &a, const AREG &a0, const AREG &a1, const AREG &a2) {
+void SCAMP5::bus(AREG &a, AREG &a0, AREG &a1, AREG &a2) {
     //a = -(a0 + a1 + a2) + error
     this->pe.analogue_bus.bus(a, a0, a1, a2,FLAG);
     cycles+=5;  // 3 reads, 1 add, 1 write
 }
 
-void SCAMP5::bus(AREG &a, const AREG &a0, const AREG &a1, const AREG &a2, const AREG &a3) {
+void SCAMP5::bus(AREG &a, AREG &a0, AREG &a1, AREG &a2, AREG &a3) {
     //a = -(a0 + a1 + a2 + a3) + error
     this->pe.analogue_bus.bus(a, a0, a1, a2,a3, FLAG);
     cycles+=6;  // 4 reads, 1 add, 1 write
@@ -120,37 +121,37 @@ void SCAMP5::bus2(AREG &a, AREG &b) {
     cycles+=2;  // 2 writes
 }
 
-void SCAMP5::bus2(AREG &a, AREG &b, const AREG &a0) {
+void SCAMP5::bus2(AREG &a, AREG &b, AREG &a0) {
     //a,b = -0.5*a0 + error + noise
     this->pe.analogue_bus.bus2(a, b, a0,FLAG);
     cycles+=3;  // 1 read, 2 writes
 }
 
-void SCAMP5::bus2(AREG &a, AREG &b, const AREG &a0, const AREG &a1) {
+void SCAMP5::bus2(AREG &a, AREG &b, AREG &a0, AREG &a1) {
     //a,b = -0.5*(a0 + a1) + error + noise
     this->pe.analogue_bus.bus2(a, b, a0, a1,FLAG);
     cycles+=5;  // 2 reads, 1 add, 2 writes
 }
 
-void SCAMP5::bus3(AREG &a, AREG &b, AREG &c, const AREG &a0) {
+void SCAMP5::bus3(AREG &a, AREG &b, AREG &c, AREG &a0) {
     //a,b,c = -0.33*a0 + error + noise
     this->pe.analogue_bus.bus3(a, b, c, a0, FLAG);
     cycles+=2;  // 1 read, 3 writes
 }
 
-void SCAMP5::where(const AREG &a) {
+void SCAMP5::where(AREG &a) {
     //FLAG := a > 0.
     this->pe.analogue_bus.conditional_positive_set(a, FLAG);
     cycles+=2; // 1 read, 1 write
 }
 
-void SCAMP5::where(const AREG &a0, const AREG &a1) {
+void SCAMP5::where(AREG &a0, AREG &a1) {
     //FLAG := (a0 + a1) > 0.
     this->pe.analogue_bus.conditional_positive_set(a0, a1, FLAG);
     cycles+=4;  // 2 reads, 1 add, 1 write
 }
 
-void SCAMP5::where(const AREG &a0, const AREG &a1, const AREG &a2) {
+void SCAMP5::where(AREG &a0, AREG &a1, AREG &a2) {
     //FLAG := (a0 + a1 + a2) > 0.
     this->pe.analogue_bus.conditional_positive_set(a0, a1, a2, FLAG);
     cycles+=5;  // 3 reads, 1 add, 1 write
@@ -162,7 +163,7 @@ void SCAMP5::all() {
     cycles+=1;  // 1 writes
 }
 
-void SCAMP5::mov(AREG &y, const AREG &x0) {
+void SCAMP5::mov(AREG &y, AREG &x0) {
     //y = x0
     this->bus(NEWS, x0);
     this->bus(y, NEWS);
@@ -181,31 +182,31 @@ void SCAMP5::res(AREG &a, AREG &b) {
     this->bus(b, NEWS);
 }
 
-void SCAMP5::add(AREG &y, const AREG &x0, const AREG &x1) {
+void SCAMP5::add(AREG &y, AREG &x0, AREG &x1) {
     // y = x0 + x1
     this->bus(NEWS, x0, x1);
     this->bus(y, NEWS);
 }
 
-void SCAMP5::add(AREG &y, const AREG &x0, const AREG &x1, const AREG &x2) {
+void SCAMP5::add(AREG &y, AREG &x0, AREG &x1, AREG &x2) {
     // y = x0 + x1 + x2
     this->bus(NEWS, x0, x1, x2);
     this->bus(y, NEWS);
 }
 
-void SCAMP5::sub(AREG &y, const AREG &x0, const AREG &x1) {
+void SCAMP5::sub(AREG &y, AREG &x0, AREG &x1) {
     // y = x0 - x1
     this->bus(NEWS, x0);
     this->bus(y, NEWS, x1);
 }
 
-void SCAMP5::neg(AREG &y, const AREG &x0) {
+void SCAMP5::neg(AREG &y, AREG &x0) {
     // y = -x0
     this->bus(NEWS);
     this->bus(y, NEWS, x0);
 }
 
-void SCAMP5::abs(AREG &y, const AREG &x0) {
+void SCAMP5::abs(AREG &y, AREG &x0) {
     // y = |x0|
     this->bus(NEWS);
     this->bus(y, NEWS, x0);
@@ -224,7 +225,7 @@ void SCAMP5::div(AREG &y0, AREG &y1, AREG &y2) {
     this->bus(y0, y1);
 }
 
-void SCAMP5::div(AREG &y0, AREG &y1, AREG &y2, const AREG &x0) {
+void SCAMP5::div(AREG &y0, AREG &y1, AREG &y2, AREG &x0) {
     // y0 := 0.5*x0; y1 := -0.5*x0 + error, y2 := x0 + error
     this->bus2(y0, y1, x0);
     this->bus(NEWS, x0, y1);
@@ -242,13 +243,13 @@ void SCAMP5::diva(AREG &y0, AREG &y1, AREG &y2) {
     this->bus(y0, y1);
 }
 
-void SCAMP5::divq(AREG &y0, const AREG &x0) {
+void SCAMP5::divq(AREG &y0, AREG &x0) {
     // y0 := 0.5*x0 + error
     this->bus2(y0, NEWS, x0);
     this->bus(y0, NEWS);
 }
 
-void SCAMP5::movx(AREG &y, const AREG &x0, news_t dir) {
+void SCAMP5::movx(AREG &y, AREG &x0, news_t dir) {
     // y = x0_dir
     AREG intermediate(y.value().rows, y.value().cols);
     this->bus(intermediate, x0);
@@ -262,7 +263,7 @@ void SCAMP5::movx(AREG &y, const AREG &x0, news_t dir) {
     this->bus(y, NEWS);
 }
 
-void SCAMP5::mov2x(AREG &y, const AREG &x0, news_t dir, news_t dir2) {
+void SCAMP5::mov2x(AREG &y, AREG &x0, news_t dir, news_t dir2) {
     // y = x0_dir_dir (note: this only works when FLAG is "all")
     AREG intermediate(y.value().rows, y.value().cols);
     AREG intermediate2(y.value().rows, y.value().cols);
@@ -285,7 +286,7 @@ void SCAMP5::mov2x(AREG &y, const AREG &x0, news_t dir, news_t dir2) {
     this->bus(y, intermediate2);
 }
 
-void SCAMP5::addx(AREG &y, const AREG &x0, const AREG &x1, news_t dir) {
+void SCAMP5::addx(AREG &y, AREG &x0, AREG &x1, news_t dir) {
     // y := x0_dir + x1_dir
     AREG intermediate(y.value().rows, y.value().cols);
     this->bus(intermediate, x0, x1);
@@ -300,7 +301,7 @@ void SCAMP5::addx(AREG &y, const AREG &x0, const AREG &x1, news_t dir) {
     this->bus(y, NEWS);
 }
 
-void SCAMP5::add2x(AREG &y, const AREG &x0, const AREG &x1, news_t dir, news_t dir2) {
+void SCAMP5::add2x(AREG &y, AREG &x0, AREG &x1, news_t dir, news_t dir2) {
     // y := x0_dir_dir2 + x1_dir_dir2
     AREG intermediate(y.value().rows, y.value().cols);
     AREG intermediate2(y.value().rows, y.value().cols);
@@ -322,7 +323,7 @@ void SCAMP5::add2x(AREG &y, const AREG &x0, const AREG &x1, news_t dir, news_t d
     this->bus(y, intermediate2);
 }
 
-void SCAMP5::subx(AREG &y, const AREG &x0, news_t dir, const AREG &x1) {
+void SCAMP5::subx(AREG &y, AREG &x0, news_t dir, AREG &x1) {
     // y := x0_dir - x1
     AREG intermediate(y.value().rows, y.value().cols);
     this->bus(intermediate, x0);
@@ -336,7 +337,7 @@ void SCAMP5::subx(AREG &y, const AREG &x0, news_t dir, const AREG &x1) {
     this->bus(y, NEWS, x1);
 }
 
-void SCAMP5::sub2x(AREG &y, const AREG &x0, news_t dir, news_t dir2, const AREG &x1) {
+void SCAMP5::sub2x(AREG &y, AREG &x0, news_t dir, news_t dir2, AREG &x1) {
     // y := x0_dir_dir2 - x1
     AREG intermediate(y.value().rows, y.value().cols);
     AREG intermediate2(y.value().rows, y.value().cols);
@@ -675,10 +676,11 @@ void SCAMP5::print_stats(const CycleCounter& counter) {
 
     // this->array.print_stats(counter);
     this->array.write_stats(counter, j);
-    std::cout << std::setw(4) << j << std::endl;
+    std::cout << std::setw(2) << j << std::endl;
     std::ofstream file_out;
-    file_out.open ("/home/jm1417/CLionProjects/Simulator/output.json");
-    file_out << std::setw(4) << j;
+    std::cout << std::filesystem::current_path().string() << std::endl;
+    file_out.open (std::filesystem::current_path().string() + std::filesystem::path::preferred_separator + "output.json");
+    file_out << std::setw(2) << j;
     file_out.close();
 }
 
