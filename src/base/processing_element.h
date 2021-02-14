@@ -26,7 +26,7 @@ public:
     DigitalBus local_read_bus;
     DigitalBus local_write_bus;
 
-    ProcessingElement(int rows, int columns, std::vector<AnalogueRegister>  analogue_regs, std::vector<DigitalRegister>  digital_regs);
+    ProcessingElement(int rows, int columns, int num_analogue, int num_digital;
 
     void print_stats(CycleCounter counter) override;
 
@@ -36,13 +36,13 @@ class ProcessingElement::builder {
 private:
     int rows_ = -1;
     int cols_ = -1;
-    std::vector<AnalogueRegister> analogue_regs_ = {};
-    std::vector<DigitalRegister> digital_regs_ = {};
+    int num_analogue_ = -1;
+    int num_digital_ = -1;
 public:
     builder& with_rows(int rows);
     builder& with_cols(int cols);
-    builder& with_digital_registers(const std::vector<MemoryType>& types);
-    builder& with_analogue_registers(const std::vector<MemoryType>& types);
+    builder& with_analogue_registers(int num_analogue);
+    builder& with_digital_registers(int num_digital);
     ProcessingElement build();
 };
 

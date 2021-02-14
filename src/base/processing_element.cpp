@@ -4,17 +4,20 @@
 
 #include "processing_element.h"
 
-#include <utility>
-
 ProcessingElement::ProcessingElement(
         int rows,
         int columns,
-        std::vector<AnalogueRegister>  analogue_regs,
-        std::vector<DigitalRegister>  digital_regs
+        int num_analogue,
+        int num_digital
         )
-    : photodiode(Photodiode(rows, columns)),
-    analogue_registers(std::move(analogue_regs)),
-    digital_registers(std::move(digital_regs)) {
+    : photodiode(Photodiode(rows, columns)){
+
+    for (int i = 0; i < num_analogue; i++) {
+        analogue_registers.emplace_back(rows, columns);
+    }
+    for (int i = 0; i < num_digital; i++) {
+        digital_registers.emplace_back(rows, columns);
+    }
 }
 
 void ProcessingElement::print_stats(CycleCounter counter) {
@@ -36,28 +39,16 @@ ProcessingElement::builder &ProcessingElement::builder::with_cols(int cols) {
     return *this;
 }
 
-ProcessingElement::builder &ProcessingElement::builder::with_digital_registers(const std::vector<MemoryType> &types) {
-    if (this->rows_ == -1 || this->cols_ == -1) {
-        std::cerr << "Rows and/or columns have not been set" << std::endl;
-        exit(1);
-    }
-    for (auto& type : types) {
-        digital_regs_.emplace_back(this->rows_, this->cols_, type);
-    }
+ProcessingElement::builder &ProcessingElement::builder::with_analogue_registers(int num_analogue) {
+    this->num_analogue_ = num_analogue;
     return *this;
 }
 
-ProcessingElement::builder &ProcessingElement::builder::with_analogue_registers(const std::vector<MemoryType> &types) {
-    if (this->rows_ == -1 || this->cols_ == -1) {
-        std::cerr << "Rows and/or columns have not been set" << std::endl;
-        exit(1);
-    }
-    for (auto& type : types) {
-        analogue_regs_.emplace_back(this->rows_, this->cols_, type);
-    }
+ProcessingElement::builder &ProcessingElement::builder::with_digital_registers(int num_digital) {
+    this->num_digital_ = num_digital;
     return *this;
 }
 
 ProcessingElement ProcessingElement::builder::build() {
-    return ProcessingElement(this->rows_, this->cols_, this->analogue_regs_, this->digital_regs_);
+    return ProcessingElement(rows_, cols_, num_analogue_, num_digital_);
 }

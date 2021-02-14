@@ -36,7 +36,12 @@ public:
     const int DIGITAL_REGISTERS = 14;
     CycleCounter cycles;
 private:
-    ProcessingElement pe = ProcessingElement(SCAMP_HEIGHT, SCAMP_WIDTH, ANALOGUE_REGISTERS, DIGITAL_REGISTERS);
+    ProcessingElement pe = ProcessingElement::builder{}
+                            .with_rows(SCAMP_WIDTH)
+                            .with_cols(SCAMP_HEIGHT)
+                            .with_analogue_registers(ANALOGUE_REGISTERS)
+                            .with_digital_registers(DIGITAL_REGISTERS)
+                            .build();
     Array array = Array(SCAMP_HEIGHT, SCAMP_WIDTH, pe);
 public:
     //Analogue registers
