@@ -9,7 +9,8 @@
 #include "../memory_type.h"
 
 class SRAM : public MemoryType {
-
+public:
+    SRAM(float write_power, float read_power);
 };
 
 

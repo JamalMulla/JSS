@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include "digital_register.h"
-#include "../base/array.h"
 #include "../metrics/stats.h"
 
 DigitalRegister::DigitalRegister(int rows, int columns, const MemoryType& memory_type)

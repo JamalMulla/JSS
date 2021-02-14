@@ -48,3 +48,13 @@ double Register::get_total_energy() {
     return get_read_energy() + get_write_energy();
 }
 
+Data &Register::value() {
+    // For reading
+    return this->value_;
+}
+
+const Data &Register::value() const {
+    // For writing
+    return this->value_;
+}
+

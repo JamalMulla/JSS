@@ -22,8 +22,8 @@ protected:
 
 public:
     Register(int rows, int columns, int type, MemoryType memoryType);
-    Data & value()       { return value_; }
-    [[nodiscard]] const Data & value() const { return value_; }
+    Data & value();
+    [[nodiscard]] const Data & value() const;
 
     void inc_read(const cv::_InputOutputArray& mask = cv::noArray());
     void inc_write(const cv::_InputOutputArray& mask = cv::noArray());
