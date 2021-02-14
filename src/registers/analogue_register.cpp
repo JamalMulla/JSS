@@ -21,11 +21,15 @@ void AnalogueRegister::write(int data) {
     this->value().setTo(data);
 }
 
-void AnalogueRegister::print_stats(CycleCounter counter) {
-
-}
-
 AnalogueRegister &AnalogueRegister::operator()(const std::string &name) {
     this->name_= name;
     return *this;
+}
+
+void AnalogueRegister::print_stats(const CycleCounter &counter) {
+
+}
+
+void AnalogueRegister::write_stats(const CycleCounter &counter, json& j) {
+
 }

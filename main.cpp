@@ -15,7 +15,7 @@ int main() {
     SCAMP5 s;
 
     int i = 0;
-    while(i < 500) {
+    while(i < 50) {
         s.get_image(s.C,s.D);
         s.sub(s.A, s.C, s.E);
         s.where(s.A);

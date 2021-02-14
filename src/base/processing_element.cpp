@@ -20,12 +20,21 @@ ProcessingElement::ProcessingElement(
     }
 }
 
-void ProcessingElement::print_stats(CycleCounter counter) {
+void ProcessingElement::print_stats(const CycleCounter& counter) {
     for (auto & analogue : analogue_registers) {
         analogue.print_stats(counter);
     }
     for (auto & digital : digital_registers) {
         digital.print_stats(counter);
+    }
+}
+
+void ProcessingElement::write_stats(const CycleCounter &counter, json& j) {
+    for (auto & analogue : analogue_registers) {
+        analogue.write_stats(counter, j);
+    }
+    for (auto & digital : digital_registers) {
+        digital.write_stats(counter, j);
     }
 }
 

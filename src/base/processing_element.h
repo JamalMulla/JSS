@@ -28,7 +28,8 @@ public:
 
     ProcessingElement(int rows, int columns, int num_analogue, int num_digital);
 
-    void print_stats(CycleCounter counter) override;
+    void print_stats(const CycleCounter& counter) override;
+    void write_stats(const CycleCounter& counter, json& j) override;
 
 };
 

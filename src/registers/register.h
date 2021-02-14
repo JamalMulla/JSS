@@ -24,8 +24,8 @@ protected:
 public:
     Register(int rows, int columns, int type, MemoryType memoryType);
 
-    Data & value();
-    [[nodiscard]] const Data & value() const;
+    Data& value();
+    const Data& value() const;
 
     void change_memory_type(const MemoryType& memory_type);
 
@@ -42,7 +42,8 @@ public:
     virtual void write(Data data) = 0;
     virtual void write(int data) = 0;
 
-    void print_stats(CycleCounter counter) override = 0;
+    void print_stats(const CycleCounter& counter) override = 0;
+    void write_stats(const CycleCounter& counter, json& j) override = 0;
 };
 
 

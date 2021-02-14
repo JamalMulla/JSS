@@ -37,7 +37,7 @@ void DigitalRegister::clear() {
     this->write(0);
 }
 
-void DigitalRegister::print_stats(CycleCounter counter) {
+void DigitalRegister::print_stats(const CycleCounter& counter) {
     // power x time = energy
     // energy / time = power
 
@@ -59,6 +59,25 @@ void DigitalRegister::print_stats(CycleCounter counter) {
     std::cout << "Total average power: " << this->get_total_energy()/runtime_in_seconds << " watts" << std::endl;
 
 
+}
+
+void DigitalRegister::write_stats(const CycleCounter &counter, json& j) {
+    double runtime = counter.to_seconds(stats::CLOCK_RATE);
+    j[this->name_] =
+        { {"Energy (J)",
+           {
+              {"Reads", this->get_read_energy()},
+              {"Writes", this->get_write_energy()},
+              {"Total", this->get_total_energy()},
+           }},
+          {"Power (W)",
+           {
+              {"Reads", this->get_read_energy()/runtime},
+              {"Writes", this->get_write_energy()/runtime},
+              {"Total", this->get_total_energy()/runtime},
+           }
+          }
+        };
 }
 
 

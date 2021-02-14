@@ -668,11 +668,18 @@ void SCAMP5::PROP1() {
     // async-propagation on R12, masked by R0 when boundaries are considered '1'
 }
 
-void SCAMP5::print_stats(CycleCounter counter) {
-    std::cout << "Total number of cycles: " << counter << std::endl;
-    std::cout << "Equivalent in seconds: " << counter.get_cycles()/stats::CLOCK_RATE << " s" << std::endl;
+void SCAMP5::print_stats(const CycleCounter& counter) {
+    json j;
+    j["Total number of cycles"] = counter.get_cycles();
+    j["Equivalent in seconds"] = counter.get_cycles()/stats::CLOCK_RATE;
 
-    this->array.print_stats(counter);
+    // this->array.print_stats(counter);
+    this->array.write_stats(counter, j);
+    std::cout << std::setw(4) << j << std::endl;
+    std::ofstream file_out;
+    file_out.open ("/home/jm1417/CLionProjects/Simulator/output.json");
+    file_out << std::setw(4) << j;
+    file_out.close();
 }
 
 void SCAMP5::scamp5_get_image(AREG &yf, AREG &yh, int gain) {

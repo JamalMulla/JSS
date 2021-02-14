@@ -36,11 +36,11 @@ const CycleCounter CycleCounter::operator--(int cycles) {
     return ret;
 }
 
-double CycleCounter::to_seconds(long clock_rate) {
+double CycleCounter::to_seconds(long clock_rate) const {
     return this->counter/clock_rate;
 }
 
-long CycleCounter::to_cycles(double seconds, long clock_rate) {
+long CycleCounter::to_cycles(double seconds, long clock_rate) const {
     return seconds * clock_rate;
 }
 
@@ -49,7 +49,7 @@ std::ostream &operator<<(std::ostream &os, const CycleCounter &cc) {
     return os;
 }
 
-unsigned long long CycleCounter::get_cycles() {
+unsigned long long CycleCounter::get_cycles() const {
     return this->counter;
 }
 

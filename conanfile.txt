@@ -1,5 +1,5 @@
 [requires]
-opencv/4.3.0@conan/stable
+nlohmann_json/3.9.1
 
 [generators]
 cmake

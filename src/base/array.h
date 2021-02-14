@@ -23,7 +23,8 @@ public:
 
     ProcessingElement pe;
 
-    void print_stats(CycleCounter counter) override;
+    void print_stats(const CycleCounter& counter) override;
+    void write_stats(const CycleCounter& counter, json& j) override;
 
 };
 

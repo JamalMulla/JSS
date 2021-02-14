@@ -245,7 +245,7 @@ public:
 
 
     // Simulator specific methods
-    void print_stats(CycleCounter counter);
+    void print_stats(const CycleCounter& counter);
 
 };
 

@@ -52,7 +52,11 @@ double Photodiode::last_frame_time() {
     return time_taken;
 }
 
-void Photodiode::print_stats(CycleCounter counter) {
+void Photodiode::print_stats(const CycleCounter &counter) {
+
+}
+
+void Photodiode::write_stats(const CycleCounter &counter, json& j) {
 
 }
 

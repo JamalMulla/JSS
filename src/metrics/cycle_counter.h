@@ -21,10 +21,10 @@ public:
     CycleCounter& operator--();                  // Prefix
     const CycleCounter operator--(int cycles);   // Postfix
 
-    unsigned long long get_cycles();
+    unsigned long long get_cycles() const;
 
-    double to_seconds(long clock_rate);
-    long to_cycles(double seconds, long clock_rate);
+    double to_seconds(long clock_rate) const;
+    long to_cycles(double seconds, long clock_rate) const;
 
     friend std::ostream& operator<<(std::ostream& os, const CycleCounter& cc);
 
