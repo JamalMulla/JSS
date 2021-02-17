@@ -54,6 +54,7 @@ void DigitalRegister::print_stats(const CycleCounter &counter) {
     //convert number of cycles to seconds based off clock rate
     double runtime_in_seconds = counter.to_seconds(stats::CLOCK_RATE);
 
+
     std::cout << "Average power for reads: " << this->get_read_energy() / runtime_in_seconds << " watts" << std::endl;
     std::cout << "Average power for writes: " << this->get_write_energy() / runtime_in_seconds << " watts" << std::endl;
     std::cout << "Total average power: " << this->get_total_energy() / runtime_in_seconds << " watts" << std::endl;

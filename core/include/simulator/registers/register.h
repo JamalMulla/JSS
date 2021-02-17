@@ -16,10 +16,12 @@ protected:
     MemoryType memory_type_;
     Data value_;
     std::string name_;
-    cv::Mat read_counter;           // Number of reads
+    cv::Mat read_counter;           // Number of reads for each PE
     cv::Mat write_counter;          // Number of writes
     cv::Mat read_energy_counter;    // Energy consumed by reads
     cv::Mat write_energy_counter;   // Energy consumed by writes
+    int reads;                     // Number of reads not per PE but across the array
+    int writes;                     // Number of writes not per PE but across the arrau
 
 public:
     Register(int rows, int columns, int type, MemoryType memoryType);
@@ -34,6 +36,10 @@ public:
 
     int get_reads();
     int get_writes();
+
+    int get_total_reads();
+    int get_total_writes();
+
     double get_read_energy();
     double get_write_energy();
     double get_total_energy();

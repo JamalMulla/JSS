@@ -35,7 +35,7 @@ int main() {
         // Multiple Sobel
 //        START_TIMER();
 //        s.get_image(s.A, s.D);
-//        END_TIMER();
+////        END_TIMER();
 //        s.neg(s.C, s.A);
 //        s.subx(s.B, s.A, south, s.C);
 //        s.subx(s.D, s.A, north, s.C);

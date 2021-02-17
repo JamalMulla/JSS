@@ -16,9 +16,10 @@ Register::Register(int rows, int columns, int type, MemoryType memoryType)
 
 void Register::inc_read(const cv::_InputOutputArray& mask) {
     cv::add(this->read_counter, 1, this->read_counter, mask);
-    int number_of_cycle = 1;
+    int number_of_cycle = 1;  // Should be parameterisable
     double energy_usage = this->memory_type_.read_power_draw * stats::CYCLE_TIME * number_of_cycle;
     cv::add(this->read_energy_counter, energy_usage, this->read_energy_counter, mask);
+    this->reads++;
 }
 
 void Register::inc_write(const cv::_InputOutputArray& mask) {
@@ -26,13 +27,22 @@ void Register::inc_write(const cv::_InputOutputArray& mask) {
     int number_of_cycle = 1;
     double energy_usage = this->memory_type_.write_power_draw * stats::CYCLE_TIME * number_of_cycle;
     cv::add(this->write_energy_counter, energy_usage, this->write_energy_counter, mask);
+    this->writes++;
 }
 
 int Register::get_reads() {
-    return cv::sum(this->read_counter)[0];
+    return this->reads;
 }
 
 int Register::get_writes() {
+    return this->writes;
+}
+
+int Register::get_total_reads() {
+    return cv::sum(this->read_counter)[0];
+}
+
+int Register::get_total_writes() {
     return cv::sum(this->write_counter)[0];
 }
 

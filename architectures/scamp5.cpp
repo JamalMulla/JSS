@@ -30,7 +30,9 @@ void SCAMP5::rpix() {
 void SCAMP5::get_image(AREG &y) {
     //y := half-range image, and reset PIX
     this->pe.photodiode.read(PIX);
-    cycles+=20;
+    double seconds = this->pe.photodiode.last_frame_time();
+    int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
+    cycles+=c/300;
     this->bus(NEWS, PIX);
     this->rpix();
     this->rpix();
@@ -43,7 +45,7 @@ void SCAMP5::get_image(AREG &y, AREG &h) {
     this->pe.photodiode.read(PIX);
     double seconds = this->pe.photodiode.last_frame_time();
     int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
-    cycles+=c;
+    cycles+=c/300;
     this->bus(NEWS, PIX);
     this->bus(h, PIX);
     this->rpix();
@@ -66,7 +68,9 @@ void SCAMP5::respix(AREG &y) {
     this->rpix();
     this->nop();
     this->pe.photodiode.read(PIX);
-    cycles+=20;
+    double seconds = this->pe.photodiode.last_frame_time();
+    int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
+    cycles+=c/300;
     this->bus(NEWS, PIX);
     this->bus(y, NEWS);
 }
@@ -74,7 +78,9 @@ void SCAMP5::respix(AREG &y) {
 void SCAMP5::getpix(AREG &y, AREG &pix_res) {
     //y := half-range image, supplying the reset level of PIX
     this->pe.photodiode.read(PIX);
-    cycles+=20;
+    double seconds = this->pe.photodiode.last_frame_time();
+    int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
+    cycles+=c/300;
     this->bus(NEWS,PIX);
     this->bus(y,NEWS, pix_res);
 }
@@ -82,7 +88,9 @@ void SCAMP5::getpix(AREG &y, AREG &pix_res) {
 void SCAMP5::getpix(AREG &y, AREG &h, AREG &pix_res) {
     //y := full-range, h := half-range image, supplying the reset level of PIX
     this->pe.photodiode.read(PIX);
-    cycles+=20;
+    double seconds = this->pe.photodiode.last_frame_time();
+    int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
+    cycles+=c/300;
     this->bus(h,PIX);
     this->bus(NEWS, PIX);
     this->bus(y, h, NEWS, pix_res);
@@ -363,7 +371,10 @@ void SCAMP5::sub2x(AREG &y, AREG &x0, news_t dir, news_t dir2, AREG &x1) {
 }
 
 void SCAMP5::blurset() {
-
+    // need to be used once ahead of a blur instruction
+    // TODO check
+    R1.set();
+    R2.set();
 }
 
 void SCAMP5::blur(AREG &a, AREG &a0) {
