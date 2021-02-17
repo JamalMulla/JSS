@@ -372,7 +372,9 @@ void SCAMP5::sub2x(AREG &y, AREG &x0, news_t dir, news_t dir2, AREG &x1) {
 
 void SCAMP5::blurset() {
     // need to be used once ahead of a blur instruction
-    // TODO check what actually happns here
+    // TODO check
+    R1.set();
+    R2.set();
 }
 
 void SCAMP5::blur(AREG &a, AREG &a0) {

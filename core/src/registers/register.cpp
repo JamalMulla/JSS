@@ -12,6 +12,8 @@ Register::Register(int rows, int columns, int type, MemoryType memoryType)
     write_counter(rows, columns, CV_32S, cv::Scalar(0)),
     read_energy_counter(rows, columns, CV_64F, cv::Scalar(0)),
     write_energy_counter(rows, columns, CV_64F, cv::Scalar(0)),
+    reads(0),
+    writes(0),
     memory_type_(memoryType){}
 
 void Register::inc_read(const cv::_InputOutputArray& mask) {
