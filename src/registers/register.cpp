@@ -7,11 +7,11 @@
 #include "../metrics/stats.h"
 
 Register::Register(int rows, int columns, int type, MemoryType memoryType)
-    :value_(rows, columns, type),
-    read_counter(rows, columns, CV_32S),
-    write_counter(rows, columns, CV_32S),
-    read_energy_counter(rows, columns, CV_64F),
-    write_energy_counter(rows, columns, CV_64F),
+    :value_(rows, columns, type, cv::Scalar(0)),
+    read_counter(rows, columns, CV_32S, cv::Scalar(0)),
+    write_counter(rows, columns, CV_32S, cv::Scalar(0)),
+    read_energy_counter(rows, columns, CV_64F, cv::Scalar(0)),
+    write_energy_counter(rows, columns, CV_64F, cv::Scalar(0)),
     memory_type_(memoryType){}
 
 void Register::inc_read(const cv::_InputOutputArray& mask) {

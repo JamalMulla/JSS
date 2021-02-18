@@ -37,7 +37,7 @@ const CycleCounter CycleCounter::operator--(int cycles) {
 }
 
 double CycleCounter::to_seconds(long clock_rate) const {
-    return this->counter/clock_rate;
+    return static_cast<double>(this->counter)/clock_rate;
 }
 
 long CycleCounter::to_cycles(double seconds, long clock_rate) const {

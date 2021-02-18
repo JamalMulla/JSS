@@ -6,6 +6,9 @@
 #include "../src/metrics/stats.h"
 #include "../src/memory/sram/sram_6t.h"
 #include <filesystem>
+#include <fstream>
+#include <ostream>
+#include <iostream>
 
 SCAMP5::SCAMP5() {
     // Initially all PEs are active
@@ -364,6 +367,7 @@ void SCAMP5::blurset() {
 }
 
 void SCAMP5::blur(AREG &a, AREG &a0) {
+    // blur a0 into a
 
 }
 
@@ -672,14 +676,14 @@ void SCAMP5::PROP1() {
 void SCAMP5::print_stats(const CycleCounter& counter) {
     json j;
     j["Total number of cycles"] = counter.get_cycles();
-    j["Equivalent in seconds"] = counter.get_cycles()/stats::CLOCK_RATE;
+    j["Equivalent in seconds"] = counter.to_seconds(stats::CLOCK_RATE);
 
     // this->array.print_stats(counter);
     this->array.write_stats(counter, j);
     std::cout << std::setw(2) << j << std::endl;
     std::ofstream file_out;
     std::cout << std::filesystem::current_path().string() << std::endl;
-    file_out.open (std::filesystem::current_path().string() + std::filesystem::path::preferred_separator + "output.json");
+    file_out.open (std::filesystem::current_path().string() + "/output.json");
     file_out << std::setw(2) << j;
     file_out.close();
 }
