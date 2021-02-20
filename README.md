@@ -1,7 +1,7 @@
 # Focal Plane Sensor Processor Simulator
 
 
-A parameterisable simulator to model and emulate different FPSP architectures. Currently only the SCAMP-5 architecture has been (mostly) implementedsupports. The SCAMP-5 API documentation can be found [here](https://personalpages.manchester.ac.uk/staff/jianing.chen/scamp5d_lib_doc_html/_p_a_g_e__d_e_v_i_c_e__a_p_i__c_a_t_e_g_o_r_y.html).
+A parameterisable simulator to model and emulate different FPSP architectures. Currently only the SCAMP-5 architecture has been (mostly) implemented. The SCAMP-5 API documentation can be found [here](https://personalpages.manchester.ac.uk/staff/jianing.chen/scamp5d_lib_doc_html/_p_a_g_e__d_e_v_i_c_e__a_p_i__c_a_t_e_g_o_r_y.html).
 
 
 Requirements:
