@@ -372,42 +372,104 @@ void SCAMP5::sub2x(AREG &y, AREG &x0, news_t dir, news_t dir2, AREG &x1) {
 
 void SCAMP5::blurset() {
     // need to be used once ahead of a blur instruction
-    // TODO check
-    R1.set();
-    R2.set();
+    // TODO check what actually happns here
 }
 
 void SCAMP5::blur(AREG &a, AREG &a0) {
     // blur a0 into a
+    cv::GaussianBlur(a0.value(), a.value(), cv::Size(3, 3), 0);
 
+    cv::bitwise_not(a.value(), a.value());
 }
 
 void SCAMP5::blurh(AREG &a, AREG &a0) {
+    // analog asynchronized blur, horizontal only
+    // row vector for x direction which is horizontal?
+    // blur a0 into a
+    float gaussian_1d[10] = {0.006, 0.061, 0.242, 0.383, 0.242, 0.061, 0.006};
+    cv::Mat horizontal_kernel = cv::Mat(1, 6, CV_32F, gaussian_1d);
+
+    cv::filter2D(a0.value(), a.value(), -1, horizontal_kernel);
+    cv::bitwise_not(a.value(), a.value());
 
 }
 
 void SCAMP5::blurv(AREG &a, AREG &a0) {
+    // analog asynchronized blur, vertical only
+    // blur a0 into a
+    float gaussian_1d[10] = {0.006, 0.061, 0.242, 0.383, 0.242, 0.061, 0.006};
+    cv::Mat vertical_kernel = cv::Mat(6, 1, CV_32F, gaussian_1d);
 
+    cv::filter2D(a0.value(), a.value(), -1, vertical_kernel);
+    cv::bitwise_not(a.value(), a.value());
 }
 
-void SCAMP5::gauss(AREG &y, AREG &x, const int iterations = 3) {
+void SCAMP5::gauss(AREG &y, AREG &x, const int iterations) {
     // blur x into y with constant number of iterations (x and y can be same AREG),
     // require R1 and R2 to be set properly
+    blur(NEWS, x);
+    blur(y, NEWS);
+    for (int i = 1; i < iterations; i++) {
+        blur(NEWS, y);
+        blur(y, NEWS);
+    }
 
 }
 
 void SCAMP5::gaussh(AREG &y, AREG &x, const int iterations) {
     // horizontally blur x into y with constant number of iterations (x and y can be same AREG),
     // require R1 and R2 to be set properly
+    blurh(NEWS, x);
+    blurh(y, NEWS);
+    for (int i = 1; i < iterations; i++) {
+        blurh(NEWS, y);
+        blurh(y, NEWS);
+    }
 }
 
 void SCAMP5::gaussv(AREG &y, AREG &x, const int iterations) {
     // vertically blur x into y with constant number of iterations (x and y can be same AREG),
     // require R1 and R2 to be set properly
+    blurv(NEWS, x);
+    blurv(y, NEWS);
+    for (int i = 1; i < iterations; i++) {
+        blurv(NEWS, y);
+        blurv(y, NEWS);
+    }
 }
 
 void SCAMP5::newsblur(AREG &y, AREG &x, const int iterations) {
     // blur x into y with constant number of iterations using neighbour mixing (x and y can be same AREG)
+    bus(NEWS, x);
+    AREG east(y.value().rows, y.value().cols);
+    AREG north(y.value().rows, y.value().cols);
+    AREG west(y.value().rows, y.value().cols);
+    AREG south(y.value().rows, y.value().cols);
+    this->pe.analogue_bus.push_east(NEWS, east, 1, FLAG);
+    this->pe.analogue_bus.push_north(NEWS, north, 1, FLAG);
+    this->pe.analogue_bus.push_west(NEWS, west, 1, FLAG);
+    this->pe.analogue_bus.push_south(NEWS, south, 1, FLAG);
+    AREG intermediate(y.value().rows, y.value().cols);
+    add(intermediate, north, south, west);
+    add(intermediate, intermediate, east);
+    bus(y, intermediate);
+
+
+    for (int i = 1; i < iterations; i++) {
+        bus(NEWS, y);
+        AREG east(y.value().rows, y.value().cols);
+        AREG north(y.value().rows, y.value().cols);
+        AREG west(y.value().rows, y.value().cols);
+        AREG south(y.value().rows, y.value().cols);
+        this->pe.analogue_bus.push_east(NEWS, east, 1, FLAG);
+        this->pe.analogue_bus.push_north(NEWS, north, 1, FLAG);
+        this->pe.analogue_bus.push_west(NEWS, west, 1, FLAG);
+        this->pe.analogue_bus.push_south(NEWS, south, 1, FLAG);
+        AREG intermediate(y.value().rows, y.value().cols);
+        add(intermediate, north, south, west);
+        add(intermediate, intermediate, east);
+        bus(y, intermediate);
+    }
 }
 
 void SCAMP5::newsblurh(AREG &y, AREG &x, const int iterations) {

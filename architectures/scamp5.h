@@ -131,12 +131,12 @@ public:
     void blur(AREG& a, AREG& a0);
     void blurh(AREG& a, AREG& a0);
     void blurv(AREG& a, AREG& a0);
-    void gauss(AREG& y, AREG& x, int iterations);
-    void gaussh(AREG& y, AREG& x, int iterations);
-    void gaussv(AREG& y, AREG& x, int iterations);
-    void newsblur(AREG& y, AREG& x, int iterations);
-    void newsblurh(AREG& y, AREG& x, int iterations);
-    void newsblurv(AREG& y, AREG& x, int iterations);
+    void gauss(AREG& y, AREG& x, int iterations = 3);
+    void gaussh(AREG& y, AREG& x, int iterations = 3);
+    void gaussv(AREG& y, AREG& x, int iterations = 3);
+    void newsblur(AREG& y, AREG& x, int iterations = 1);
+    void newsblurh(AREG& y, AREG& x, int iterations = 1);
+    void newsblurv(AREG& y, AREG& x, int iterations = 1);
 
     // Digital Logic Operations
     void OR(DREG& d, DREG& d0, DREG& d1);

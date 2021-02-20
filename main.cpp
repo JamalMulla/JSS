@@ -16,11 +16,17 @@ int main() {
 
     int i = 0;
     s.scamp5_in(s.E, 10);
-    while(i < 250) {
+    while(i < 3000) {
+
         s.get_image(s.C,s.D);
-        s.sub(s.A, s.C, s.E);
-        s.where(s.A);
-        s.MOV(s.R5,s.FLAG);
+        s.gaussv(s.A, s.C);
+        s.blurv(s.B, s.C);
+//        s.newsblur(s.B, s.C, 3);
+//        s.blur(s.A, s.C);
+//        s.get_image(s.C,s.D);
+//        s.sub(s.A, s.C, s.E);
+//        s.where(s.A);
+//        s.MOV(s.R5,s.FLAG);
         s.all();
 
 
