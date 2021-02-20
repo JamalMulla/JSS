@@ -19,9 +19,9 @@ int main() {
     while(i < 3000) {
 
         s.get_image(s.C,s.D);
-        s.gaussv(s.A, s.C);
-        s.blurv(s.B, s.C);
-//        s.newsblur(s.B, s.C, 3);
+//        s.gaussv(s.A, s.C);
+//        s.blurv(s.B, s.C);
+        s.newsblurv(s.B, s.C, 4);
 //        s.blur(s.A, s.C);
 //        s.get_image(s.C,s.D);
 //        s.sub(s.A, s.C, s.E);

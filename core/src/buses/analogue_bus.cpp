@@ -300,7 +300,7 @@ void AnalogueBus::get_east(AnalogueRegister &src, AnalogueRegister& dst, int off
     auto read_chunk = cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
     auto write_chunk = cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
     src.value()(read_chunk).copyTo(dst.value()(write_chunk));
-    auto fill = cv::Rect(src.value().cols, 0, offset, src.value().rows);
+    auto fill = cv::Rect(0, 0, offset, src.value().rows);
     dst.value()(fill).setTo(cv::Scalar(0));
     src.inc_read();
     dst.inc_write();
@@ -311,7 +311,7 @@ void AnalogueBus::get_west(AnalogueRegister &src, AnalogueRegister& dst, int off
     auto read_chunk = cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
     auto write_chunk = cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
     src.value()(read_chunk).copyTo(dst.value()(write_chunk));
-    auto fill = cv::Rect(0, 0, offset, src.value().rows);
+    auto fill = cv::Rect(src.value().cols - offset, 0, offset, src.value().rows);
     dst.value()(fill).setTo(cv::Scalar(0));
     src.inc_read();
     dst.inc_write();

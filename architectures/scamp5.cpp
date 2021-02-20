@@ -415,7 +415,6 @@ void SCAMP5::gauss(AREG &y, AREG &x, const int iterations) {
         blur(NEWS, y);
         blur(y, NEWS);
     }
-
 }
 
 void SCAMP5::gaussh(AREG &y, AREG &x, const int iterations) {
@@ -442,44 +441,50 @@ void SCAMP5::gaussv(AREG &y, AREG &x, const int iterations) {
 
 void SCAMP5::newsblur(AREG &y, AREG &x, const int iterations) {
     // blur x into y with constant number of iterations using neighbour mixing (x and y can be same AREG)
-    bus(NEWS, x);
-    AREG east(y.value().rows, y.value().cols);
-    AREG north(y.value().rows, y.value().cols);
-    AREG west(y.value().rows, y.value().cols);
-    AREG south(y.value().rows, y.value().cols);
-    this->pe.analogue_bus.push_east(NEWS, east, 1, FLAG);
-    this->pe.analogue_bus.push_north(NEWS, north, 1, FLAG);
-    this->pe.analogue_bus.push_west(NEWS, west, 1, FLAG);
-    this->pe.analogue_bus.push_south(NEWS, south, 1, FLAG);
-    AREG intermediate(y.value().rows, y.value().cols);
-    add(intermediate, north, south, west);
-    add(intermediate, intermediate, east);
-    bus(y, intermediate);
+    float data[3][3] = {{0,1,0},{1,0,1},{0,1,0}};
+    cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
 
+    bus(NEWS, x);
+    cv::filter2D(NEWS.value(), y.value(), -1, neighbour_kernel);
+    cv::bitwise_not(y.value(), y.value());
 
     for (int i = 1; i < iterations; i++) {
         bus(NEWS, y);
-        AREG east(y.value().rows, y.value().cols);
-        AREG north(y.value().rows, y.value().cols);
-        AREG west(y.value().rows, y.value().cols);
-        AREG south(y.value().rows, y.value().cols);
-        this->pe.analogue_bus.push_east(NEWS, east, 1, FLAG);
-        this->pe.analogue_bus.push_north(NEWS, north, 1, FLAG);
-        this->pe.analogue_bus.push_west(NEWS, west, 1, FLAG);
-        this->pe.analogue_bus.push_south(NEWS, south, 1, FLAG);
-        AREG intermediate(y.value().rows, y.value().cols);
-        add(intermediate, north, south, west);
-        add(intermediate, intermediate, east);
-        bus(y, intermediate);
+        cv::filter2D(NEWS.value(), y.value(), -1, neighbour_kernel);
+        cv::bitwise_not(y.value(), y.value());
     }
 }
 
 void SCAMP5::newsblurh(AREG &y, AREG &x, const int iterations) {
     // horizontally blur x into y with constant number of iterations using neighbour mixing (x and y can be same AREG)
+    float data[3][3] = {{0,0,0},{1,0,1},{0,0,0}};
+    cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
+
+    bus(NEWS, x);
+    cv::filter2D(NEWS.value(), y.value(), -1, neighbour_kernel);
+    cv::bitwise_not(y.value(), y.value());
+
+    for (int i = 1; i < iterations; i++) {
+        bus(NEWS, y);
+        cv::filter2D(NEWS.value(), y.value(), -1, neighbour_kernel);
+        cv::bitwise_not(y.value(), y.value());
+    }
 }
 
 void SCAMP5::newsblurv(AREG &y, AREG &x, const int iterations) {
     // vertically blur x into y with constant number of iterations using neighbour mixing (x and y can be same AREG)
+    float data[3][3] = {{0,1,0},{0,0,0},{0,1,0}};
+    cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
+
+    bus(NEWS, x);
+    cv::filter2D(NEWS.value(), y.value(), -1, neighbour_kernel);
+    cv::bitwise_not(y.value(), y.value());
+
+    for (int i = 1; i < iterations; i++) {
+        bus(NEWS, y);
+        cv::filter2D(NEWS.value(), y.value(), -1, neighbour_kernel);
+        cv::bitwise_not(y.value(), y.value());
+    }
 }
 
 void SCAMP5::OR(DREG &d, DREG &d0, DREG &d1) {
