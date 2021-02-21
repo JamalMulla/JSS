@@ -11,11 +11,11 @@
 
 template <class T, class... Args>
 struct MapHolder{
-    static std::map<std::string, void(T::*)(Args&...)>instructionMap;
+    static std::unordered_map<std::string, void(T::*)(Args&...)>instructionMap;
 };
 
 template <class T, class... Args>
-std::map<std::string, void(T::*)(Args&...)>MapHolder<T, Args...>::instructionMap;
+std::unordered_map<std::string, void(T::*)(Args&...)>MapHolder<T, Args...>::instructionMap;
 
 template <class T>
 class InstructionFactory {
@@ -28,7 +28,20 @@ public:
     }
 
     template <class... Args>
+    static auto get_instruction(const std::string &name) {
+        if (MapHolder<T, Args&...>::instructionMap.find(name) == MapHolder<T, Args&...>::instructionMap.end()) {
+            std::cerr << "Instruction " << name << " not found" << std::endl;
+            exit(0);
+        }
+        return MapHolder<T, Args&...>::instructionMap[name];
+    }
+
+    template <class... Args>
     static void execute(T& s, const std::string &name, Args &&... args) {
+        if (MapHolder<T, Args&...>::instructionMap.find(name) == MapHolder<T, Args&...>::instructionMap.end()) {
+            std::cerr << "Instruction " << name << " not found" << std::endl;
+            exit(0);
+        }
         (s.*MapHolder<T, Args&...>::instructionMap[name])(std::forward<Args>(args)...);
     }
 

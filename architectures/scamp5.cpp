@@ -20,7 +20,6 @@ SCAMP5::SCAMP5() {
     stats::set_clock_rate(1e7);
     this->FLAG.change_memory_type(SRAM_6T());
     InstructionFactory<SCAMP5>::register_instruction<AREG, AREG>("get_image", &SCAMP5::get_image);
-    std::cout << "Did this work?" << std::endl;
 }
 
 void SCAMP5::nop() {
