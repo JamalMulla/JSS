@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_DIGITAL_BUS_H
 #define SIMULATOR_DIGITAL_BUS_H
 
-#include "../registers/digital_register.h"
+#include "simulator/registers/digital_register.h"
 
 class DigitalBus {
 public:

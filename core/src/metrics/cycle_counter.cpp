@@ -2,7 +2,7 @@
 // Created by jm1417 on 13/02/2021.
 //
 
-#include "cycle_counter.h"
+#include "simulator/metrics/cycle_counter.h"
 
 CycleCounter & CycleCounter::operator+=(int cycles) {
     this->counter += cycles;

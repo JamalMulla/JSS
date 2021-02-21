@@ -6,7 +6,7 @@
 #define SIMULATOR_DRAM_3T_H
 
 
-#include "dram.h"
+#include "simulator/memory/dram.h"
 
 class DRAM_3T : public DRAM {
 public:

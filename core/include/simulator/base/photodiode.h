@@ -8,8 +8,8 @@
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/videoio.hpp>
-#include "../registers/analogue_register.h"
-#include "component.h"
+#include "simulator/registers/analogue_register.h"
+#include "simulator/base/component.h"
 
 class Photodiode : public Component {
 private:

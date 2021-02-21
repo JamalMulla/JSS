@@ -6,13 +6,12 @@
 #define SIMULATOR_PROCESSING_ELEMENT_H
 
 #include <vector>
-#include "photodiode.h"
-#include "../registers/digital_register.h"
-#include "../units/Squarer.h"
-#include "../units/comparator.h"
-#include "../buses/analogue_bus.h"
-#include "../buses/digital_bus.h"
-
+#include "simulator/base/photodiode.h"
+#include "simulator/registers/digital_register.h"
+#include "simulator/units/squarer.h"
+#include "simulator/units/comparator.h"
+#include "simulator/buses/analogue_bus.h"
+#include "simulator/buses/digital_bus.h"
 
 class ProcessingElement : public Component {
 public:

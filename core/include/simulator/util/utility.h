@@ -6,7 +6,7 @@
 #define SIMULATOR_UTILITY_H
 
 #include <string>
-#include "../registers/register.h"
+#include "simulator/registers/register.h"
 
 namespace utility {
 

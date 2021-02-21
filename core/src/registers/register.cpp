@@ -3,8 +3,8 @@
 //
 
 #include <opencv2/core.hpp>
-#include "register.h"
-#include "../metrics/stats.h"
+#include "simulator/registers/register.h"
+#include "simulator/metrics/stats.h"
 
 Register::Register(int rows, int columns, int type, MemoryType memoryType)
     :value_(rows, columns, type, cv::Scalar(0)),

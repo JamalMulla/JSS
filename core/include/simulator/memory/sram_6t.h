@@ -5,8 +5,7 @@
 #ifndef SIMULATOR_SRAM_6T_H
 #define SIMULATOR_SRAM_6T_H
 
-
-#include "sram.h"
+#include "simulator/memory/sram.h"
 
 class SRAM_6T : public SRAM {
 public:

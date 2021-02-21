@@ -7,7 +7,7 @@
 
 #include <opencv2/core/mat.hpp>
 #include "register.h"
-#include "../memory/dram/dram_3t.h"
+#include "simulator/memory/dram_3t.h"
 
 class DigitalRegister : public Register {
 public:

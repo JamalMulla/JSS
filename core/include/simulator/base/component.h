@@ -7,7 +7,7 @@
 
 
 #include <nlohmann/json.hpp>
-#include "../metrics/cycle_counter.h"
+#include "simulator/metrics/cycle_counter.h"
 
 using json = nlohmann::json;
 class Component {

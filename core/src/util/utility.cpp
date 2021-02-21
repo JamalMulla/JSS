@@ -3,7 +3,7 @@
 //
 
 #include <opencv2/highgui.hpp>
-#include "utility.h"
+#include "simulator/util/utility.h"
 
 void utility::display_register(const std::string &window_name, Register &reg) {
     double minVal, maxVal;

@@ -5,8 +5,8 @@
 #include <iostream>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-#include "photodiode.h"
-#include "array.h"
+#include "simulator/base/photodiode.h"
+#include "simulator/base/array.h"
 
 Photodiode::Photodiode(int rows, int columns) : rows_(rows), columns_(columns) {
     this->capture = std::make_shared<cv::VideoCapture>(0,  cv::CAP_ANY);

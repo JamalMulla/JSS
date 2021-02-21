@@ -3,8 +3,8 @@
 //
 
 #include <iostream>
-#include "digital_register.h"
-#include "../metrics/stats.h"
+#include "simulator/registers/digital_register.h"
+#include "simulator/metrics/stats.h"
 
 DigitalRegister::DigitalRegister(int rows, int columns, const MemoryType &memory_type)
         : Register(rows, columns, CV_8U, memory_type) {}

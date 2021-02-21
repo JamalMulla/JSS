@@ -2,8 +2,8 @@
 // Created by jm1417 on 28/01/2021.
 //
 
-#include "processing_element.h"
-#include "../metrics/stats.h"
+#include "simulator/base/processing_element.h"
+#include "simulator/metrics/stats.h"
 
 ProcessingElement::ProcessingElement(
         int rows,

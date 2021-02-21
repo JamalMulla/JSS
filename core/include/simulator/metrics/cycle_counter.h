@@ -5,7 +5,6 @@
 #ifndef SIMULATOR_CYCLE_COUNTER_H
 #define SIMULATOR_CYCLE_COUNTER_H
 
-#include <cstdint>
 #include <iostream>
 
 class CycleCounter {

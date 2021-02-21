@@ -3,7 +3,7 @@
 //
 
 #include <opencv2/core.hpp>
-#include "digital_bus.h"
+#include "simulator/buses/digital_bus.h"
 
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &d1) {
     // d := d0 OR d1

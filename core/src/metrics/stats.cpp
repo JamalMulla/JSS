@@ -2,7 +2,7 @@
 // Created by jm1417 on 08/02/2021.
 //
 
-#include "stats.h"
+#include "simulator/metrics/stats.h"
 
 long stats::CLOCK_RATE = 0;
 double stats::CYCLE_TIME = 0;

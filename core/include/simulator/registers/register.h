@@ -6,8 +6,8 @@
 #define SIMULATOR_REGISTER_H
 
 #include <opencv2/core/mat.hpp>
-#include "../base/component.h"
-#include "../memory/memory_type.h"
+#include "simulator/base/component.h"
+#include "simulator/memory/memory_type.h"
 
 typedef cv::Mat Data;
 

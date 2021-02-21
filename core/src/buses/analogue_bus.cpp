@@ -5,7 +5,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
-#include "analogue_bus.h"
+#include "simulator/buses/analogue_bus.h"
 
 void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {
     //a = 0 + error

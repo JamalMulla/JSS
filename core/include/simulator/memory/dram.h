@@ -6,7 +6,7 @@
 #define SIMULATOR_DRAM_H
 
 
-#include "../memory_type.h"
+#include "simulator/memory/memory_type.h"
 
 class DRAM : public MemoryType {
 protected:

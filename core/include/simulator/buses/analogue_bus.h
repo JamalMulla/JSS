@@ -6,8 +6,8 @@
 #define SIMULATOR_ANALOGUE_BUS_H
 
 
-#include "../registers/analogue_register.h"
-#include "../registers/digital_register.h"
+#include "simulator/registers/analogue_register.h"
+#include "simulator/registers/digital_register.h"
 
 class AnalogueBus {
 

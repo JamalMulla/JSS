@@ -6,7 +6,7 @@
 #define SIMULATOR_SRAM_H
 
 
-#include "../memory_type.h"
+#include "simulator/memory/memory_type.h"
 
 class SRAM : public MemoryType {
 public:

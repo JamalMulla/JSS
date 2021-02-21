@@ -2,10 +2,10 @@
 // Created by jm1417 on 28/01/2021.
 //
 
-#include "analogue_register.h"
-#include "../memory/si/si.h"
-#include "../base/array.h"
-#include "../metrics/stats.h"
+#include "simulator/registers/analogue_register.h"
+#include "simulator/memory/si.h"
+#include "../../include/simulator/base/array.h"
+#include "simulator/metrics/stats.h"
 
 AnalogueRegister::AnalogueRegister(int rows, int columns)
         : Register(rows, columns, MAT_TYPE, SI()) {}
