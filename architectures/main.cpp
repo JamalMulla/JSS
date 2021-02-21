@@ -25,19 +25,28 @@ int main() {
     )";
 
     // Assume we've parsed this and got the following
-    std::string func_name = "get_image";
-    std::string arg1 = "C";
-    std::string arg2 =  "D";
-
-    // Need to get the function using the type arguments. So need type arguments first
-
-
-    // Get function
-    
-    auto get_image = InstructionFactory<SCAMP5>::get_instruction<AREG, AREG>("get_image");
+//    const char *func_name = "get_image";
+//    std::string arg1 = "C";
+//    std::string arg2 =  "D";
+//
+//    auto& a1 = s.C;
+//    auto& a2 = s.D;
+//    auto f = InstructionFactory<SCAMP5>::get_instruction<AREG, AREG>(func_name);
+//    (s.*f)(a1, a2);
+//    InstructionFactory<SCAMP5>::execute(s, func_name, a1, a2);
+//
+//    // Need to get the function using the type arguments. So need type arguments first
+      AREG* C = RegisterFactory::get_register<AREG>("C");
+      AREG* D = RegisterFactory::get_register<AREG>("D");
+//
+//
+//    // Get function
+//
+//    auto get_image = InstructionFactory<SCAMP5>::get_instruction<AREG, AREG>("get_image");
     while(i < 250) {
         START_TIMER();
-        (s.*get_image)(s.C, s.D);
+//        (s.*get_image)(s.C, s.D);
+        InstructionFactory<SCAMP5>::execute(s, "get_image", *C, *D);
         END_TIMER();
         s.get_image(s.C, s.D);
 

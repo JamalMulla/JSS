@@ -37,6 +37,7 @@ public:
     const int DIGITAL_REGISTERS = 14;
     CycleCounter cycles;
     InstructionFactory<SCAMP5> instructions;
+    RegisterFactory registers;
 private:
     ProcessingElement pe = ProcessingElement::builder{}
                             .with_rows(SCAMP_WIDTH)

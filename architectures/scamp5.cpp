@@ -20,6 +20,12 @@ SCAMP5::SCAMP5() {
     stats::set_clock_rate(1e7);
     this->FLAG.change_memory_type(SRAM_6T());
     InstructionFactory<SCAMP5>::register_instruction<AREG, AREG>("get_image", &SCAMP5::get_image);
+    RegisterFactory::register_register("A", &this->A);
+    RegisterFactory::register_register("B", &this->B);
+    RegisterFactory::register_register("C", &this->C);
+    RegisterFactory::register_register("D", &this->D);
+    RegisterFactory::register_register("E", &this->E);
+    RegisterFactory::register_register("F", &this->F);
 }
 
 void SCAMP5::nop() {
