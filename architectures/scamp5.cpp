@@ -5,26 +5,34 @@
 #include "scamp5.h"
 #include "simulator/memory/sram_6t.h"
 #include "simulator/metrics/stats.h"
+#include "instruction_factory.h"
 #include <filesystem>
 #include <fstream>
 #include <ostream>
 #include <iostream>
+
+
+
 
 SCAMP5::SCAMP5() {
     // Initially all PEs are active
     this->FLAG.write(1);
     stats::set_clock_rate(1e7);
     this->FLAG.change_memory_type(SRAM_6T());
+    InstructionFactory<SCAMP5>::register_instruction<AREG, AREG>("get_image", &SCAMP5::get_image);
+    std::cout << "Did this work?" << std::endl;
 }
 
 void SCAMP5::nop() {
     cycles++;
+    InstructionFactory<SCAMP5>::register_instruction("nop", &SCAMP5::nop);
 }
 
 void SCAMP5::rpix() {
     //reset PIX
     this->pe.photodiode.reset();
     cycles++;
+    InstructionFactory<SCAMP5>::register_instruction("rpix", &SCAMP5::rpix);
 }
 
 void SCAMP5::get_image(AREG &y) {
@@ -38,6 +46,7 @@ void SCAMP5::get_image(AREG &y) {
     this->rpix();
     this->nop();
     this->bus(y, NEWS, PIX);
+    InstructionFactory<SCAMP5>::register_instruction<AREG>("get_image", &SCAMP5::get_image);
 }
 
 void SCAMP5::get_image(AREG &y, AREG &h) {
@@ -52,7 +61,6 @@ void SCAMP5::get_image(AREG &y, AREG &h) {
     this->rpix();
     this->nop();
     this->bus(y, h, NEWS, PIX);
-
 }
 
 void SCAMP5::respix() {
@@ -60,6 +68,7 @@ void SCAMP5::respix() {
     this->rpix();
     this->rpix();
     this->nop();
+    InstructionFactory<SCAMP5>::register_instruction("respix", &SCAMP5::respix);
 }
 
 void SCAMP5::respix(AREG &y) {
@@ -73,6 +82,7 @@ void SCAMP5::respix(AREG &y) {
     cycles+=c/300;
     this->bus(NEWS, PIX);
     this->bus(y, NEWS);
+    InstructionFactory<SCAMP5>::register_instruction<AREG>("respix", &SCAMP5::respix);
 }
 
 void SCAMP5::getpix(AREG &y, AREG &pix_res) {

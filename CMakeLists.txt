@@ -63,3 +63,4 @@ ELSEIF(UNIX)
     target_link_libraries(${ARCH} PRIVATE ${CONAN_LIBS} ${OpenCV_LIBS} simulator)
 ENDIF()
 target_include_directories(${ARCH} PUBLIC ${OpenCV_INCLUDE_DIRS} core/include )
+

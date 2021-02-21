@@ -5,7 +5,6 @@
 #ifndef SIMULATOR_PHOTODIODE_H
 #define SIMULATOR_PHOTODIODE_H
 
-
 #include <opencv2/core/mat.hpp>
 #include <opencv2/videoio.hpp>
 #include "simulator/registers/analogue_register.h"

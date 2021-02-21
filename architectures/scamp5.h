@@ -6,8 +6,9 @@
 #define SIMULATOR_SCAMP5_H
 
 #include <opencv2/opencv.hpp>
-#include "simulator/base/processing_element.h"
-#include "simulator/base/array.h"
+#include "instruction_factory.h"
+#include <simulator/base/processing_element.h>
+#include <simulator/base/array.h>
 
 enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
 
@@ -35,6 +36,7 @@ public:
     const int ANALOGUE_REGISTERS = 13;
     const int DIGITAL_REGISTERS = 14;
     CycleCounter cycles;
+    InstructionFactory<SCAMP5> instructions;
 private:
     ProcessingElement pe = ProcessingElement::builder{}
                             .with_rows(SCAMP_WIDTH)
