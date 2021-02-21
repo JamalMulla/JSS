@@ -3,8 +3,8 @@
 //
 
 #include "scamp5.h"
-#include "../src/metrics/stats.h"
 #include "../src/memory/sram/sram_6t.h"
+#include "../src/metrics/stats.h"
 #include <filesystem>
 #include <fstream>
 #include <ostream>

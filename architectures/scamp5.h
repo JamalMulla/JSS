@@ -6,8 +6,8 @@
 #define SIMULATOR_SCAMP5_H
 
 #include <opencv2/opencv.hpp>
-#include "../src/base/processing_element.h"
-#include "../src/base/array.h"
+#include "../core/src/base/processing_element.h"
+#include "../core/src/base/array.h"
 
 enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
 
