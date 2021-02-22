@@ -1,0 +1,5 @@
+get_image(C, D);
+sub(A, C, E);
+where(A);
+MOV(R5,FLAG);
+all();
