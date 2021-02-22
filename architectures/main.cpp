@@ -5,7 +5,6 @@
 #include <iostream>
 #include "scamp5.h"
 #include <simulator/util/utility.h>
-#include "instruction_factory.h"
 
 #define START_TIMER() auto TIME_START = std::chrono::high_resolution_clock::now()
 #define END_TIMER() auto TIME_END = std::chrono::high_resolution_clock::now(); std::cout << "Elapsed time: " \
@@ -36,13 +35,25 @@ int main() {
 //    InstructionFactory<SCAMP5>::execute(s, func_name, a1, a2);
 //
 //    // Need to get the function using the type arguments. So need type arguments first
-      AREG* C = RegisterFactory::get_register<AREG>("C");
-      AREG* D = RegisterFactory::get_register<AREG>("D");
+    AREG *C;
+    AREG *D;
+    try
+    {
+        C = std::any_cast<AREG *>(s.registers.get_arg("C"));
+        D = std::any_cast<AREG *>(s.registers.get_arg("D"));
+    }
+    catch (const std::bad_any_cast& e)
+    {
+        std::cout << e.what() << '\n';
+    }
+
+
 //
 //
 //    // Get function
 //
 //    auto get_image = InstructionFactory<SCAMP5>::get_instruction<AREG, AREG>("get_image");
+
     while(i < 250) {
         START_TIMER();
 //        (s.*get_image)(s.C, s.D);

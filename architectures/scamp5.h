@@ -6,7 +6,7 @@
 #define SIMULATOR_SCAMP5_H
 
 #include <opencv2/opencv.hpp>
-#include "instruction_factory.h"
+#include "simulator/base/instruction_factory.h"
 #include <simulator/base/processing_element.h>
 #include <simulator/base/array.h>
 
@@ -37,7 +37,7 @@ public:
     const int DIGITAL_REGISTERS = 14;
     CycleCounter cycles;
     InstructionFactory<SCAMP5> instructions;
-    RegisterFactory registers;
+    ArgumentFactory registers;
 private:
     ProcessingElement pe = ProcessingElement::builder{}
                             .with_rows(SCAMP_WIDTH)
