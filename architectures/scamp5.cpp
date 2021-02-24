@@ -802,4 +802,62 @@ void SCAMP5::scamp5_load_in(int8_t value) {
     cycles++;
 }
 
+void SCAMP5::scamp5_load_dac(AREG &areg, uint16_t value, AREG *temp) {
+    // load an analog value to the AREG plane using a raw DAC value
+    if (temp == nullptr) {
+        temp = &NEWS;
+    }
+    IN.value().setTo(value);
+    cycles++;
+    bus(*temp, IN);
+    bus(areg, *temp);
+}
+
+void SCAMP5::scamp5_load_dac(uint16_t value) {
+    // load an analog value to IN using a raw DAC value
+    IN.value().setTo(value);
+    cycles++;
+}
+
+void SCAMP5::scamp5_shift(AREG &areg, int h, int v) {
+    // shift an AREG image
+
+}
+
+void SCAMP5::scamp5_diffuse(AREG &target, int iterations, bool vertical, bool horizontal, AREG *to) {
+
+}
+
+uint8_t SCAMP5::scamp5_read_areg(AREG &areg, uint8_t r, uint8_t c) {
+    // read a single pixel
+    return areg.value().at<uint8_t>(r, c);
+}
+
+uint32_t SCAMP5::scamp5_global_sum_16(AREG &areg, uint8_t *result16v) {
+    // get the AREG sum level using a set of 4x4 sparse grid.
+    // When result16v is a NULL pointer, the function will return sum of the data.
+    //The result is not equal to the actual sum of all pixels of the AREG in the area,
+    // but it is proportional to the actual sum.
+    // This function takes roughly 14 usec to execute.
+
+}
+
+uint32_t SCAMP5::scamp5_global_sum_64(AREG &areg, uint8_t *result64v) {
+    // get the AREG sum level with a better resolution
+    // This function achieves similar functionally as the "global_sum_16" version, but the grid used is 8x8.
+    // As a consequence, the result has higher resolution but it takes longer to execute (roughly 28 usec).
+}
+
+uint8_t SCAMP5::scamp5_global_sum_fast(AREG &areg) {
+    // get approximate sum level of the whole AREG plane
+    // TODO should be approximate sum not exact. Also need to abstract away cv call
+    return cv::sum(areg.value())[0];
+}
+
+uint8_t SCAMP5::scamp5_global_sum_sparse(AREG &areg, uint8_t r, uint8_t c, uint8_t rx, uint8_t cx) {
+    // get sum level of the pixels selected using a pattern
+    // This result is less probable to saturate because it only counts a quarter of the pixels in the AREG plane (by default)
+    return 0;
+}
+
 

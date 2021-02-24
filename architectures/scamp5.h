@@ -190,8 +190,8 @@ public:
     void scamp5_in(AREG& areg, int8_t value, AREG* temp = nullptr);
     void scamp5_load_in(AREG& areg, int8_t value, AREG* temp = nullptr);
     void scamp5_load_in(int8_t value);
-    void scamp5_load_dac(AREG& areg, int16_t value, AREG& temp);
-    void scamp5_load_dac(int16_t value);
+    void scamp5_load_dac(AREG& areg, uint16_t value, AREG* temp = nullptr);
+    void scamp5_load_dac(uint16_t value);
     void scamp5_shift(AREG& areg, int h, int v);
     void scamp5_diffuse(AREG& target, int iterations, bool vertical=true, bool horizontal=true, AREG* to = nullptr);
     uint8_t scamp5_read_areg(AREG& areg, uint8_t r, uint8_t c);
