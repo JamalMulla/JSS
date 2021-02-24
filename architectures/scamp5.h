@@ -193,43 +193,56 @@ public:
     void scamp5_load_dac(AREG& areg, int16_t value, AREG& temp);
     void scamp5_load_dac(int16_t value);
     void scamp5_shift(AREG& areg, int h, int v);
-    void scamp5_diffuse();
-    void scamp5_read_areg();
-    void scamp5_global_sum_16();
-    void scamp5_global_sum_64();
-    void scamp5_global_sum_fast();
+    void scamp5_diffuse(AREG& target, int iterations, bool vertical=true, bool horizontal=true, AREG* to = nullptr);
+    uint8_t scamp5_read_areg(AREG& areg, uint8_t r, uint8_t c);
+    uint32_t scamp5_global_sum_16(AREG& areg, uint8_t* result16v = nullptr);
+    uint32_t scamp5_global_sum_64(AREG& areg, uint8_t* result64v = nullptr);
+    uint8_t scamp5_global_sum_fast(AREG& areg);
+    uint8_t scamp5_global_sum_sparse(AREG& areg, uint8_t r=2, uint8_t c=2, uint8_t rx=254, uint8_t cx=254);
 
     //    Digital
-    void scamp5_global_or();
-    void scamp5_global_count();
-    void scamp5_flood();
-    void scamp5_load_point();
-    void scamp5_load_rect();
-    void scamp5_load_pattern();
-    void scamp5_select_point();
-    void scamp5_select_rect();
-    void scamp5_select_pattern();
-    void scamp5_draw_begin();
+    void scamp5_shift(DREG& dreg, int h, int v, const int boundary=0);
+    int scamp5_global_or(DREG& dreg, uint8_t r=0, uint8_t c=0, uint8_t rx=255, uint8_t cx=255);
+    int scamp5_global_count(DREG& dreg, AREG& temp, int options=0);
+    void scamp5_flood(DREG& dreg_target, DREG& dreg_mask, int boundary, int iterations=5, bool use_local=false);
+    void scamp5_load_point(DREG& dr, uint8_t r, uint8_t c);
+    void scamp5_load_rect(DREG& dr, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1);
+    void scamp5_load_pattern(DREG& dr, uint8_t r, uint8_t c, uint8_t rx, uint8_t cx);
+    void scamp5_select_point(uint8_t r, uint8_t c);
+    void scamp5_select_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1);
+    void scamp5_select_pattern(uint8_t r, uint8_t c, uint8_t rx, uint8_t cx);
+    void scamp5_select_col(uint8_t c);
+    void scamp5_select_row(uint8_t r);
+    void scamp5_select_colx(uint8_t cx);
+    void scamp5_select_rowx(uint8_t rx);
+    void scamp5_draw_begin(DREG& dr);
     void scamp5_draw_end();
-    void scamp5_draw_pixel();
-    void scamp5_draw_point();
-    void scamp5_draw_rect();
-    void scamp5_draw_line();
-    void scamp5_draw_circle();
+    void scamp5_draw_pixel(uint8_t r, uint8_t c);
+    void scamp5_draw_point(int r, int c);
+    void scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1);
+    void scamp5_draw_line(int r0, int c0, int r1, int c1, bool repeat=false);
+    void scamp5_draw_circle(int x0, int y0, int radius, bool repeat=false);
     void scamp5_draw_negate();
 
     //    Image Readout
-    void scamp5_scan_areg();
-    void scamp5_scan_areg_8x8();
-    void scamp5_scan_areg_mean_8x8();
-    void scamp5_scan_dreg();
-    void scamp5_display_image();
-    void scamp5_display_image_patch();
-    void scamp5_output_image();
-    void scamp5_output_bitstack_begin();
-    void scamp5_output_bitstack_bit();
-    void scamp5_output_bitstack_end();
-
+    void scamp5_scan_areg(AREG& areg, uint8_t *buffer, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs, uint8_t cs);
+    void scamp5_scan_areg_8x8(AREG& areg, uint8_t *result8x8);
+    void scamp5_scan_areg_mean_8x8(AREG& areg, uint8_t *result8x8);
+    void scamp5_scan_dreg(DREG& dreg, uint8_t *mem, uint8_t r0=0, uint8_t r1=255);
+    void scamp5_scan_events(DREG& dreg, uint8_t *mem, uint16_t max_num=1000, uint8_t h_dir=0, uint8_t v_dir=0);
+    void scamp5_scan_boundingbox (DREG& dr, uint8_t *vec4v);
+//    void scamp5_output_image(AREG& areg, vs_handle display);
+//    void scamp5_output_image (DREG& dreg, vs_handle display);
+//    void scamp5_output_areg (AREG& areg, vs_handle display, int s=1, int r0=0, int c0=0);
+//    void scamp5_output_events (DREG& dreg, vs_handle display, uint16_t max_num=1000, uint8_t h_dir=0, uint8_t v_dir=0);
+//    void scamp5_output_boundingbox (DREG& dr, vs_handle display, uint8_t *result=NULL);
+//    void scamp5_display_boundingbox (vs_handle display, const uint8_t *vec4v, size_t count);
+//    void scamp5_display_events (vs_handle display, const uint8_t *vec2v, size_t count);
+//    void scamp5_display_image(vs_handle display, const uint8_t *buffer, uint8_t w, uint8_t h);
+//    void scamp5_display_image_patch(vs_handle display, const uint8_t *buffer, uint8_t w, uint8_t h, uint8_t r0, uint8_t c0);
+//    void scamp5_output_bitstack_begin(vs_handle display, int n_bits);
+//    void scamp5_output_bitstack_bit(DREG& dreg);
+//    void scamp5_output_bitstack_end();
 
     //    Events Readout
     void scamp5_scan_events();
