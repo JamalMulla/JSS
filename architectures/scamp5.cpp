@@ -25,6 +25,10 @@ SCAMP5::SCAMP5() {
     InstructionFactory<SCAMP5>::register_instruction("rpix", &SCAMP5::rpix);
     InstructionFactory<SCAMP5>::register_instruction("respix", &SCAMP5::respix);
     InstructionFactory<SCAMP5>::register_instruction<AREG>("respix", &SCAMP5::respix);
+    InstructionFactory<SCAMP5>::register_instruction<AREG, AREG, AREG>("sub", &SCAMP5::sub);
+    InstructionFactory<SCAMP5>::register_instruction<AREG>("where", &SCAMP5::where);
+    InstructionFactory<SCAMP5>::register_instruction<DREG, DREG>("MOV", &SCAMP5::MOV);
+    InstructionFactory<SCAMP5>::register_instruction<>("all", &SCAMP5::all);
 
     registers.register_arg("A", &this->A);
     registers.register_arg("B", &this->B);
@@ -32,6 +36,8 @@ SCAMP5::SCAMP5() {
     registers.register_arg("D", &this->D);
     registers.register_arg("E", &this->E);
     registers.register_arg("F", &this->F);
+    registers.register_arg("R5", &this->R5);
+    registers.register_arg("FLAG", &this->FLAG);
     registers.register_arg("north", news_t::north);
 
 }
@@ -56,6 +62,7 @@ void SCAMP5::get_image(AREG &y) {
     this->rpix();
     this->rpix();
     this->nop();
+//    this->pe.photodiode.read(PIX);
     this->bus(y, NEWS, PIX);
 }
 
@@ -70,6 +77,7 @@ void SCAMP5::get_image(AREG &y, AREG &h) {
     this->rpix();
     this->rpix();
     this->nop();
+//    this->pe.photodiode.read(PIX);
     this->bus(y, h, NEWS, PIX);
 }
 

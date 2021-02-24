@@ -19,6 +19,7 @@
 #include <functional>
 #include <simulator/registers/analogue_register.h>
 #include <simulator/registers/digital_register.h>
+#include <simulator/util/utility.h>
 
 
 template <class T, class... Args>
@@ -124,6 +125,22 @@ public:
         (s.*InstructionHolder<T, Args&...>::instructionMap[name])(std::forward<Args>(args)...);
     }
 
+    template<class Type>
+    static void execute(T& instance, const std::string& name, std::any arg) {
+        (instance.*InstructionHolder<T, Type&>::instructionMap[name])(*std::any_cast<Type*>(arg));
+    }
+
+    template<class Type1, class Type2>
+    static void execute(T& instance, const std::string& name, std::any arg1, std::any arg2) {
+        (instance.*InstructionHolder<T, Type1&, Type2&>::instructionMap[name])(*std::any_cast<Type1*>(arg1), *std::any_cast<Type2*>(arg2));
+    }
+
+    template<class Type1, class Type2, class Type3>
+    static void execute(T& instance, const std::string& name, std::any arg1, std::any arg2, std::any arg3) {
+        (instance.*InstructionHolder<T, Type1&, Type2&, Type3&>::instructionMap[name])
+        (*std::any_cast<Type1*>(arg1), *std::any_cast<Type2*>(arg2), *std::any_cast<Type3*>(arg3));
+    }
+
 };
 
 class ArgumentFactory {
@@ -184,7 +201,7 @@ void InstructionParser<T>::parse(T& s, const std::string& program_file, int iter
         exit(EXIT_FAILURE);
     }
 
-    std::vector<std::pair<std::string, std::vector<std::string>>> instructionArgs;
+    std::vector<std::pair<std::string, std::vector<std::any>>> instructionArgs;
 
     // read until you reach the end of the file
 
@@ -219,67 +236,167 @@ void InstructionParser<T>::parse(T& s, const std::string& program_file, int iter
             args.emplace_back(get_arg(arg));
         }
 
-        switch (args.size()) {
-            case 0: {
-                InstructionFactory<T>::execute(s, instr);
-                break;
-            }
-            case 1: {
-                auto f1 = std::bind(&InstructionFactory<T>::template execute<AnalogueRegister>, s, instr, _1);
-
-                auto arg1 = args.at(0);
-
-                if (arg1.type() == typeid(AnalogueRegister*)) {
-                    f1 = std::bind(f1, *(std::any_cast<AnalogueRegister*>(arg1)));
-                } else if (arg1.type() == typeid(DigitalRegister*)) {
-                    f1 = std::bind(f1, *(std::any_cast<DigitalRegister*>(arg1)));
-                } else {
-                    std::cerr << "Unable to cast arg of type " << arg1.type().name() << std::endl;
-                    exit(1);
-                }
-                
-                f1();
-                break;
-            }
-            case 2: {
-                auto f1 = std::bind(&InstructionFactory<T>::template execute<AnalogueRegister, AnalogueRegister>, s, instr, _1);
-
-                auto arg1 = args.at(0);
-                auto arg2 = args.at(1);
-
-                if (arg1.type() == typeid(AnalogueRegister*)) {
-                    f1 = std::bind(f1, *(std::any_cast<AnalogueRegister*>(arg1)), _1);
-                } else if (arg1.type() == typeid(DigitalRegister*)) {
-                    f1 = std::bind(f1, *(std::any_cast<DigitalRegister*>(arg1)), _1);
-                } else {
-                    std::cerr << "Unable to cast arg of type " << arg1.type().name() << std::endl;
-                    exit(1);
-                }
-
-                if (arg2.type() == typeid(AnalogueRegister*)) {
-                    f1 = std::bind(f1, *(std::any_cast<AnalogueRegister*>(arg2)));
-                } else if (arg2.type() == typeid(DigitalRegister*)) {
-                    f1 = std::bind(f1, *(std::any_cast<DigitalRegister*>(arg2)));
-                } else {
-                    std::cerr << "Unable to cast arg of type " << arg2.type().name() << std::endl;
-                    exit(1);
-                }
-
-                f1();
-                break;
-            }
-            default: {
-                std::cerr << "Cannot support more than 2 arguments at this time" << std::endl;
-                exit(1);
-            }
-        }
-
-
-
-//        instructionArgs.emplace_back(std::make_pair<std::string, std::vector<std::string>>(instr, args));
-
+        instructionArgs.emplace_back(instr, args);
 
     }
+
+
+    int i = 0;
+    while (true) {
+
+        for (auto &item : instructionArgs) {
+            std::string instr = item.first;
+            std::vector<std::any> args = item.second;
+
+            switch (args.size()) {
+                case 0: {
+                    InstructionFactory<T>::execute(s, instr);
+                    break;
+                }
+                case 1: {
+
+                    auto arg1 = args.at(0);
+
+                    if (arg1.type() == typeid(AnalogueRegister *)) {
+                        InstructionFactory<T>::template execute<AnalogueRegister>(s, instr, arg1);
+                    } else if (arg1.type() == typeid(DigitalRegister *)) {
+                        InstructionFactory<T>::template execute<DigitalRegister>(s, instr, arg1);
+                    } else {
+                        std::cerr << "Unable to cast arg of type " << arg1.type().name() << std::endl;
+                        exit(1);
+                    }
+
+                    break;
+                }
+                case 2: {
+
+                    auto arg1 = args.at(0);
+                    auto arg2 = args.at(1);
+
+                    if (arg1.type() == typeid(AnalogueRegister *)) {
+                        if (arg2.type() == typeid(AnalogueRegister *)) {
+                            InstructionFactory<T>::template execute<AnalogueRegister, AnalogueRegister>(s, instr, arg1,
+                                                                                                        arg2);
+                        } else if (arg2.type() == typeid(DigitalRegister *)) {
+                            InstructionFactory<T>::template execute<AnalogueRegister, DigitalRegister>(s, instr, arg1,
+                                                                                                       arg2);
+                        } else {
+                            std::cerr << "Unable to cast arg of type " << arg2.type().name() << std::endl;
+                            exit(1);
+                        }
+                    } else if (arg1.type() == typeid(DigitalRegister *)) {
+                        if (arg2.type() == typeid(AnalogueRegister *)) {
+                            InstructionFactory<T>::template execute<DigitalRegister, AnalogueRegister>(s, instr, arg1,
+                                                                                                       arg2);
+                        } else if (arg2.type() == typeid(DigitalRegister *)) {
+                            InstructionFactory<T>::template execute<DigitalRegister, DigitalRegister>(s, instr, arg1,
+                                                                                                      arg2);
+                        } else {
+                            std::cerr << "Unable to cast arg of type " << arg2.type().name() << std::endl;
+                            exit(1);
+                        }
+                    } else {
+                        std::cerr << "Unable to cast arg of type " << arg1.type().name() << std::endl;
+                        exit(1);
+                    }
+
+                    break;
+                }
+                case 3: {
+                    auto arg1 = args.at(0);
+                    auto arg2 = args.at(1);
+                    auto arg3 = args.at(2);
+
+                    if (arg1.type() == typeid(AnalogueRegister *)) {
+                        if (arg2.type() == typeid(AnalogueRegister *)) {
+                            if (arg3.type() == typeid(AnalogueRegister *)) {
+                                InstructionFactory<T>::template execute<AnalogueRegister, AnalogueRegister, AnalogueRegister>(
+                                        s, instr, arg1, arg2, arg3);
+                            } else if (arg3.type() == typeid(DigitalRegister *)) {
+                                InstructionFactory<T>::template execute<AnalogueRegister, AnalogueRegister, DigitalRegister>(
+                                        s, instr, arg1, arg2, arg3);
+                            } else {
+                                std::cerr << "Unable to cast arg of type " << arg3.type().name() << std::endl;
+                                exit(1);
+                            }
+                        } else if (arg2.type() == typeid(DigitalRegister *)) {
+                            if (arg3.type() == typeid(AnalogueRegister *)) {
+                                InstructionFactory<T>::template execute<AnalogueRegister, DigitalRegister, AnalogueRegister>(
+                                        s, instr, arg1, arg2, arg3);
+                            } else if (arg3.type() == typeid(DigitalRegister *)) {
+                                InstructionFactory<T>::template execute<AnalogueRegister, DigitalRegister, DigitalRegister>(
+                                        s, instr, arg1, arg2, arg3);
+                            } else {
+                                std::cerr << "Unable to cast arg of type " << arg3.type().name() << std::endl;
+                                exit(1);
+                            }
+                        } else {
+                            std::cerr << "Unable to cast arg of type " << arg2.type().name() << std::endl;
+                            exit(1);
+                        }
+                    } else if (arg1.type() == typeid(DigitalRegister *)) {
+                        if (arg2.type() == typeid(AnalogueRegister *)) {
+                            if (arg3.type() == typeid(AnalogueRegister *)) {
+                                InstructionFactory<T>::template execute<DigitalRegister, AnalogueRegister, AnalogueRegister>(
+                                        s, instr, arg1, arg2, arg3);
+                            } else if (arg3.type() == typeid(DigitalRegister *)) {
+                                InstructionFactory<T>::template execute<DigitalRegister, AnalogueRegister, DigitalRegister>(
+                                        s, instr, arg1, arg2, arg3);
+                            } else {
+                                std::cerr << "Unable to cast arg of type " << arg3.type().name() << std::endl;
+                                exit(1);
+                            }
+                        } else if (arg2.type() == typeid(DigitalRegister *)) {
+                            if (arg3.type() == typeid(AnalogueRegister *)) {
+                                InstructionFactory<T>::template execute<DigitalRegister, DigitalRegister, AnalogueRegister>(
+                                        s, instr, arg1, arg2, arg3);
+                            } else if (arg3.type() == typeid(DigitalRegister *)) {
+                                InstructionFactory<T>::template execute<DigitalRegister, DigitalRegister, DigitalRegister>(
+                                        s, instr, arg1, arg2, arg3);
+                            } else {
+                                std::cerr << "Unable to cast arg of type " << arg3.type().name() << std::endl;
+                                exit(1);
+                            }
+                        } else {
+                            std::cerr << "Unable to cast arg of type " << arg2.type().name() << std::endl;
+                            exit(1);
+                        }
+                    } else {
+                        std::cerr << "Unable to cast arg of type " << arg1.type().name() << std::endl;
+                        exit(1);
+                    }
+
+                    break;
+
+
+                }
+                default: {
+                    std::cerr << "Cannot support more than 2 arguments at this time" << std::endl;
+                    exit(1);
+                }
+            }
+
+            utility::display_register("PIX", s.PIX);
+            utility::display_register("A", s.A);
+            utility::display_register("B", s.B);
+            utility::display_register("C", s.C);
+            utility::display_register("D", s.D);
+            utility::display_register("E", s.E);
+            utility::display_register("FLAG", s.FLAG);
+            utility::display_register("R5", s.R5);
+            utility::display_register("NEWS", s.NEWS);
+            cv::waitKey(1);
+
+        }
+
+        i++;
+        if (iterations > 0 && i >= iterations) {
+            break;
+        }
+
+    }
+
+
 
 }
 
