@@ -7,6 +7,7 @@
 #include "simulator/util/utility.h"
 
 void utility::display_register(const std::string &window_name, Register &reg) {
+    // TODO fix issues when there's only one colour. Range isn't correct
     double minVal, maxVal;
     cv::minMaxLoc(reg.value(), &minVal, &maxVal);
     cv::Mat draw;

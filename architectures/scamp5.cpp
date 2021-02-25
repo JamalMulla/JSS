@@ -755,6 +755,7 @@ void SCAMP5::PROP1() {
 }
 
 void SCAMP5::print_stats(const CycleCounter& counter) {
+    // TODO move
     json j;
     j["Total number of cycles"] = counter.get_cycles();
     j["Equivalent in seconds"] = counter.to_seconds(stats::CLOCK_RATE);
@@ -939,7 +940,7 @@ void SCAMP5::scamp5_load_pattern(DREG &dr, uint8_t r, uint8_t c, uint8_t rx, uin
     // set those pixels with matching address to 1, the rest to 0
     // To mask out certain bits in the column/row address allow a match to occur periodically.
     // For example, set mask to 192 (11000000b) makes the four following address match the value 3 (00000011b): 3(00000011b), 67(01000011b), 131(10000011b) and 195(11000011b).
-
+    // TODO abstraction
     dr.clear();
 
     unsigned int r_mask = ((~rx) & (SCAMP_HEIGHT-1));
@@ -959,7 +960,7 @@ void SCAMP5::scamp5_load_pattern(DREG &dr, uint8_t r, uint8_t c, uint8_t rx, uin
 }
 
 void SCAMP5::scamp5_select_point(uint8_t r, uint8_t c) {
-    
+
 }
 
 void SCAMP5::scamp5_select_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
@@ -987,62 +988,152 @@ void SCAMP5::scamp5_select_rowx(uint8_t rx) {
 }
 
 void SCAMP5::scamp5_draw_begin(DREG &dr) {
-
+    // targeting a DREG image to a series of drawing operations
+    scratch = &dr;
 }
 
 void SCAMP5::scamp5_draw_end() {
-
+    // end the drawing operations
+    scratch = nullptr;
 }
 
 void SCAMP5::scamp5_draw_pixel(uint8_t r, uint8_t c) {
-
+    // draw a point, wrap around if it's outside the border
+    scratch->value().at<uint8_t>(r%SCAMP_HEIGHT, c%SCAMP_WIDTH) = 1;
 }
 
-void SCAMP5::scamp5_draw_point(int r, int c) {
-
+bool SCAMP5::scamp5_draw_point(int r, int c) {
+    // draw a point when its position is within the image
+    // returns whether the point is inside the image and drawn
+    if (r >= SCAMP_HEIGHT || c >= SCAMP_WIDTH) {
+        return false;
+    }
+    scratch->value().at<uint8_t>(r, c) = 1;
+    return true;
 }
 
 void SCAMP5::scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
-
+    // draw a filled rectangle
+    // r0 pixel row index of the top right corner
+    // c0 pixel column index of the top right corner
+    // r1 pixel row index of the bottom left corner
+    // c1 pixel column index of the bottom left corner
+    int width = c0 - c1;
+    int height = r0 - r1;
+    scratch->clear();
+    scratch->value()(cv::Rect(r0, c1, width, height)).setTo(1);
 }
 
 void SCAMP5::scamp5_draw_line(int r0, int c0, int r1, int c1, bool repeat) {
+    // draw a line
+    //r0 - starting point row coordinate
+    //c0 - starting point column coordinate
+    //r1 - finishing point row coordinate
+    //c1 - finishing point column coordinate
+    //repeat - whether to wrap around when point goes outside the image
+    // TODO wrap around
+    cv::line(scratch->value(), {r0, c0}, {r1, c1}, 1);
 
 }
 
 void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
+    // draw a non-filled circle - uses Bresenham's Midpoint Circle algorithm
+    // TODO what does repeat do? Repeat is basically for controlling wraparound
+    // TODO need to use scamp5_load_point like existing sim
+    // TODO check NDEBUG Block is being activated correctly
+    int e1 = cv::getTickCount();
+    #ifndef NDEBUG
+        if (scratch == nullptr) {
+            std::cerr << "Drawing register has not been set" << std::endl;
+        }
+    #endif
+
+    int f = 1 - radius;
+    int ddf_x = 1;
+    int ddf_y = -2 * radius;
+    int x = 0;
+    int y = radius;
+
+    scratch->value().at<uint8_t>(y0 + radius, x0) = 1;
+    scratch->value().at<uint8_t>(y0 - radius, x0) = 1;
+    scratch->value().at<uint8_t>(y0, x0 + radius) = 1;
+    scratch->value().at<uint8_t>(y0, x0 - radius) = 1;
+
+    while (x < y) {
+        if (f >= 0) {
+            y -= 1;
+            ddf_y += 2;
+            f += ddf_y;
+        }
+
+        x += 1;
+        ddf_x += 2;
+        f += ddf_x;
+
+        scratch->value().at<uint8_t>(y0 + y, x0 + x) = 1;
+        scratch->value().at<uint8_t>(y0 + y, x0 - x) = 1;
+        scratch->value().at<uint8_t>(y0 - y, x0 + x) = 1;
+        scratch->value().at<uint8_t>(y0 - y, x0 - x) = 1;
+        scratch->value().at<uint8_t>(y0 + x, x0 + y) = 1;
+        scratch->value().at<uint8_t>(y0 + x, x0 - y) = 1;
+        scratch->value().at<uint8_t>(y0 - x, x0 + y) = 1;
+        scratch->value().at<uint8_t>(y0 - x, x0 - y) = 1;
+    }
+
+    int e2 = cv::getTickCount();
+    std::cout << e2 - e1 << " ticks" << std::endl;
 
 }
 
 void SCAMP5::scamp5_draw_negate() {
-
+    // do a binary inversion of the DREG image.
+    // TODO abstraction
+    // TODO is this correct?
+    cv::bitwise_not(scratch->value(), scratch->value());
 }
 
 // Image Readout
 
 void SCAMP5::scamp5_scan_areg(AREG &areg, uint8_t *buffer, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs,
                               uint8_t cs) {
+    // scan a customized grid of pixels in an AREG image
+    // Note, the result image is stored in column-major format, starting from top right.
+    // i.e. "buffer[3]" is the pixel the on 1st column right, 4th row down. This applies to all "scamp5_scan_areg_*" series functions.
 
 }
 
 void SCAMP5::scamp5_scan_areg_8x8(AREG &areg, uint8_t *result8x8) {
-
+    // scan a 8x8 grid of pixels in an AREG image
+    // This function is slightly faster and more accurate than scamp5_scan_areg.
 }
 
 void SCAMP5::scamp5_scan_areg_mean_8x8(AREG &areg, uint8_t *result8x8) {
-
+    // divide the AREG image into 8x8 square blocks, and get the average of each block
+    // result8x8 - pointer to a buffer to store the results
 }
 
 void SCAMP5::scamp5_scan_dreg(DREG &dreg, uint8_t *mem, uint8_t r0, uint8_t r1) {
-
+    // scan DREG image, store the result in a buffer
+    // mem - pointer to a buffer
+    // r0 - first row index
+    // r1 - last row index
+    // The size of the buffer need to be a least 32 times the number of rows to scan.
+    // Thus, a full DREG image requires a buffer of 8192 bytes.
 }
 
 void SCAMP5::scamp5_scan_events(DREG &dreg, uint8_t *mem, uint16_t max_num, uint8_t h_dir, uint8_t v_dir) {
-
+    // scan the coordinates of all '1's in a DREG image and store the result in a buffer
+    // mem - pointer to a buffer of (max_num*2) bytes
+    // max_num - maximum number of events
+    // h_dir - horizontal order of scanning, '0' means from column 0 to column 255
+    // v_dir - vertical order of scanning, '0' means from row 0 to row 255
+    // Up-to 4000 events scan be scanned. Note, the execution time of this function is proportional to max_num. In the result, the first occurrence of (0,0) indicates the end of effective events.
 }
 
 void SCAMP5::scamp5_scan_boundingbox(DREG &dr, uint8_t *vec4v) {
-
+    // scan the bounding box coordinates of '1's in a DREG image
+    // The coordinates are two points: the top-right and the bottom-left corners of the axis-aligned bounding box (AABB) of '1's in the DREG.
+    // vec4v - pointer to a buffer of 4 byte
 }
 
 

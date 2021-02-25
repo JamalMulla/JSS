@@ -46,12 +46,12 @@ target_include_directories(${SIM_LIB}
 target_include_directories(${SIM_LIB} PRIVATE ${OpenCV_INCLUDE_DIRS})
 
 #Warnings
-#if (CMAKE_COMPILER_IS_GNUCC)
+#if ( CMAKE_COMPILER_IS_GNUCC )
 #    target_compile_options(${SIM_LIB} PRIVATE "-Wall -Wextra")
-#endif ()
-#if (MSVC)
+#endif()
+#if ( MSVC )
 #    target_compile_options(${SIM_LIB} PRIVATE "/W4")
-#endif ()
+#endif()
 
 
 #######

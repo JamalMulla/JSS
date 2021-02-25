@@ -75,6 +75,8 @@ public:
     DREG& S6 = array.pe.digital_registers[12]("S6");
     DREG& RP = array.pe.digital_registers[13]("RP");
 
+    DREG* scratch = nullptr;
+
     SCAMP5();
 
     // Misc
@@ -218,7 +220,7 @@ public:
     void scamp5_draw_begin(DREG& dr);
     void scamp5_draw_end();
     void scamp5_draw_pixel(uint8_t r, uint8_t c);
-    void scamp5_draw_point(int r, int c);
+    bool scamp5_draw_point(int r, int c);
     void scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1);
     void scamp5_draw_line(int r0, int c0, int r1, int c1, bool repeat=false);
     void scamp5_draw_circle(int x0, int y0, int radius, bool repeat=false);
