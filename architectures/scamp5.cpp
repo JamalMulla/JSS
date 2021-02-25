@@ -9,6 +9,7 @@
 #include <fstream>
 #include <ostream>
 #include <iostream>
+#include <simulator/util/utility.h>
 
 SCAMP5::SCAMP5() {
     // Initially all PEs are active
@@ -815,6 +816,7 @@ void SCAMP5::scamp5_load_dac(AREG &areg, uint16_t value, AREG *temp) {
 
 void SCAMP5::scamp5_load_dac(uint16_t value) {
     // load an analog value to IN using a raw DAC value
+    // TODO What is with the range of values here. Why can some registers hold a much larger range?
     IN.value().setTo(value);
     cycles++;
 }
@@ -825,11 +827,12 @@ void SCAMP5::scamp5_shift(AREG &areg, int h, int v) {
 }
 
 void SCAMP5::scamp5_diffuse(AREG &target, int iterations, bool vertical, bool horizontal, AREG *to) {
-
+    // diffuse an AREG image
 }
 
 uint8_t SCAMP5::scamp5_read_areg(AREG &areg, uint8_t r, uint8_t c) {
     // read a single pixel
+    // TODO check that the value is properly mapped to uint8_t from CV_16U
     return areg.value().at<uint8_t>(r, c);
 }
 
@@ -838,14 +841,15 @@ uint32_t SCAMP5::scamp5_global_sum_16(AREG &areg, uint8_t *result16v) {
     // When result16v is a NULL pointer, the function will return sum of the data.
     //The result is not equal to the actual sum of all pixels of the AREG in the area,
     // but it is proportional to the actual sum.
-    // This function takes roughly 14 usec to execute.
-
+    // This function takes roughly 14 usec (on the scamp5 device) to execute.
+    return 0;
 }
 
 uint32_t SCAMP5::scamp5_global_sum_64(AREG &areg, uint8_t *result64v) {
     // get the AREG sum level with a better resolution
     // This function achieves similar functionally as the "global_sum_16" version, but the grid used is 8x8.
-    // As a consequence, the result has higher resolution but it takes longer to execute (roughly 28 usec).
+    // As a consequence, the result has higher resolution but it takes longer to execute (roughly 28 usec on the scamp5).
+    return 0;
 }
 
 uint8_t SCAMP5::scamp5_global_sum_fast(AREG &areg) {
@@ -858,6 +862,187 @@ uint8_t SCAMP5::scamp5_global_sum_sparse(AREG &areg, uint8_t r, uint8_t c, uint8
     // get sum level of the pixels selected using a pattern
     // This result is less probable to saturate because it only counts a quarter of the pixels in the AREG plane (by default)
     return 0;
+}
+
+void SCAMP5::scamp5_shift(DREG &dreg, int h, int v, const int boundary) {
+
+}
+
+int SCAMP5::scamp5_global_or(DREG &dreg, uint8_t r, uint8_t c, uint8_t rx, uint8_t cx) {
+    // get OR result of all pixels in a DREG plane. 0 if all pixel is 0, non-zero otherwise.
+    // The default mask pattern parameters gives the whole image.
+    // scamp5_load_pattern can be used to work out the correct parameter for a desired mask pattern,
+    //TODO abstraction
+    unsigned int r_mask = ((~rx) & (SCAMP_HEIGHT-1));
+    unsigned int c_mask = ((~cx) & (SCAMP_WIDTH-1));
+
+    unsigned int r_f = r & r_mask;
+    unsigned int c_f = c & c_mask;
+
+    uint8_t val = 0;
+
+    for (unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
+        for (unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
+            if (((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
+                val |= dreg.value().at<uint8_t>(row_index, col_index);
+            }
+        }
+    }
+
+    return val;
+}
+
+int SCAMP5::scamp5_global_count(DREG &dreg, AREG &temp, int options) {
+    // get an estimation of the number of '1's in a DREG plane
+    // Internally this function converts the DREG to AREG using suitable analog levels to represent '0's and '1's.
+    // Then a AREG global sum is done and the result is uniformed into [0,4095].
+    // TODO options and estimation
+    dreg.value().convertTo(temp.value(), 255, 0);
+    int total = cv::sum(temp.value())[0];
+    double min_val, max_val;
+    cv::minMaxLoc(temp.value(), &min_val, &max_val);
+    return utility::normalise(total, min_val, max_val, 0, 4096);
+}
+
+void SCAMP5::scamp5_flood(DREG &dreg_target, DREG &dreg_mask, int boundary, int iterations, bool use_local) {
+
+}
+
+void SCAMP5::scamp5_load_point(DREG &dr, uint8_t r, uint8_t c) {
+    // set a single pixel on a DREG image to 1, the rest to 0
+    dr.value().setTo(0);
+    dr.value().at<uint8_t>(r, c) = 1;
+}
+
+void SCAMP5::scamp5_load_rect(DREG &dr, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
+    // set a rectangle area on a DREG image to 1, the rest to 0
+    // r0	pixel row index of the top right corner
+    // c0	pixel column index of the top right corner
+    // r1	pixel row index of the bottom left corner
+    // c1	pixel column index of the bottom left corner
+
+    // TODO In SCAMP5, (0,0) is in the top right. Need to convert this everywhere
+    // OpenCV has (0,0) at top left.
+
+    // TODO check
+    #ifndef NDEBUG
+        assert(r0 - r1 > 0);
+        assert(r0 - r1 > 0);
+    #endif
+    int width = c0 - c1;
+    int height = r0 - r1;
+    dr.clear();
+    dr.value()(cv::Rect(r0, c1, width, height)).setTo(1);
+}
+
+void SCAMP5::scamp5_load_pattern(DREG &dr, uint8_t r, uint8_t c, uint8_t rx, uint8_t cx) {
+    // set those pixels with matching address to 1, the rest to 0
+    // To mask out certain bits in the column/row address allow a match to occur periodically.
+    // For example, set mask to 192 (11000000b) makes the four following address match the value 3 (00000011b): 3(00000011b), 67(01000011b), 131(10000011b) and 195(11000011b).
+
+    dr.clear();
+
+    unsigned int r_mask = ((~rx) & (SCAMP_HEIGHT-1));
+    unsigned int c_mask = ((~cx) & (SCAMP_WIDTH-1));
+
+    unsigned int r_f = r & r_mask;
+    unsigned int c_f = c & c_mask;
+
+    for (unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
+        for (unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
+            if (((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
+                dr.value().at<uint8_t>(row_index, col_index) = 1;
+            }
+        }
+    }
+
+}
+
+void SCAMP5::scamp5_select_point(uint8_t r, uint8_t c) {
+    
+}
+
+void SCAMP5::scamp5_select_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
+
+}
+
+void SCAMP5::scamp5_select_pattern(uint8_t r, uint8_t c, uint8_t rx, uint8_t cx) {
+
+}
+
+void SCAMP5::scamp5_select_col(uint8_t c) {
+
+}
+
+void SCAMP5::scamp5_select_row(uint8_t r) {
+
+}
+
+void SCAMP5::scamp5_select_colx(uint8_t cx) {
+
+}
+
+void SCAMP5::scamp5_select_rowx(uint8_t rx) {
+
+}
+
+void SCAMP5::scamp5_draw_begin(DREG &dr) {
+
+}
+
+void SCAMP5::scamp5_draw_end() {
+
+}
+
+void SCAMP5::scamp5_draw_pixel(uint8_t r, uint8_t c) {
+
+}
+
+void SCAMP5::scamp5_draw_point(int r, int c) {
+
+}
+
+void SCAMP5::scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
+
+}
+
+void SCAMP5::scamp5_draw_line(int r0, int c0, int r1, int c1, bool repeat) {
+
+}
+
+void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
+
+}
+
+void SCAMP5::scamp5_draw_negate() {
+
+}
+
+// Image Readout
+
+void SCAMP5::scamp5_scan_areg(AREG &areg, uint8_t *buffer, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs,
+                              uint8_t cs) {
+
+}
+
+void SCAMP5::scamp5_scan_areg_8x8(AREG &areg, uint8_t *result8x8) {
+
+}
+
+void SCAMP5::scamp5_scan_areg_mean_8x8(AREG &areg, uint8_t *result8x8) {
+
+}
+
+void SCAMP5::scamp5_scan_dreg(DREG &dreg, uint8_t *mem, uint8_t r0, uint8_t r1) {
+
+}
+
+void SCAMP5::scamp5_scan_events(DREG &dreg, uint8_t *mem, uint16_t max_num, uint8_t h_dir, uint8_t v_dir) {
+
+}
+
+void SCAMP5::scamp5_scan_boundingbox(DREG &dr, uint8_t *vec4v) {
+
 }
 
 
