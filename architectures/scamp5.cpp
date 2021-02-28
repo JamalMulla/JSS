@@ -939,8 +939,7 @@ void SCAMP5::scamp5_diffuse(AREG &target, int iterations, bool vertical, bool ho
 uint8_t SCAMP5::scamp5_read_areg(AREG &areg, uint8_t r, uint8_t c) {
     // read a single pixel
     // TODO check that the value is properly mapped to uint8_t from CV_16U
-//    return areg.value().at<uint8_t>(r, c);
-return 0;
+    return areg.value().at<uint8_t>(r, c);
 }
 
 uint32_t SCAMP5::scamp5_global_sum_16(AREG &areg, uint8_t *result16v) {
@@ -1066,31 +1065,36 @@ void SCAMP5::scamp5_load_pattern(DREG &dr, uint8_t r, uint8_t c, uint8_t rx, uin
 }
 
 void SCAMP5::scamp5_select_point(uint8_t r, uint8_t c) {
-
+    // same as scamp5_load_point, but put the point in SELECT
+    scamp5_load_point(SELECT, r, c);
 }
 
 void SCAMP5::scamp5_select_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
-
+    // same as scamp5_load_rect, but put the rectangle in RECT (also modify SELECT)
+    // TODO why is SELECT modified?
+    scamp5_load_rect(RECT, r0, c0, r1, c1);
 }
 
 void SCAMP5::scamp5_select_pattern(uint8_t r, uint8_t c, uint8_t rx, uint8_t cx) {
-
+    // same as scamp5_load_pattern, but put the pattern in SELECT
+    // TODO check
+    scamp5_load_pattern(SELECT, r, c, rx, cx);
 }
 
 void SCAMP5::scamp5_select_col(uint8_t c) {
-
+    // select column
 }
 
 void SCAMP5::scamp5_select_row(uint8_t r) {
-
+    // select row
 }
 
 void SCAMP5::scamp5_select_colx(uint8_t cx) {
-
+    // select column mask
 }
 
 void SCAMP5::scamp5_select_rowx(uint8_t rx) {
-
+    // select row mask
 }
 
 void SCAMP5::scamp5_draw_begin(DREG &dr) {
@@ -1124,6 +1128,7 @@ void SCAMP5::scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
     // c0 pixel column index of the top right corner
     // r1 pixel row index of the bottom left corner
     // c1 pixel column index of the bottom left corner
+    // TODO fill or not?
     int width = c0 - c1;
     int height = r0 - r1;
     scratch->clear();
@@ -1144,9 +1149,8 @@ void SCAMP5::scamp5_draw_line(int r0, int c0, int r1, int c1, bool repeat) {
 
 void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
     // draw a non-filled circle - uses Bresenham's Midpoint Circle algorithm
-    // TODO what does repeat do? Repeat is basically for controlling wraparound
+    // repeat is for controlling wrap around
     // TODO need to use scamp5_load_point like existing sim
-    // TODO check NDEBUG Block is being activated correctly
     #ifdef USE_RUNTIME_CHECKS
         if (scratch == nullptr) {
             std::cerr << "Drawing register has not been set" << std::endl;
@@ -1189,7 +1193,6 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
 void SCAMP5::scamp5_draw_negate() {
     // do a binary inversion of the DREG image.
     // TODO abstraction
-    // TODO is this correct?
     cv::bitwise_not(scratch->value(), scratch->value());
 }
 
@@ -1200,17 +1203,50 @@ void SCAMP5::scamp5_scan_areg(AREG &areg, uint8_t *buffer, uint8_t r0, uint8_t c
     // scan a customized grid of pixels in an AREG image
     // Note, the result image is stored in column-major format, starting from top right.
     // i.e. "buffer[3]" is the pixel the on 1st column right, 4th row down. This applies to all "scamp5_scan_areg_*" series functions.
-
+    #ifdef USE_RUNTIME_CHECKS
+        if (r1 < r0) {
+            std::cout << "[Warning] Row end is before row start" << std::endl;
+        }
+        if (c1 < c0) {
+            std::cout << "[Warning] Column end is before column start" << std::endl;
+        }
+    #endif
+    // TODO check
+    int buf_index = 0;
+    for (int col = c0; col < c1; col+=cs) {
+        for (int row = r0; row < r1; row+=rs) {
+            buffer[buf_index] = areg.value().at<uint8_t>(row, col);
+        }
+    }
 }
 
 void SCAMP5::scamp5_scan_areg_8x8(AREG &areg, uint8_t *result8x8) {
     // scan a 8x8 grid of pixels in an AREG image
     // This function is slightly faster and more accurate than scamp5_scan_areg.
+    // TODO currently assuming this takes beginning of each cell in 8x8 grid. Might be center instead
+    // TODO check RowMajor/ColMajor stuff
+    int buf_index = 0;
+    int cs = SCAMP_WIDTH / 8;
+    int rs = SCAMP_HEIGHT / 8;
+    for (int col = 0; col < SCAMP_WIDTH; col+=cs) {
+        for (int row = 0; row < SCAMP_HEIGHT; row+=rs) {
+            result8x8[buf_index] = areg.value().at<uint8_t>(row, col);
+        }
+    }
 }
 
 void SCAMP5::scamp5_scan_areg_mean_8x8(AREG &areg, uint8_t *result8x8) {
     // divide the AREG image into 8x8 square blocks, and get the average of each block
     // result8x8 - pointer to a buffer to store the results
+    // FIXME with proper setting of (0, 0)
+    int buf_index = 0;
+    int step = SCAMP_HEIGHT/8;
+    for (int col = 0; col < SCAMP_WIDTH; col+=step) {
+        for (int row = 0; row < SCAMP_HEIGHT; row+=step) {
+            result8x8[buf_index] = cv::sum(areg.value()(cv::Rect(col, row, col+step, row+step)))[0]/(step*step);
+        }
+    }
+
 }
 
 void SCAMP5::scamp5_scan_dreg(DREG &dreg, uint8_t *mem, uint8_t r0, uint8_t r1) {
@@ -1220,6 +1256,7 @@ void SCAMP5::scamp5_scan_dreg(DREG &dreg, uint8_t *mem, uint8_t r0, uint8_t r1) 
     // r1 - last row index
     // The size of the buffer need to be a least 32 times the number of rows to scan.
     // Thus, a full DREG image requires a buffer of 8192 bytes.
+
 }
 
 void SCAMP5::scamp5_scan_events(DREG &dreg, uint8_t *mem, uint16_t max_num, uint8_t h_dir, uint8_t v_dir) {
@@ -1229,6 +1266,18 @@ void SCAMP5::scamp5_scan_events(DREG &dreg, uint8_t *mem, uint16_t max_num, uint
     // h_dir - horizontal order of scanning, '0' means from column 0 to column 255
     // v_dir - vertical order of scanning, '0' means from row 0 to row 255
     // Up-to 4000 events scan be scanned. Note, the execution time of this function is proportional to max_num. In the result, the first occurrence of (0,0) indicates the end of effective events.
+    // writes to mem as (col, row)
+    // TODO Row/Col confusion. Make consistent
+    // FIXME with proper setting of (0, 0)
+    // TODO does not take scanning direction into account. Rewrite
+    std::vector<cv::Point> locations;   // output, locations of non-zero pixels
+    cv::findNonZero(dreg.value(), locations);
+    int buf_index = 0;
+    for (auto& p : locations) {
+        if (buf_index == 2*max_num) break;
+        mem[buf_index++] = p.x;
+        mem[buf_index++] = p.y;
+    }
 }
 
 void SCAMP5::scamp5_scan_boundingbox(DREG &dr, uint8_t *vec4v) {

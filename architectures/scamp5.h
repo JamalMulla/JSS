@@ -33,7 +33,7 @@ public:
     const int SCAMP_HEIGHT = 256;
     const int SCAMP_WIDTH = 256;
     const int ANALOGUE_REGISTERS = 13;
-    const int DIGITAL_REGISTERS = 14;
+    const int DIGITAL_REGISTERS = 16;
     CycleCounter cycles;
 private:
     ProcessingElement pe = ProcessingElement::builder{}
@@ -74,6 +74,8 @@ public:
     DREG& S5 = array.pe.digital_registers[11]("S5");
     DREG& S6 = array.pe.digital_registers[12]("S6");
     DREG& RP = array.pe.digital_registers[13]("RP");
+    DREG& SELECT = array.pe.digital_registers[14]("SELECT");
+    DREG& RECT = array.pe.digital_registers[15]("RECT");
 
     DREG* scratch = nullptr;
 
@@ -245,14 +247,6 @@ public:
 //    void scamp5_output_bitstack_begin(vs_handle display, int n_bits);
 //    void scamp5_output_bitstack_bit(DREG& dreg);
 //    void scamp5_output_bitstack_end();
-
-    //    Events Readout
-    void scamp5_scan_events();
-    void scamp5_scan_boundingbox();
-    void scamp5_display_events();
-    void scamp5_display_boundingbox();
-    void scamp5_output_events();
-    void scamp5_output_boundingbox();
 
     //    Other Functions
     void scamp5_bind_io_agent();
