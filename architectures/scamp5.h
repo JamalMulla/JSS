@@ -195,7 +195,7 @@ public:
     void scamp5_load_dac(AREG& areg, uint16_t value, AREG* temp = nullptr);
     void scamp5_load_dac(uint16_t value);
     void scamp5_shift(AREG& areg, int h, int v);
-    void scamp5_diffuse(AREG& target, int iterations, bool vertical=true, bool horizontal=true, AREG* to = nullptr);
+    void scamp5_diffuse(AREG& target, int iterations, bool vertical=true, bool horizontal=true, AREG* t0 = nullptr);
     uint8_t scamp5_read_areg(AREG& areg, uint8_t r, uint8_t c);
     uint32_t scamp5_global_sum_16(AREG& areg, uint8_t* result16v = nullptr);
     uint32_t scamp5_global_sum_64(AREG& areg, uint8_t* result64v = nullptr);

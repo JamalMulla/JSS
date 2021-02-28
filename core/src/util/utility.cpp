@@ -13,15 +13,15 @@ void utility::display_register(const std::string &window_name, Register &reg) {
     cv::Mat draw;
     reg.value().convertTo(draw, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
     cv::namedWindow(window_name, cv::WINDOW_NORMAL);
-    //cv::resizeWindow(window_name, 256, 256);
-//    cv::setMouseCallback(window_name, utility::onMouse, &reg);
+    cv::resizeWindow(window_name, 256, 256);
+    cv::setMouseCallback(window_name, utility::onMouse, &reg);
     cv::imshow(window_name, draw);
 }
 
 void utility::onMouse(int event, int x, int y, int, void* reg) {
     if ( event != cv::EVENT_MOUSEMOVE ) return;
     auto* dr = static_cast<DigitalRegister*>(reg);
-    //std::cout<<"("<<x<<", "<<y<<") ......  "<< (int) dr->value().at<uint8_t>(y,x) <<'\n';
+    std::cout<<"("<<x<<", "<<y<<") ......  "<< (int) dr->value().at<uint8_t>(y,x) <<'\n';
 }
 
 int utility::normalise(int value, int old_low, int old_high, int new_low, int new_high) {

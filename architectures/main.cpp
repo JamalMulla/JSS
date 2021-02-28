@@ -22,7 +22,7 @@ int main() {
 
 
     while (true) {
-        s.scamp5_get_image(s.A, s.B, 1);
+        s.get_image(s.A, s.D);
 //        s.scamp5_draw_begin(s.R2);
 //        s.scamp5_draw_circle(127, 127, 10);
 //        s.scamp5_draw_line(127, 32, 290, 32);

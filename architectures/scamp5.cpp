@@ -381,7 +381,6 @@ void SCAMP5::blurset() {
 void SCAMP5::blur(AREG &a, AREG &a0) {
     // blur a0 into a
     cv::GaussianBlur(a0.value(), a.value(), cv::Size(3, 3), 0);
-
     cv::bitwise_not(a.value(), a.value());
 }
 
@@ -771,7 +770,7 @@ void SCAMP5::print_stats(const CycleCounter& counter) {
 }
 
 void SCAMP5::scamp5_get_image(AREG &yf, AREG &yh, int gain) {
-    // 	put the exposure result in PIX to AREGs and reset PIX
+    // put the exposure result in PIX to AREGs and reset PIX
     // yf	full range [-128,127]
     // yh	half range [0,127]
     // gain	(optional) gain [1,5]
@@ -811,13 +810,14 @@ void SCAMP5::scamp5_get_image(AREG &yf, AREG &yh, int gain) {
 
 }
 
-void SCAMP5::scamp5_in(AREG &areg, int8_t value, AREG *temp) {
-    // load an analog value to the AREG with error&noise correctio
+void SCAMP5::scamp5_in(AREG &areg, int8_t value, AREG* temp) {
+    // load an analog value to the AREG with error&noise correction
     // TODO noise
+    // TODO Pointer instead of reference. Need member as default somehow
     if (temp == nullptr) {
         temp = &NEWS;
     }
-    IN.value().setTo(value);
+    IN.write(value);
     cycles++;
     bus(*temp, IN);
     bus(areg, *temp);
@@ -829,24 +829,28 @@ void SCAMP5::scamp5_load_in(AREG &areg, int8_t value, AREG *temp) {
     if (temp == nullptr) {
         temp = &NEWS;
     }
-    IN.value().setTo(value);
+    IN.write(value);
     cycles++;
     bus(*temp, IN);
     bus(areg, *temp);
 }
 
 void SCAMP5::scamp5_load_in(int8_t value) {
-    // 	load a analog value to IN without error&noise correction
-    IN.value().setTo(value);
+    // load a analog value to IN without error&noise correction
+    // TODO noise
+    IN.write(value);
     cycles++;
 }
 
 void SCAMP5::scamp5_load_dac(AREG &areg, uint16_t value, AREG *temp) {
     // load an analog value to the AREG plane using a raw DAC value
+    // areg	target AREG
+    // value a 12-bit DAC value to use (in the range of [0,4095])
+    // temp	(optional) temporary kernel register to be used in the function
     if (temp == nullptr) {
         temp = &NEWS;
     }
-    IN.value().setTo(value);
+    IN.write(value);
     cycles++;
     bus(*temp, IN);
     bus(areg, *temp);
@@ -855,17 +859,81 @@ void SCAMP5::scamp5_load_dac(AREG &areg, uint16_t value, AREG *temp) {
 void SCAMP5::scamp5_load_dac(uint16_t value) {
     // load an analog value to IN using a raw DAC value
     // TODO What is with the range of values here. Why can some registers hold a much larger range?
-    IN.value().setTo(value);
+    IN.write(value);
     cycles++;
 }
 
 void SCAMP5::scamp5_shift(AREG &areg, int h, int v) {
     // shift an AREG image
+    // this->pe.analogue_bus.
+
+    // scamp5_shift(A, 1, 0)
+    // bus(EAST, A)
+    // bus(A, NEWS)
+
+    // scamp5_shift(A, 2, 0)
+    // bus(EAST, A)
+    // bus(A, WEST)
+
+    // scamp5_shift(A, 3, 0)
+    // bus(EAST, A)
+    // bus(A, WEST)
+    // bus(EAST, A)
+    // bus(A, NEWS)
+
+    // scamp5_shift(A, 4, 0)
+    // bus(EAST, A)
+    // bus(A, WEST)
+    // bus(EAST, A)
+    // bus(A, WEST)
+
+    // Horizontal shift
+//    AREG EAST(1, 1);
+//    AREG WEST(1, 1);
+//    if (h != 0) {
+//        AREG *direction = &(h > 0 ? EAST : WEST);
+//        AREG *end = (h % 2 == 0 ? direction : &NEWS);
+//
+//        bus(*direction, areg);
+//        for (int i = 2; i < h; i++) {
+//            bus(A, WEST)
+//            bus(EAST, A)
+//        }
+//        bus(areg, *end);
+//
+//
+//
+//    }
+
+    // Vertical shift
+
+
 
 }
 
-void SCAMP5::scamp5_diffuse(AREG &target, int iterations, bool vertical, bool horizontal, AREG *to) {
+void SCAMP5::scamp5_diffuse(AREG &target, int iterations, bool vertical, bool horizontal, AREG *t0) {
     // diffuse an AREG image
+    // TODO is this the same as Gaussian blur?
+    void (SCAMP5::*blur_func)(AREG &, AREG &);
+    if (horizontal && vertical) {
+        blur_func = &SCAMP5::blur;
+    } else if (horizontal) {
+        blur_func = &SCAMP5::blurh;
+    } else {
+        blur_func = &SCAMP5::blurv;
+    }
+
+    if (t0 == nullptr) {
+        t0 = &NEWS;
+    }
+
+    (*this.*blur_func)(*t0, target);
+    (*this.*blur_func)(target, *t0);
+    for (int i = 1; i < iterations; i++) {
+        (*this.*blur_func)(*t0, target);
+        (*this.*blur_func)(target, *t0);
+    }
+
 }
 
 uint8_t SCAMP5::scamp5_read_areg(AREG &areg, uint8_t r, uint8_t c) {
@@ -1037,7 +1105,7 @@ void SCAMP5::scamp5_draw_end() {
 
 void SCAMP5::scamp5_draw_pixel(uint8_t r, uint8_t c) {
     // draw a point, wrap around if it's outside the border
-//    scratch->value().at<uint8_t>(r%SCAMP_HEIGHT, c%SCAMP_WIDTH) = 1;
+    scratch->value().at<uint8_t>(r%SCAMP_HEIGHT, c%SCAMP_WIDTH) = 1;
 }
 
 bool SCAMP5::scamp5_draw_point(int r, int c) {
@@ -1046,7 +1114,7 @@ bool SCAMP5::scamp5_draw_point(int r, int c) {
     if (r >= SCAMP_HEIGHT || c >= SCAMP_WIDTH) {
         return false;
     }
-//    scratch->value().at<uint8_t>(r, c) = 1;
+    scratch->value().at<uint8_t>(r, c) = 1;
     return true;
 }
 
@@ -1079,8 +1147,7 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
     // TODO what does repeat do? Repeat is basically for controlling wraparound
     // TODO need to use scamp5_load_point like existing sim
     // TODO check NDEBUG Block is being activated correctly
-    int e1 = cv::getTickCount();
-    #ifndef NDEBUG
+    #ifdef USE_RUNTIME_CHECKS
         if (scratch == nullptr) {
             std::cerr << "Drawing register has not been set" << std::endl;
         }
@@ -1092,10 +1159,10 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
     int x = 0;
     int y = radius;
 
-//    scratch->value().at<uint8_t>(y0 + radius, x0) = 1;
-//    scratch->value().at<uint8_t>(y0 - radius, x0) = 1;
-//    scratch->value().at<uint8_t>(y0, x0 + radius) = 1;
-//    scratch->value().at<uint8_t>(y0, x0 - radius) = 1;
+    scratch->value().at<uint8_t>(y0 + radius, x0) = 1;
+    scratch->value().at<uint8_t>(y0 - radius, x0) = 1;
+    scratch->value().at<uint8_t>(y0, x0 + radius) = 1;
+    scratch->value().at<uint8_t>(y0, x0 - radius) = 1;
 
     while (x < y) {
         if (f >= 0) {
@@ -1108,19 +1175,15 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
         ddf_x += 2;
         f += ddf_x;
 
-//        scratch->value().at<uint8_t>(y0 + y, x0 + x) = 1;
-//        scratch->value().at<uint8_t>(y0 + y, x0 - x) = 1;
-//        scratch->value().at<uint8_t>(y0 - y, x0 + x) = 1;
-//        scratch->value().at<uint8_t>(y0 - y, x0 - x) = 1;
-//        scratch->value().at<uint8_t>(y0 + x, x0 + y) = 1;
-//        scratch->value().at<uint8_t>(y0 + x, x0 - y) = 1;
-//        scratch->value().at<uint8_t>(y0 - x, x0 + y) = 1;
-//        scratch->value().at<uint8_t>(y0 - x, x0 - y) = 1;
+        scratch->value().at<uint8_t>(y0 + y, x0 + x) = 1;
+        scratch->value().at<uint8_t>(y0 + y, x0 - x) = 1;
+        scratch->value().at<uint8_t>(y0 - y, x0 + x) = 1;
+        scratch->value().at<uint8_t>(y0 - y, x0 - x) = 1;
+        scratch->value().at<uint8_t>(y0 + x, x0 + y) = 1;
+        scratch->value().at<uint8_t>(y0 + x, x0 - y) = 1;
+        scratch->value().at<uint8_t>(y0 - x, x0 + y) = 1;
+        scratch->value().at<uint8_t>(y0 - x, x0 - y) = 1;
     }
-
-    int e2 = cv::getTickCount();
-    std::cout << e2 - e1 << " ticks" << std::endl;
-
 }
 
 void SCAMP5::scamp5_draw_negate() {
