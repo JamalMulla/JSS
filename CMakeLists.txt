@@ -13,6 +13,7 @@ if (WIN32)
     link_directories("C:/OpenCV-4.5.1/opencv/build/x64/vc15/lib")
 ENDIF ()
 
+
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake RESULT_VARIABLE CONAN_PATH)
 
 if (NOT CONAN_PATH)
@@ -44,6 +45,13 @@ target_include_directories(${SIM_LIB}
         )
 
 target_include_directories(${SIM_LIB} PRIVATE ${OpenCV_INCLUDE_DIRS})
+
+option(WITH_RUNTIME_CHECKS "Check arguments and emit warnings" OFF)
+if (WITH_RUNTIME_CHECKS)
+    message(STATUS "With Runtime Checks")
+    target_compile_definitions(${SIM_LIB} PUBLIC -DUSE_RUNTIME_CHECKS)
+endif ()
+unset(WITH_RUNTIME_CHECKS CACHE)
 
 #Warnings
 #if ( CMAKE_COMPILER_IS_GNUCC )

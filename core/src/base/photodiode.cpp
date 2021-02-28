@@ -24,16 +24,19 @@ void Photodiode::reset() {
 }
 
 void Photodiode::read(AnalogueRegister& reg) {
-    if (this->capture == nullptr) {
-        std::cerr << "No video capture defined" << std::endl;
-    }
+    #ifdef USE_RUNTIME_CHECKS
+        if (this->capture == nullptr) {
+            std::cerr << "No video capture defined" << std::endl;
+        }
+    #endif
     cv::Mat temp(rows_, columns_, CV_32S);
     auto TIME_START = std::chrono::high_resolution_clock::now();
     *this->capture >> temp;
-    if (temp.empty()) {
-        std::cerr << "ERROR! blank frame grabbed" << std::endl;
-    }
-
+    #ifdef USE_RUNTIME_CHECKS
+        if (temp.empty()) {
+            std::cerr << "ERROR! blank frame grabbed" << std::endl;
+        }
+    #endif
     cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
 
     int width = temp.cols;

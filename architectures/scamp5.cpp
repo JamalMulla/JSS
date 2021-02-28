@@ -772,6 +772,43 @@ void SCAMP5::print_stats(const CycleCounter& counter) {
 
 void SCAMP5::scamp5_get_image(AREG &yf, AREG &yh, int gain) {
     // 	put the exposure result in PIX to AREGs and reset PIX
+    // yf	full range [-128,127]
+    // yh	half range [0,127]
+    // gain	(optional) gain [1,5]
+    // get_image(A, B, 0|1)
+    // TODO improve capture rate. Multithreading needed?
+
+    #ifdef USE_RUNTIME_CHECKS
+        if (gain < 1 || gain > 5) {
+            std::cout << "[Warning] Gain should be in [1,5]" << std::endl;
+        }
+    #endif
+
+    all();
+    this->pe.photodiode.read(PIX);
+    bus(NEWS, PIX);
+    rpix();
+    this->pe.photodiode.read(PIX);
+    bus(yf, NEWS, PIX);
+    bus(NEWS, yf);
+
+    for (int i = 1; i < gain; i++) {
+        bus(yh, NEWS);
+        bus(yf, NEWS);
+        bus(NEWS, yh, yf);
+        bus(yh, NEWS, E);
+        where(yh);
+        bus(NEWS, E);
+        all();
+    }
+
+    bus(yh, NEWS);
+    bus(yf, NEWS);
+    rpix();
+    this->pe.photodiode.read(PIX);
+    bus(NEWS, yh, yf, PIX);
+    bus(yf, NEWS);
+
 }
 
 void SCAMP5::scamp5_in(AREG &areg, int8_t value, AREG *temp) {
@@ -834,7 +871,8 @@ void SCAMP5::scamp5_diffuse(AREG &target, int iterations, bool vertical, bool ho
 uint8_t SCAMP5::scamp5_read_areg(AREG &areg, uint8_t r, uint8_t c) {
     // read a single pixel
     // TODO check that the value is properly mapped to uint8_t from CV_16U
-    return areg.value().at<uint8_t>(r, c);
+//    return areg.value().at<uint8_t>(r, c);
+return 0;
 }
 
 uint32_t SCAMP5::scamp5_global_sum_16(AREG &areg, uint8_t *result16v) {
@@ -999,7 +1037,7 @@ void SCAMP5::scamp5_draw_end() {
 
 void SCAMP5::scamp5_draw_pixel(uint8_t r, uint8_t c) {
     // draw a point, wrap around if it's outside the border
-    scratch->value().at<uint8_t>(r%SCAMP_HEIGHT, c%SCAMP_WIDTH) = 1;
+//    scratch->value().at<uint8_t>(r%SCAMP_HEIGHT, c%SCAMP_WIDTH) = 1;
 }
 
 bool SCAMP5::scamp5_draw_point(int r, int c) {
@@ -1008,7 +1046,7 @@ bool SCAMP5::scamp5_draw_point(int r, int c) {
     if (r >= SCAMP_HEIGHT || c >= SCAMP_WIDTH) {
         return false;
     }
-    scratch->value().at<uint8_t>(r, c) = 1;
+//    scratch->value().at<uint8_t>(r, c) = 1;
     return true;
 }
 
@@ -1054,10 +1092,10 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
     int x = 0;
     int y = radius;
 
-    scratch->value().at<uint8_t>(y0 + radius, x0) = 1;
-    scratch->value().at<uint8_t>(y0 - radius, x0) = 1;
-    scratch->value().at<uint8_t>(y0, x0 + radius) = 1;
-    scratch->value().at<uint8_t>(y0, x0 - radius) = 1;
+//    scratch->value().at<uint8_t>(y0 + radius, x0) = 1;
+//    scratch->value().at<uint8_t>(y0 - radius, x0) = 1;
+//    scratch->value().at<uint8_t>(y0, x0 + radius) = 1;
+//    scratch->value().at<uint8_t>(y0, x0 - radius) = 1;
 
     while (x < y) {
         if (f >= 0) {
@@ -1070,14 +1108,14 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
         ddf_x += 2;
         f += ddf_x;
 
-        scratch->value().at<uint8_t>(y0 + y, x0 + x) = 1;
-        scratch->value().at<uint8_t>(y0 + y, x0 - x) = 1;
-        scratch->value().at<uint8_t>(y0 - y, x0 + x) = 1;
-        scratch->value().at<uint8_t>(y0 - y, x0 - x) = 1;
-        scratch->value().at<uint8_t>(y0 + x, x0 + y) = 1;
-        scratch->value().at<uint8_t>(y0 + x, x0 - y) = 1;
-        scratch->value().at<uint8_t>(y0 - x, x0 + y) = 1;
-        scratch->value().at<uint8_t>(y0 - x, x0 - y) = 1;
+//        scratch->value().at<uint8_t>(y0 + y, x0 + x) = 1;
+//        scratch->value().at<uint8_t>(y0 + y, x0 - x) = 1;
+//        scratch->value().at<uint8_t>(y0 - y, x0 + x) = 1;
+//        scratch->value().at<uint8_t>(y0 - y, x0 - x) = 1;
+//        scratch->value().at<uint8_t>(y0 + x, x0 + y) = 1;
+//        scratch->value().at<uint8_t>(y0 + x, x0 - y) = 1;
+//        scratch->value().at<uint8_t>(y0 - x, x0 + y) = 1;
+//        scratch->value().at<uint8_t>(y0 - x, x0 - y) = 1;
     }
 
     int e2 = cv::getTickCount();

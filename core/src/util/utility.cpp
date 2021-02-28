@@ -21,7 +21,7 @@ void utility::display_register(const std::string &window_name, Register &reg) {
 void utility::onMouse(int event, int x, int y, int, void* reg) {
     if ( event != cv::EVENT_MOUSEMOVE ) return;
     auto* dr = static_cast<DigitalRegister*>(reg);
-    std::cout<<"("<<x<<", "<<y<<") ......  "<< (int) dr->value().at<uint8_t>(y,x) <<'\n';
+    //std::cout<<"("<<x<<", "<<y<<") ......  "<< (int) dr->value().at<uint8_t>(y,x) <<'\n';
 }
 
 int utility::normalise(int value, int old_low, int old_high, int new_low, int new_high) {
