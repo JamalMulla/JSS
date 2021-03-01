@@ -15,7 +15,7 @@ Composed of two parts: the simulation library and the architecture you're simula
 # Build - release (debug)
  * Clone repo
  * `mkdir cmake-build-release && cd cmake-build-release` (`mkdir cmake-build-debug && cd cmake-build-debug`)
- * `conan install ..`
+ * `conan install .. -s build_type=Release` (`conan install .. -s build_type=Debug`)
  * `cmake -DCMAKE_BUILD_TYPE=release ..` (`cmake -DCMAKE_BUILD_TYPE=debug ..`)
  * `make`
 
