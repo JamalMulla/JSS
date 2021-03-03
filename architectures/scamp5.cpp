@@ -1343,7 +1343,7 @@ void SCAMP5::scamp5_scan_dreg(DREG &dreg, uint8_t *mem, uint8_t r0, uint8_t r1) 
     // Thus, a full DREG image requires a buffer of 8192 bytes.
     // TODO check if it should be (row, col) or (col, row)
     // TODO check impl
-    int buf_index = 0; // [0,SCAMP_WIDTH/8 - 1]
+    int buf_index = 0;
     for (uint32_t row_index = r0; row_index <= r1; row_index++) {
         // Read 8 values at a time to make up a byte
         for (int col_index = 0; col_index < SCAMP_WIDTH; col_index+=8) {

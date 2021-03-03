@@ -5,6 +5,18 @@ set(SIM_LIB ${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)
 find_package(OpenCV REQUIRED)
 
+string(
+        APPEND _opts
+        "$<IF:$<CXX_COMPILER_ID:MSVC>,"
+        "/W4;$<$<CONFIG:RELEASE>:/O2>,"
+        "-Wall;-Wextra;"
+        "$<$<CONFIG:RELEASE>:-O3>"
+        "$<$<CXX_COMPILER_ID:Clang>:-stdlib=libc++>"
+        ">"
+)
+
+add_compile_options("${_opts}")
+
 IF (UNIX)
     AUX_SOURCE_DIRECTORY(ocv_stages SOURCE_FILES)
 ENDIF ()

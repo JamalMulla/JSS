@@ -6,15 +6,15 @@
 #include "simulator/registers/register.h"
 #include "simulator/metrics/stats.h"
 
-Register::Register(int rows, int columns, int type, MemoryType memoryType)
-    :value_(rows, columns, type, cv::Scalar(0)),
+Register::Register(int rows, int columns, int type, MemoryType memoryType) :
+    memory_type_(memoryType),
+    value_(rows, columns, type, cv::Scalar(0)),
     read_counter(rows, columns, CV_32S, cv::Scalar(0)),
     write_counter(rows, columns, CV_32S, cv::Scalar(0)),
     read_energy_counter(rows, columns, CV_64F, cv::Scalar(0)),
     write_energy_counter(rows, columns, CV_64F, cv::Scalar(0)),
     reads(0),
-    writes(0),
-    memory_type_(memoryType){}
+    writes(0) {}
 
 void Register::inc_read(const cv::_InputOutputArray& mask) {
     cv::add(this->read_counter, 1, this->read_counter, mask);

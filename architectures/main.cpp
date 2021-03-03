@@ -32,7 +32,7 @@ void dreg_read_test(SCAMP5& s) {
     int e1 = cv::getTickCount();
     s.scamp5_scan_dreg(s.R5, buf, 0, 255);
     int e2 = cv::getTickCount();
-    std::cout << "Seconds: " << ((e2 - e1)/cv::getTickFrequency()) << std::endl;
+    std::cout << "ms: " << ((e2 - e1)/cv::getTickFrequency()) * 1000 << std::endl;
 }
 
 
@@ -43,7 +43,9 @@ int main() {
 
     uint8_t buf[255] = { 0 };
     flood_test(s);
-    dreg_read_test(s);
+    for (int i = 0; i < 100; i++) {
+        dreg_read_test(s);
+    }
     while (true) {
 
 

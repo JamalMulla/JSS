@@ -31,7 +31,7 @@ AnalogueRegister &AnalogueRegister::operator()(const std::string &name) {
 }
 
 void AnalogueRegister::print_stats(const CycleCounter &counter) {
-
+    std::cout << counter.to_seconds(stats::CLOCK_RATE) << std::endl;
 }
 
 void AnalogueRegister::write_stats(const CycleCounter &counter, json &j) {
