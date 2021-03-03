@@ -7,8 +7,11 @@ A parameterisable simulation library to model and emulate different FPSP archite
 Requirements: 
   * Cmake  
   * Conan 
+  * OpenCV
 
-Works on both Linux and Windows as long as Conan is installed.
+Works on both Linux and Windows as long as Conan and OpenCV is installed.
+OpenCV has to be properly installed on your system. Not handled by Conan due to weird linking issues.
+
 
 Composed of two parts: the simulation library and the architecture you're simulating. The existing CMakeLists.txt will build the library first and then the SCAMP-5 architecture.
 
