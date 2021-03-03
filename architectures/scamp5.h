@@ -205,7 +205,7 @@ public:
     uint8_t scamp5_global_sum_sparse(AREG& areg, uint8_t r=2, uint8_t c=2, uint8_t rx=254, uint8_t cx=254);
 
     //    Digital
-    void scamp5_shift(DREG& dreg, int h, int v, const int boundary=0);
+    void scamp5_shift(DREG& dreg, int h, int v, int boundary=0);
     int scamp5_global_or(DREG& dreg, uint8_t r=0, uint8_t c=0, uint8_t rx=255, uint8_t cx=255);
     int scamp5_global_count(DREG& dreg, AREG& temp, int options=0);
     void scamp5_flood(DREG& dreg_target, DREG& dreg_mask, int boundary, int iterations=5, bool use_local=false);

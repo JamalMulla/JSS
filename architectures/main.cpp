@@ -10,20 +10,52 @@
 #pragma ide diagnostic ignored "EndlessLoop"
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
+
+void flood_test(SCAMP5& s) {
+    // Set up control
+    s.scamp5_draw_begin(s.R5);
+    s.scamp5_draw_circle(190, 127, 20);
+    s.scamp5_draw_negate();
+    s.scamp5_draw_end();
+
+    // Set up source
+    s.scamp5_draw_begin(s.R4);
+    s.scamp5_draw_point(127, 127);
+    s.scamp5_draw_end();
+
+    s.scamp5_flood(s.R4, s.R5, 1);
+
+}
+
+void dreg_read_test(SCAMP5& s) {
+    uint8_t buf[8192] = {0};
+    int e1 = cv::getTickCount();
+    s.scamp5_scan_dreg(s.R5, buf, 0, 255);
+    int e2 = cv::getTickCount();
+    std::cout << "Seconds: " << ((e2 - e1)/cv::getTickFrequency()) << std::endl;
+}
+
+
+
 int main() {
 
     SCAMP5 s;
 
     uint8_t buf[255] = { 0 };
+    flood_test(s);
+    dreg_read_test(s);
     while (true) {
-//        s.get_image(s.A, s.D);
-        s.scamp5_draw_begin(s.R5);
-        s.scamp5_draw_circle(127, 127, 10);
-//        s.scamp5_draw_line(127, 32, 290, 32);
-//        s.scamp5_draw_negate();
-        s.scamp5_draw_end();
 
-        s.scamp5_scan_events(s.R5, buf, 255);
+
+
+//        s.get_image(s.A, s.D);
+//        s.scamp5_draw_begin(s.R5);
+//        s.scamp5_draw_circle(127, 127, 10);
+////        s.scamp5_draw_line(127, 32, 290, 32);
+////        s.scamp5_draw_negate();
+//        s.scamp5_draw_end();
+//
+//        s.scamp5_scan_events(s.R5, buf, 255);
 
         // Threshold
 //        s.get_image(s.C,s.D);
@@ -61,9 +93,9 @@ int main() {
 
 
         utility::display_register("R4", s.R4);
-        utility::display_register("C", s.C);
-        utility::display_register("A", s.A);
-        utility::display_register("B", s.B);
+//        utility::display_register("C", s.C);
+//        utility::display_register("A", s.A);
+//        utility::display_register("B", s.B);
         utility::display_register("R5", s.R5);
         cv::waitKey(1);
     }

@@ -945,17 +945,46 @@ uint8_t SCAMP5::scamp5_read_areg(AREG &areg, uint8_t r, uint8_t c) {
 uint32_t SCAMP5::scamp5_global_sum_16(AREG &areg, uint8_t *result16v) {
     // get the AREG sum level using a set of 4x4 sparse grid.
     // When result16v is a NULL pointer, the function will return sum of the data.
-    //The result is not equal to the actual sum of all pixels of the AREG in the area,
+    // The result is not equal to the actual sum of all pixels of the AREG in the area,
     // but it is proportional to the actual sum.
     // This function takes roughly 14 usec (on the scamp5 device) to execute.
-    return 0;
+    // TODO should not be exact
+    uint32_t sum = 0;
+    int buf_index = 0;
+    int cs = SCAMP_WIDTH / 4;
+    int rs = SCAMP_HEIGHT / 4;
+    for (int col = 0; col < SCAMP_WIDTH; col+=cs) {
+        for (int row = 0; row < SCAMP_HEIGHT; row+=rs) {
+            int val = cv::sum(areg.value()(cv::Rect(col, row, col+cs, row+rs)))[0];
+            if (result16v == nullptr) {
+                sum += val;
+            } else {
+                result16v[buf_index++] = val;
+            }
+        }
+    }
+    return sum;
 }
 
 uint32_t SCAMP5::scamp5_global_sum_64(AREG &areg, uint8_t *result64v) {
     // get the AREG sum level with a better resolution
     // This function achieves similar functionally as the "global_sum_16" version, but the grid used is 8x8.
     // As a consequence, the result has higher resolution but it takes longer to execute (roughly 28 usec on the scamp5).
-    return 0;
+    uint32_t sum = 0;
+    int buf_index = 0;
+    int cs = SCAMP_WIDTH / 8;
+    int rs = SCAMP_HEIGHT / 8;
+    for (int col = 0; col < SCAMP_WIDTH; col+=cs) {
+        for (int row = 0; row < SCAMP_HEIGHT; row+=rs) {
+            int val = cv::sum(areg.value()(cv::Rect(col, row, col+cs, row+rs)))[0];
+            if (result64v == nullptr) {
+                sum += val;
+            } else {
+                result64v[buf_index++] = val;
+            }
+        }
+    }
+    return sum;
 }
 
 uint8_t SCAMP5::scamp5_global_sum_fast(AREG &areg) {
@@ -967,11 +996,27 @@ uint8_t SCAMP5::scamp5_global_sum_fast(AREG &areg) {
 uint8_t SCAMP5::scamp5_global_sum_sparse(AREG &areg, uint8_t r, uint8_t c, uint8_t rx, uint8_t cx) {
     // get sum level of the pixels selected using a pattern
     // This result is less probable to saturate because it only counts a quarter of the pixels in the AREG plane (by default)
-    return 0;
+    unsigned int r_mask = ((~rx) & (SCAMP_HEIGHT-1));
+    unsigned int c_mask = ((~cx) & (SCAMP_WIDTH-1));
+
+    unsigned int r_f = r & r_mask;
+    unsigned int c_f = c & c_mask;
+
+    uint8_t sum = 0;
+
+    for (unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
+        for (unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
+            if (((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
+                sum += areg.value().at<uint8_t>(row_index, col_index);
+            }
+        }
+    }
+
+    return sum;
 }
 
 void SCAMP5::scamp5_shift(DREG &dreg, int h, int v, const int boundary) {
-
+    // shift an DREG image
 }
 
 int SCAMP5::scamp5_global_or(DREG &dreg, uint8_t r, uint8_t c, uint8_t rx, uint8_t cx) {
@@ -1011,6 +1056,32 @@ int SCAMP5::scamp5_global_count(DREG &dreg, AREG &temp, int options) {
 }
 
 void SCAMP5::scamp5_flood(DREG &dreg_target, DREG &dreg_mask, int boundary, int iterations, bool use_local) {
+    // flooding a DREG image with '1's from the '1's in the DREG image
+    // dreg_target	the DREG to be flooded
+    // dreg_mask	the control DREG to inhibit the flood
+    // boundary	    boundary value
+    // iterations	(optional) number of iterations
+    // use_local	(optional) use pre-exist R1-R4 to control the flood direction
+    // The target DREG will be flooded by '1's except those areas that are closed by '0's in the control register.
+    // To increase the travelling distance of the flood, the number of iteration should be increased.
+
+    // dreg_mask can contain many different seeds. Each one is called individually to start the flood fill
+
+    std::vector<cv::Point> seeds;   // locations of white pixels in the original image
+    cv::findNonZero(dreg_target.value(), seeds);
+
+    uint8_t fillValue = 1;
+
+    // Add additional pixel to each side
+    cv::Mat mask;
+    cv::copyMakeBorder(dreg_mask.value(), mask, 1, 1, 1, 1, cv::BORDER_REPLICATE);
+
+    dreg_mask.value() = 1 - dreg_mask.value();
+
+    for (auto& seed : seeds){
+        cv::floodFill(dreg_mask.value(), mask, seed, cv::Scalar(1) ,nullptr, cv::Scalar(0), cv::Scalar(1), 4);
+    }
+
 
 }
 
@@ -1083,10 +1154,24 @@ void SCAMP5::scamp5_select_pattern(uint8_t r, uint8_t c, uint8_t rx, uint8_t cx)
 
 void SCAMP5::scamp5_select_col(uint8_t c) {
     // select column
+    for (unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
+        for (unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
+            if (col_index == c) {
+                SELECT.value().at<uint8_t>(row_index, col_index) = 1;
+            }
+        }
+    }
 }
 
 void SCAMP5::scamp5_select_row(uint8_t r) {
     // select row
+    for (unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
+        for (unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
+            if (row_index == r) {
+                SELECT.value().at<uint8_t>(row_index, col_index) = 1;
+            }
+        }
+    }
 }
 
 void SCAMP5::scamp5_select_colx(uint8_t cx) {
@@ -1193,7 +1278,7 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
 void SCAMP5::scamp5_draw_negate() {
     // do a binary inversion of the DREG image.
     // TODO abstraction
-    cv::bitwise_not(scratch->value(), scratch->value());
+    scratch->value() = 1 - scratch->value();
 }
 
 // Image Readout
@@ -1215,7 +1300,7 @@ void SCAMP5::scamp5_scan_areg(AREG &areg, uint8_t *buffer, uint8_t r0, uint8_t c
     int buf_index = 0;
     for (int col = c0; col < c1; col+=cs) {
         for (int row = r0; row < r1; row+=rs) {
-            buffer[buf_index] = areg.value().at<uint8_t>(row, col);
+            buffer[buf_index++] = areg.value().at<uint8_t>(row, col);
         }
     }
 }
@@ -1230,7 +1315,7 @@ void SCAMP5::scamp5_scan_areg_8x8(AREG &areg, uint8_t *result8x8) {
     int rs = SCAMP_HEIGHT / 8;
     for (int col = 0; col < SCAMP_WIDTH; col+=cs) {
         for (int row = 0; row < SCAMP_HEIGHT; row+=rs) {
-            result8x8[buf_index] = areg.value().at<uint8_t>(row, col);
+            result8x8[buf_index++] = areg.value().at<uint8_t>(row, col);
         }
     }
 }
@@ -1243,7 +1328,7 @@ void SCAMP5::scamp5_scan_areg_mean_8x8(AREG &areg, uint8_t *result8x8) {
     int step = SCAMP_HEIGHT/8;
     for (int col = 0; col < SCAMP_WIDTH; col+=step) {
         for (int row = 0; row < SCAMP_HEIGHT; row+=step) {
-            result8x8[buf_index] = cv::sum(areg.value()(cv::Rect(col, row, col+step, row+step)))[0]/(step*step);
+            result8x8[buf_index++] = cv::sum(areg.value()(cv::Rect(col, row, col+step, row+step)))[0]/(step*step);
         }
     }
 
@@ -1256,7 +1341,24 @@ void SCAMP5::scamp5_scan_dreg(DREG &dreg, uint8_t *mem, uint8_t r0, uint8_t r1) 
     // r1 - last row index
     // The size of the buffer need to be a least 32 times the number of rows to scan.
     // Thus, a full DREG image requires a buffer of 8192 bytes.
-
+    // TODO check if it should be (row, col) or (col, row)
+    // TODO check impl
+    int buf_index = 0; // [0,SCAMP_WIDTH/8 - 1]
+    for (uint32_t row_index = r0; row_index <= r1; row_index++) {
+        // Read 8 values at a time to make up a byte
+        for (int col_index = 0; col_index < SCAMP_WIDTH; col_index+=8) {
+            uint8_t b0 = dreg.value().at<uint8_t>(row_index, col_index);
+            uint8_t b1 = dreg.value().at<uint8_t>(row_index, col_index+1);
+            uint8_t b2 = dreg.value().at<uint8_t>(row_index, col_index+2);
+            uint8_t b3 = dreg.value().at<uint8_t>(row_index, col_index+3);
+            uint8_t b4 = dreg.value().at<uint8_t>(row_index, col_index+4);
+            uint8_t b5 = dreg.value().at<uint8_t>(row_index, col_index+5);
+            uint8_t b6 = dreg.value().at<uint8_t>(row_index, col_index+6);
+            uint8_t b7 = dreg.value().at<uint8_t>(row_index, col_index+7);
+            uint8_t value = (b0 << 7) | (b1 << 6) | (b2 << 5) | (b3 << 4) | (b4 << 3) | (b5 << 2) | (b6 << 1) | (b7 << 0);
+            mem[buf_index++] = value;
+        }
+    }
 }
 
 void SCAMP5::scamp5_scan_events(DREG &dreg, uint8_t *mem, uint16_t max_num, uint8_t h_dir, uint8_t v_dir) {
