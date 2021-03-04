@@ -4,7 +4,7 @@
 
 #include "simulator/registers/analogue_register.h"
 #include "simulator/memory/si.h"
-#include "../../include/simulator/base/array.h"
+#include "simulator/base/array.h"
 #include "simulator/metrics/stats.h"
 
 AnalogueRegister::AnalogueRegister(int rows, int columns)
