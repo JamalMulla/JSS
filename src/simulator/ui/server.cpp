@@ -30,10 +30,10 @@ void server_run() {
 
             /* Just a few of the available handlers */
             .open = [](auto *ws) {
-                /* MQTT syntax */
-                ws->subscribe("sensors/+/house");
+                std::cout << "A Websocket connected!" << std::endl;
             },
             .message = [](auto *ws, std::string_view message, uWS::OpCode opCode) {
+                std::cout << "Received ws message: " << message << std::endl;
                 ws->send(message, opCode);
             }
 
