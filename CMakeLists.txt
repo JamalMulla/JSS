@@ -78,7 +78,7 @@ unset(WITH_RUNTIME_CHECKS CACHE)
 #Architectures
 #######
 SET(ARCH scamp5)
-add_executable(${ARCH} architectures/main.cpp architectures/scamp5.h architectures/scamp5.cpp)
+add_executable(${ARCH} architectures/main.cpp architectures/scamp5.h architectures/scamp5.cpp architectures/analognet2/conv_instructions.h)
 if (WIN32)
     string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
     if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")

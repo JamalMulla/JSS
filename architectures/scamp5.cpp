@@ -605,7 +605,7 @@ void SCAMP5::XOR(DREG &Rl, DREG &Rx, DREG &Ry) {
 
 void SCAMP5::WHERE(DREG &d) {
     // FLAG := d.
-    this->FLAG.value().setTo(d.value());
+    this->FLAG.write(d.value());
     cycles+=2;  // 1 read, 1 write
 }
 
@@ -613,7 +613,7 @@ void SCAMP5::WHERE(DREG &d0, DREG &d1) {
     // FLAG := d0 OR d1.
     DREG intermediate(d0.value().rows, d0.value().cols);
     this->OR(intermediate, d0, d1);
-    this->FLAG.value().setTo(intermediate.value());
+    this->FLAG.write(intermediate.value());
     cycles++;  // 1 write
 }
 
@@ -621,7 +621,7 @@ void SCAMP5::WHERE(DREG &d0, DREG &d1, DREG &d2) {
     // FLAG := d0 OR d1 OR d2.
     DREG intermediate(d0.value().rows, d0.value().cols);
     this->OR(intermediate, d0, d1, d2);
-    this->FLAG.value().setTo(intermediate.value());
+    this->FLAG.write(intermediate.value());
     cycles++;  // 1 write
 }
 
@@ -1067,6 +1067,8 @@ void SCAMP5::scamp5_flood(DREG &dreg_target, DREG &dreg_mask, int boundary, int 
 
     // dreg_mask can contain many different seeds. Each one is called individually to start the flood fill
 
+    //TODO ensure mask is correct size after floodfill operation
+
     std::vector<cv::Point> seeds;   // locations of white pixels in the original image
     cv::findNonZero(dreg_target.value(), seeds);
 
@@ -1214,8 +1216,8 @@ void SCAMP5::scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
     // r1 pixel row index of the bottom left corner
     // c1 pixel column index of the bottom left corner
     // TODO fill or not?
-    int width = c0 - c1;
-    int height = r0 - r1;
+    int width = c1 - c0;
+    int height = r1 - r0;
     scratch->clear();
     scratch->value()(cv::Rect(r0, c1, width, height)).setTo(1);
 }

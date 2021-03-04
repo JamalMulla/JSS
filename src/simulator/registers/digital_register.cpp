@@ -20,7 +20,7 @@ Data DigitalRegister::read() {
 }
 
 void DigitalRegister::write(Data data) {
-    this->value().setTo(data);
+    data.copyTo(this->value());
     this->inc_write();
 }
 
