@@ -6,7 +6,12 @@
 #pragma ide diagnostic ignored "EndlessLoop"
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
+#include "analognet2/analog_main.h"
+
+
+
 int main() {
+    analog_main();
     return 0;
 }
 
