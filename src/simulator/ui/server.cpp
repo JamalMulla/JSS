@@ -7,21 +7,23 @@
 #include <iostream>
 #include "simulator/ui/server.h"
 #include "simulator/ui/async_file_streamer.h"
+#include <thread>
 
-void server::start() {
+using namespace server;
 
-    std::ifstream myfile;
-    myfile.open("index.html");
-    if (!myfile.is_open()) {
-        std::cout << "Couldn't open file" << std::endl;
-    }
 
-    AsyncFileStreamer asyncFileStreamer(".");
+std::string file_path(const char* path) {
+    std::string path_s = path;
+    return path_s.substr(0, path_s.find_last_of("\\/"));
+}
+
+void server_run() {
+    std::cout << "Serving from " << file_path(__FILE__) << std::endl;
+    AsyncFileStreamer asyncFileStreamer(file_path(__FILE__));
 
     uWS::App().get("/*", [&asyncFileStreamer](auto *res, auto *req) {
 
         /* You can efficiently stream huge files too */
-//        res->writeHeader("Content-Type", "text/html; charset=utf-8")->end("Hello HTTP!");
         serveFile(res, req);
         asyncFileStreamer.streamFile(res, req->getUrl());
     }).ws<UserData>("/*", {
@@ -44,4 +46,9 @@ void server::start() {
     }).run();
 
     std::cout << "Could not start server" << std::endl;
+}
+
+void server::start() {
+    std::thread server_t (server_run);
+    server_t.detach();
 }

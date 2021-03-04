@@ -24,6 +24,7 @@ struct AsyncFileStreamer {
         // todo: if the root folder changes, we want to reload the cache
         for(auto &p : std::filesystem::recursive_directory_iterator(root)) {
             std::string url = p.path().string().substr(root.length());
+            // TODO check on windows
             if (url == "/index.html") {
                 url = "/";
             }
@@ -39,7 +40,7 @@ struct AsyncFileStreamer {
         auto it = asyncFileReaders.find(url);
         if (it == asyncFileReaders.end()) {
             std::cout << "Did not find file: " << url << std::endl;
-            res->end("Could not get file");
+            res->end("404");
         } else {
             streamFile(res, it->second);
         }

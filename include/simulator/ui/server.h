@@ -28,7 +28,11 @@ namespace server{
     uWS::HttpResponse<SSL> *serveFile(uWS::HttpResponse<SSL> *res, uWS::HttpRequest *req) {
         res->writeStatus(uWS::HTTP_200_OK);
 
-        if (hasExt(req->getUrl(), ".svg")) {
+        if (hasExt(req->getUrl(), ".html")) {
+            res->writeHeader("Content-Type", "text/html");
+        } else if (hasExt(req->getUrl(), ".js")) {
+            res->writeHeader("Content-Type", "text/javascript");
+        } else if (hasExt(req->getUrl(), ".svg")) {
             res->writeHeader("Content-Type", "image/svg+xml");
         }
 

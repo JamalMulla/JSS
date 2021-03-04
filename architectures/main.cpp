@@ -15,6 +15,11 @@
 int main() {
 
     server::start();
+    std::cout << "Will also run other code" << std::endl;
+    while (1) {
+
+    }
+
 }
 
 #pragma clang diagnostic pop
