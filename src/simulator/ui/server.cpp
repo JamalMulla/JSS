@@ -12,6 +12,9 @@
 #include <thread>
 #include <vector>
 #include <opencv2/imgcodecs.hpp>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 std::string file_path(const char *path) {
     std::string path_s = path;
@@ -73,11 +76,15 @@ void Server::send_string(const std::string &data) const {
     }
 }
 
-void Server::send_mat(cv::Mat &mat) {
+void Server::send_mat(const std::string& name, cv::Mat &mat) {
+    if (wss.size() == 0) return;
     std::vector<uchar> buf;
     cv::imencode(".jpg", mat, buf);
     std::string out = base64::encode(&buf[0], buf.size());
+    json j;
+    j["reg"] =  name;
+    j["data"] = out;
     for (auto &ws : wss) {
-        ws->send(out, uWS::OpCode::TEXT);
+        ws->send(j.dump(0), uWS::OpCode::TEXT);
     }
 }

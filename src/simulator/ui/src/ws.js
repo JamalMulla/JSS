@@ -1,5 +1,4 @@
 const ws = new WebSocket('ws://localhost:3000');
-ws.binaryType = 'arraybuffer';
 
 var A;
 window.addEventListener('load', function () {
@@ -15,6 +14,7 @@ ws.onclose = function (event) {
 };
 
 ws.onmessage = (message) => {
-    console.log('message received');
-    A.src = "data:image/jpeg;base64," + message.data;
+    var msg = JSON.parse(message.data);
+    console.log(msg);
+    document.getElementById(msg.reg).src = "data:image/jpeg;base64," + msg.data;
 };

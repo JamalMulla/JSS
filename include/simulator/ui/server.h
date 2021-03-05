@@ -48,7 +48,7 @@ private:
 public:
     void start();
     void send_string(const std::string& data) const;
-    void send_mat(cv::Mat& mat);
+    void send_mat(const std::string& name, cv::Mat& value);
 };
 
 

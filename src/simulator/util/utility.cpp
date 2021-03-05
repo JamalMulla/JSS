@@ -6,16 +6,20 @@
 #include <simulator/registers/digital_register.h>
 #include "simulator/util/utility.h"
 
-void utility::display_register(const std::string &window_name, Register &reg) {
+Register& utility::remap_image(Register &reg) {
     // TODO fix issues when there's only one colour. Range isn't correct
     double minVal, maxVal;
     cv::minMaxLoc(reg.value(), &minVal, &maxVal);
-    cv::Mat draw;
-    reg.value().convertTo(draw, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+    reg.value().convertTo(reg.value(), CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+    return reg;
+}
+
+void utility::display_register(const std::string &window_name, Register &reg) {
+    remap_image(reg);
     cv::namedWindow(window_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(window_name, 256, 256);
     cv::setMouseCallback(window_name, utility::onMouse, &reg);
-    cv::imshow(window_name, draw);
+    cv::imshow(window_name, reg.value());
 }
 
 void utility::onMouse(int event, int x, int y, int, void* reg) {
