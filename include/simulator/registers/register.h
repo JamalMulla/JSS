@@ -15,7 +15,6 @@ class Register : public Component {
 protected:
     MemoryType memory_type_;
     Data value_;
-    std::string name_;
     cv::Mat read_counter;           // Number of reads for each PE
     cv::Mat write_counter;          // Number of writes
     cv::Mat read_energy_counter;    // Energy consumed by reads
@@ -24,6 +23,8 @@ protected:
     int writes;                     // Number of writes not per PE but across the array
 
 public:
+    std::string name_;
+
     Register(int rows, int columns, int type, MemoryType memoryType);
 
     Data& value();

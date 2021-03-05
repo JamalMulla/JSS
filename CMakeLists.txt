@@ -35,7 +35,7 @@ ELSE ()
 ENDIF ()
 conan_basic_setup()
 
-add_library(${SIM_LIB} STATIC core/src/registers/analogue_register.cpp core/include/simulator/registers/analogue_register.h core/src/registers/digital_register.cpp core/include/simulator/registers/digital_register.h core/src/buses/analogue_bus.cpp core/include/simulator/buses/analogue_bus.h core/src/buses/digital_bus.cpp core/include/simulator/buses/digital_bus.h core/src/base/photodiode.cpp core/include/simulator/base/photodiode.h core/src/base/array.cpp core/include/simulator/base/array.h core/src/base/processing_element.cpp core/include/simulator/base/processing_element.h core/src/units/comparator.cpp core/include/simulator/units/comparator.h core/src/units/squarer.cpp core/include/simulator/units/squarer.h core/src/registers/register.cpp core/include/simulator/registers/register.h core/src/base/component.cpp core/include/simulator/base/component.h core/src/memory/dram/dram.cpp core/include/simulator/memory/dram.h core/src/memory/sram/sram.cpp core/include/simulator/memory/sram.h core/src/memory/memory_type.cpp core/include/simulator/memory/memory_type.h core/src/memory/dram/dram_3t.cpp core/include/simulator/memory/dram_3t.h core/src/memory/si/si.cpp core/include/simulator/memory/si.h core/src/metrics/stats.cpp core/include/simulator/metrics/stats.h core/src/util/utility.cpp core/include/simulator/util/utility.h core/src/metrics/cycle_counter.cpp core/include/simulator/metrics/cycle_counter.h core/src/memory/sram/sram_6t.cpp core/include/simulator/memory/sram_6t.h core/src/metrics/json_writer.cpp core/include/simulator/metrics/json_writer.h)
+add_library(${SIM_LIB} STATIC src/simulator/registers/analogue_register.cpp include/simulator/registers/analogue_register.h src/simulator/registers/digital_register.cpp include/simulator/registers/digital_register.h src/simulator/buses/analogue_bus.cpp include/simulator/buses/analogue_bus.h src/simulator/buses/digital_bus.cpp include/simulator/buses/digital_bus.h src/simulator/base/photodiode.cpp include/simulator/base/photodiode.h src/simulator/base/array.cpp include/simulator/base/array.h src/simulator/base/processing_element.cpp include/simulator/base/processing_element.h src/simulator/units/comparator.cpp include/simulator/units/comparator.h src/simulator/units/squarer.cpp include/simulator/units/squarer.h src/simulator/registers/register.cpp include/simulator/registers/register.h src/simulator/base/component.cpp include/simulator/base/component.h src/simulator/memory/dram/dram.cpp include/simulator/memory/dram.h src/simulator/memory/sram/sram.cpp include/simulator/memory/sram.h src/simulator/memory/memory_type.cpp include/simulator/memory/memory_type.h src/simulator/memory/dram/dram_3t.cpp include/simulator/memory/dram_3t.h src/simulator/memory/si/si.cpp include/simulator/memory/si.h src/simulator/metrics/stats.cpp include/simulator/metrics/stats.h src/simulator/util/utility.cpp include/simulator/util/utility.h src/simulator/metrics/cycle_counter.cpp include/simulator/metrics/cycle_counter.h src/simulator/memory/sram/sram_6t.cpp include/simulator/memory/sram_6t.h src/simulator/metrics/json_writer.cpp include/simulator/metrics/json_writer.h include/simulator/ui/async_file_streamer.h include/simulator/ui/async_file_reader.h src/simulator/ui/server.cpp include/simulator/ui/server.h src/simulator/ui/file_watcher.cpp include/simulator/ui/file_watcher.h include/simulator/ui/base64_encoder.h src/simulator/ui/src/base64_encoder.cpp)
 
 if (WIN32)
     string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
@@ -52,8 +52,8 @@ ENDIF ()
 
 target_include_directories(${SIM_LIB}
         PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core/include>
-        $<INSTALL_INTERFACE:core/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
         )
 
 target_include_directories(${SIM_LIB} PRIVATE ${OpenCV_INCLUDE_DIRS})
@@ -89,4 +89,4 @@ if (WIN32)
 ELSEIF (UNIX)
     target_link_libraries(${ARCH} PRIVATE ${CONAN_LIBS} ${OpenCV_LIBS} simulator)
 ENDIF ()
-target_include_directories(${ARCH} PUBLIC ${OpenCV_INCLUDE_DIRS} core/include)
+target_include_directories(${ARCH} PUBLIC ${OpenCV_INCLUDE_DIRS} include)
