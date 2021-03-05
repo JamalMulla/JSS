@@ -5,6 +5,7 @@
 #include <uWebSockets/App.h>
 #include <filesystem>
 #include <iostream>
+#include "simulator/util/utility.h"
 #include "simulator/ui/server.h"
 #include "simulator/ui/async_file_streamer.h"
 #include "simulator/ui/file_watcher.h"
@@ -76,13 +77,15 @@ void Server::send_string(const std::string &data) const {
     }
 }
 
-void Server::send_mat(const std::string& name, cv::Mat &mat) {
+void Server::display_reg(Register& reg) {
     if (wss.size() == 0) return;
+    cv::Mat remapped;
+    utility::remap_image(reg, remapped);
     std::vector<uchar> buf;
-    cv::imencode(".jpg", mat, buf);
+    cv::imencode(".jpg", remapped, buf);
     std::string out = base64::encode(&buf[0], buf.size());
     json j;
-    j["reg"] =  name;
+    j["reg"] =  reg.name_;
     j["data"] = out;
     for (auto &ws : wss) {
         ws->send(j.dump(0), uWS::OpCode::TEXT);

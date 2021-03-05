@@ -15,6 +15,5 @@ ws.onclose = function (event) {
 
 ws.onmessage = (message) => {
     var msg = JSON.parse(message.data);
-    console.log(msg);
     document.getElementById(msg.reg).src = "data:image/jpeg;base64," + msg.data;
 };
