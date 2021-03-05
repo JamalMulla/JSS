@@ -3,6 +3,9 @@
  * https://github.com/uNetworking/uWebSockets
  * */
 
+#ifndef SIMULATOR_ASYNC_FILE_READER_H
+#define SIMULATOR_ASYNC_FILE_READER_H
+
 #include <map>
 #include <cstring>
 #include <fstream>
@@ -134,3 +137,5 @@ public:
         return fileSize;
     }
 };
+
+#endif //SIMULATOR_ASYNC_FILE_READER_H

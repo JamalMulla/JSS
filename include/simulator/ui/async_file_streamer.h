@@ -3,6 +3,9 @@
  * https://github.com/uNetworking/uWebSockets
  * */
 
+#ifndef SIMULATOR_ASYNC_FILE_STREAMER_H
+#define SIMULATOR_ASYNC_FILE_STREAMER_H
+
 #include <filesystem>
 #include <map>
 #include <cstring>
@@ -94,3 +97,5 @@ struct AsyncFileStreamer {
         }
     }
 };
+
+#endif //SIMULATOR_ASYNC_FILE_STREAMER_H
