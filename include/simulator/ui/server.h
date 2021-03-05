@@ -8,6 +8,7 @@
 
 #include <string>
 #include <set>
+#include <opencv2/core/mat.hpp>
 
 struct UserData {
     std::string username;
@@ -47,6 +48,7 @@ private:
 public:
     void start();
     void send_string(const std::string& data) const;
+    void send_mat(cv::Mat& mat);
 };
 
 

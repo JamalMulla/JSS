@@ -8,8 +8,10 @@
 #include "simulator/ui/server.h"
 #include "simulator/ui/async_file_streamer.h"
 #include "simulator/ui/file_watcher.h"
+#include "simulator/ui/base64_encoder.h"
 #include <thread>
-
+#include <vector>
+#include <opencv2/imgcodecs.hpp>
 
 std::string file_path(const char *path) {
     std::string path_s = path;
@@ -37,18 +39,15 @@ void Server::server_run() {
 
     uWS::App().get("/*", [&, &asyncFileStreamer](auto *res, auto *req) {
 
-        /* You can efficiently stream huge files too */
         serveFile(res, req);
         asyncFileStreamer.streamFile(res, req->getUrl());
     }).ws<UserData>("/*", {
 
-            /* Just a few of the available handlers */
-            .open = [](auto *ws) {
+            .open = [&](auto *ws) {
                 std::cout << "A Websocket connected!" << std::endl;
-            },
-            .message = [&](auto *ws, std::string_view message, uWS::OpCode opCode) {
-                std::cout << "Received ws message: " << message << std::endl;
                 wss.insert(ws);
+            },
+            .message = [](auto *ws, std::string_view message, uWS::OpCode opCode) {
                 ws->send(message, opCode);
             }
 
@@ -71,5 +70,14 @@ void Server::start() {
 void Server::send_string(const std::string &data) const {
     for (auto &ws : wss) {
         ws->send(data, uWS::OpCode::TEXT);
+    }
+}
+
+void Server::send_mat(cv::Mat &mat) {
+    std::vector<uchar> buf;
+    cv::imencode(".jpg", mat, buf);
+    std::string out = base64::encode(&buf[0], buf.size());
+    for (auto &ws : wss) {
+        ws->send(out, uWS::OpCode::TEXT);
     }
 }

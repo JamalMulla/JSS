@@ -16,12 +16,13 @@
 
 int main() {
 
+    SCAMP5 s;
+
     Server ui_server;
     ui_server.start();
     while (1) {
-        ui_server.send_string("Some test string");
-        std::cout << "Sent string" << std::endl;
-        std::this_thread::sleep_for (std::chrono::seconds(5));
+        s.get_image(s.A, s.D);
+        ui_server.send_mat(s.A.value());
     }
 
 }
