@@ -2,8 +2,8 @@
 // Created by jm1417 on 04/03/2021.
 //
 
-#ifndef SIMULATOR_SERVER_H
-#define SIMULATOR_SERVER_H
+#ifndef SIMULATOR_UI_H
+#define SIMULATOR_UI_H
 
 
 #include <string>
@@ -17,7 +17,7 @@ struct UserData {
 };
 
 
-class Server{
+class UI {
 private:
     std::set<uWS::WebSocket<false, true>*> wss;
 
@@ -57,4 +57,4 @@ public:
 
 
 
-#endif //SIMULATOR_SERVER_H
+#endif //SIMULATOR_UI_H

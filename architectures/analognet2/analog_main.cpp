@@ -11,14 +11,16 @@
  * Weights and AnalogNet architecture from Matthew Wong
  */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
+
 #include <cstdint>
 #include <simulator/util/utility.h>
+#include <simulator/ui/ui.h>
 #include "conv_instructions.h"
 #include "fc_weights.h"
 
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
 // Given SCAN_SIZE coordinates,
 // group them into 12 bins, filling the count array
 // central division, with overlaping bins
@@ -78,11 +80,12 @@ inline void relu(int vec[SIZE]){
             vec[i] = 0;
         }
     }
-    return;
 }
 
 int analog_main(){
     SCAMP5 s;
+    UI ui;
+    ui.start();
 
     // Initialization
 //    vs_init();
@@ -176,6 +179,8 @@ int analog_main(){
 
         s.scamp5_get_image(s.A, s.B, 1);
 
+        ui.display_reg(s.PIX);
+
 //        scamp5_kernel_begin();
         s.add(s.A, s.A, s.D);
         s.CLR(s.R6);
@@ -226,6 +231,9 @@ int analog_main(){
          * CONVOLUTIONS: filters applied and
          * results stored on registers A, B and C
          */
+        ui.display_reg(s.R6);
+        ui.display_reg(s.R7);
+
         conv_A(s);
         conv_B(s);
         conv_C(s);
@@ -350,24 +358,16 @@ int analog_main(){
             std::cout << "Max index: " << (int) max_index << std::endl;
         }
 
-
-        utility::display_register("A", s.A);
-        utility::display_register("B", s.B);
-        utility::display_register("C", s.C);
-        utility::display_register("R5", s.R5);
-        utility::display_register("R8", s.R8);
-        utility::display_register("R9", s.R9);
-        utility::display_register("R10", s.R10);
-        cv::waitKey(1);
         // Output images to GUI
-//        if (output_videos_value){
-//            scamp5_output_image(A,display_a);
-//            scamp5_output_image(B,display_b);
-//            scamp5_output_image(C,display_c);
-//            scamp5_output_image(R8,display_d);
-//            scamp5_output_image(R9,display_e);
-//            scamp5_output_image(R10,display_f);
-//        }
+        ui.display_reg(s.A);
+        ui.display_reg(s.B);
+        ui.display_reg(s.C);
+        ui.display_reg(s.R5);
+        ui.display_reg(s.R8);
+        ui.display_reg(s.R9);
+        ui.display_reg(s.R10);
+
+
 
         // increase loop_counter by 1
 //        vs_loop_counter_inc();

@@ -7,9 +7,9 @@
 #include "simulator/util/utility.h"
 
 void utility::remap_image(Register &reg, cv::Mat &dst) {
-    // TODO fix issues when there's only one colour. Range isn't correct
     double minVal, maxVal;
-    cv::minMaxLoc(reg.value(), &minVal, &maxVal);
+    minVal = 0;
+    cv::minMaxLoc(reg.value(), nullptr, &maxVal);
     reg.value().convertTo(dst, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
 }
 

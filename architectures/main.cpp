@@ -9,7 +9,6 @@
 #include "analognet2/analog_main.h"
 
 
-
 int main() {
     analog_main();
     return 0;
