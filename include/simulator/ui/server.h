@@ -9,6 +9,8 @@
 #include <string>
 #include <set>
 #include <opencv2/core/mat.hpp>
+#include <uWebSockets/App.h>
+#include <uWebSockets/WebSocket.h>
 
 struct UserData {
     std::string username;
