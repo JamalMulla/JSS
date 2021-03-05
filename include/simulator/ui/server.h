@@ -7,16 +7,19 @@
 
 
 #include <string>
+#include <set>
+
+struct UserData {
+    std::string username;
+};
 
 
-namespace server{
-
-    struct UserData {
-        std::string username;
-    };
+class Server{
+private:
+    std::set<uWS::WebSocket<false, true>*> wss;
 
     /* Middleware to fill out content-type */
-    inline bool hasExt(std::string_view file, std::string_view ext) {
+    static inline bool hasExt(std::string_view file, std::string_view ext) {
         if (ext.size() > file.size()) {
             return false;
         }
@@ -39,9 +42,12 @@ namespace server{
         return res;
     }
 
-    void start();
+    void server_run();
 
-}
+public:
+    void start();
+    void send_string(const std::string& data) const;
+};
 
 
 

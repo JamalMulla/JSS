@@ -6,6 +6,8 @@
 #include "scamp5.h"
 #include <uWebSockets/App.h>
 #include <simulator/ui/server.h>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 
 
 #pragma clang diagnostic push
@@ -14,10 +16,12 @@
 
 int main() {
 
-    server::start();
-    std::cout << "Will also run other code" << std::endl;
+    Server ui_server;
+    ui_server.start();
     while (1) {
-
+        ui_server.send_string("Some test string");
+        std::cout << "Sent string" << std::endl;
+        std::this_thread::sleep_for (std::chrono::seconds(5));
     }
 
 }
