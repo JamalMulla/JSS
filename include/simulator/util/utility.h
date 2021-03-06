@@ -16,6 +16,9 @@ namespace utility {
     void onMouse(int event, int x, int y, int, void* reg);
     int normalise(int value, int old_low, int old_high, int new_low, int new_high);
 
+
+    // Type
+    std::string opencv_type_to_str(int type);
 }
 
 

@@ -8,8 +8,10 @@
 
 void utility::remap_image(Register &reg, cv::Mat &dst) {
     double minVal, maxVal;
-    minVal = 0;
-    cv::minMaxLoc(reg.value(), nullptr, &maxVal);
+    cv::minMaxLoc(reg.value(), &minVal, &maxVal);
+    if (maxVal == minVal) {
+        minVal = 0;
+    }
     reg.value().convertTo(dst, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
 }
 
@@ -30,6 +32,30 @@ void utility::onMouse(int event, int x, int y, int, void* reg) {
 
 int utility::normalise(int value, int old_low, int old_high, int new_low, int new_high) {
     return (new_high - new_low) * ((value - old_low)/(old_high - old_low)) + new_low;
+}
+
+std::string utility::opencv_type_to_str(int type) {
+    // Taken from https://stackoverflow.com/a/17820615
+    std::string r;
+
+    uchar depth = type & CV_MAT_DEPTH_MASK;
+    uchar chans = 1 + (type >> CV_CN_SHIFT);
+
+    switch ( depth ) {
+        case CV_8U:  r = "8U"; break;
+        case CV_8S:  r = "8S"; break;
+        case CV_16U: r = "16U"; break;
+        case CV_16S: r = "16S"; break;
+        case CV_32S: r = "32S"; break;
+        case CV_32F: r = "32F"; break;
+        case CV_64F: r = "64F"; break;
+        default:     r = "User"; break;
+    }
+
+    r += "C";
+    r += (chans+'0');
+
+    return r;
 }
 
 

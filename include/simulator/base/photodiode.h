@@ -8,21 +8,17 @@
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/videoio.hpp>
+#include <simulator/input/input_source.h>
 #include "simulator/registers/analogue_register.h"
 #include "simulator/base/component.h"
 
 class Photodiode : public Component {
 private:
-    std::shared_ptr<cv::VideoCapture> capture;
-    std::shared_ptr<cv::Size> size;
-    cv::Mat frame;
-    int rows_;
-    int columns_;
-    double time_taken = 0;
+    std::shared_ptr<InputSource> input_source;
 public:
-    Photodiode(int rows, int columns);
+    Photodiode(int rows, int cols, Source src, const std::string& path);
     void reset();
-    void read(AnalogueRegister& reg);
+    void read(Register& reg);
     double last_frame_time();
     void print_stats(const CycleCounter& counter) override;
     void write_stats(const CycleCounter& counter, json& j) override;

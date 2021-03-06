@@ -178,7 +178,8 @@ int analog_main(){
         s.scamp5_in(s.D, threshold_value);
 
         s.scamp5_get_image(s.A, s.B, 1);
-
+//        utility::display_register("PIX", s.PIX);
+//        cv::waitKey(0);
         ui.display_reg(s.PIX);
 
 //        scamp5_kernel_begin();
