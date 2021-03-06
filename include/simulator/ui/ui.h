@@ -11,11 +11,13 @@
 #include <opencv2/core/mat.hpp>
 #include <uWebSockets/App.h>
 #include <uWebSockets/WebSocket.h>
+#include <simulator/registers/register.h>
 
 struct UserData {
     std::string username;
 };
 
+class Register;
 
 class UI {
 private:

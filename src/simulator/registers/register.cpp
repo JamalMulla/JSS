@@ -61,17 +61,15 @@ double Register::get_total_energy() {
 }
 
 Data &Register::value() {
-    // For reading
-    return this->value_;
-}
-
-const Data &Register::value() const {
-    // For writing
     return this->value_;
 }
 
 void Register::change_memory_type(const MemoryType &memory_type) {
     this->memory_type_ = memory_type;
+}
+
+void Register::set_ui_handler(UI *ui_ptr) {
+    this->ui = ui_ptr;
 }
 
 

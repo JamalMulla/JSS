@@ -77,7 +77,7 @@ void UI::send_string(const std::string &data) const {
     }
 }
 
-void UI::display_reg(Register& reg) {
+void UI::display_reg(Register& reg)  {
     if (wss.empty()) return;
     cv::Mat remapped;
     utility::remap_image(reg, remapped);

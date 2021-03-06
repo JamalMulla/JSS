@@ -1215,7 +1215,7 @@ void SCAMP5::scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
     // c0 pixel column index of the top right corner
     // r1 pixel row index of the bottom left corner
     // c1 pixel column index of the bottom left corner
-    // TODO fill or not?
+    // FIXME issue with coordinates
     int width = c1 - c0;
     int height = r1 - r0;
     scratch->clear();
