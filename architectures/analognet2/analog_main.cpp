@@ -87,42 +87,9 @@ int analog_main(){
     UI ui;
     ui.start();
 
-    // Initialization
-//    vs_init();
-    //vs_stopwatch stopwatch;
-
-    /////////////////
-    // Setup Host GUI
-    /////////////////
-    // DISPLAYS:
-    // First convolution result and binarised version
-//    auto display_a = vs_gui_add_display("Register A",0,0);
-//    auto display_d = vs_gui_add_display("R8",0,1);
-    // Second convolution result and binarised version
-//    auto display_b = vs_gui_add_display("Register B",1,0);
-//    auto display_e = vs_gui_add_display("R9",1,1);
-    // Third convolution result and binarised version
-//    auto display_c = vs_gui_add_display("Register C",2,0);
-//    auto display_f = vs_gui_add_display("R10",2,1);
-    // Input image
-//    auto original_input = vs_gui_add_display("Original Input",2,2);
-    // Binarised input image
-//    auto display_5 = vs_gui_add_display("R5",0,2);
-    // Cropped (28*28 square) binarised input image
-//    auto display_6 = vs_gui_add_display("R6",1,2);
-
-    // SLIDERS:
-    // Input binarisation threshold
-//    auto threshold = vs_gui_add_slider("Input thresh: ",10,127,50);
     int threshold_value;
-    // Output thresholds for each of the 3 convolutions
-//    auto t1 = vs_gui_add_slider("Thresh conv1: ",10,100,30);
-//    auto t2 = vs_gui_add_slider("Thresh conv2: ",10,100,15);
-//    auto t3 = vs_gui_add_slider("Thresh conv3: ",10,100,50);
     int t1_value, t2_value, t3_value;
-//    auto recording = vs_gui_add_slider("Recording: ",0,1,0);
     int recording_value;
-//    auto output_videos = vs_gui_add_slider("Output videos: ",0,1,0);
     int output_videos_value;
 
     // VAR DECLARATIONS
@@ -141,18 +108,7 @@ int analog_main(){
     // Output label (index of max. in results)
     uint8_t max_index;
 
-//    vs_on_host_connect([&](){
-//        vs_post_text("\nLegacy AnalogNet architecture\n");
-//        vs_led_on(VS_LED_2);
-//    });
-
-//    vs_on_host_disconnect([&](){
-//        vs_led_off(VS_LED_2);
-//    });
-
-    // Set framerate to 12 fps,
-    // with constant loop time
-//    vs_configure_frame_trigger(VS_FRAME_TRIGGER_CONST_LOOP, 12);
+    s.PIX.set_ui_handler(&ui);
 
     // Frame Loop
     while(1){
@@ -166,23 +122,13 @@ int analog_main(){
         recording_value = 0;
         output_videos_value = 0;
 
-        //vs_post_text("%lu\n", stopwatch.get_usec());
-        //stopwatch.reset();
-
-        /*
-         * Begin Input
-         */
         // Perform Binarisation Procedure, store
         // binarised input image in R6
-//        vs_wait_frame_trigger();
         s.scamp5_in(s.D, threshold_value);
 
         s.scamp5_get_image(s.A, s.B, 1);
-//        utility::display_register("PIX", s.PIX);
-//        cv::waitKey(0);
         ui.display_reg(s.PIX);
 
-//        scamp5_kernel_begin();
         s.add(s.A, s.A, s.D);
         s.CLR(s.R6);
         s.where(s.A);
@@ -190,17 +136,20 @@ int analog_main(){
         s.ALL();
         s.NOT(s.R6, s.R5);
         s.CLR(s.R5);
-//        scamp5_kernel_end();
+        ui.display_reg(s.R5);
+        ui.display_reg(s.R6);
 
         // Only preserve data in 28 x 28 square, everything else marked as 0
         // R7 will contain binary image of input within 28 x 28 square
         s.scamp5_draw_begin(s.R5);
         s.scamp5_draw_rect(114, 114, 141, 141);
         s.scamp5_draw_end();
+        ui.display_reg(s.R5);
 
 //        scamp5_kernel_begin();
         s.CLR(s.R7);
         s.AND(s.R7, s.R6, s.R5);
+        ui.display_reg(s.R7);
 //        scamp5_kernel_end();
 
         // Convert binary image into analog image with uniform analog value (120)
@@ -214,26 +163,14 @@ int analog_main(){
         s.WHERE(s.R7);
         s.mov(s.A, s.D);
         s.ALL();
+        ui.display_reg(s.D);
 
         s.mov(s.B, s.A);
         s.mov(s.C, s.A);
+        ui.display_reg(s.B);
+        ui.display_reg(s.C);
+
 //        scamp5_kernel_end();
-
-        // Display results of binarization:
-        // original input; binarised; binarised and cropped
-//        if (output_videos_value){
-//            scamp5_output_image(A, original_input);
-//            scamp5_output_image(R6,display_6);
-//            scamp5_output_image(R7,display_5);
-//        }
-
-        /*
-         * (binary Images are now in Registers A, B and C)
-         * CONVOLUTIONS: filters applied and
-         * results stored on registers A, B and C
-         */
-        ui.display_reg(s.R6);
-        ui.display_reg(s.R7);
 
         conv_A(s);
         conv_B(s);
@@ -291,45 +228,6 @@ int analog_main(){
         s.scamp5_scan_events(s.R10, coordinates, 100);
         sum_pooling_events<100>(coordinates, &conv_outputs[24]);
 
-//        if (recording_value){
-//            // If recording the output of the conv layers,
-//            // count the events in the binarised input. If no event is found,
-//            // a white screen was shown to the camera. This is used
-//            // to synchronise the acquisition process with the
-//            // display process.
-//            scamp5_scan_events(R7, coordinates, 10);
-//            input_count = 0;
-//            for(int i = 0; i < 10; i++){
-//                if (coordinates[2*i] != 0 || coordinates[2*i+1] != 0)
-//                    input_count ++;
-//            }
-//            if(input_count <= 3){
-//                empty_input_frames ++;
-//                // After 300 empty frames (25 s at 60 fps),
-//                // save and clear current output
-//                if(empty_input_frames == 300){
-//                    vs_post_text("!save");
-//                    vs_post_text("!clear");
-//                }
-//                // After 720 empty frames (1 min at 60 fps),
-//                // forever loop (ie stop main processing loop)
-//                if(empty_input_frames > 720){
-//                    while(true){
-//                    }
-//                }
-//            } else {
-//                empty_input_frames = 0;
-//            }
-//
-//            // Structure of one output line:
-//            // an array of 37 elements: the first one is the count
-//            // of 1s in the input binarised image, the 36 others
-//            // is the output of the conv layer
-//            vs_post_text("[%i, ", input_count);
-//            for(int i=0; i<35; i++)
-//                vs_post_text("%i, ", conv_outputs[i]);
-//            vs_post_text("%i]\n", conv_outputs[35]);
-//        }
         /*
          * Dense Layer Computation
          */
@@ -346,27 +244,21 @@ int analog_main(){
         }
 
         if(!recording_value){
-            // Output value of each neuron
-            /*
-            for (int i=0; i<10; i++){
-                  vs_post_text("%i,", fc2_result[i]);
-            }
-            vs_post_text("\n");
-            */
-
-            // Output value of max index (=output label)
-//            vs_post_text("%i,\n\n", max_index);
             std::cout << "Max index: " << (int) max_index << std::endl;
         }
 
         // Output images to GUI
+//        ui.display_reg(s.PIX);
         ui.display_reg(s.A);
         ui.display_reg(s.B);
         ui.display_reg(s.C);
         ui.display_reg(s.R5);
+        ui.display_reg(s.R6);
+        ui.display_reg(s.R7);
         ui.display_reg(s.R8);
         ui.display_reg(s.R9);
         ui.display_reg(s.R10);
+        ui.display_reg(s.NEWS);
 
 
 

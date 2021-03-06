@@ -6,12 +6,15 @@
 #define SIMULATOR_REGISTER_H
 
 #include <opencv2/core/mat.hpp>
+#include <simulator/ui/ui.h>
 #include "simulator/base/component.h"
 #include "simulator/memory/memory_type.h"
 
 typedef cv::Mat Data;
 
 class Register : public Component {
+private:
+    UI* ui = nullptr;
 protected:
     MemoryType memory_type_;
     Data value_;
@@ -28,7 +31,6 @@ public:
     Register(int rows, int columns, int type, MemoryType memoryType);
 
     Data& value();
-    const Data& value() const;
 
     void change_memory_type(const MemoryType& memory_type);
 
@@ -44,6 +46,8 @@ public:
     double get_read_energy();
     double get_write_energy();
     double get_total_energy();
+
+    void set_ui_handler(UI* ui_ptr);
 
     virtual Data read() = 0;
     virtual void write(Data data) = 0;
