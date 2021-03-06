@@ -6,12 +6,14 @@
 #include "simulator/metrics/stats.h"
 
 ProcessingElement::ProcessingElement(
-        int rows,
-        int columns,
-        int num_analogue,
-        int num_digital
-        )
-    : photodiode(Photodiode(rows, columns)){
+    int rows,
+    int columns,
+    int num_analogue,
+    int num_digital,
+    Source source,
+    const std::string& path
+):
+    photodiode(Photodiode(rows, columns, source, path)){
 
     for (int i = 0; i < num_analogue; i++) {
         analogue_registers.emplace_back(rows, columns);
@@ -73,6 +75,16 @@ ProcessingElement::builder &ProcessingElement::builder::with_digital_registers(i
     return *this;
 }
 
+ProcessingElement::builder &ProcessingElement::builder::with_input_source(Source source) {
+    this->source_ = source;
+    return *this;
+}
+
+ProcessingElement::builder &ProcessingElement::builder::with_file_path(const std::string &path) {
+    this->path_ = path;
+    return *this;
+}
+
 ProcessingElement ProcessingElement::builder::build() {
-    return ProcessingElement(rows_, cols_, num_analogue_, num_digital_);
+    return ProcessingElement(rows_, cols_, num_analogue_, num_digital_, source_, path_);
 }

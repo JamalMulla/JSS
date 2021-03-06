@@ -2,57 +2,38 @@
 // Created by jm1417 on 28/01/2021.
 //
 
-#include <iostream>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
+#include <simulator/input/live_input.h>
+#include <simulator/input/image_input.h>
 #include "simulator/base/photodiode.h"
-#include "simulator/base/array.h"
+#include <stdexcept>
 
-Photodiode::Photodiode(int rows, int columns) : rows_(rows), columns_(columns) {
-    this->capture = std::make_shared<cv::VideoCapture>(0,  cv::CAP_ANY);
-    if (!(*this->capture).isOpened()) {
-        std::cerr << "Could not open camera" << std::endl;
-        exit(1);
+Photodiode::Photodiode(int rows, int cols, Source src, const std::string& path) {
+    switch (src) {
+        case LIVE: {
+            input_source = std::make_shared<LiveInput>(rows, cols);
+            break;
+        }
+        case VIDEO: {
+            throw std::invalid_argument("Video support has not been implemented yet");
+        }
+        case IMAGE: {
+            input_source = std::make_shared<ImageInput>(rows, cols, path);
+            break;
+        }
     }
-    this->size = std::make_shared<cv::Size>(columns, rows);
-    this->frame = cv::Mat(rows_, columns_, MAT_TYPE);
-    this->reset();
 }
 
 void Photodiode::reset() {
-    this->frame.setTo(0);
+    input_source->reset();
 }
 
-void Photodiode::read(AnalogueRegister& reg) {
-    #ifdef USE_RUNTIME_CHECKS
-        if (this->capture == nullptr) {
-            std::cerr << "No video capture defined" << std::endl;
-        }
-    #endif
-    cv::Mat temp(rows_, columns_, CV_32S);
-    auto TIME_START = std::chrono::high_resolution_clock::now();
-    *this->capture >> temp;
-    #ifdef USE_RUNTIME_CHECKS
-        if (temp.empty()) {
-            std::cerr << "ERROR! blank frame grabbed" << std::endl;
-        }
-    #endif
-    cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
-
-    int width = temp.cols;
-    int height = temp.rows;
-    cv::Mat cropFrame = temp(cv::Rect((width-height)/2, 0, height-1, height-1));
-    cv::resize(cropFrame, cropFrame, *this->size);
-    cropFrame.convertTo(temp, MAT_TYPE);
-    cv::add(this->frame, temp, this->frame);
-    this->frame.copyTo(reg.value());
-    auto TIME_END = std::chrono::high_resolution_clock::now();
-    long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(TIME_END-TIME_START).count();
-    time_taken = time_in_nano*1e-9;
+void Photodiode::read(Register& reg) {
+    input_source->read(reg);
 }
 
 double Photodiode::last_frame_time() {
-    return time_taken;
+    return input_source->last_frame_time();
 }
 
 void Photodiode::print_stats(const CycleCounter &counter) {

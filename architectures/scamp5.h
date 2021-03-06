@@ -41,6 +41,8 @@ private:
                             .with_cols(SCAMP_HEIGHT)
                             .with_analogue_registers(ANALOGUE_REGISTERS)
                             .with_digital_registers(DIGITAL_REGISTERS)
+                            .with_input_source(Source::IMAGE)
+                            .with_file_path("/home/jm1417/CLionProjects/Simulator/architectures/analognet2/digits/foursi.png")
                             .build();
     Array array = Array(SCAMP_HEIGHT, SCAMP_WIDTH, pe);
 public:
