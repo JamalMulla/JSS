@@ -489,7 +489,7 @@ void SCAMP5::newsblurv(AREG &y, AREG &x, const int iterations) {
 
 void SCAMP5::OR(DREG &d, DREG &d0, DREG &d1) {
     // d := d0 OR d1
-    DigitalBus::OR(d, d0);
+    DigitalBus::OR(d, d0, d1);
     cycles+=4;  // 2 reads, 1 or, 1 write
 }
 
@@ -1219,7 +1219,7 @@ void SCAMP5::scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
     int width = c1 - c0;
     int height = r1 - r0;
     scratch->clear();
-    scratch->value()(cv::Rect(r0, c1, width, height)).setTo(1);
+    scratch->value()(cv::Rect(c0, r0, width, height)).setTo(1);
 }
 
 void SCAMP5::scamp5_draw_line(int r0, int c0, int r1, int c1, bool repeat) {
@@ -1381,6 +1381,21 @@ void SCAMP5::scamp5_scan_events(DREG &dreg, uint8_t *mem, uint16_t max_num, uint
         if (buf_index == 2*max_num) break;
         mem[buf_index++] = p.x;
         mem[buf_index++] = p.y;
+    }
+}
+
+void SCAMP5::scamp5_scan_events(DREG &dreg, uint8_t *buffer, uint16_t max_num, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs,
+                                uint8_t cs) {
+    // assuming 0,0 in top left
+    int buf_index = 0;
+    for (int col = c0; col < c1; col+=cs) {
+        for (int row = r0; row < r1; row+=rs) {
+            if (dreg.value().at<uint8_t>(row, col) > 0) {
+                if (buf_index == 2*max_num) break;
+                buffer[buf_index++] = col;
+                buffer[buf_index++] = row;
+            }
+        }
     }
 }
 

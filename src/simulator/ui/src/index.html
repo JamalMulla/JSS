@@ -28,6 +28,21 @@
         .center {
             text-align: center;
         }
+
+        #bottom_right {
+            position: absolute;
+            right: 0;
+            top: 0;
+            z-index: 99;
+        }
+
+        #indicator {
+            height: 25px;
+            width: 25px;
+            background-color: red;
+            border-radius: 50%;
+            display: inline-block;
+        }
     </style>
 
 </head>
@@ -146,6 +161,9 @@
                 <img class="reg_image" id="S5" src="" alt="Reg R10">
             </div>
         </div>
+    </div>
+    <div id="bottom_right">
+        <span id="indicator"></span>
     </div>
 </body>
 </html>

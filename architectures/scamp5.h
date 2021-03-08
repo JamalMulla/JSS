@@ -42,7 +42,7 @@ private:
                             .with_analogue_registers(ANALOGUE_REGISTERS)
                             .with_digital_registers(DIGITAL_REGISTERS)
                             .with_input_source(Source::IMAGE)
-                            .with_file_path("/home/jm1417/CLionProjects/Simulator/architectures/analognet2/digits/foursi2.png")
+                            .with_file_path("/home/jm1417/CLionProjects/Simulator/architectures/analognet2/digits/eightsi.png")
                             .build();
     Array array = Array(SCAMP_HEIGHT, SCAMP_WIDTH, pe);
 public:
@@ -236,6 +236,7 @@ public:
     void scamp5_scan_areg_mean_8x8(AREG& areg, uint8_t *result8x8);
     void scamp5_scan_dreg(DREG& dreg, uint8_t *mem, uint8_t r0=0, uint8_t r1=255);
     void scamp5_scan_events(DREG& dreg, uint8_t *mem, uint16_t max_num=1000, uint8_t h_dir=0, uint8_t v_dir=0);
+    void scamp5_scan_events(DREG& dreg, uint8_t *buffer, uint16_t max_num, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs, uint8_t cs);
     void scamp5_scan_boundingbox (DREG& dr, uint8_t *vec4v);
 //    void scamp5_output_image(AREG& areg, vs_handle display);
 //    void scamp5_output_image (DREG& dreg, vs_handle display);
