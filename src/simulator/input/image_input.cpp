@@ -18,7 +18,7 @@ ImageInput::ImageInput(int rows, int cols, const std::string &path) :
     cv::Mat img = cv::imread(path, cv::IMREAD_GRAYSCALE);
 
     if (img.empty()) {
-        std::cout << "Could not read the image: " << path << std::endl;
+        std::cout << "Could not read image: " << path << std::endl;
         exit(1);
     }
 
@@ -40,7 +40,7 @@ void ImageInput::read(Register &reg) {
 
     cv::resize(img, img, {cols_, rows_});
 
-    img.convertTo(this->frame, MAT_TYPE);
+    img.convertTo(this->frame, MAT_TYPE, 1, -128);
 
     auto TIME_END = std::chrono::high_resolution_clock::now();
     long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(TIME_END-TIME_START).count();
