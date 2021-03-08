@@ -116,7 +116,7 @@ void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegiste
 
 void AnalogueBus::conditional_positive_set(AnalogueRegister &a, DigitalRegister &b){
     //b := 1 if a > 0
-    cv::threshold(a.value(), b.value(), 0, 255, cv::THRESH_BINARY);
+    cv::threshold(a.value(), b.value(), 0, 1, cv::THRESH_BINARY);
     b.value().convertTo(b.value(), CV_8U);
     a.inc_read();
     b.inc_write();
@@ -126,7 +126,7 @@ void AnalogueBus::conditional_positive_set(AnalogueRegister &a0, AnalogueRegiste
     //b := 1 if (a0 + a1) > 0.
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate);
-    cv::threshold(intermediate, b.value(), 0, 255, cv::THRESH_BINARY);
+    cv::threshold(intermediate, b.value(), 0, 1, cv::THRESH_BINARY);
     b.value().convertTo(b.value(), CV_8U);
     a0.inc_read();
     a1.inc_read();
@@ -138,7 +138,7 @@ void AnalogueBus::conditional_positive_set(AnalogueRegister &a0, AnalogueRegiste
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate);
     cv::add(intermediate, a2.value(), intermediate);
-    threshold(intermediate, b.value(), 0, 255, cv::THRESH_BINARY);
+    threshold(intermediate, b.value(), 0, 1, cv::THRESH_BINARY);
     b.value().convertTo(b.value(), CV_8U);
     a0.inc_read();
     a1.inc_read();

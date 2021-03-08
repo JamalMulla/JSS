@@ -7,6 +7,7 @@
 #include <simulator/input/image_input.h>
 #include "simulator/base/photodiode.h"
 #include <stdexcept>
+#include <simulator/input/video_input.h>
 
 Photodiode::Photodiode(int rows, int cols, Source src, const std::string& path) {
     switch (src) {
@@ -15,7 +16,8 @@ Photodiode::Photodiode(int rows, int cols, Source src, const std::string& path) 
             break;
         }
         case VIDEO: {
-            throw std::invalid_argument("Video support has not been implemented yet");
+            input_source = std::make_shared<VideoInput>(rows, cols, path);
+            break;
         }
         case IMAGE: {
             input_source = std::make_shared<ImageInput>(rows, cols, path);

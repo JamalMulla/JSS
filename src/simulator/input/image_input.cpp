@@ -5,7 +5,6 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <simulator/base/array.h>
-#include <opencv2/opencv.hpp>
 #include <simulator/util/utility.h>
 #include <cmath>
 #include "simulator/input/image_input.h"

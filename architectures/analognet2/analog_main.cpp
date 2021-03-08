@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <simulator/util/utility.h>
 #include <simulator/ui/ui.h>
+#include <random>
 #include "conv_instructions.h"
 #include "fc_weights.h"
 
@@ -130,15 +131,52 @@ int analog_main(){
     regs.push_back(&s.NEWS);
     regs.push_back(&s.FLAG);
     regs.push_back(&s.E);
+
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 gen(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(0, 85); // define the range
+
+    t1_value = 14; //30 // 50
+    t2_value = 84; //15 // 25
+    t3_value = 5; //50 // 75
+
+    // 54, 15, 88 works for 1
+    // 12, 68, 11 works for 3
+    // 28, 89, 15 works for 4
+    // 12, 48, 46 works for 5
+    // 47, 25, 21 works for 8
+
+    // 20, 80, 10 works for 1, 2, 4 with new scan
+
+
+    // 40, 60, 35 works for 5, 8, 9
+    // 12, 48, 30 works for 1, 5, 9
+    // 17, 60, 40 works for 1, 2, 5, 9
+    // 30, 50, 40 works for 1, 5, 8, 9
+    // 12, 90, 45 works for 1, 2, 4, 8
+    // 12, 60, 35 works for 1, 2, 5, 9
+
+    // 14, 84, 5  works for 1, 2, 3, 5, 9 using default scan
+
+    int index = 0;
     // Frame Loop
     while(1){
 //        vs_process_message();
+        std::fill(std::begin(coordinates), std::end(coordinates), 0);
+        std::fill(std::begin(conv_outputs), std::end(conv_outputs), 0);
+        std::fill(std::begin(fc1_result), std::end(fc1_result), 0);
+        std::fill(std::begin(fc2_result), std::end(fc2_result), 0);
+//
+//        t1_value = 30; //30 // 50
+//        t2_value = 15; //15 // 25
+//        t3_value = 40; //50 // 75
+//        t1_value = distr(gen);
+//        t2_value = distr(gen);
+//        t3_value = distr(gen);
 
         // Get GUI values at start of frame
-        threshold_value = 120;
-        t1_value = 40; //30
-        t2_value = 50; //15
-        t3_value = 50; //50
+        threshold_value = 50;
+
         recording_value = 0;
         output_videos_value = 0;
 
@@ -148,17 +186,17 @@ int analog_main(){
 
 //        s.scamp5_get_image(s.A, s.B, 1);
         s.get_image(s.A, s.B);
-        update(ui, regs);
+//        update(ui, regs);
 
         s.add(s.A, s.A, s.D);
         s.CLR(s.R6);
         s.where(s.A);
-        update(ui, regs);
+//        update(ui, regs);
         s.OR(s.R5, s.FLAG, s.R6);
         s.ALL();
         s.NOT(s.R6, s.R5);
         s.CLR(s.R5);
-        update(ui, regs);
+//        update(ui, regs);
 
 
         // Only preserve data in 28 x 28 square, everything else marked as 0
@@ -166,13 +204,13 @@ int analog_main(){
         s.scamp5_draw_begin(s.R5);
         s.scamp5_draw_rect(114, 114, 141, 141);
         s.scamp5_draw_end();
-        update(ui, regs);
+//        update(ui, regs);
 
 
 //        scamp5_kernel_begin();
         s.CLR(s.R7);
         s.AND(s.R7, s.R6, s.R5);
-        update(ui, regs);
+//        update(ui, regs);
 
 //        scamp5_kernel_end();
 
@@ -187,22 +225,22 @@ int analog_main(){
         s.WHERE(s.R7);
         s.mov(s.A, s.D);
         s.ALL();
-        update(ui, regs);
+//        update(ui, regs);
 
 
         s.mov(s.B, s.A);
         s.mov(s.C, s.A);
-        update(ui, regs);
+//        update(ui, regs);
 
 
 //        scamp5_kernel_end();
 
         conv_A(s);
-        update(ui, regs);
+//        update(ui, regs);
         conv_B(s);
-        update(ui, regs);
+//        update(ui, regs);
         conv_C(s);
-        update(ui, regs);
+//        update(ui, regs);
 
         /*
          * Output Thresholding
@@ -220,7 +258,7 @@ int analog_main(){
 //        cv::waitKey();
         s.MOV(s.R8, s.FLAG);
         s.ALL();
-        update(ui, regs);
+//        update(ui, regs);
 
 //        scamp5_kernel_end();
 
@@ -232,7 +270,7 @@ int analog_main(){
         s.where(s.E);
         s.MOV(s.R9, s.FLAG);
         s.ALL();
-        update(ui, regs);
+//        update(ui, regs);
 
 //        scamp5_kernel_end();
 
@@ -248,6 +286,7 @@ int analog_main(){
 
 //        scamp5_kernel_end();
 
+
         ///////////////////////////////////////////////////
         //Processing from here is on microcontroller
         ///////////////////////////////////////////////////
@@ -256,7 +295,7 @@ int analog_main(){
          * COUNT 1s in Convolution Filter Results
          */
         // Process Register A
-//        s.scamp5_scan_events(s.R8, coordinates, 100, 114, 114, 140, 141, 1, 1);
+//        s.scamp5_scan_events(s.R8, coordinates, 100, 114, 114, 141, 141, 1, 1);
         s.scamp5_scan_events(s.R8, coordinates, 100);
         sum_pooling_events<100>(coordinates, &conv_outputs[0]);
 
@@ -279,14 +318,31 @@ int analog_main(){
         fc_2(fc1_result, fc2_result);
 
         // Find max index in results
-        max_index = 0;
+        max_index = 1;
         for (int i=1; i<10; i++){
-            std::cout << "i: " << i << " - " << fc2_result[i] << std::endl;
+//            std::cout << "i: " << i << " - " << fc2_result[i] << std::endl;
             if (fc2_result[i] > fc2_result[max_index])
                 max_index = i;
         }
+//        std::cout << "Max index: " << (int) max_index << std::endl;
+        if (max_index == index) {
+            std::cout << "Matched value: " << (int) max_index << std::endl;
+        } else {
+            std::cout << "No match. Was " << (int) max_index << " but should be " << index << std::endl;
+        }
 
-        std::cout << "Max index: " << (int) max_index << std::endl;
+//        if ((int) max_index == 5) {
+//            std::cout << "Matched value: " << (int) max_index << std::endl;
+//            std::cout << "Found config" << std::endl;
+//            std::cout << "t1_value " << t1_value << std::endl;
+//            std::cout << "t2_value " << t2_value << std::endl;
+//            std::cout << "t3_value " << t3_value << std::endl;
+//            exit(0);
+//        }
+        index++;
+        if (index == 10) {
+            exit(0);
+        }
 
         // increase loop_counter by 1
 //        vs_loop_counter_inc();

@@ -10,11 +10,13 @@
 #include <opencv2/videoio.hpp>
 
 class LiveInput : public InputSource {
-private:
+protected:
     std::unique_ptr<cv::VideoCapture> capture;
     std::unique_ptr<cv::Size> size;
 public:
     LiveInput(int rows, int cols);
+    LiveInput();
+
     void read(Register& reg) override;
     void reset() override;
     double last_frame_time() override;
