@@ -135,9 +135,9 @@ int analog_main(){
 //        vs_process_message();
 
         // Get GUI values at start of frame
-        threshold_value = 50;
-        t1_value = 30; //30
-        t2_value = 15; //15
+        threshold_value = 120;
+        t1_value = 40; //30
+        t2_value = 50; //15
         t3_value = 50; //50
         recording_value = 0;
         output_videos_value = 0;
@@ -213,10 +213,10 @@ int analog_main(){
         s.CLR(s.R8);
         s.sub(s.E, s.A, s.F);
         s.where(s.E);
-//        utility::display_register("FLAG", s.FLAG);
-//        utility::display_register("E", s.E);
-//        utility::display_register("A", s.A);
-//        utility::display_register("F", s.F);
+//        utility::display_register<uint8_t>("FLAG", s.FLAG);
+//        utility::display_register<int16_t>("E", s.E);
+//        utility::display_register<int16_t>("A", s.A);
+//        utility::display_register<int16_t>("F", s.F);
 //        cv::waitKey();
         s.MOV(s.R8, s.FLAG);
         s.ALL();
@@ -256,18 +256,18 @@ int analog_main(){
          * COUNT 1s in Convolution Filter Results
          */
         // Process Register A
-        s.scamp5_scan_events(s.R8, coordinates, 100, 141, 114, 169, 141, 1, 1);
-//        s.scamp5_scan_events(s.R8, coordinates, 100);
+//        s.scamp5_scan_events(s.R8, coordinates, 100, 114, 114, 140, 141, 1, 1);
+        s.scamp5_scan_events(s.R8, coordinates, 100);
         sum_pooling_events<100>(coordinates, &conv_outputs[0]);
 
         // Process Register B
-//        s.scamp5_scan_events(s.R9, coordinates, 100);
-        s.scamp5_scan_events(s.R9, coordinates, 100, 141, 114, 169, 141, 1, 1);
+        s.scamp5_scan_events(s.R9, coordinates, 100);
+//        s.scamp5_scan_events(s.R9, coordinates, 100, 114, 114, 141, 141, 1, 1);
         sum_pooling_events<100>(coordinates, &conv_outputs[12]);
 
         // Process Register C
-//        s.scamp5_scan_events(s.R10, coordinates, 100);
-        s.scamp5_scan_events(s.R10, coordinates, 100, 141, 114, 169, 141, 1, 1);
+        s.scamp5_scan_events(s.R10, coordinates, 100);
+//        s.scamp5_scan_events(s.R10, coordinates, 100, 114, 114, 141, 141, 1, 1);
         sum_pooling_events<100>(coordinates, &conv_outputs[24]);
 
         /*
@@ -281,6 +281,7 @@ int analog_main(){
         // Find max index in results
         max_index = 0;
         for (int i=1; i<10; i++){
+            std::cout << "i: " << i << " - " << fc2_result[i] << std::endl;
             if (fc2_result[i] > fc2_result[max_index])
                 max_index = i;
         }

@@ -1391,7 +1391,7 @@ void SCAMP5::scamp5_scan_events(DREG &dreg, uint8_t *buffer, uint16_t max_num, u
     for (int col = c0; col < c1; col+=cs) {
         for (int row = r0; row < r1; row+=rs) {
             if (dreg.value().at<uint8_t>(row, col) > 0) {
-                if (buf_index == 2*max_num) break;
+                if (buf_index == 2*max_num) return;
                 buffer[buf_index++] = col;
                 buffer[buf_index++] = row;
             }

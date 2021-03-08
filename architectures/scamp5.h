@@ -42,7 +42,7 @@ private:
                             .with_analogue_registers(ANALOGUE_REGISTERS)
                             .with_digital_registers(DIGITAL_REGISTERS)
                             .with_input_source(Source::IMAGE)
-                            .with_file_path("/home/jm1417/CLionProjects/Simulator/architectures/analognet2/digits/eightsi.png")
+                            .with_file_path("/home/jm1417/CLionProjects/Simulator/architectures/analognet2/digits/foursi2.png")
                             .build();
     Array array = Array(SCAMP_HEIGHT, SCAMP_WIDTH, pe);
 public:
