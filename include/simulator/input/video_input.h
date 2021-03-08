@@ -7,9 +7,13 @@
 
 
 #include "input_source.h"
+#include "live_input.h"
 
-class video_input : public InputSource {
-
+class VideoInput : public LiveInput {
+    int frame_count = 0;
+public:
+    VideoInput(int rows, int cols, const std::string& path);
+    void read(Register& reg) override;
 };
 
 

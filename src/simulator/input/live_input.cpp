@@ -7,6 +7,8 @@
 #include <opencv2/opencv.hpp>
 #include "simulator/input/live_input.h"
 
+LiveInput::LiveInput() = default;
+
 LiveInput::LiveInput(int rows, int cols) {
     this->rows_ = rows;
     this->cols_ = cols;
@@ -15,6 +17,7 @@ LiveInput::LiveInput(int rows, int cols) {
         std::cerr << "Could not open camera" << std::endl;
         exit(1);
     }
+
     this->size = std::make_unique<cv::Size>(cols, rows);
     this->frame = cv::Mat(rows, cols, MAT_TYPE);
     this->reset();
@@ -40,7 +43,7 @@ void LiveInput::read(Register &reg) {
     int height = temp.rows;
     cv::Mat cropFrame = temp(cv::Rect((width-height)/2, 0, height-1, height-1));
     cv::resize(cropFrame, cropFrame, *this->size);
-    cropFrame.convertTo(temp, MAT_TYPE);
+    cropFrame.convertTo(temp, MAT_TYPE, 1, -128);
     cv::add(this->frame, temp, this->frame);
     this->frame.copyTo(reg.value());
     auto TIME_END = std::chrono::high_resolution_clock::now();
