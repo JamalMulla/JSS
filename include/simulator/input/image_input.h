@@ -9,6 +9,8 @@
 #include "input_source.h"
 
 class ImageInput : public InputSource {
+private:
+    const std::string path_;
 public:
     ImageInput(int rows, int cols, const std::string& path);
     void read(Register& reg) override;

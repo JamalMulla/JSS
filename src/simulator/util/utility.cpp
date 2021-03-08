@@ -3,10 +3,9 @@
 //
 
 #include <opencv2/highgui.hpp>
-#include <simulator/registers/digital_register.h>
 #include "simulator/util/utility.h"
 
-void utility::remap_image(Register &reg, cv::Mat &dst) {
+void utility::remap_register(Register &reg, cv::Mat &dst) {
     double minVal, maxVal;
     cv::minMaxLoc(reg.value(), &minVal, &maxVal);
     if (maxVal == minVal) {
@@ -17,17 +16,44 @@ void utility::remap_image(Register &reg, cv::Mat &dst) {
 
 void utility::display_register(const std::string &window_name, Register &reg) {
     cv::Mat draw;
-    remap_image(reg, draw);
+    remap_register(reg, draw);
     cv::namedWindow(window_name, cv::WINDOW_NORMAL);
     cv::resizeWindow(window_name, 256, 256);
-    cv::setMouseCallback(window_name, utility::onMouse, &draw);
+    cv::setMouseCallback(window_name, utility::on_mouse_reg, &reg);
     cv::imshow(window_name, draw);
 }
 
-void utility::onMouse(int event, int x, int y, int, void* reg) {
+// TODO reduce duplication
+void utility::remap_mat(cv::Mat &src, cv::Mat &dst) {
+    double minVal, maxVal;
+    cv::minMaxLoc(src, &minVal, &maxVal);
+    if (maxVal == minVal) {
+        minVal = 0;
+    }
+    src.convertTo(dst, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+}
+
+void utility::display_mat(const std::string &window_name, cv::Mat &src) {
+    cv::Mat draw;
+    remap_mat(src, draw);
+    cv::namedWindow(window_name, cv::WINDOW_NORMAL);
+    cv::resizeWindow(window_name, 256, 256);
+    cv::setMouseCallback(window_name, utility::on_mouse_mat, &src);
+    cv::imshow(window_name, draw);
+}
+
+void utility::on_mouse_mat(int event, int x, int y, int, void *src) {
     if ( event != cv::EVENT_MOUSEMOVE ) return;
-    auto* dr = static_cast<DigitalRegister*>(reg);
-    std::cout<<"("<<x<<", "<<y<<") ......  "<< (int) dr->value().at<uint8_t>(y,x) <<'\n';
+    auto* dr = static_cast<cv::Mat*>(src);
+    if (y < 0 || x < 0 || y > dr->rows || x > dr->cols) return;
+    std::cout<<"("<<x<<", "<<y<<") ......  "<< dr->at<int16_t>(y,x) <<'\n';
+}
+
+void utility::on_mouse_reg(int event, int x, int y, int, void* reg) {
+    if ( event != cv::EVENT_MOUSEMOVE ) return;
+    auto* dr = static_cast<Register*>(reg);
+    if (y < 0 || x < 0 || y > dr->value().rows || x > dr->value().cols) return;
+    std::cout<<"("<<x<<", "<<y<<") ......  "<< dr->value().at<int16_t>(y,x) <<'\n';
 }
 
 int utility::normalise(int value, int old_low, int old_high, int new_low, int new_high) {

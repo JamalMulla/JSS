@@ -82,6 +82,12 @@ inline void relu(int vec[SIZE]){
     }
 }
 
+void update(UI& ui, const std::vector<Register*>& reg) {
+    for (auto& r : reg) {
+        ui.display_reg(*r);
+    }
+}
+
 int analog_main(){
     SCAMP5 s;
     UI ui;
@@ -109,16 +115,30 @@ int analog_main(){
     uint8_t max_index;
 
     s.PIX.set_ui_handler(&ui);
-
+    std::vector<Register*> regs;
+    regs.push_back(&s.PIX);
+    regs.push_back(&s.A);
+    regs.push_back(&s.B);
+    regs.push_back(&s.C);
+    regs.push_back(&s.D);
+    regs.push_back(&s.R5);
+    regs.push_back(&s.R6);
+    regs.push_back(&s.R7);
+    regs.push_back(&s.R8);
+    regs.push_back(&s.R9);
+    regs.push_back(&s.R10);
+    regs.push_back(&s.NEWS);
+    regs.push_back(&s.FLAG);
+    regs.push_back(&s.E);
     // Frame Loop
     while(1){
 //        vs_process_message();
 
         // Get GUI values at start of frame
         threshold_value = 50;
-        t1_value = 30;
-        t2_value = 15;
-        t3_value = 50;
+        t1_value = 30; //30
+        t2_value = 15; //15
+        t3_value = 50; //50
         recording_value = 0;
         output_videos_value = 0;
 
@@ -126,30 +146,34 @@ int analog_main(){
         // binarised input image in R6
         s.scamp5_in(s.D, threshold_value);
 
-        s.scamp5_get_image(s.A, s.B, 1);
-        ui.display_reg(s.PIX);
+//        s.scamp5_get_image(s.A, s.B, 1);
+        s.get_image(s.A, s.B);
+        update(ui, regs);
 
         s.add(s.A, s.A, s.D);
         s.CLR(s.R6);
         s.where(s.A);
+        update(ui, regs);
         s.OR(s.R5, s.FLAG, s.R6);
         s.ALL();
         s.NOT(s.R6, s.R5);
         s.CLR(s.R5);
-        ui.display_reg(s.R5);
-        ui.display_reg(s.R6);
+        update(ui, regs);
+
 
         // Only preserve data in 28 x 28 square, everything else marked as 0
         // R7 will contain binary image of input within 28 x 28 square
         s.scamp5_draw_begin(s.R5);
         s.scamp5_draw_rect(114, 114, 141, 141);
         s.scamp5_draw_end();
-        ui.display_reg(s.R5);
+        update(ui, regs);
+
 
 //        scamp5_kernel_begin();
         s.CLR(s.R7);
         s.AND(s.R7, s.R6, s.R5);
-        ui.display_reg(s.R7);
+        update(ui, regs);
+
 //        scamp5_kernel_end();
 
         // Convert binary image into analog image with uniform analog value (120)
@@ -163,18 +187,22 @@ int analog_main(){
         s.WHERE(s.R7);
         s.mov(s.A, s.D);
         s.ALL();
-        ui.display_reg(s.D);
+        update(ui, regs);
+
 
         s.mov(s.B, s.A);
         s.mov(s.C, s.A);
-        ui.display_reg(s.B);
-        ui.display_reg(s.C);
+        update(ui, regs);
+
 
 //        scamp5_kernel_end();
 
         conv_A(s);
+        update(ui, regs);
         conv_B(s);
+        update(ui, regs);
         conv_C(s);
+        update(ui, regs);
 
         /*
          * Output Thresholding
@@ -185,8 +213,15 @@ int analog_main(){
         s.CLR(s.R8);
         s.sub(s.E, s.A, s.F);
         s.where(s.E);
+//        utility::display_register("FLAG", s.FLAG);
+//        utility::display_register("E", s.E);
+//        utility::display_register("A", s.A);
+//        utility::display_register("F", s.F);
+//        cv::waitKey();
         s.MOV(s.R8, s.FLAG);
         s.ALL();
+        update(ui, regs);
+
 //        scamp5_kernel_end();
 
         // AREG B
@@ -197,6 +232,8 @@ int analog_main(){
         s.where(s.E);
         s.MOV(s.R9, s.FLAG);
         s.ALL();
+        update(ui, regs);
+
 //        scamp5_kernel_end();
 
         // AREG C
@@ -207,6 +244,8 @@ int analog_main(){
         s.where(s.E);
         s.MOV(s.R10, s.FLAG);
         s.ALL();
+        update(ui, regs);
+
 //        scamp5_kernel_end();
 
         ///////////////////////////////////////////////////
@@ -217,15 +256,18 @@ int analog_main(){
          * COUNT 1s in Convolution Filter Results
          */
         // Process Register A
-        s.scamp5_scan_events(s.R8, coordinates, 100);
+        s.scamp5_scan_events(s.R8, coordinates, 100, 141, 114, 169, 141, 1, 1);
+//        s.scamp5_scan_events(s.R8, coordinates, 100);
         sum_pooling_events<100>(coordinates, &conv_outputs[0]);
 
         // Process Register B
-        s.scamp5_scan_events(s.R9, coordinates, 100);
+//        s.scamp5_scan_events(s.R9, coordinates, 100);
+        s.scamp5_scan_events(s.R9, coordinates, 100, 141, 114, 169, 141, 1, 1);
         sum_pooling_events<100>(coordinates, &conv_outputs[12]);
 
         // Process Register C
-        s.scamp5_scan_events(s.R10, coordinates, 100);
+//        s.scamp5_scan_events(s.R10, coordinates, 100);
+        s.scamp5_scan_events(s.R10, coordinates, 100, 141, 114, 169, 141, 1, 1);
         sum_pooling_events<100>(coordinates, &conv_outputs[24]);
 
         /*
@@ -243,24 +285,7 @@ int analog_main(){
                 max_index = i;
         }
 
-        if(!recording_value){
-            std::cout << "Max index: " << (int) max_index << std::endl;
-        }
-
-        // Output images to GUI
-//        ui.display_reg(s.PIX);
-        ui.display_reg(s.A);
-        ui.display_reg(s.B);
-        ui.display_reg(s.C);
-        ui.display_reg(s.R5);
-        ui.display_reg(s.R6);
-        ui.display_reg(s.R7);
-        ui.display_reg(s.R8);
-        ui.display_reg(s.R9);
-        ui.display_reg(s.R10);
-        ui.display_reg(s.NEWS);
-
-
+        std::cout << "Max index: " << (int) max_index << std::endl;
 
         // increase loop_counter by 1
 //        vs_loop_counter_inc();

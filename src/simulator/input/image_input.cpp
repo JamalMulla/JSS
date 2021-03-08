@@ -10,7 +10,8 @@
 #include <cmath>
 #include "simulator/input/image_input.h"
 
-ImageInput::ImageInput(int rows, int cols, const std::string &path) {
+ImageInput::ImageInput(int rows, int cols, const std::string &path) :
+    path_(path) {
     this->rows_ = rows;
     this->cols_ = cols;
 
@@ -26,29 +27,29 @@ ImageInput::ImageInput(int rows, int cols, const std::string &path) {
 
     this->frame = cv::Mat(rows, cols, MAT_TYPE);
     this->reset();
+}
 
+void ImageInput::read(Register &reg) {
     auto TIME_START = std::chrono::high_resolution_clock::now();
+    cv::Mat img = cv::imread(this->path_, cv::IMREAD_GRAYSCALE);
 
     if (img.rows > rows_ || img.cols > cols_) {
         //TODO fix this scaling so it's dependent on which axis is bigger
-        img = img(cv::Rect((cols_ - rows_)/2, 0, cols_-1, cols-1));
+        img = img(cv::Rect((cols_ - rows_)/2, 0, cols_-1, cols_-1));
     }
 
-    cv::resize(img, img, {cols, rows});
+    cv::resize(img, img, {cols_, rows_});
 
     img.convertTo(this->frame, MAT_TYPE);
 
     auto TIME_END = std::chrono::high_resolution_clock::now();
     long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(TIME_END-TIME_START).count();
     time_taken = time_in_nano*1e-9;
-}
-
-void ImageInput::read(Register &reg) {
     this->frame.copyTo(reg.value());
 }
 
 void ImageInput::reset() {
-    // TODO should we do anything here?
+    this->frame.setTo(0);
 }
 
 double ImageInput::last_frame_time() {

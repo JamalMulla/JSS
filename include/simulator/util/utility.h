@@ -11,9 +11,12 @@
 namespace utility {
 
     // Vision
-    void remap_image(Register& reg, cv::Mat& dst);
+    void remap_register(Register& reg, cv::Mat& dst);
     void display_register(const std::string& window_name, Register& reg);
-    void onMouse(int event, int x, int y, int, void* reg);
+    void remap_mat(cv::Mat& src, cv::Mat& dst);
+    void display_mat(const std::string& window_name, cv::Mat& src);
+    void on_mouse_reg(int event, int x, int y, int, void* reg);
+    void on_mouse_mat(int event, int x, int y, int, void* src);
     int normalise(int value, int old_low, int old_high, int new_low, int new_high);
 
 
