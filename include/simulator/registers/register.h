@@ -12,6 +12,8 @@
 
 typedef cv::Mat Data;
 
+class UI;
+
 class Register : public Component {
 private:
     UI* ui = nullptr;

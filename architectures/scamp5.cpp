@@ -1016,7 +1016,7 @@ uint8_t SCAMP5::scamp5_global_sum_sparse(AREG &areg, uint8_t r, uint8_t c, uint8
 }
 
 void SCAMP5::scamp5_shift(DREG &dreg, int h, int v, const int boundary) {
-    // shift an DREG image
+    // shift a DREG image
 }
 
 int SCAMP5::scamp5_global_or(DREG &dreg, uint8_t r, uint8_t c, uint8_t rx, uint8_t cx) {
