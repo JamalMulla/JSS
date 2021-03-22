@@ -25,7 +25,7 @@ ImageInput::ImageInput(int rows, int cols, const std::string &path) :
     std::cout << "Image is of type: " << t_s << std::endl;
 
     this->frame = cv::Mat(rows, cols, MAT_TYPE);
-    this->reset();
+    this->frame.setTo(0);
 }
 
 void ImageInput::read(Register &reg) {

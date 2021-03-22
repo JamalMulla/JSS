@@ -480,44 +480,43 @@ void SCAMP5::newsblurv(AREG &y, AREG &x, const int iterations) {
 
 void SCAMP5::OR(DREG &d, DREG &d0, DREG &d1) {
     // d := d0 OR d1
-    DigitalBus::OR(d, d0, d1);
+    this->pe.local_read_bus.OR(d, d0, d1);
     cycles+=4;  // 2 reads, 1 or, 1 write
 }
 
 void SCAMP5::OR(DREG &d, DREG &d0, DREG &d1, DREG &d2) {
     // d := d0 OR d1 OR d2
-    DigitalBus::OR(d, d0, d1, d2);
+    this->pe.local_read_bus.OR(d, d0, d1, d2);
     cycles+=5;  // 3 reads, 1 or, 1 write
 }
 
 void SCAMP5::OR(DREG &d, DREG &d0, DREG &d1, DREG &d2, DREG &d3) {
     // d := d0 OR d1 OR d2 OR d3
-    DigitalBus::OR(d, d0, d1, d2, d3);
+    this->pe.local_read_bus.OR(d, d0, d1, d2, d3);
     cycles+=6;  // 4 reads, 1 or, 1 write
 }
 
 void SCAMP5::NOT(DREG &d, DREG &d0) {
     // d := NOT d0
-    DigitalBus::NOT(d, d0);
+    this->pe.local_read_bus.NOT(d, d0);
     cycles+=3;  // 1 read, 1 op, 1 write
-
 }
 
 void SCAMP5::NOR(DREG &d, DREG &d0, DREG &d1) {
     // d := NOR(d0 OR d1)
-    DigitalBus::NOR(d, d0, d1);
+    this->pe.local_read_bus.NOR(d, d0, d1);
     cycles+=5;  // 2 reads, 2 op, 1 write
 }
 
 void SCAMP5::NOR(DREG &d, DREG &d0, DREG &d1, DREG &d2) {
     // d := NOR(d0 OR d1 OR d2)
-    DigitalBus::NOR(d, d0, d1, d2);
+    this->pe.local_read_bus.NOR(d, d0, d1, d2);
     cycles+=6;  // 3 reads, 2 op, 1 write
 }
 
 void SCAMP5::NOR(DREG &d, DREG &d0, DREG &d1, DREG &d2, DREG &d3) {
     // d := NOTRd0 OR d1 OR d2 OR d3)
-    DigitalBus::NOR(d, d0, d1, d2,d3);
+    this->pe.local_read_bus.NOR(d, d0, d1, d2, d3);
     cycles+=7;  // 4 reads, 2 op, 1 write
 }
 
@@ -682,19 +681,19 @@ void SCAMP5::CLR(DREG &d0, DREG &d1, DREG &d2, DREG &d3) {
 
 void SCAMP5::MOV(DREG &d, DREG &d0) {
     // d := d0
-    DigitalBus::MOV(d, d0);
+    this->pe.local_read_bus.MOV(d, d0);
     cycles+=2;  // 1 read, 1 write
 }
 
 void SCAMP5::MUX(DREG &Rl, DREG &Rx, DREG &Ry, DREG &Rz) {
     // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
-    DigitalBus::MUX(Rl, Rx, Ry, Rz);
+    this->pe.local_read_bus.MUX(Rl, Rx, Ry, Rz);
     cycles+=4;  // 3 reads, 1 write, some op?
 }
 
 void SCAMP5::CLR_IF(DREG &Rl, DREG &Rx) {
     // Rl := 0 IF Rx = 1, Rl := Rl IF Rx = 0
-    DigitalBus::CLR_IF(Rl, Rx);
+    this->pe.local_read_bus.CLR_IF(Rl, Rx);
     cycles+=2;  // 1 read, up to 1 write, some op for if?
 }
 

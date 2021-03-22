@@ -20,7 +20,7 @@ LiveInput::LiveInput(int rows, int cols) {
 
     this->size = std::make_unique<cv::Size>(cols, rows);
     this->frame = cv::Mat(rows, cols, MAT_TYPE);
-    this->reset();
+    this->frame.setTo(0);
 }
 
 void LiveInput::read(Register &reg) {
