@@ -15,7 +15,7 @@ VideoInput::VideoInput(int rows, int cols, const std::string &path) {
     }
     this->size = std::make_unique<cv::Size>(cols, rows);
     this->frame = cv::Mat(rows, cols, MAT_TYPE);
-    this->reset();
+    this->frame.setTo(0);
 }
 
 void VideoInput::read(Register &reg) {

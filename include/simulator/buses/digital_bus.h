@@ -9,44 +9,44 @@
 
 class DigitalBus {
 public:
-    static void OR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1);
-    static void OR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2);
-    static void OR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& d3);
-    static void NOT(DigitalRegister& d, DigitalRegister& d0);
-    static void NOR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1);
-    static void NOR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2);
-    static void NOR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& d3);
-    static void NOT(DigitalRegister& Rl);
-    static void OR(DigitalRegister& Rl, DigitalRegister& Rx);
-    static void NOR(DigitalRegister& Rl, DigitalRegister& Rx);
-    static void AND(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry);
-    static void NAND(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry);
-    static void IMP(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry);
-    static void NIMP(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry);
-    static void XOR(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry);
-    static void MOV(DigitalRegister& d, DigitalRegister& d0);
-    static void MUX(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& Rz);
-    static void CLR_IF(DigitalRegister& Rl, DigitalRegister& Rx);
+    void OR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1);
+    void OR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2);
+    void OR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& d3);
+    void NOT(DigitalRegister& d, DigitalRegister& d0);
+    void NOR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1);
+    void NOR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2);
+    void NOR(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& d3);
+    void NOT(DigitalRegister& Rl);
+    void OR(DigitalRegister& Rl, DigitalRegister& Rx);
+    void NOR(DigitalRegister& Rl, DigitalRegister& Rx);
+    void AND(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry);
+    void NAND(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry);
+    void IMP(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry);
+    void NIMP(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry);
+    void XOR(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry);
+    void MOV(DigitalRegister& d, DigitalRegister& d0);
+    void MUX(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& Rz);
+    void CLR_IF(DigitalRegister& Rl, DigitalRegister& Rx);
 
     // Digital Logic Operations
-    static void OR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& FLAG);
-    static void OR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& FLAG);
-    static void OR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& d3, DigitalRegister& FLAG);
-    static void NOT_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& FLAG);
-    static void NOR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& FLAG);
-    static void NOR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& FLAG);
-    static void NOR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& d3, DigitalRegister& FLAG);
-    static void NOT_MASKED(DigitalRegister& Rl, DigitalRegister& FLAG);
-    static void OR_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
-    static void NOR_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
-    static void AND_MASKED(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
-    static void NAND_MASKED(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
-    static void IMP_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
-    static void NIMP_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
-    static void XOR_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
-    static void MOV_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& FLAG);
-    static void MUX_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& Rz, DigitalRegister& FLAG);
-    static void CLR_IF_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
+    void OR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& FLAG);
+    void OR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& FLAG);
+    void OR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& d3, DigitalRegister& FLAG);
+    void NOT_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& FLAG);
+    void NOR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& FLAG);
+    void NOR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& FLAG);
+    void NOR_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& d1, DigitalRegister& d2, DigitalRegister& d3, DigitalRegister& FLAG);
+    void NOT_MASKED(DigitalRegister& Rl, DigitalRegister& FLAG);
+    void OR_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
+    void NOR_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
+    void AND_MASKED(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
+    void NAND_MASKED(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
+    void IMP_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
+    void NIMP_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
+    void XOR_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& FLAG);
+    void MOV_MASKED(DigitalRegister& d, DigitalRegister& d0, DigitalRegister& FLAG);
+    void MUX_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& Rz, DigitalRegister& FLAG);
+    void CLR_IF_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
 
 };
 
