@@ -5,7 +5,7 @@
 #include <opencv2/highgui.hpp>
 #include "simulator/util/utility.h"
 
-void utility::remap_register(Register &reg, cv::Mat &dst) {
+void utility::remap_register(Register &reg, cv::UMat &dst) {
     double minVal, maxVal;
     cv::minMaxLoc(reg.value(), &minVal, &maxVal);
     if (maxVal == minVal) {
@@ -15,7 +15,7 @@ void utility::remap_register(Register &reg, cv::Mat &dst) {
 }
 
 // TODO reduce duplication
-void utility::remap_mat(cv::Mat &src, cv::Mat &dst) {
+void utility::remap_mat(cv::UMat &src, cv::UMat &dst) {
     double minVal, maxVal;
     cv::minMaxLoc(src, &minVal, &maxVal);
     if (maxVal == minVal) {

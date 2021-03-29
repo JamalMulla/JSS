@@ -14,7 +14,7 @@ ImageInput::ImageInput(int rows, int cols, const std::string &path) :
     this->rows_ = rows;
     this->cols_ = cols;
 
-    cv::Mat img = cv::imread(path, cv::IMREAD_GRAYSCALE);
+    cv::UMat img = cv::imread(path, cv::IMREAD_GRAYSCALE).getUMat(cv::ACCESS_READ);
 
     if (img.empty()) {
         std::cout << "Could not read image: " << path << std::endl;
@@ -24,13 +24,13 @@ ImageInput::ImageInput(int rows, int cols, const std::string &path) :
     std::string t_s = utility::opencv_type_to_str(img.type());
     std::cout << "Image is of type: " << t_s << std::endl;
 
-    this->frame = cv::Mat(rows, cols, MAT_TYPE);
+    this->frame = cv::UMat(rows, cols, MAT_TYPE);
     this->frame.setTo(0);
 }
 
 void ImageInput::read(Register &reg) {
     auto TIME_START = std::chrono::high_resolution_clock::now();
-    cv::Mat img = cv::imread(this->path_, cv::IMREAD_GRAYSCALE);
+    cv::UMat img = cv::imread(this->path_, cv::IMREAD_GRAYSCALE).getUMat(cv::ACCESS_READ);
 
     if (img.rows > rows_ || img.cols > cols_) {
         //TODO fix this scaling so it's dependent on which axis is bigger

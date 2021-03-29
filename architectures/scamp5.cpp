@@ -389,7 +389,7 @@ void SCAMP5::blurh(AREG &a, AREG &a0) {
     // row vector for x direction which is horizontal?
     // blur a0 into a
     float gaussian_1d[10] = {0.006, 0.061, 0.242, 0.383, 0.242, 0.061, 0.006};
-    cv::Mat horizontal_kernel = cv::Mat(1, 6, CV_32F, gaussian_1d);
+    cv::UMat horizontal_kernel = cv::Mat(1, 6, CV_32F, gaussian_1d).getUMat(cv::ACCESS_READ);
 
     cv::filter2D(a0.value(), a.value(), -1, horizontal_kernel);
     cv::bitwise_not(a.value(), a.value());
@@ -400,7 +400,7 @@ void SCAMP5::blurv(AREG &a, AREG &a0) {
     // analog asynchronized blur, vertical only
     // blur a0 into a
     float gaussian_1d[10] = {0.006, 0.061, 0.242, 0.383, 0.242, 0.061, 0.006};
-    cv::Mat vertical_kernel = cv::Mat(6, 1, CV_32F, gaussian_1d);
+    cv::UMat vertical_kernel = cv::Mat(6, 1, CV_32F, gaussian_1d).getUMat(cv::ACCESS_READ);
 
     cv::filter2D(a0.value(), a.value(), -1, vertical_kernel);
     cv::bitwise_not(a.value(), a.value());
@@ -442,7 +442,7 @@ void SCAMP5::gaussv(AREG &y, AREG &x, const int iterations) {
 void SCAMP5::newsblur(AREG &y, AREG &x, const int iterations) {
     // blur x into y with constant number of iterations using neighbour mixing (x and y can be same AREG)
     float data[3][3] = {{0,1,0},{1,0,1},{0,1,0}};
-    cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
+    cv::UMat neighbour_kernel = cv::Mat(3, 3, CV_32F, data).getUMat(cv::ACCESS_READ);
 
     bus(NEWS, x);
     cv::filter2D(NEWS.value(), y.value(), -1, neighbour_kernel);
@@ -458,7 +458,7 @@ void SCAMP5::newsblur(AREG &y, AREG &x, const int iterations) {
 void SCAMP5::newsblurh(AREG &y, AREG &x, const int iterations) {
     // horizontally blur x into y with constant number of iterations using neighbour mixing (x and y can be same AREG)
     float data[3][3] = {{0,0,0},{1,0,1},{0,0,0}};
-    cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
+    cv::UMat neighbour_kernel = cv::Mat(3, 3, CV_32F, data).getUMat(cv::ACCESS_READ);
 
     bus(NEWS, x);
     cv::filter2D(NEWS.value(), y.value(), -1, neighbour_kernel);
@@ -474,7 +474,7 @@ void SCAMP5::newsblurh(AREG &y, AREG &x, const int iterations) {
 void SCAMP5::newsblurv(AREG &y, AREG &x, const int iterations) {
     // vertically blur x into y with constant number of iterations using neighbour mixing (x and y can be same AREG)
     float data[3][3] = {{0,1,0},{0,0,0},{0,1,0}};
-    cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
+    cv::UMat neighbour_kernel = cv::Mat(3, 3, CV_32F, data).getUMat(cv::ACCESS_READ);
 
     bus(NEWS, x);
     cv::filter2D(NEWS.value(), y.value(), -1, neighbour_kernel);
@@ -940,7 +940,7 @@ void SCAMP5::scamp5_diffuse(AREG &target, int iterations, bool vertical, bool ho
 uint8_t SCAMP5::scamp5_read_areg(AREG &areg, uint8_t r, uint8_t c) {
     // read a single pixel
     // TODO check that the value is properly mapped to uint8_t from CV_16U
-    return areg.value().at<uint8_t>(r, c);
+    return areg.value().getMat(cv::ACCESS_READ).at<uint8_t>(r, c);
 }
 
 uint32_t SCAMP5::scamp5_global_sum_16(AREG &areg, uint8_t *result16v) {
@@ -1008,7 +1008,7 @@ uint8_t SCAMP5::scamp5_global_sum_sparse(AREG &areg, uint8_t r, uint8_t c, uint8
     for (unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
         for (unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
             if (((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                sum += areg.value().at<uint8_t>(row_index, col_index);
+                sum += areg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index);
             }
         }
     }
@@ -1036,7 +1036,7 @@ int SCAMP5::scamp5_global_or(DREG &dreg, uint8_t r, uint8_t c, uint8_t rx, uint8
     for (unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
         for (unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
             if (((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                val |= dreg.value().at<uint8_t>(row_index, col_index);
+                val |= dreg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index);
             }
         }
     }
@@ -1076,10 +1076,10 @@ void SCAMP5::scamp5_flood(DREG &dreg_target, DREG &dreg_mask, int boundary, int 
     uint8_t fillValue = 1;
 
     // Add additional pixel to each side
-    cv::Mat mask;
+    cv::UMat mask;
     cv::copyMakeBorder(dreg_mask.value(), mask, 1, 1, 1, 1, cv::BORDER_REPLICATE);
 
-    dreg_mask.value() = 1 - dreg_mask.value();
+    cv::subtract(1, dreg_mask.value(), dreg_mask.value());
 
     for (auto& seed : seeds){
         cv::floodFill(dreg_mask.value(), mask, seed, cv::Scalar(1) ,nullptr, cv::Scalar(0), cv::Scalar(1), 4);
@@ -1091,7 +1091,7 @@ void SCAMP5::scamp5_flood(DREG &dreg_target, DREG &dreg_mask, int boundary, int 
 void SCAMP5::scamp5_load_point(DREG &dr, uint8_t r, uint8_t c) {
     // set a single pixel on a DREG image to 1, the rest to 0
     dr.value().setTo(0);
-    dr.value().at<uint8_t>(r, c) = 1;
+    dr.value().getMat(cv::ACCESS_READ).at<uint8_t>(r, c) = 1;
 }
 
 void SCAMP5::scamp5_load_rect(DREG &dr, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
@@ -1131,7 +1131,7 @@ void SCAMP5::scamp5_load_pattern(DREG &dr, uint8_t r, uint8_t c, uint8_t rx, uin
     for (unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
         for (unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
             if (((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                dr.value().at<uint8_t>(row_index, col_index) = 1;
+                dr.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
@@ -1160,7 +1160,7 @@ void SCAMP5::scamp5_select_col(uint8_t c) {
     for (unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
         for (unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
             if (col_index == c) {
-                SELECT.value().at<uint8_t>(row_index, col_index) = 1;
+                SELECT.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
@@ -1171,7 +1171,7 @@ void SCAMP5::scamp5_select_row(uint8_t r) {
     for (unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
         for (unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
             if (row_index == r) {
-                SELECT.value().at<uint8_t>(row_index, col_index) = 1;
+                SELECT.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
@@ -1197,7 +1197,7 @@ void SCAMP5::scamp5_draw_end() {
 
 void SCAMP5::scamp5_draw_pixel(uint8_t r, uint8_t c) {
     // draw a point, wrap around if it's outside the border
-    scratch->value().at<uint8_t>(r%SCAMP_HEIGHT, c%SCAMP_WIDTH) = 1;
+    scratch->value().getMat(cv::ACCESS_READ).at<uint8_t>(r%SCAMP_HEIGHT, c%SCAMP_WIDTH) = 1;
 }
 
 bool SCAMP5::scamp5_draw_point(int r, int c) {
@@ -1206,7 +1206,7 @@ bool SCAMP5::scamp5_draw_point(int r, int c) {
     if (r >= SCAMP_HEIGHT || c >= SCAMP_WIDTH) {
         return false;
     }
-    scratch->value().at<uint8_t>(r, c) = 1;
+    scratch->value().getMat(cv::ACCESS_READ).at<uint8_t>(r, c) = 1;
     return true;
 }
 
@@ -1251,10 +1251,10 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
     int x = 0;
     int y = radius;
 
-    scratch->value().at<uint8_t>(y0 + radius, x0) = 1;
-    scratch->value().at<uint8_t>(y0 - radius, x0) = 1;
-    scratch->value().at<uint8_t>(y0, x0 + radius) = 1;
-    scratch->value().at<uint8_t>(y0, x0 - radius) = 1;
+    scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + radius, x0) = 1;
+    scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - radius, x0) = 1;
+    scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0, x0 + radius) = 1;
+    scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0, x0 - radius) = 1;
 
     while (x < y) {
         if (f >= 0) {
@@ -1267,21 +1267,21 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
         ddf_x += 2;
         f += ddf_x;
 
-        scratch->value().at<uint8_t>(y0 + y, x0 + x) = 1;
-        scratch->value().at<uint8_t>(y0 + y, x0 - x) = 1;
-        scratch->value().at<uint8_t>(y0 - y, x0 + x) = 1;
-        scratch->value().at<uint8_t>(y0 - y, x0 - x) = 1;
-        scratch->value().at<uint8_t>(y0 + x, x0 + y) = 1;
-        scratch->value().at<uint8_t>(y0 + x, x0 - y) = 1;
-        scratch->value().at<uint8_t>(y0 - x, x0 + y) = 1;
-        scratch->value().at<uint8_t>(y0 - x, x0 - y) = 1;
+        scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + y, x0 + x) = 1;
+        scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + y, x0 - x) = 1;
+        scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - y, x0 + x) = 1;
+        scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - y, x0 - x) = 1;
+        scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + x, x0 + y) = 1;
+        scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + x, x0 - y) = 1;
+        scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - x, x0 + y) = 1;
+        scratch->value().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - x, x0 - y) = 1;
     }
 }
 
 void SCAMP5::scamp5_draw_negate() {
     // do a binary inversion of the DREG image.
     // TODO abstraction
-    scratch->value() = 1 - scratch->value();
+    cv::subtract(1, scratch->value(), scratch->value());
 }
 
 // Image Readout
@@ -1303,7 +1303,7 @@ void SCAMP5::scamp5_scan_areg(AREG &areg, uint8_t *buffer, uint8_t r0, uint8_t c
     int buf_index = 0;
     for (int col = c0; col < c1; col+=cs) {
         for (int row = r0; row < r1; row+=rs) {
-            buffer[buf_index++] = areg.value().at<uint8_t>(row, col);
+            buffer[buf_index++] = areg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row, col);
         }
     }
 }
@@ -1318,7 +1318,7 @@ void SCAMP5::scamp5_scan_areg_8x8(AREG &areg, uint8_t *result8x8) {
     int rs = SCAMP_HEIGHT / 8;
     for (int col = 0; col < SCAMP_WIDTH; col+=cs) {
         for (int row = 0; row < SCAMP_HEIGHT; row+=rs) {
-            result8x8[buf_index++] = areg.value().at<uint8_t>(row, col);
+            result8x8[buf_index++] = areg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row, col);
         }
     }
 }
@@ -1350,14 +1350,14 @@ void SCAMP5::scamp5_scan_dreg(DREG &dreg, uint8_t *mem, uint8_t r0, uint8_t r1) 
     for (uint32_t row_index = r0; row_index <= r1; row_index++) {
         // Read 8 values at a time to make up a byte
         for (int col_index = 0; col_index < SCAMP_WIDTH; col_index+=8) {
-            uint8_t b0 = dreg.value().at<uint8_t>(row_index, col_index);
-            uint8_t b1 = dreg.value().at<uint8_t>(row_index, col_index+1);
-            uint8_t b2 = dreg.value().at<uint8_t>(row_index, col_index+2);
-            uint8_t b3 = dreg.value().at<uint8_t>(row_index, col_index+3);
-            uint8_t b4 = dreg.value().at<uint8_t>(row_index, col_index+4);
-            uint8_t b5 = dreg.value().at<uint8_t>(row_index, col_index+5);
-            uint8_t b6 = dreg.value().at<uint8_t>(row_index, col_index+6);
-            uint8_t b7 = dreg.value().at<uint8_t>(row_index, col_index+7);
+            uint8_t b0 = dreg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index);
+            uint8_t b1 = dreg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index+1);
+            uint8_t b2 = dreg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index+2);
+            uint8_t b3 = dreg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index+3);
+            uint8_t b4 = dreg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index+4);
+            uint8_t b5 = dreg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index+5);
+            uint8_t b6 = dreg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index+6);
+            uint8_t b7 = dreg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index+7);
             uint8_t value = (b0 << 7) | (b1 << 6) | (b2 << 5) | (b3 << 4) | (b4 << 3) | (b5 << 2) | (b6 << 1) | (b7 << 0);
             mem[buf_index++] = value;
         }
@@ -1391,7 +1391,7 @@ void SCAMP5::scamp5_scan_events(DREG &dreg, uint8_t *buffer, uint16_t max_num, u
     int buf_index = 0;
     for (int col = c0; col < c1; col+=cs) {
         for (int row = r0; row < r1; row+=rs) {
-            if (dreg.value().at<uint8_t>(row, col) > 0) {
+            if (dreg.value().getMat(cv::ACCESS_READ).at<uint8_t>(row, col) > 0) {
                 if (buf_index == 2*max_num) return;
                 buffer[buf_index++] = col;
                 buffer[buf_index++] = row;

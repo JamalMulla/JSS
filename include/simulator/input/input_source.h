@@ -17,7 +17,7 @@ enum Source {
 
 class InputSource {
 protected:
-    cv::Mat frame;
+    cv::UMat frame;
     double time_taken = 0;
     int rows_, cols_ = 0;
 

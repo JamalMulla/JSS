@@ -10,7 +10,7 @@
 #include "simulator/base/component.h"
 #include "simulator/memory/memory_type.h"
 
-typedef cv::Mat Data;
+typedef cv::UMat Data;
 
 class UI;
 
@@ -20,10 +20,10 @@ private:
 protected:
     MemoryType memory_type_;
     Data value_;
-    cv::Mat read_counter;           // Number of reads for each PE
-    cv::Mat write_counter;          // Number of writes
-    cv::Mat read_energy_counter;    // Energy consumed by reads
-    cv::Mat write_energy_counter;   // Energy consumed by writes
+    cv::UMat read_counter;           // Number of reads for each PE
+    cv::UMat write_counter;          // Number of writes
+    cv::UMat read_energy_counter;    // Energy consumed by reads
+    cv::UMat write_energy_counter;   // Energy consumed by writes
     int reads;                      // Number of reads not per PE but across the array
     int writes;                     // Number of writes not per PE but across the array
 

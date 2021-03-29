@@ -19,7 +19,7 @@ LiveInput::LiveInput(int rows, int cols) {
     }
 
     this->size = std::make_unique<cv::Size>(cols, rows);
-    this->frame = cv::Mat(rows, cols, MAT_TYPE);
+    this->frame = cv::UMat(rows, cols, MAT_TYPE);
     this->frame.setTo(0);
 }
 
@@ -29,7 +29,7 @@ void LiveInput::read(Register &reg) {
                 std::cerr << "No video capture defined" << std::endl;
         }
     #endif
-    cv::Mat temp(rows_, cols_, CV_32S);
+    cv::UMat temp(rows_, cols_, CV_32S);
     auto TIME_START = std::chrono::high_resolution_clock::now();
     *this->capture >> temp;
     #ifdef USE_RUNTIME_CHECKS
@@ -41,7 +41,7 @@ void LiveInput::read(Register &reg) {
 
     int width = temp.cols;
     int height = temp.rows;
-    cv::Mat cropFrame = temp(cv::Rect((width-height)/2, 0, height-1, height-1));
+    cv::UMat cropFrame = temp(cv::Rect((width-height)/2, 0, height-1, height-1));
     cv::resize(cropFrame, cropFrame, *this->size);
     cropFrame.convertTo(temp, MAT_TYPE, 1, -128);
     cv::add(this->frame, temp, this->frame);

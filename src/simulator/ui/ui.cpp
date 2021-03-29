@@ -79,7 +79,7 @@ void UI::send_string(const std::string &data) const {
 
 void UI::display_reg(Register& reg)  {
     if (wss.empty()) return;
-    cv::Mat remapped;
+    cv::UMat remapped;
     utility::remap_register(reg, remapped);
     std::vector<uchar> buf;
     cv::imencode(".jpg", remapped, buf);
