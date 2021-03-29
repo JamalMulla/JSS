@@ -38,6 +38,7 @@ double Photodiode::last_frame_time() {
     return input_source->last_frame_time();
 }
 
+#ifdef TRACK_STATISTICS
 void Photodiode::print_stats(const CycleCounter &counter) {
 
 }
@@ -45,6 +46,9 @@ void Photodiode::print_stats(const CycleCounter &counter) {
 void Photodiode::write_stats(const CycleCounter &counter, json& j) {
 
 }
+#endif
+
+
 
 Photodiode::~Photodiode() {
 }

@@ -12,9 +12,10 @@
 using json = nlohmann::json;
 class Component {
 public:
-
+#ifdef TRACK_STATISTICS
     virtual void print_stats(const CycleCounter& counter) = 0;
     virtual void write_stats(const CycleCounter& counter, json& j) = 0;
+#endif
 };
 
 

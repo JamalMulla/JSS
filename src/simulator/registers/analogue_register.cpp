@@ -11,18 +11,24 @@ AnalogueRegister::AnalogueRegister(int rows, int columns)
         : Register(rows, columns, MAT_TYPE, SI()) {}
 
 Data AnalogueRegister::read() {
+#ifdef TRACK_STATISTICS
     this->inc_read();
+#endif
     return this->value();
 }
 
 void AnalogueRegister::write(Data data) {
     this->value().setTo(data);
+#ifdef TRACK_STATISTICS
     this->inc_write();
+#endif
 }
 
 void AnalogueRegister::write(int data) {
     this->value().setTo(data);
+#ifdef TRACK_STATISTICS
     this->inc_read();
+#endif
 }
 
 AnalogueRegister &AnalogueRegister::operator()(const std::string &name) {
@@ -30,6 +36,7 @@ AnalogueRegister &AnalogueRegister::operator()(const std::string &name) {
     return *this;
 }
 
+#ifdef TRACK_STATISTICS
 void AnalogueRegister::print_stats(const CycleCounter &counter) {
     std::cout << counter.to_seconds(stats::CLOCK_RATE) << std::endl;
 }
@@ -61,3 +68,5 @@ void AnalogueRegister::write_stats(const CycleCounter &counter, json &j) {
             };
     j.push_back(reg_stats);
 }
+#endif
+

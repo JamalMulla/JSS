@@ -17,6 +17,22 @@ string(
 
 add_compile_options("${_opts}")
 
+
+option(WITH_RUNTIME_CHECKS "Check arguments and emit warnings" OFF)
+option(WITH_STATISTICS "Tracks statistics such as register reads and energy use" OFF)
+if (WITH_RUNTIME_CHECKS)
+    message(STATUS "With runtime checks")
+    add_definitions(-DUSE_RUNTIME_CHECKS)
+endif ()
+unset(WITH_RUNTIME_CHECKS CACHE)
+if (WITH_STATISTICS)
+    message(STATUS "Tracking statistics")
+    add_definitions(-DTRACK_STATISTICS)
+endif ()
+unset(WITH_STATISTICS CACHE)
+
+
+
 IF (UNIX)
     AUX_SOURCE_DIRECTORY(ocv_stages SOURCE_FILES)
 ENDIF ()
@@ -59,12 +75,6 @@ target_include_directories(${SIM_LIB}
 
 target_include_directories(${SIM_LIB} PRIVATE ${OpenCV_INCLUDE_DIRS})
 
-option(WITH_RUNTIME_CHECKS "Check arguments and emit warnings" OFF)
-if (WITH_RUNTIME_CHECKS)
-    message(STATUS "With Runtime Checks")
-    target_compile_definitions(${SIM_LIB} PUBLIC -DUSE_RUNTIME_CHECKS)
-endif ()
-unset(WITH_RUNTIME_CHECKS CACHE)
 
 #Warnings
 #if ( CMAKE_COMPILER_IS_GNUCC )

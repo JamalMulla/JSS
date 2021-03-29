@@ -20,8 +20,10 @@ public:
     void reset();
     void read(Register& reg);
     double last_frame_time();
+#ifdef TRACK_STATISTICS
     void print_stats(const CycleCounter& counter) override;
     void write_stats(const CycleCounter& counter, json& j) override;
+#endif
     ~Photodiode();
 };
 

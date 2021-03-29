@@ -8,19 +8,23 @@
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &d1) {
     // d := d0 OR d1
     cv::bitwise_or(d0.value(), d1.value(), d.value());
+#ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
     d1.inc_read();
+#endif
 }
 
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &d1, DigitalRegister &d2) {
     // d := d0 OR d1 OR d2
     cv::bitwise_or(d0.value(), d1.value(), d.value());
     cv::bitwise_or(d.value(), d2.value(), d.value());
+#ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
     d1.inc_read();
     d2.inc_read();
+#endif
 }
 
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &d1, DigitalRegister &d2, DigitalRegister &d3) {
@@ -28,88 +32,108 @@ void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &d1
     cv::bitwise_or(d0.value(), d1.value(), d.value());
     cv::bitwise_or(d.value(), d2.value(), d.value());
     cv::bitwise_or(d.value(), d3.value(), d.value());
+#ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
     d1.inc_read();
     d2.inc_read();
     d3.inc_write();
+#endif
 }
 
 void DigitalBus::NOT(DigitalRegister &d, DigitalRegister &d0) {
     // d := NOT d0
     cv::bitwise_not(d0.value(), d.value());
+#ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_write();
+#endif
 }
 
 void DigitalBus::NOR(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &d1) {
     // d := NOT(d0 OR d1)
     DigitalBus::OR(d, d0, d1);
     DigitalBus::NOT(d);
+#ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
     d1.inc_read();
+#endif
 }
 
 void DigitalBus::NOR(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &d1, DigitalRegister &d2) {
     // d := NOT(d0 OR d1 OR d2)
     DigitalBus::OR(d, d0, d1, d2);
     DigitalBus::NOT(d);
+#ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
     d1.inc_read();
     d2.inc_read();
+#endif
 }
 
 void DigitalBus::NOR(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &d1, DigitalRegister &d2, DigitalRegister &d3) {
     // d := NOT(d0 OR d1 OR d2 OR d3)
     DigitalBus::OR(d, d0, d1, d2, d3);
     DigitalBus::NOT(d);
+#ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
     d1.inc_read();
     d2.inc_read();
     d3.inc_read();
+#endif
 }
 
 void DigitalBus::NOT(DigitalRegister &Rl) {
     // Rl := NOT Rl
     cv::bitwise_not(Rl.value(), Rl.value());
+#ifdef TRACK_STATISTICS
     Rl.inc_write();
     Rl.inc_read();
+#endif
 }
 
 void DigitalBus::OR(DigitalRegister &Rl, DigitalRegister &Rx) {
     // Rl := Rl OR Rx
     DigitalBus::OR(Rl, Rl, Rx);
+#ifdef TRACK_STATISTICS
     Rl.inc_write();
     Rl.inc_read();
     Rx.inc_read();
+#endif
 }
 
 void DigitalBus::NOR(DigitalRegister &Rl, DigitalRegister &Rx) {
     // Rl := Rl NOR Rx
     DigitalBus::NOR(Rl, Rl, Rx);
+#ifdef TRACK_STATISTICS
     Rl.inc_write();
     Rl.inc_read();
     Rx.inc_read();
+#endif
 }
 
 void DigitalBus::AND(DigitalRegister &Ra, DigitalRegister &Rx, DigitalRegister &Ry) {
     // Ra := Rx AND Ry
     cv::bitwise_and(Rx.value(), Ry.value(), Ra.value());
+#ifdef TRACK_STATISTICS
     Ra.inc_write();
     Rx.inc_read();
     Ry.inc_read();
+#endif
 }
 
 void DigitalBus::NAND(DigitalRegister &Ra, DigitalRegister &Rx, DigitalRegister &Ry) {
     // Ra = NOT(Rx AND Ry)
     DigitalBus::AND(Ra, Rx, Ry);
     DigitalBus::NOT(Ra);
+#ifdef TRACK_STATISTICS
     Ra.inc_write();
     Rx.inc_read();
     Ry.inc_read();
+#endif
 }
 
 void DigitalBus::IMP(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &Ry) {
@@ -123,9 +147,11 @@ void DigitalBus::IMP(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &
     DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
     DigitalBus::NOT(intermediate, Ry);
     DigitalBus::OR(Rl, Rx, intermediate);
+#ifdef TRACK_STATISTICS
     Rl.inc_write();
     Rx.inc_read();
     Ry.inc_read();
+#endif
 }
 
 void DigitalBus::NIMP(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &Ry) {
@@ -133,24 +159,30 @@ void DigitalBus::NIMP(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister 
     DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
     DigitalBus::NOT(intermediate);
     DigitalBus::NOR(Rl, Rx, intermediate);
+#ifdef TRACK_STATISTICS
     Rl.inc_write();
     Rx.inc_read();
     Ry.inc_read();
+#endif
 }
 
 void DigitalBus::XOR(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &Ry) {
     // Rl := Rx XOR Ry
     cv::bitwise_xor(Rx.value(), Ry.value(), Rl.value());
+#ifdef TRACK_STATISTICS
     Rl.inc_write();
     Rx.inc_read();
     Ry.inc_read();
+#endif
 }
 
 void DigitalBus::MOV(DigitalRegister &d, DigitalRegister &d0) {
     // d := d0
     cv::copyTo(d0.value(), d.value(), cv::noArray());
+#ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
+#endif
 }
 
 void DigitalBus::MUX(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &Ry, DigitalRegister &Rz) {
@@ -162,11 +194,13 @@ void DigitalBus::MUX(DigitalRegister &Rl, DigitalRegister &Rx, DigitalRegister &
     DigitalBus::AND(intermediate2, Ry, intermediate);
     DigitalBus::AND(intermediate, Rz, Rx);
     DigitalBus::OR(Rl, intermediate, intermediate2);
+#ifdef TRACK_STATISTICS
     //TODO fix reads
     Rl.inc_write();
     Rx.inc_read();
     Ry.inc_read();
     Rz.inc_read();
+#endif
 }
 
 void DigitalBus::CLR_IF(DigitalRegister &Rl, DigitalRegister &Rx) {
@@ -174,9 +208,11 @@ void DigitalBus::CLR_IF(DigitalRegister &Rl, DigitalRegister &Rx) {
     DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
     DigitalBus::NOT(intermediate, Rl);
     DigitalBus::NOR(Rl, intermediate, Rx);
+#ifdef TRACK_STATISTICS
     //TODO fix reads
     Rl.inc_write();
     Rx.inc_read();
+#endif
 }
 
 // Masked
