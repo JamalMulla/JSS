@@ -15,18 +15,24 @@ DigitalRegister &DigitalRegister::operator()(const std::string &name) {
 }
 
 Data DigitalRegister::read() {
+#ifdef TRACK_STATISTICS
     this->inc_read();
+#endif
     return this->value();
 }
 
 void DigitalRegister::write(Data data) {
     data.copyTo(this->value());
+#ifdef TRACK_STATISTICS
     this->inc_write();
+#endif
 }
 
 void DigitalRegister::write(int data) {
     this->value().setTo(data);
+#ifdef TRACK_STATISTICS
     this->inc_write();
+#endif
 }
 
 void DigitalRegister::set() {
@@ -37,6 +43,7 @@ void DigitalRegister::clear() {
     this->write(0);
 }
 
+#ifdef TRACK_STATISTICS
 void DigitalRegister::print_stats(const CycleCounter &counter) {
     // power x time = energy
     // energy / time = power
@@ -58,8 +65,6 @@ void DigitalRegister::print_stats(const CycleCounter &counter) {
     std::cout << "Average power for reads: " << this->get_read_energy() / runtime_in_seconds << " watts" << std::endl;
     std::cout << "Average power for writes: " << this->get_write_energy() / runtime_in_seconds << " watts" << std::endl;
     std::cout << "Total average power: " << this->get_total_energy() / runtime_in_seconds << " watts" << std::endl;
-
-
 }
 
 void DigitalRegister::write_stats(const CycleCounter &counter, json &j) {
@@ -89,6 +94,7 @@ void DigitalRegister::write_stats(const CycleCounter &counter, json &j) {
             };
     j.push_back(reg_stats);
 }
+#endif
 
 
 

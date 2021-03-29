@@ -22,9 +22,10 @@ public:
     Array(int rows, int columns, ProcessingElement  pe);
 
     ProcessingElement pe;
-
+#ifdef TRACK_STATISTICS
     void print_stats(const CycleCounter& counter) override;
     void write_stats(const CycleCounter& counter, json& j) override;
+#endif
 
 };
 

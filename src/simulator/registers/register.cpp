@@ -16,6 +16,8 @@ Register::Register(int rows, int columns, int type, MemoryType memoryType) :
     reads(0),
     writes(0) {}
 
+
+#ifdef TRACK_STATISTICS
 void Register::inc_read(const cv::_InputOutputArray& mask) {
     cv::add(this->read_counter, 1, this->read_counter, mask);
     int number_of_cycle = 1;  // Should be parameterisable
@@ -59,6 +61,8 @@ double Register::get_write_energy() {
 double Register::get_total_energy() {
     return get_read_energy() + get_write_energy();
 }
+
+#endif
 
 Data &Register::value() {
     return this->value_;

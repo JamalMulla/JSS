@@ -36,6 +36,7 @@ public:
 
     void change_memory_type(const MemoryType& memory_type);
 
+#ifdef TRACK_STATISTICS
     void inc_read(const cv::_InputOutputArray& mask = cv::noArray());
     void inc_write(const cv::_InputOutputArray& mask = cv::noArray());
 
@@ -49,14 +50,17 @@ public:
     double get_write_energy();
     double get_total_energy();
 
+    void print_stats(const CycleCounter& counter) override = 0;
+    void write_stats(const CycleCounter& counter, json& j) override = 0;
+#endif
+
+
     void set_ui_handler(UI* ui_ptr);
 
     virtual Data read() = 0;
     virtual void write(Data data) = 0;
     virtual void write(int data) = 0;
 
-    void print_stats(const CycleCounter& counter) override = 0;
-    void write_stats(const CycleCounter& counter, json& j) override = 0;
 };
 
 

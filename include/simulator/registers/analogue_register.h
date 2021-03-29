@@ -16,8 +16,11 @@ public:
     Data read() override;
     void write(Data data) override;
     void write(int data) override;
+
+#ifdef TRACK_STATISTICS
     void print_stats(const CycleCounter& counter) override;
     void write_stats(const CycleCounter& counter, json& j) override;
+#endif
 };
 
 

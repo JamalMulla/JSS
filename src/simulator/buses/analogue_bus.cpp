@@ -11,16 +11,20 @@
 void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {
     //a = 0 + error
     a.value().setTo(0, FLAG.value());
+#ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     FLAG.inc_write();
+#endif
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0, DigitalRegister &FLAG) {
     //a = -a0 + error
     cv::bitwise_not(a0.value(), a.value(), FLAG.value());
+#ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     a0.inc_read();
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0, AnalogueRegister &a1, DigitalRegister &FLAG) {
@@ -28,10 +32,12 @@ void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0, AnalogueRegiste
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate, FLAG.value());
     cv::bitwise_not(intermediate, a.value(), FLAG.value());
+#ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     a0.inc_read();
     a1.inc_read();
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0, AnalogueRegister &a1, AnalogueRegister &a2, DigitalRegister &FLAG) {
@@ -40,11 +46,13 @@ void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0, AnalogueRegiste
     cv::add(a0.value(), a1.value(), intermediate, FLAG.value());
     cv::add(intermediate, a2.value(), intermediate, FLAG.value());
     cv::bitwise_not(intermediate, a.value(), FLAG.value());
+#ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     a0.inc_read();
     a1.inc_read();
     a2.inc_read();
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::bus(AnalogueRegister &a,  AnalogueRegister &a0,  AnalogueRegister &a1,  AnalogueRegister &a2,  AnalogueRegister &a3, DigitalRegister &FLAG) {
@@ -54,21 +62,25 @@ void AnalogueBus::bus(AnalogueRegister &a,  AnalogueRegister &a0,  AnalogueRegis
     cv::add(intermediate, a2.value(), intermediate, FLAG.value());
     cv::add(intermediate, a3.value(), intermediate, FLAG.value());
     cv::bitwise_not(intermediate, a.value(), FLAG.value());
+#ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     a0.inc_read();
     a1.inc_read();
     a2.inc_read();
     a3.inc_read();
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, DigitalRegister &FLAG) {
     //a,b = 0 + error
     a.value().setTo(0, FLAG.value());
     b.value().setTo(0, FLAG.value());
+#ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     b.inc_write(FLAG.value());
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegister &a0, DigitalRegister &FLAG) {
@@ -78,10 +90,12 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegiste
     cv::bitwise_not(intermediate, intermediate, FLAG.value());
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());
+#ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     b.inc_write(FLAG.value());
     a0.inc_read();
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegister &a0, AnalogueRegister &a1, DigitalRegister &FLAG) {
@@ -92,11 +106,13 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegiste
     cv::bitwise_not(intermediate, intermediate, FLAG.value());
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());
+#ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     b.inc_write(FLAG.value());
     a0.inc_read();
     a1.inc_read();
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegister &c, AnalogueRegister &a0, DigitalRegister &FLAG) {
@@ -107,19 +123,23 @@ void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegiste
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());
     intermediate.copyTo(c.value(), FLAG.value());
+#ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     b.inc_write(FLAG.value());
     c.inc_write(FLAG.value());
     a0.inc_read();
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::conditional_positive_set(AnalogueRegister &a, DigitalRegister &b){
     //b := 1 if a > 0
     cv::threshold(a.value(), b.value(), 0, 1, cv::THRESH_BINARY);
     b.value().convertTo(b.value(), CV_8U);
+#ifdef TRACK_STATISTICS
     a.inc_read();
     b.inc_write();
+#endif
 }
 
 void AnalogueBus::conditional_positive_set(AnalogueRegister &a0, AnalogueRegister &a1, DigitalRegister &b) {
@@ -128,9 +148,11 @@ void AnalogueBus::conditional_positive_set(AnalogueRegister &a0, AnalogueRegiste
     cv::add(a0.value(), a1.value(), intermediate);
     cv::threshold(intermediate, b.value(), 0, 1, cv::THRESH_BINARY);
     b.value().convertTo(b.value(), CV_8U);
+#ifdef TRACK_STATISTICS
     a0.inc_read();
     a1.inc_read();
     b.inc_write();
+#endif
 }
 
 void AnalogueBus::conditional_positive_set(AnalogueRegister &a0, AnalogueRegister &a1, AnalogueRegister &a2, DigitalRegister &b) {
@@ -140,10 +162,12 @@ void AnalogueBus::conditional_positive_set(AnalogueRegister &a0, AnalogueRegiste
     cv::add(intermediate, a2.value(), intermediate);
     threshold(intermediate, b.value(), 0, 1, cv::THRESH_BINARY);
     b.value().convertTo(b.value(), CV_8U);
+#ifdef TRACK_STATISTICS
     a0.inc_read();
     a1.inc_read();
     a2.inc_read();
     b.inc_write();
+#endif
 }
 
 void AnalogueBus::mov(AnalogueRegister &y, AnalogueRegister &x0, AnalogueRegister &intermediate, DigitalRegister &FLAG) {
@@ -228,9 +252,11 @@ void AnalogueBus::push_north(AnalogueRegister &src, AnalogueRegister& dst, int o
     auto fill_rect = cv::Rect(0, 0, src.value().cols, offset);
     src.value()(src_rect).copyTo(dst.value()(dst_rect), FLAG.value()(dst_rect));
     dst.value()(fill_rect).setTo(cv::Scalar(0), FLAG.value()(fill_rect));
+#ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write(FLAG.value());
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::push_east(AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
@@ -243,9 +269,11 @@ void AnalogueBus::push_east(AnalogueRegister &src, AnalogueRegister &dst, int of
     auto a = src.value()(src_rect);
     a.copyTo(dst.value()(dst_rect), FLAG.value()(dst_rect));
     dst.value()(fill_rect).setTo(cv::Scalar(0), FLAG.value()(fill_rect));
+#ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write(FLAG.value());
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::push_south(AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
@@ -257,9 +285,11 @@ void AnalogueBus::push_south(AnalogueRegister &src, AnalogueRegister &dst, int o
     auto fill_rect = cv::Rect(0, height - offset, width, offset);
     src.value()(src_rect).copyTo(dst.value()(dst_rect), FLAG.value()(dst_rect));
     dst.value()(fill_rect).setTo(cv::Scalar(0), FLAG.value()(fill_rect));
+#ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write(FLAG.value());
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::push_west(AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
@@ -271,9 +301,11 @@ void AnalogueBus::push_west(AnalogueRegister &src, AnalogueRegister &dst, int of
     auto fill_rect = cv::Rect(width - offset, 0, offset, height);
     src.value()(src_rect).copyTo(dst.value()(dst_rect), FLAG.value()(dst_rect));
     dst.value()(fill_rect).setTo(cv::Scalar(0), FLAG.value()(fill_rect));
+#ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write(FLAG.value());
     FLAG.inc_read();
+#endif
 }
 
 void AnalogueBus::pull_north(AnalogueRegister &src, AnalogueRegister &dst, int offset, DigitalRegister &FLAG) {
@@ -303,8 +335,10 @@ void AnalogueBus::get_east(AnalogueRegister &src, AnalogueRegister& dst, int off
     src.value()(read_chunk).copyTo(dst.value()(write_chunk));
     auto fill = cv::Rect(0, 0, offset, src.value().rows);
     dst.value()(fill).setTo(cv::Scalar(0));
+#ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write();
+#endif
 }
 
 void AnalogueBus::get_west(AnalogueRegister &src, AnalogueRegister& dst, int offset) {
@@ -314,8 +348,10 @@ void AnalogueBus::get_west(AnalogueRegister &src, AnalogueRegister& dst, int off
     src.value()(read_chunk).copyTo(dst.value()(write_chunk));
     auto fill = cv::Rect(src.value().cols - offset, 0, offset, src.value().rows);
     dst.value()(fill).setTo(cv::Scalar(0));
+#ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write();
+#endif
 }
 
 void AnalogueBus::get_north(AnalogueRegister &src, AnalogueRegister& dst, int offset) {
@@ -325,8 +361,10 @@ void AnalogueBus::get_north(AnalogueRegister &src, AnalogueRegister& dst, int of
     src.value()(read_chunk).copyTo(dst.value()(write_chunk));
     auto fill = cv::Rect(0, 0, src.value().cols, offset);
     dst.value()(fill).setTo(cv::Scalar(0));
+#ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write();
+#endif
 }
 
 void AnalogueBus::get_south(AnalogueRegister &src, AnalogueRegister& dst, int offset) {
@@ -336,16 +374,8 @@ void AnalogueBus::get_south(AnalogueRegister &src, AnalogueRegister& dst, int of
     src.value()(read_chunk).copyTo(dst.value()(write_chunk));
     auto fill = cv::Rect(0, src.value().rows - offset, src.value().cols, offset);
     dst.value()(fill).setTo(cv::Scalar(0));
+#ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write();
+#endif
 }
-
-
-
-
-
-
-
-
-
-

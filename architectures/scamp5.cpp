@@ -743,6 +743,7 @@ void SCAMP5::PROP1() {
 
 void SCAMP5::print_stats(const CycleCounter& counter) {
     // TODO move
+#ifdef TRACK_STATISTICS
     json j;
     j["Total number of cycles"] = counter.get_cycles();
     j["Equivalent in seconds"] = counter.to_seconds(stats::CLOCK_RATE);
@@ -755,6 +756,7 @@ void SCAMP5::print_stats(const CycleCounter& counter) {
     file_out.open (std::filesystem::current_path().string() + "/output.json");
     file_out << std::setw(2) << j;
     file_out.close();
+#endif
 }
 
 void SCAMP5::scamp5_get_image(AREG &yf, AREG &yh, int gain) {

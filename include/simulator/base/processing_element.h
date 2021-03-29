@@ -27,9 +27,10 @@ public:
     DigitalBus local_write_bus;
 
     ProcessingElement(int rows, int columns, int num_analogue, int num_digital, Source source, const std::string& path);
-
+#ifdef TRACK_STATISTICS
     void print_stats(const CycleCounter& counter) override;
     void write_stats(const CycleCounter& counter, json& j) override;
+#endif
 
 };
 

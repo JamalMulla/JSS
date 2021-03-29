@@ -23,6 +23,7 @@ ProcessingElement::ProcessingElement(
     }
 }
 
+#ifdef TRACK_STATISTICS
 void ProcessingElement::print_stats(const CycleCounter& counter) {
     for (auto & analogue : analogue_registers) {
         analogue.print_stats(counter);
@@ -54,6 +55,7 @@ void ProcessingElement::write_stats(const CycleCounter &counter, json& j) {
     j["Analogue registers"] = analogues;
     j["Digital registers"] = digitals;
 }
+#endif
 
 ProcessingElement::builder &ProcessingElement::builder::with_rows(int rows) {
     this->rows_ = rows;
