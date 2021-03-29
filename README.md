@@ -12,8 +12,17 @@ Requirements:
 Works on both Linux and Windows as long as Conan and OpenCV is installed.
 OpenCV has to be properly installed on your system. Not handled by Conan due to weird linking issues.
 
-
 Composed of two parts: the simulation library and the architecture you're simulating. The existing CMakeLists.txt will build the library first and then the SCAMP-5 architecture.
+
+# Compile time options
+There are various compile time options which conditionally compile code. The options can be toggled in the CMakeLists.txt file or by passing in the option to CMake, e.g. `cmake -DCMAKE_BUILD_TYPE=release .. -DTRACK_STATISTICS=1`.
+
+Tracking statistics is expensive and will drastically slow down execution. 
+
+| Name | Description | Default |
+| ------------- | ------------- | ------------- |
+| USE_RUNTIME_CHECKS  | Checks arguments at runtime and emits warnings. | OFF |
+| TRACK_STATISTICS | Tracks statistics such as register reads and energy use| OFF |
 
 # Build - release (debug)
  * Clone repo
