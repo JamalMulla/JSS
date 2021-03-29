@@ -79,6 +79,10 @@ public:
     DREG& RECT = array.pe.digital_registers[15]("RECT");
 
     DREG* scratch = nullptr;
+    AREG intermediate_a = AREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    AREG intermediate_a2 = AREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG intermediate_d = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG intermediate_d2 = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
 
     SCAMP5();
 
