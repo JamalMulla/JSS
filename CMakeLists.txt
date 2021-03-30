@@ -17,19 +17,18 @@ string(
 
 add_compile_options("${_opts}")
 
-
-option(WITH_RUNTIME_CHECKS "Check arguments and emit warnings" OFF)
-option(WITH_STATISTICS "Tracks statistics such as register reads and energy use" OFF)
-if (WITH_RUNTIME_CHECKS)
+option(USE_RUNTIME_CHECKS "Check arguments and emit warnings" OFF)
+option(TRACK_STATISTICS "Tracks statistics such as register reads and energy use" OFF)
+if (USE_RUNTIME_CHECKS)
     message(STATUS "With runtime checks")
     add_definitions(-DUSE_RUNTIME_CHECKS)
 endif ()
-unset(WITH_RUNTIME_CHECKS CACHE)
-if (WITH_STATISTICS)
+unset(USE_RUNTIME_CHECKS CACHE)
+if (TRACK_STATISTICS)
     message(STATUS "Tracking statistics")
     add_definitions(-DTRACK_STATISTICS)
 endif ()
-unset(WITH_STATISTICS CACHE)
+unset(TRACK_STATISTICS CACHE)
 
 
 

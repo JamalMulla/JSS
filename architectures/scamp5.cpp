@@ -703,10 +703,44 @@ void SCAMP5::REFRESH(DREG &Rl) {
 
 void SCAMP5::DNEWS0(DREG &d, DREG &d0) {
     // d := d0_dir, direction selected by R1, R2, R3, R4
+    // Reads 0 from the edge
+    DREG east  = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG north = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG west  = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG south = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+
+    this->pe.local_read_bus.get_east(east, d0, 1, 0);
+    this->pe.local_read_bus.get_north(north, d0, 1, 0);
+    this->pe.local_read_bus.get_west(west, d0, 1, 0);
+    this->pe.local_read_bus.get_south(south, d0, 1, 0);
+
+    AND(east, east, R4);
+    AND(north, north, R3);
+    AND(west, west, R2);
+    AND(south, south, R1);
+
+    OR(d, east, north, south, west);
 }
 
 void SCAMP5::DNEWS1(DREG &d, DREG &d0) {
-    // 	d := d0_dir, direction selected by R1, R2, R3, R4
+    // d := d0_dir, direction selected by R1, R2, R3, R4
+    // Reads 1 from the edge
+    DREG east  = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG north = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG west  = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG south = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+
+    this->pe.local_read_bus.get_east(east, d0, 1, 1);
+    this->pe.local_read_bus.get_north(north, d0, 1, 1);
+    this->pe.local_read_bus.get_west(west, d0, 1, 1);
+    this->pe.local_read_bus.get_south(south, d0, 1, 1);
+
+    AND(east, east, R4);
+    AND(north, north, R3);
+    AND(west, west, R2);
+    AND(south, south, R1);
+
+    OR(d, east, north, south, west);
 }
 
 void SCAMP5::DNEWS(DREG &Ra, DREG &Rx, int dir, bool boundary) {
@@ -945,6 +979,7 @@ uint32_t SCAMP5::scamp5_global_sum_16(AREG &areg, uint8_t *result16v) {
     int rs = SCAMP_HEIGHT / 4;
     for (int col = 0; col < SCAMP_WIDTH; col+=cs) {
         for (int row = 0; row < SCAMP_HEIGHT; row+=rs) {
+            // TODO double check width and height
             int val = cv::sum(areg.value()(cv::Rect(col, row, col+cs, row+rs)))[0];
             if (result16v == nullptr) {
                 sum += val;

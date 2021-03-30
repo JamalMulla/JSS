@@ -55,6 +55,7 @@ public:
     AREG& D = array.pe.analogue_registers[6]("D");
     AREG& E = array.pe.analogue_registers[7]("E");
     AREG& F = array.pe.analogue_registers[8]("F");
+    // TODO make these 4 usable? How should they be handled if they are used in some instruction?
     AREG& XE = array.pe.analogue_registers[9]("XE");
     AREG& XW = array.pe.analogue_registers[10]("XW");
     AREG& XN = array.pe.analogue_registers[11]("XN");
@@ -79,16 +80,15 @@ public:
     DREG& RECT = array.pe.digital_registers[15]("RECT");
 
     DREG* scratch = nullptr;
-    AREG intermediate_a = AREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    AREG intermediate_a  = AREG(SCAMP_HEIGHT, SCAMP_WIDTH);
     AREG intermediate_a2 = AREG(SCAMP_HEIGHT, SCAMP_WIDTH);
-    DREG intermediate_d = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG intermediate_d  = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
     DREG intermediate_d2 = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
 
     SCAMP5();
 
     // Misc
     void nop();
-
 
     // Image Capturing
     void rpix();

@@ -3,6 +3,7 @@
 //
 
 #include <opencv2/core.hpp>
+#include <simulator/registers/analogue_register.h>
 #include "simulator/buses/digital_bus.h"
 
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0, DigitalRegister &d1) {
@@ -330,4 +331,80 @@ void DigitalBus::CLR_IF_MASKED(DigitalRegister &Rl, DigitalRegister &Rx, Digital
     DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
     DigitalBus::NOT_MASKED(intermediate, Rl, FLAG);
     DigitalBus::NOR_MASKED(Rl, intermediate, Rx, FLAG);
+}
+
+// Neighbour Operations
+
+void DigitalBus::get_east(DigitalRegister &dst, DigitalRegister &src, int offset, int boundary_fill) {
+    // x, y, width, height
+    auto read_chunk = cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
+    auto write_chunk = cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
+    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+    auto fill = cv::Rect(0, 0, offset, src.value().rows);
+    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
+#ifdef TRACK_STATISTICS
+    src.inc_read();
+    dst.inc_write();
+#endif
+}
+
+void DigitalBus::get_west(DigitalRegister &dst, DigitalRegister &src, int offset, int boundary_fill) {
+    // x, y, width, height
+    auto read_chunk = cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
+    auto write_chunk = cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
+    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+    auto fill = cv::Rect(src.value().cols - offset, 0, offset, src.value().rows);
+    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
+#ifdef TRACK_STATISTICS
+    src.inc_read();
+    dst.inc_write();
+#endif
+}
+
+void DigitalBus::get_north(DigitalRegister &dst, DigitalRegister &src, int offset, int boundary_fill) {
+    // x, y, width, height
+    auto read_chunk = cv::Rect(0, offset, src.value().cols, src.value().rows - offset);
+    auto write_chunk = cv::Rect(0, 0, src.value().cols, src.value().rows - offset);
+    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+    auto fill = cv::Rect(0, 0, src.value().cols, offset);
+    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
+#ifdef TRACK_STATISTICS
+    src.inc_read();
+    dst.inc_write();
+#endif
+}
+
+void DigitalBus::get_south(DigitalRegister &dst, DigitalRegister &src, int offset, int boundary_fill) {
+    // x, y, width, height
+    auto read_chunk = cv::Rect(0, 0, src.value().cols, src.value().rows - offset);
+    auto write_chunk = cv::Rect(0, offset, src.value().cols, src.value().rows - offset);
+    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+    auto fill = cv::Rect(0, src.value().rows - offset, src.value().cols, offset);
+    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
+#ifdef TRACK_STATISTICS
+    src.inc_read();
+    dst.inc_write();
+#endif
+}
+
+// SuperPixel Operations
+
+void DigitalBus::convert_to_superpixel(AnalogueRegister &a, DigitalRegister &d) {
+    // Converts an analogue image to a digital superpixel format
+    int pixel_size = 4;
+
+
+
+    for (int col = 0; col < a.value().cols; col+=pixel_size) {
+        for (int row = 0; row < a.value().rows; row+=pixel_size) {
+            // x, y, width, height
+            int sum = cv::sum(a.value()(cv::Rect(col, row, pixel_size, pixel_size)))[0];
+            sum /= (pixel_size * pixel_size);
+
+
+
+
+//            buffer[buf_index++] = areg.value().at<uint8_t>(row, col);
+        }
+    }
 }

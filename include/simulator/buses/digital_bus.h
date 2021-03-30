@@ -48,6 +48,16 @@ public:
     void MUX_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry, DigitalRegister& Rz, DigitalRegister& FLAG);
     void CLR_IF_MASKED(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& FLAG);
 
+    // Neighbour Operations
+    void get_east(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
+    void get_west(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
+    void get_north(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
+    void get_south(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
+
+    // Superpixel Operations
+    void convert_to_superpixel(AnalogueRegister& a, DigitalRegister& d);
+
+
 };
 
 
