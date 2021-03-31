@@ -52,16 +52,36 @@ SCENARIO("digital registers can be correctly set based on simple conditions with
     AnalogueBus bus;
 
     GIVEN("some number of analogue registers and a digital register") {
-        int16_t a_data[3][3] = {{-1,2,3},{-1,5,6},{-1,8,9}};
-        AnalogueRegister a = cv::Mat(3, 3, CV_16S, a_data);
+        AnalogueRegister a = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << -1,2,3,-1,5,6,-1,8,9);
 
         WHEN("1 analogue register") {
             DigitalRegister b(rows, cols);
-            bus.conditional_positive_set(b, a);
-            cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 1, 1, 0, 1, 1, 0, 1, 1);
-            REQUIRE(utility::are_mats_equal(b.value(), expected));
+            THEN("b = 1 if a > 0") {
+                bus.conditional_positive_set(b, a);
+                cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 1, 1, 0, 1, 1, 0, 1, 1);
+                REQUIRE(utility::are_mats_equal(b.value(), expected));
+            }
         }
-
     }
+}
 
+SCENARIO("analogue registers can be moved via the bus") {
+    int rows = 3;
+    int cols = 3;
+    AnalogueBus bus;
+
+    GIVEN("some number of analogue registers") {
+        DigitalRegister mask = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 1, 1, 1, 1, 1, 1, 1, 1);
+        AnalogueRegister src = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 1,2,3,4,5,6,7,8,9);
+
+        WHEN("1 src, 1 dst") {
+            AnalogueRegister intermediate(rows, cols);
+            AnalogueRegister dst(rows, cols);
+            THEN("dst = src") {
+                bus.mov(dst, src, intermediate, mask);
+                cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 1,2,3,4,5,6,7,8,9);
+                REQUIRE(utility::are_mats_equal(dst.value(), expected));
+            }
+        }
+    }
 }
