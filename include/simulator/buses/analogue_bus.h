@@ -22,9 +22,9 @@ public:
     void bus2(AnalogueRegister& a, AnalogueRegister& b,  AnalogueRegister& a0, DigitalRegister& FLAG);
     void bus2(AnalogueRegister& a, AnalogueRegister& b,  AnalogueRegister& a0,  AnalogueRegister& a1, DigitalRegister& FLAG);
     void bus3(AnalogueRegister& a, AnalogueRegister& b, AnalogueRegister& c,  AnalogueRegister& a0, DigitalRegister& FLAG);
-    void conditional_positive_set( AnalogueRegister& a, DigitalRegister& b);
-    void conditional_positive_set( AnalogueRegister& a0,  AnalogueRegister& a1, DigitalRegister& b);
-    void conditional_positive_set( AnalogueRegister& a0,  AnalogueRegister& a1,  AnalogueRegister& a2, DigitalRegister& b);
+    void conditional_positive_set(DigitalRegister& b, AnalogueRegister& a);
+    void conditional_positive_set(DigitalRegister &b, AnalogueRegister &a0, AnalogueRegister &a1);
+    void conditional_positive_set(DigitalRegister &b, AnalogueRegister &a0, AnalogueRegister &a1, AnalogueRegister &a2);
     void mov(AnalogueRegister& y,  AnalogueRegister& x0, AnalogueRegister& intermediate, DigitalRegister& FLAG);
 
     // Analogue Arithmetic

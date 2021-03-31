@@ -153,19 +153,19 @@ void SCAMP5::bus3(AREG &a, AREG &b, AREG &c, AREG &a0) {
 
 void SCAMP5::where(AREG &a) {
     //FLAG := a > 0.
-    this->pe.analogue_bus.conditional_positive_set(a, FLAG);
+    this->pe.analogue_bus.conditional_positive_set(FLAG, a);
     cycles+=2; // 1 read, 1 write
 }
 
 void SCAMP5::where(AREG &a0, AREG &a1) {
     //FLAG := (a0 + a1) > 0.
-    this->pe.analogue_bus.conditional_positive_set(a0, a1, FLAG);
+    this->pe.analogue_bus.conditional_positive_set(FLAG, a0, a1);
     cycles+=4;  // 2 reads, 1 add, 1 write
 }
 
 void SCAMP5::where(AREG &a0, AREG &a1, AREG &a2) {
     //FLAG := (a0 + a1 + a2) > 0.
-    this->pe.analogue_bus.conditional_positive_set(a0, a1, a2, FLAG);
+    this->pe.analogue_bus.conditional_positive_set(FLAG, a0, a1, a2);
     cycles+=5;  // 3 reads, 1 add, 1 write
 }
 
@@ -432,7 +432,7 @@ void SCAMP5::gaussv(AREG &y, AREG &x, const int iterations) {
 
 void SCAMP5::newsblur(AREG &y, AREG &x, const int iterations) {
     // blur x into y with constant number of iterations using neighbour mixing (x and y can be same AREG)
-    float data[3][3] = {{0,1,0},{1,0,1},{0,1,0}};
+    int data[3][3] = {{0,1,0},{1,0,1},{0,1,0}};
     cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
 
     bus(NEWS, x);
@@ -448,7 +448,7 @@ void SCAMP5::newsblur(AREG &y, AREG &x, const int iterations) {
 
 void SCAMP5::newsblurh(AREG &y, AREG &x, const int iterations) {
     // horizontally blur x into y with constant number of iterations using neighbour mixing (x and y can be same AREG)
-    float data[3][3] = {{0,0,0},{1,0,1},{0,0,0}};
+    int data[3][3] = {{0,0,0},{1,0,1},{0,0,0}};
     cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
 
     bus(NEWS, x);
@@ -464,7 +464,7 @@ void SCAMP5::newsblurh(AREG &y, AREG &x, const int iterations) {
 
 void SCAMP5::newsblurv(AREG &y, AREG &x, const int iterations) {
     // vertically blur x into y with constant number of iterations using neighbour mixing (x and y can be same AREG)
-    float data[3][3] = {{0,1,0},{0,0,0},{0,1,0}};
+    int data[3][3] = {{0,1,0},{0,0,0},{0,1,0}};
     cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
 
     bus(NEWS, x);

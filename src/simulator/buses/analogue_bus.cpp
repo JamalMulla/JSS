@@ -47,6 +47,7 @@ void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0, AnalogueRegiste
     cv::add(a0.value(), a1.value(), intermediate, FLAG.value());
     cv::add(intermediate, a2.value(), intermediate, FLAG.value());
     cv::bitwise_not(intermediate, a.value(), FLAG.value());
+    a.value() = a.value() + 1;
 #ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     a0.inc_read();
@@ -63,6 +64,7 @@ void AnalogueBus::bus(AnalogueRegister &a,  AnalogueRegister &a0,  AnalogueRegis
     cv::add(intermediate, a2.value(), intermediate, FLAG.value());
     cv::add(intermediate, a3.value(), intermediate, FLAG.value());
     cv::bitwise_not(intermediate, a.value(), FLAG.value());
+    a.value() = a.value() + 1;
 #ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     a0.inc_read();
@@ -89,6 +91,7 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegiste
     Data intermediate;
     cv::multiply(a0.value(), 0.5, intermediate);
     cv::bitwise_not(intermediate, intermediate, FLAG.value());
+    intermediate = intermediate + 1;
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());
 #ifdef TRACK_STATISTICS
@@ -105,6 +108,7 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegiste
     cv::add(a0.value(), a1.value(), intermediate, FLAG.value());
     cv::multiply(intermediate, 0.5, intermediate);
     cv::bitwise_not(intermediate, intermediate, FLAG.value());
+    intermediate = intermediate + 1;
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());
 #ifdef TRACK_STATISTICS
@@ -121,6 +125,7 @@ void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegiste
     Data intermediate;
     cv::multiply(0.333, a0.value(), intermediate);
     cv::bitwise_not(intermediate, intermediate, FLAG.value());
+    intermediate = intermediate + 1;
     intermediate.copyTo(a.value(), FLAG.value());
     intermediate.copyTo(b.value(), FLAG.value());
     intermediate.copyTo(c.value(), FLAG.value());
@@ -133,7 +138,7 @@ void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b, AnalogueRegiste
 #endif
 }
 
-void AnalogueBus::conditional_positive_set(AnalogueRegister &a, DigitalRegister &b){
+void AnalogueBus::conditional_positive_set(DigitalRegister &b, AnalogueRegister &a){
     //b := 1 if a > 0
     cv::threshold(a.value(), b.value(), 0, 1, cv::THRESH_BINARY);
     b.value().convertTo(b.value(), CV_8U);
@@ -143,7 +148,7 @@ void AnalogueBus::conditional_positive_set(AnalogueRegister &a, DigitalRegister 
 #endif
 }
 
-void AnalogueBus::conditional_positive_set(AnalogueRegister &a0, AnalogueRegister &a1, DigitalRegister &b) {
+void AnalogueBus::conditional_positive_set(DigitalRegister &b, AnalogueRegister &a0, AnalogueRegister &a1) {
     //b := 1 if (a0 + a1) > 0.
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate);
@@ -156,7 +161,8 @@ void AnalogueBus::conditional_positive_set(AnalogueRegister &a0, AnalogueRegiste
 #endif
 }
 
-void AnalogueBus::conditional_positive_set(AnalogueRegister &a0, AnalogueRegister &a1, AnalogueRegister &a2, DigitalRegister &b) {
+void AnalogueBus::conditional_positive_set(DigitalRegister &b, AnalogueRegister &a0, AnalogueRegister &a1,
+                                           AnalogueRegister &a2) {
     //b := 1 if (a0 + a1 + a2) > 0.
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate);
@@ -206,7 +212,7 @@ void AnalogueBus::abs(AnalogueRegister &y, AnalogueRegister &x0, AnalogueRegiste
     AnalogueBus::bus(intermediate, FLAG);
     AnalogueBus::bus(y, intermediate, x0, FLAG);
     AnalogueBus::bus(intermediate, x0, FLAG);
-    AnalogueBus::conditional_positive_set(x0, FLAG);
+    AnalogueBus::conditional_positive_set(FLAG, x0);
     AnalogueBus::bus(y, intermediate, FLAG);
     FLAG.set();
 }
