@@ -85,6 +85,15 @@ target_include_directories(${SIM_LIB} PRIVATE ${OpenCV_INCLUDE_DIRS})
 #endif()
 
 
+
+#######
+# Tests
+#######
+enable_testing()
+add_subdirectory(tests)
+
+
+
 #######
 #Architectures
 #######

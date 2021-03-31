@@ -4,7 +4,6 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <simulator/util/utility.h>
 #include <opencv2/opencv.hpp>
 #include "simulator/buses/analogue_bus.h"
 
@@ -20,6 +19,7 @@ void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0, DigitalRegister &FLAG) {
     //a = -a0 + error
     cv::bitwise_not(a0.value(), a.value(), FLAG.value());
+    a.value() = a.value() + 1;
 #ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     a0.inc_read();
@@ -32,6 +32,7 @@ void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0, AnalogueRegiste
     Data intermediate;
     cv::add(a0.value(), a1.value(), intermediate, FLAG.value());
     cv::bitwise_not(intermediate, a.value(), FLAG.value());
+    a.value() = a.value() + 1;
 #ifdef TRACK_STATISTICS
     a.inc_write(FLAG.value());
     a0.inc_read();

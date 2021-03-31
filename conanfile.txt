@@ -1,6 +1,7 @@
 [requires]
 nlohmann_json/3.9.1
 uwebsockets/18.3.0
+catch2/2.13.4
 
 [generators]
 cmake

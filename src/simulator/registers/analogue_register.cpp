@@ -10,6 +10,10 @@
 AnalogueRegister::AnalogueRegister(int rows, int columns)
         : Register(rows, columns, MAT_TYPE, SI()) {}
 
+AnalogueRegister::AnalogueRegister(const Data& data) : Register(data.rows, data.cols, MAT_TYPE, SI()) {
+    data.copyTo(this->value());
+}
+
 Data AnalogueRegister::read() {
 #ifdef TRACK_STATISTICS
     this->inc_read();
@@ -18,7 +22,7 @@ Data AnalogueRegister::read() {
 }
 
 void AnalogueRegister::write(Data data) {
-    this->value().setTo(data);
+    data.copyTo(this->value());
 #ifdef TRACK_STATISTICS
     this->inc_write();
 #endif

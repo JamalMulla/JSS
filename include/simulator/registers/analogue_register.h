@@ -10,6 +10,7 @@
 class AnalogueRegister : public Register {
 public:
     AnalogueRegister(int rows, int columns);
+    AnalogueRegister(const Data& data);
 
     AnalogueRegister& operator()(const std::string& name);
 

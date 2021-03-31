@@ -9,6 +9,11 @@
 DigitalRegister::DigitalRegister(int rows, int columns, const MemoryType &memory_type)
         : Register(rows, columns, CV_8U, memory_type) {}
 
+DigitalRegister::DigitalRegister(const Data &data, const MemoryType& memory_type) :
+    Register(data.rows, data.cols, CV_8U, memory_type) {
+    data.copyTo(this->value());
+}
+
 DigitalRegister &DigitalRegister::operator()(const std::string &name) {
     this->name_ = name;
     return *this;
