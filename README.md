@@ -33,5 +33,11 @@ Tracking statistics is expensive and will drastically slow down execution.
 
 Or just use Clion.
 
+# Tests
+The test suite can be run with `make test` after the above build steps. 
+
+Alternative you can run the `tests` binary in the `bin` folder which has many more options. Run `./tests -?` to see 
+available options.
+
 # Usage
 The architectures/ directory and main.cpp shows how an architecture can be defined and programs can be run on that architecture.
