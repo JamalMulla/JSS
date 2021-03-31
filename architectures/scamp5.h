@@ -30,8 +30,8 @@ typedef DigitalRegister DREG;
 
 class SCAMP5 {
 public:
-    const int SCAMP_HEIGHT = 128;
-    const int SCAMP_WIDTH = 128;
+    const int SCAMP_HEIGHT = 256;
+    const int SCAMP_WIDTH = 256;
     const int ANALOGUE_REGISTERS = 13;
     const int DIGITAL_REGISTERS = 16;
     CycleCounter cycles;

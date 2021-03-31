@@ -714,10 +714,10 @@ void SCAMP5::DNEWS0(DREG &d, DREG &d0) {
     this->pe.local_read_bus.get_west(west, d0, 1, 0);
     this->pe.local_read_bus.get_south(south, d0, 1, 0);
 
-    AND(east, east, R4);
-    AND(north, north, R3);
-    AND(west, west, R2);
-    AND(south, south, R1);
+    AND(east, east, RE);
+    AND(north, north, RN);
+    AND(west, west, RW);
+    AND(south, south, RS);
 
     OR(d, east, north, south, west);
 }
@@ -735,10 +735,10 @@ void SCAMP5::DNEWS1(DREG &d, DREG &d0) {
     this->pe.local_read_bus.get_west(west, d0, 1, 1);
     this->pe.local_read_bus.get_south(south, d0, 1, 1);
 
-    AND(east, east, R4);
-    AND(north, north, R3);
-    AND(west, west, R2);
-    AND(south, south, R1);
+    AND(east, east, RE);
+    AND(north, north, RN);
+    AND(west, west, RW);
+    AND(south, south, RS);
 
     OR(d, east, north, south, west);
 }
