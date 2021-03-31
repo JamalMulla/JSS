@@ -389,15 +389,6 @@ void DigitalBus::get_south(DigitalRegister &dst, DigitalRegister &src, int offse
 
 // SuperPixel Operations
 
-int* get_bitarray(int value, int n) {
-    // converts integer to bit array of length n
-    int bits[n];
-    for (int i = n - 1; i >= 0; --i) {
-        bits[i] = (value >> i) & 1;
-    }
-    return bits;
-}
-
 void DigitalBus::convert_to_superpixel(AnalogueRegister &a, DigitalRegister &d, const std::unordered_map<int,
         cv::Point>& locations) {
     // Converts an analogue image to a digital superpixel format
@@ -416,20 +407,17 @@ void DigitalBus::convert_to_superpixel(AnalogueRegister &a, DigitalRegister &d, 
             // convert value to bit array of length n. LSB first
             // write out bits to block in correct order - assume 16 bit snake for now
             // Need to be able to access bank. So something like
-//            int bits[pixel_size * pixel_size];
             for (int i = 0; i < pixel_size * pixel_size ; ++i) {
                 int bit = (sum >> i) & 1;
                 const cv::Point& relative_pos = locations.at(i);
                 d.value().at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bit;
             }
-
-//            buffer[buf_index++] = areg.value().at<uint8_t>(row, col);
         }
     }
 }
 
-void DigitalBus::positions_from_bitorder(int ***bitorder, int banks, int height, int width,
-                                         std::unordered_map<int, cv::Point>& locations) {
+void DigitalBus::positions_from_bitorder(int ***bitorder, int banks, int height, int width, std::unordered_map<int,
+        cv::Point>& locations) {
     // For now we only care about bank 1. 
     for (int b = 0; b < banks; b++) {
         for (int h = 0; h < height; h++) {
