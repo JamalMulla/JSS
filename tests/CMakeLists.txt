@@ -6,7 +6,7 @@ endforeach()
 
 set(TARGET_NAME tests)
 
-add_executable(${TARGET_NAME} main.cpp ${UNIT_TEST_SOURCE_LIST} utility.cpp utility.h)
+add_executable(${TARGET_NAME} main.cpp ${UNIT_TEST_SOURCE_LIST} utility.cpp utility.h buses/digital_bus_test.cpp)
 
 target_link_libraries(${TARGET_NAME}
         PUBLIC ${CONAN_LIBS} ${OpenCV_LIBS} simulator)

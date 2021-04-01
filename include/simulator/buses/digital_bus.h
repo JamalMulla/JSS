@@ -55,8 +55,8 @@ public:
     void get_south(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
 
     // Superpixel Operations
-    void convert_to_superpixel(AnalogueRegister& a, DigitalRegister& d, const std::unordered_map<int, cv::Point>& locations);
-    void positions_from_bitorder(int ***bitorder, int banks, int height, int width, std::unordered_map<int, 
+    void convert_to_superpixel(AnalogueRegister& a, DigitalRegister& d, std::unordered_map<int, cv::Point>& locations);
+    void positions_from_bitorder(std::vector<std::vector<std::vector<int>>> bitorder, int banks, int height, int width, std::unordered_map<int,
             cv::Point>& locations);
 
 };
