@@ -31,7 +31,6 @@ endif ()
 unset(TRACK_STATISTICS CACHE)
 
 
-
 IF (UNIX)
     AUX_SOURCE_DIRECTORY(ocv_stages SOURCE_FILES)
 ENDIF ()
@@ -84,28 +83,9 @@ target_include_directories(${SIM_LIB} PRIVATE ${OpenCV_INCLUDE_DIRS})
 #endif()
 
 
-
 #######
 # Tests
 #######
 enable_testing()
+add_subdirectory(scamp5)
 add_subdirectory(tests)
-
-
-
-#######
-#Architectures
-#######
-SET(ARCH scamp5)
-add_executable(${ARCH} architectures/main.cpp architectures/scamp5.h architectures/scamp5.cpp architectures/analognet2/conv_instructions.h architectures/analognet2/fc_weights.h architectures/analognet2/analog_main.h architectures/analognet2/analog_main.cpp)
-if (WIN32)
-    string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
-    if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
-        target_link_libraries(${ARCH} PRIVATE ${CONAN_LIBS} ${OpenCV_libs} simulator opencv_world451d)
-    ELSEIF (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
-        target_link_libraries(${ARCH} PRIVATE ${CONAN_LIBS} ${OpenCV_libs} simulator opencv_world451)
-    ENDIF ()
-ELSEIF (UNIX)
-    target_link_libraries(${ARCH} PRIVATE ${CONAN_LIBS} ${OpenCV_LIBS} simulator)
-ENDIF ()
-target_include_directories(${ARCH} PUBLIC ${OpenCV_INCLUDE_DIRS} include)

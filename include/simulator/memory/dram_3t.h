@@ -5,13 +5,11 @@
 #ifndef SIMULATOR_DRAM_3T_H
 #define SIMULATOR_DRAM_3T_H
 
-
 #include "simulator/memory/dram.h"
 
 class DRAM_3T : public DRAM {
-public:
+   public:
     DRAM_3T();
 };
 
-
-#endif //SIMULATOR_DRAM_3T_H
+#endif  // SIMULATOR_DRAM_3T_H

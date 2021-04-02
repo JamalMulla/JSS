@@ -1,10 +1,10 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
 
     'use strict';
 
     var ws = null;
 
-    function start(){
+    function start() {
 
         ws = new WebSocket('ws://localhost:3000');
         ws.onopen = () => {
@@ -23,8 +23,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     }
 
-    function check(){
-        if(!ws || ws.readyState === WebSocket.CLOSED) start();
+    function check() {
+        if (!ws || ws.readyState === WebSocket.CLOSED) start();
     }
 
     start();
