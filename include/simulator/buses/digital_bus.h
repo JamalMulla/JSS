@@ -85,6 +85,9 @@ class DigitalBus {
     void get_south(DigitalRegister& dst, DigitalRegister& src, int offset,
                    int boundary_fill);
 
+    // Higher level functions
+
+
     // Superpixel Operations
     void superpixel_create(AnalogueRegister& a, DigitalRegister& d,
                            const std::unordered_map<int, cv::Point>& locations);

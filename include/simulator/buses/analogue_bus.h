@@ -5,6 +5,8 @@
 #ifndef SIMULATOR_ANALOGUE_BUS_H
 #define SIMULATOR_ANALOGUE_BUS_H
 
+#include "simulator/base/plane_params.h"
+
 #include "simulator/registers/analogue_register.h"
 #include "simulator/registers/digital_register.h"
 
@@ -84,6 +86,13 @@ class AnalogueBus {
     void get_west(AnalogueRegister& src, AnalogueRegister& dst, int offset);
     void get_north(AnalogueRegister& src, AnalogueRegister& dst, int offset);
     void get_south(AnalogueRegister& src, AnalogueRegister& dst, int offset);
+
+    // Higher level functions
+    void scan(uint8_t* dst, AnalogueRegister& src, uint8_t row_start,
+              uint8_t col_start, uint8_t row_end, uint8_t col_end,
+              uint8_t row_step, uint8_t col_step, Origin origin);
+    void blocked_average(uint8_t* result, AnalogueRegister& src, int block_size,
+                         Origin origin);
 };
 
 #endif  // SIMULATOR_ANALOGUE_BUS_H

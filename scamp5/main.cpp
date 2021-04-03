@@ -5,7 +5,7 @@
 #include "scamp5.h"
 
 int main() {
-    SCAMP5 s;
+    SCAMP5 s = SCAMP5::builder{}.build();
 
     while(true) {
         s.get_image(s.A, s.D);

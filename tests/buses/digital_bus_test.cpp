@@ -30,5 +30,47 @@ TEST_CASE("images can be converted to digital superpixel format") {
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 1, 0, 1,
                                  0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0);
 
-    REQUIRE(utility::are_mats_equal(out.value(), expected));
+    REQUIRE(utility::mats_are_equal(out.value(), expected));
+}
+
+TEST_CASE("get_X neighbour methods work correctly") {
+    int rows = 4;
+    int cols = 4;
+    DigitalBus bus;
+
+    DigitalRegister d = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 0, 0,
+        0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0);
+
+    SECTION("get_east()") {
+        DigitalRegister east  = DigitalRegister(rows, cols);
+        bus.get_east(east, d, 1, 0);
+        cv::Mat expected_east = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+
+        utility::print_matrix<uint8_t>(east.value());
+        std::cout << "======================" << std::endl;
+        utility::print_matrix<uint8_t>(expected_east);
+        REQUIRE(utility::mats_are_equal(east.value(), expected_east));
+    }
+
+    SECTION("get_west()") {
+        DigitalRegister west  = DigitalRegister(rows, cols);
+        bus.get_west(west, d, 1, 0);
+        cv::Mat expected_west = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0);
+        REQUIRE(utility::mats_are_equal(west.value(), expected_west));
+    }
+
+    SECTION("get_north()") {
+        DigitalRegister north = DigitalRegister(rows, cols);
+        bus.get_north(north, d, 1, 0);
+        cv::Mat expected_north = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0);
+        REQUIRE(utility::mats_are_equal(north.value(), expected_north));
+    }
+
+    SECTION("get_south()") {
+        DigitalRegister south = DigitalRegister(rows, cols);
+        bus.get_south(south, d, 1, 0);
+        cv::Mat expected_south = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0);
+        REQUIRE(utility::mats_are_equal(south.value(), expected_south));
+    }
+
 }

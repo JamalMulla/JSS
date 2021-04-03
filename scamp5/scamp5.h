@@ -37,14 +37,15 @@ class SCAMP5 {
     std::unique_ptr<AREG> intermediate_a;
     std::unique_ptr<AREG> intermediate_a2;
     std::unique_ptr<DREG> intermediate_d;
+    int rows_;
+    int cols_;
+    Origin origin_;
 
     void init();
 
    public:
     class builder;
 
-    const int SCAMP_HEIGHT = 256;
-    const int SCAMP_WIDTH = 256;
     const int ANALOGUE_REGISTERS = 13;
     const int DIGITAL_REGISTERS = 16;
     CycleCounter cycles;
@@ -84,7 +85,7 @@ class SCAMP5 {
     DREG *SELECT;
     DREG *RECT;
 
-    SCAMP5();
+    SCAMP5(int rows, int cols, Origin origin);
 
     // Misc
     void nop();
@@ -396,13 +397,16 @@ class SCAMP5::builder {
    private:
     int rows_ = 256;
     int cols_ = 256;
+    Origin origin_ = Origin::TOP_LEFT;
 
    public:
-    builder *with_rows(int rows);
+    builder &with_rows(int rows);
 
-    builder *with_cols(int cols);
+    builder &with_cols(int cols);
 
-    SCAMP5 build();
+    builder &with_origin(Origin origin);
+
+    SCAMP5 build() const;
 };
 
 #endif  // SIMULATOR_SCAMP5_H

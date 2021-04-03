@@ -37,7 +37,7 @@ SCENARIO(
                 cv::Mat expected =
                     (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << -1, -2, -3, -4,
                               -5, -6, -7, -8, -9);
-                REQUIRE(utility::are_mats_equal(dst.value(), expected));
+                REQUIRE(utility::mats_are_equal(dst.value(), expected));
             }
         }
 
@@ -49,7 +49,7 @@ SCENARIO(
                 cv::Mat expected =
                     (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << -2, -4, -6, -8,
                               -10, -12, -14, -16, -18);
-                REQUIRE(utility::are_mats_equal(dst.value(), expected));
+                REQUIRE(utility::mats_are_equal(dst.value(), expected));
             }
         }
     }
@@ -71,7 +71,7 @@ SCENARIO("digital registers can be correctly set based on simple conditions "
                 bus.conditional_positive_set(b, a);
                 cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,
                                              1, 1, 0, 1, 1, 0, 1, 1);
-                REQUIRE(utility::are_mats_equal(b.value(), expected));
+                REQUIRE(utility::mats_are_equal(b.value(), expected));
             }
         }
     }
@@ -95,7 +95,7 @@ SCENARIO("analogue registers can be moved via the bus") {
                 bus.mov(dst, src, intermediate, mask);
                 cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 1,
                                              2, 3, 4, 5, 6, 7, 8, 9);
-                REQUIRE(utility::are_mats_equal(dst.value(), expected));
+                REQUIRE(utility::mats_are_equal(dst.value(), expected));
             }
         }
     }

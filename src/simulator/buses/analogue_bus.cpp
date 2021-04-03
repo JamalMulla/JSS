@@ -442,3 +442,45 @@ void AnalogueBus::get_south(AnalogueRegister &src, AnalogueRegister &dst,
     dst.inc_write();
 #endif
 }
+
+
+// Higher level functions
+
+void AnalogueBus::scan(uint8_t *dst, AnalogueRegister &src, uint8_t row_start,
+                       uint8_t col_start, uint8_t row_end, uint8_t col_end, uint8_t row_step,
+                       uint8_t col_step, Origin origin) {
+    PlaneParams p;
+    get_fixed_params(p, origin, row_start, col_start, row_end, col_end,
+                     row_step, col_step);
+
+    int buf_index = 0;
+    for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
+        for(int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
+            dst[buf_index++] = src.value().at<uint8_t>(row, col);
+        }
+    }
+}
+
+
+void AnalogueBus::blocked_average(uint8_t *result, AnalogueRegister &src,
+                                      int block_size, Origin origin) {
+    // divide the AREG image into block_size x block_size square blocks, and get the average of each block
+    // result - pointer to a buffer to store the results
+    // origin - Where 0,0 is
+    int rows = src.value().rows;
+    int cols = src.value().cols;
+    int step = rows / block_size;
+
+    PlaneParams p;
+    get_fixed_params(p, origin, 0, 0, rows, cols, step, step);
+
+    int buf_index = 0;
+    for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
+        for(int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
+            result[buf_index++] =
+                cv::sum(src.value()(
+                    cv::Rect(col, row, col + step, row + step)))[0] /
+                (step * step);
+        }
+    }
+}

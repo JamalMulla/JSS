@@ -9,7 +9,7 @@
 #include <opencv2/core.hpp>
 
 namespace utility {
-bool are_mats_equal(const cv::Mat& mat1, const cv::Mat& mat2);
+bool mats_are_equal(const cv::Mat& mat1, const cv::Mat& mat2);
 
 template<typename interpret_type>
 void print_matrix(const cv::Mat& mat);

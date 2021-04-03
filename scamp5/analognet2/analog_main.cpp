@@ -86,7 +86,7 @@ void update(UI& ui, const std::vector<Register*>& reg) {
 }
 
 int analog_main() {
-    SCAMP5 s;
+    SCAMP5 s = SCAMP5::builder{}.build();
     UI ui;
     ui.start();
 

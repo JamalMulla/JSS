@@ -4,7 +4,7 @@
 
 #include "utility.h"
 
-bool utility::are_mats_equal(const cv::Mat& mat1, const cv::Mat& mat2) {
+bool utility::mats_are_equal(const cv::Mat& mat1, const cv::Mat& mat2) {
     if(mat1.dims == mat2.dims && mat1.size == mat2.size &&
        mat1.elemSize() == mat2.elemSize()) {
         if(mat1.isContinuous() && mat2.isContinuous()) {

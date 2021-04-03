@@ -5,9 +5,10 @@
 #ifndef SIMULATOR_ARRAY_H
 #define SIMULATOR_ARRAY_H
 
-#include <utility>
+#include <functional>
 
 #include "component.h"
+#include "plane_params.h"
 #include "processing_element.h"
 
 #define MAT_TYPE CV_16S
@@ -19,6 +20,9 @@ class Array : public Component {
 
    public:
     Array(int rows, int columns, ProcessingElement pe);
+    /* OpenCV uses a BottomLeft origin.
+     * This method converts other coordinate systems to the OpenCV one so that
+     * operations on images happen as expected*/
 
     ProcessingElement pe;
 #ifdef TRACK_STATISTICS

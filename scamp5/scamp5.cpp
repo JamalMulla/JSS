@@ -14,16 +14,17 @@
 #include "simulator/memory/sram_6t.h"
 #include "simulator/metrics/stats.h"
 
-SCAMP5::SCAMP5() {
+SCAMP5::SCAMP5(int rows, int cols, Origin origin)
+    : rows_(rows), cols_(cols), origin_(origin) {
     pe = std::make_unique<ProcessingElement>(
         ProcessingElement::builder {}
-            .with_rows(SCAMP_WIDTH)
-            .with_cols(SCAMP_HEIGHT)
+            .with_rows(rows)
+            .with_cols(cols)
             .with_analogue_registers(ANALOGUE_REGISTERS)
             .with_digital_registers(DIGITAL_REGISTERS)
             .with_input_source(Source::LIVE)
             .build());
-    array = std::make_unique<Array>(SCAMP_HEIGHT, SCAMP_WIDTH, *pe);
+    array = std::make_unique<Array>(rows, cols, *pe);
     this->init();
 }
 
@@ -60,9 +61,9 @@ void SCAMP5::init() {
     stats::set_clock_rate(1e7);
     FLAG->change_memory_type(SRAM_6T());
 
-    intermediate_a = std::make_unique<AREG>(SCAMP_HEIGHT, SCAMP_WIDTH);
-    intermediate_a2 = std::make_unique<AREG>(SCAMP_HEIGHT, SCAMP_WIDTH);
-    intermediate_d = std::make_unique<DREG>(SCAMP_HEIGHT, SCAMP_WIDTH);
+    intermediate_a = std::make_unique<AREG>(this->rows_, this->cols_);
+    intermediate_a2 = std::make_unique<AREG>(this->rows_, this->cols_);
+    intermediate_d = std::make_unique<DREG>(this->rows_, this->cols_);
 }
 
 void SCAMP5::nop() { cycles++; }
@@ -330,36 +331,50 @@ void SCAMP5::mov2x(AREG *y, AREG *x0, news_t dir, news_t dir2) {
     // y = x0_dir_dir (note: this only works when FLAG is "all")
     this->bus(intermediate_a.get(), x0);
     switch(dir) {
-        case north:
+        case north: {
             this->pe->analogue_bus.push_south(*intermediate_a, *NEWS, 1, *FLAG);
             break;
-        case east:
+        }
+        case east: {
             this->pe->analogue_bus.push_west(*intermediate_a, *NEWS, 1, *FLAG);
             break;
-        case west:
+        }
+        case west: {
             this->pe->analogue_bus.push_east(*intermediate_a, *NEWS, 1, *FLAG);
             break;
-        case south:
+        }
+        case south: {
             this->pe->analogue_bus.push_north(*intermediate_a, *NEWS, 1, *FLAG);
             break;
-        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+        }
+        case alldir: {
+            std::cerr << "Unhandled direction" << std::endl;
+            break;
+        }
     }
     switch(dir2) {
-        case north:
+        case north: {
             this->pe->analogue_bus.push_north(*NEWS, *intermediate_a2, 1,
                                               *FLAG);
             break;
-        case east:
+        }
+        case east: {
             this->pe->analogue_bus.push_east(*NEWS, *intermediate_a2, 1, *FLAG);
             break;
-        case west:
+        }
+        case west: {
             this->pe->analogue_bus.push_west(*NEWS, *intermediate_a2, 1, *FLAG);
             break;
-        case south:
+        }
+        case south: {
             this->pe->analogue_bus.push_south(*NEWS, *intermediate_a2, 1,
                                               *FLAG);
             break;
-        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+        }
+        case alldir: {
+            std::cerr << "Unhandled direction" << std::endl;
+            break;
+        }
     }
 
     this->bus(y, intermediate_a2.get());
@@ -829,10 +844,10 @@ void SCAMP5::REFRESH(DREG *Rl) {
 void SCAMP5::DNEWS0(DREG *d, DREG *d0) {
     // d := d0_dir, direction selected by R1, R2, R3, R4
     // Reads 0 from the edge
-    DREG east = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
-    DREG north = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
-    DREG west = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
-    DREG south = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG east = DREG(this->rows_, this->cols_);
+    DREG north = DREG(this->rows_, this->cols_);
+    DREG west = DREG(this->rows_, this->cols_);
+    DREG south = DREG(this->rows_, this->cols_);
 
     this->pe->local_read_bus.get_east(east, *d0, 1, 0);
     this->pe->local_read_bus.get_north(north, *d0, 1, 0);
@@ -850,10 +865,10 @@ void SCAMP5::DNEWS0(DREG *d, DREG *d0) {
 void SCAMP5::DNEWS1(DREG *d, DREG *d0) {
     // d := d0_dir, direction selected by R1, R2, R3, R4
     // Reads 1 from the edge
-    DREG east = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
-    DREG north = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
-    DREG west = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
-    DREG south = DREG(SCAMP_HEIGHT, SCAMP_WIDTH);
+    DREG east = DREG(this->rows_, this->cols_);
+    DREG north = DREG(this->rows_, this->cols_);
+    DREG west = DREG(this->rows_, this->cols_);
+    DREG south = DREG(this->rows_, this->cols_);
 
     this->pe->local_read_bus.get_east(east, *d0, 1, 1);
     this->pe->local_read_bus.get_north(north, *d0, 1, 1);
@@ -873,16 +888,16 @@ void SCAMP5::DNEWS(DREG *Ra, DREG *Rx, int dir, bool boundary) {
     // R4).
     this->CLR(RS, RW, RN, RE);
     // set multiple DREG& (upto 4) can be done via one icw
-    if(dir * south) {
+    if(dir & south) {
         this->SET(RS);
     }
-    if(dir * west) {
+    if(dir & west) {
         this->SET(RW);
     }
-    if(dir * north) {
+    if(dir & north) {
         this->SET(RN);
     }
-    if(dir * east) {
+    if(dir & east) {
         this->SET(RE);
     }
 
@@ -1098,10 +1113,10 @@ uint32_t SCAMP5::scamp5_global_sum_16(AREG *areg, uint8_t *result16v) {
     // TODO should not be exact
     uint32_t sum = 0;
     int buf_index = 0;
-    int cs = SCAMP_WIDTH / 4;
-    int rs = SCAMP_HEIGHT / 4;
-    for(int col = 0; col < SCAMP_WIDTH; col += cs) {
-        for(int row = 0; row < SCAMP_HEIGHT; row += rs) {
+    int cs = this->cols_ / 4;
+    int rs = this->rows_ / 4;
+    for(int col = 0; col < this->cols_; col += cs) {
+        for(int row = 0; row < this->rows_; row += rs) {
             // TODO double check width and height
             int val = cv::sum(
                 areg->value()(cv::Rect(col, row, col + cs, row + rs)))[0];
@@ -1123,10 +1138,10 @@ uint32_t SCAMP5::scamp5_global_sum_64(AREG *areg, uint8_t *result64v) {
     // scamp5).
     uint32_t sum = 0;
     int buf_index = 0;
-    int cs = SCAMP_WIDTH / 8;
-    int rs = SCAMP_HEIGHT / 8;
-    for(int col = 0; col < SCAMP_WIDTH; col += cs) {
-        for(int row = 0; row < SCAMP_HEIGHT; row += rs) {
+    int cs = this->cols_ / 8;
+    int rs = this->rows_ / 8;
+    for(int col = 0; col < this->cols_; col += cs) {
+        for(int row = 0; row < this->rows_; row += rs) {
             int val = cv::sum(
                 areg->value()(cv::Rect(col, row, col + cs, row + rs)))[0];
             if(result64v == nullptr) {
@@ -1151,17 +1166,17 @@ uint8_t SCAMP5::scamp5_global_sum_sparse(AREG *areg, uint8_t r, uint8_t c,
     // get sum level of the pixels selected using a pattern
     // This result is less probable to saturate because it only counts a quarter
     // of the pixels in the AREG plane (by default)
-    unsigned int r_mask = ((~rx) * (SCAMP_HEIGHT - 1));
-    unsigned int c_mask = ((~cx) * (SCAMP_WIDTH - 1));
+    unsigned int r_mask = ((~rx) & (this->rows_ - 1));
+    unsigned int c_mask = ((~cx) & (this->cols_ - 1));
 
-    unsigned int r_f = r * r_mask;
-    unsigned int c_f = c * c_mask;
+    unsigned int r_f = r & r_mask;
+    unsigned int c_f = c & c_mask;
 
     uint8_t sum = 0;
 
-    for(unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
-        for(unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
-            if(((row_index * r_mask) == r_f) * ((col_index * c_mask) == c_f)) {
+    for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
+        for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
+            if(((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
                 sum += areg->value().at<uint8_t>(row_index, col_index);
             }
         }
@@ -1181,17 +1196,17 @@ int SCAMP5::scamp5_global_or(DREG *dreg, uint8_t r, uint8_t c, uint8_t rx,
     // image. scamp5_load_pattern can be used to work out the correct parameter
     // for a desired mask pattern,
     // TODO abstraction
-    unsigned int r_mask = ((~rx) * (SCAMP_HEIGHT - 1));
-    unsigned int c_mask = ((~cx) * (SCAMP_WIDTH - 1));
+    unsigned int r_mask = ((~rx) & (this->rows_ - 1));
+    unsigned int c_mask = ((~cx) & (this->cols_ - 1));
 
-    unsigned int r_f = r * r_mask;
-    unsigned int c_f = c * c_mask;
+    unsigned int r_f = r & r_mask;
+    unsigned int c_f = c & c_mask;
 
     uint8_t val = 0;
 
-    for(unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
-        for(unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
-            if(((row_index * r_mask) == r_f) && ((col_index * c_mask) == c_f)) {
+    for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
+        for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
+            if(((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
                 val |= dreg->value().at<uint8_t>(row_index, col_index);
             }
         }
@@ -1287,14 +1302,14 @@ void SCAMP5::scamp5_load_pattern(DREG *dr, uint8_t r, uint8_t c, uint8_t rx,
     // TODO abstraction
     dr->clear();
 
-    unsigned int r_mask = ((~rx) * (SCAMP_HEIGHT - 1));
-    unsigned int c_mask = ((~cx) * (SCAMP_WIDTH - 1));
+    unsigned int r_mask = ((~rx) * (this->rows_ - 1));
+    unsigned int c_mask = ((~cx) * (this->cols_ - 1));
 
     unsigned int r_f = r * r_mask;
     unsigned int c_f = c * c_mask;
 
-    for(unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
-        for(unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
+    for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
+        for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index * r_mask) == r_f) && ((col_index * c_mask) == c_f)) {
                 dr->value().at<uint8_t>(row_index, col_index) = 1;
             }
@@ -1324,8 +1339,8 @@ void SCAMP5::scamp5_select_pattern(uint8_t r, uint8_t c, uint8_t rx,
 
 void SCAMP5::scamp5_select_col(uint8_t c) {
     // select column
-    for(unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
-        for(unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
+    for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
+        for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(col_index == c) {
                 SELECT->value().at<uint8_t>(row_index, col_index) = 1;
             }
@@ -1335,8 +1350,8 @@ void SCAMP5::scamp5_select_col(uint8_t c) {
 
 void SCAMP5::scamp5_select_row(uint8_t r) {
     // select row
-    for(unsigned int row_index = 0; row_index < SCAMP_WIDTH; row_index++) {
-        for(unsigned int col_index = 0; col_index < SCAMP_HEIGHT; col_index++) {
+    for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
+        for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(row_index == r) {
                 SELECT->value().at<uint8_t>(row_index, col_index) = 1;
             }
@@ -1364,13 +1379,13 @@ void SCAMP5::scamp5_draw_end() {
 
 void SCAMP5::scamp5_draw_pixel(uint8_t r, uint8_t c) {
     // draw a point, wrap around if it's outside the border
-    scratch->value().at<uint8_t>(r % SCAMP_HEIGHT, c % SCAMP_WIDTH) = 1;
+    scratch->value().at<uint8_t>(r % this->rows_, c % this->cols_) = 1;
 }
 
 bool SCAMP5::scamp5_draw_point(int r, int c) {
     // draw a point when its position is within the image
     // returns whether the point is inside the image and drawn
-    if(r >= SCAMP_HEIGHT || c >= SCAMP_WIDTH) {
+    if(r >= this->rows_ || c >= this->cols_) {
         return false;
     }
     scratch->value().at<uint8_t>(r, c) = 1;
@@ -1459,21 +1474,7 @@ void SCAMP5::scamp5_scan_areg(AREG *areg, uint8_t *buffer, uint8_t r0,
     // Note, the result image is stored in column-major format, starting from
     // top right. i.e. "buffer[3]" is the pixel the on 1st column right, 4th row
     // down. This applies to all "scamp5_scan_areg_*" series functions.
-#ifdef USE_RUNTIME_CHECKS
-    if(r1 < r0) {
-        std::cout << "[Warning] Row end is before row start" << std::endl;
-    }
-    if(c1 < c0) {
-        std::cout << "[Warning] Column end is before column start" << std::endl;
-    }
-#endif
-    // TODO check
-    int buf_index = 0;
-    for(int col = c0; col < c1; col += cs) {
-        for(int row = r0; row < r1; row += rs) {
-            buffer[buf_index++] = areg->value().at<uint8_t>(row, col);
-        }
-    }
+    this->pe->analogue_bus.scan(buffer, *areg, r0, c0, r1, c1, rs, cs, this->origin_);
 }
 
 void SCAMP5::scamp5_scan_areg_8x8(AREG *areg, uint8_t *result8x8) {
@@ -1483,10 +1484,10 @@ void SCAMP5::scamp5_scan_areg_8x8(AREG *areg, uint8_t *result8x8) {
     // Might be center instead
     // TODO check RowMajor/ColMajor stuff
     int buf_index = 0;
-    int cs = SCAMP_WIDTH / 8;
-    int rs = SCAMP_HEIGHT / 8;
-    for(int col = 0; col < SCAMP_WIDTH; col += cs) {
-        for(int row = 0; row < SCAMP_HEIGHT; row += rs) {
+    int cs = this->cols_ / 8;
+    int rs = this->rows_ / 8;
+    for(int col = 0; col < this->cols_; col += cs) {
+        for(int row = 0; row < this->rows_; row += rs) {
             result8x8[buf_index++] = areg->value().at<uint8_t>(row, col);
         }
     }
@@ -1495,17 +1496,7 @@ void SCAMP5::scamp5_scan_areg_8x8(AREG *areg, uint8_t *result8x8) {
 void SCAMP5::scamp5_scan_areg_mean_8x8(AREG *areg, uint8_t *result8x8) {
     // divide the AREG image into 8x8 square blocks, and get the average of each
     // block result8x8 - pointer to a buffer to store the results
-    // FIXME with proper setting of (0, 0)
-    int buf_index = 0;
-    int step = SCAMP_HEIGHT / 8;
-    for(int col = 0; col < SCAMP_WIDTH; col += step) {
-        for(int row = 0; row < SCAMP_HEIGHT; row += step) {
-            result8x8[buf_index++] =
-                cv::sum(areg->value()(
-                    cv::Rect(col, row, col + step, row + step)))[0] /
-                (step * step);
-        }
-    }
+    this->pe->analogue_bus.blocked_average(result8x8, *areg, 8, this->origin_);
 }
 
 void SCAMP5::scamp5_scan_dreg(DREG *dreg, uint8_t *mem, uint8_t r0,
@@ -1521,7 +1512,7 @@ void SCAMP5::scamp5_scan_dreg(DREG *dreg, uint8_t *mem, uint8_t r0,
     int buf_index = 0;
     for(uint32_t row_index = r0; row_index <= r1; row_index++) {
         // Read 8 values at a time to make up a byte
-        for(int col_index = 0; col_index < SCAMP_WIDTH; col_index += 8) {
+        for(int col_index = 0; col_index < this->cols_; col_index += 8) {
             uint8_t b0 = dreg->value().at<uint8_t>(row_index, col_index);
             uint8_t b1 = dreg->value().at<uint8_t>(row_index, col_index + 1);
             uint8_t b2 = dreg->value().at<uint8_t>(row_index, col_index + 2);
@@ -1585,14 +1576,21 @@ void SCAMP5::scamp5_scan_boundingbox(DREG *dr, uint8_t *vec4v) {
     // pointer to a buffer of 4 byte
 }
 
-SCAMP5::builder *SCAMP5::builder::with_rows(int rows) {
+SCAMP5::builder &SCAMP5::builder::with_rows(int rows) {
     this->rows_ = rows;
-    return this;
+    return *this;
 }
 
-SCAMP5::builder *SCAMP5::builder::with_cols(int cols) {
+SCAMP5::builder &SCAMP5::builder::with_cols(int cols) {
     this->cols_ = cols;
-    return this;
+    return *this;
 }
 
-SCAMP5 SCAMP5::builder::build() { return SCAMP5(); }
+SCAMP5::builder &SCAMP5::builder::with_origin(Origin origin) {
+    this->origin_ = origin;
+    return *this;
+}
+
+SCAMP5 SCAMP5::builder::build() const {
+    return SCAMP5(this->rows_, this->cols_, this->origin_);
+}
