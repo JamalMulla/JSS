@@ -7,6 +7,7 @@
 
 #include "simulator/registers/analogue_register.h"
 #include "simulator/registers/digital_register.h"
+#include "simulator/base/plane_params.h"
 
 class DigitalBus {
    public:
@@ -76,14 +77,23 @@ class DigitalBus {
                        DigitalRegister& FLAG);
 
     // Neighbour Operations
+
+    /* These first neighbour functions are absolute and do not depend on origin.
+     * They function as expected assuming a grid with origin in bottom left */
+    void get_up(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
+    void get_right(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
+    void get_left(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
+    void get_down(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
+
+    /* The following are dependent on origin. For example, North when the origin is at the bottom is not the same as North when the origin is at the top. Top north = bottom south*/
     void get_east(DigitalRegister& dst, DigitalRegister& src, int offset,
-                  int boundary_fill);
+                  int boundary_fill, Origin origin);
     void get_west(DigitalRegister& dst, DigitalRegister& src, int offset,
-                  int boundary_fill);
+                  int boundary_fill, Origin origin);
     void get_north(DigitalRegister& dst, DigitalRegister& src, int offset,
-                   int boundary_fill);
+                   int boundary_fill, Origin origin);
     void get_south(DigitalRegister& dst, DigitalRegister& src, int offset,
-                   int boundary_fill);
+                   int boundary_fill, Origin origin);
 
     // Higher level functions
 

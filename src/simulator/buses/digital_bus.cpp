@@ -373,46 +373,13 @@ void DigitalBus::CLR_IF_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
 
 // Neighbour Operations
 
-void DigitalBus::get_east(DigitalRegister &dst, DigitalRegister &src,
-                          int offset, int boundary_fill) {
+void DigitalBus::get_up(DigitalRegister &dst, DigitalRegister &src, int offset,
+                        int boundary_fill) {
     // x, y, width, height
     auto read_chunk =
-        cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
-    auto write_chunk =
-        cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
-    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
-    auto fill = cv::Rect(0, 0, offset, src.value().rows);
-    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
-#ifdef TRACK_STATISTICS
-    src.inc_read();
-    dst.inc_write();
-#endif
-}
-
-void DigitalBus::get_west(DigitalRegister &dst, DigitalRegister &src,
-                          int offset, int boundary_fill) {
-    // x, y, width, height
-    auto read_chunk =
-        cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
-    auto write_chunk =
-        cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
-    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
-    auto fill =
-        cv::Rect(src.value().cols - offset, 0, offset, src.value().rows);
-    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
-#ifdef TRACK_STATISTICS
-    src.inc_read();
-    dst.inc_write();
-#endif
-}
-
-void DigitalBus::get_north(DigitalRegister &dst, DigitalRegister &src,
-                           int offset, int boundary_fill) {
-    // x, y, width, height
-    auto read_chunk =
-        cv::Rect(0, offset, src.value().cols, src.value().rows - offset);
-    auto write_chunk =
         cv::Rect(0, 0, src.value().cols, src.value().rows - offset);
+    auto write_chunk =
+        cv::Rect(0, offset, src.value().cols, src.value().rows - offset);
     src.value()(read_chunk).copyTo(dst.value()(write_chunk));
     auto fill = cv::Rect(0, 0, src.value().cols, offset);
     dst.value()(fill).setTo(cv::Scalar(boundary_fill));
@@ -422,13 +389,46 @@ void DigitalBus::get_north(DigitalRegister &dst, DigitalRegister &src,
 #endif
 }
 
-void DigitalBus::get_south(DigitalRegister &dst, DigitalRegister &src,
+void DigitalBus::get_right(DigitalRegister &dst, DigitalRegister &src,
                            int offset, int boundary_fill) {
     // x, y, width, height
     auto read_chunk =
-        cv::Rect(0, 0, src.value().cols, src.value().rows - offset);
+        cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
     auto write_chunk =
+        cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
+    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+    auto fill = cv::Rect(src.value().cols - offset, 0, offset, src.value().rows);
+    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
+#ifdef TRACK_STATISTICS
+    src.inc_read();
+    dst.inc_write();
+#endif
+}
+
+void DigitalBus::get_left(DigitalRegister &dst, DigitalRegister &src,
+                          int offset, int boundary_fill) {
+    // x, y, width, height
+    auto read_chunk =
+        cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
+    auto write_chunk =
+        cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
+    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+    auto fill =
+        cv::Rect(0, 0, offset, src.value().rows);
+    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
+#ifdef TRACK_STATISTICS
+    src.inc_read();
+    dst.inc_write();
+#endif
+}
+
+void DigitalBus::get_down(DigitalRegister &dst, DigitalRegister &src,
+                          int offset, int boundary_fill) {
+    // x, y, width, height
+    auto read_chunk =
         cv::Rect(0, offset, src.value().cols, src.value().rows - offset);
+    auto write_chunk =
+        cv::Rect(0, 0, src.value().cols, src.value().rows - offset);
     src.value()(read_chunk).copyTo(dst.value()(write_chunk));
     auto fill =
         cv::Rect(0, src.value().rows - offset, src.value().cols, offset);
@@ -437,6 +437,70 @@ void DigitalBus::get_south(DigitalRegister &dst, DigitalRegister &src,
     src.inc_read();
     dst.inc_write();
 #endif
+}
+
+void DigitalBus::get_east(DigitalRegister &dst, DigitalRegister &src,
+                          int offset, int boundary_fill, Origin origin) {
+    switch(origin) {
+        case TOP_LEFT:
+        case BOTTOM_LEFT: {
+            get_right(dst, src, offset, boundary_fill);
+            break;
+        }
+        case TOP_RIGHT:
+        case BOTTOM_RIGHT: {
+            get_left(dst, src, offset, boundary_fill);
+            break;
+        }
+    }
+}
+
+void DigitalBus::get_west(DigitalRegister &dst, DigitalRegister &src,
+                          int offset, int boundary_fill, Origin origin) {
+    switch(origin) {
+        case TOP_LEFT:
+        case BOTTOM_LEFT: {
+            get_left(dst, src, offset, boundary_fill);
+            break;
+        }
+        case TOP_RIGHT:
+        case BOTTOM_RIGHT: {
+            get_right(dst, src, offset, boundary_fill);
+            break;
+        }
+    }
+}
+
+void DigitalBus::get_north(DigitalRegister &dst, DigitalRegister &src,
+                           int offset, int boundary_fill, Origin origin) {
+    switch(origin) {
+        case BOTTOM_LEFT:
+        case BOTTOM_RIGHT: {
+            get_up(dst, src, offset, boundary_fill);
+            break;
+        }
+        case TOP_RIGHT:
+        case TOP_LEFT: {
+            get_down(dst, src, offset, boundary_fill);
+            break;
+        }
+    }
+}
+
+void DigitalBus::get_south(DigitalRegister &dst, DigitalRegister &src,
+                           int offset, int boundary_fill, Origin origin) {
+    switch(origin) {
+        case BOTTOM_LEFT:
+        case BOTTOM_RIGHT: {
+            get_down(dst, src, offset, boundary_fill);
+            break;
+        }
+        case TOP_RIGHT:
+        case TOP_LEFT: {
+            get_up(dst, src, offset, boundary_fill);
+            break;
+        }
+    }
 }
 
 // SuperPixel Operations

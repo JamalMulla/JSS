@@ -849,10 +849,10 @@ void SCAMP5::DNEWS0(DREG *d, DREG *d0) {
     DREG west = DREG(this->rows_, this->cols_);
     DREG south = DREG(this->rows_, this->cols_);
 
-    this->pe->local_read_bus.get_east(east, *d0, 1, 0);
-    this->pe->local_read_bus.get_north(north, *d0, 1, 0);
-    this->pe->local_read_bus.get_west(west, *d0, 1, 0);
-    this->pe->local_read_bus.get_south(south, *d0, 1, 0);
+    this->pe->local_read_bus.get_east(east, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_north(north, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_west(west, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_south(south, *d0, 1, 0, this->origin_);
 
     AND(&east, &east, RE);
     AND(&north, &north, RN);
@@ -870,10 +870,10 @@ void SCAMP5::DNEWS1(DREG *d, DREG *d0) {
     DREG west = DREG(this->rows_, this->cols_);
     DREG south = DREG(this->rows_, this->cols_);
 
-    this->pe->local_read_bus.get_east(east, *d0, 1, 1);
-    this->pe->local_read_bus.get_north(north, *d0, 1, 1);
-    this->pe->local_read_bus.get_west(west, *d0, 1, 1);
-    this->pe->local_read_bus.get_south(south, *d0, 1, 1);
+    this->pe->local_read_bus.get_east(east, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_north(north, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_west(west, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_south(south, *d0, 1, 1, this->origin_);
 
     AND(&east, &east, RE);
     AND(&north, &north, RN);

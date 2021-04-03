@@ -12,9 +12,10 @@
 TEST_CASE("DNEWS0 is working correctly") {
     int rows = 4;
     int cols = 4;
-    SCAMP5 s = SCAMP5::builder{}
+    SCAMP5 s = SCAMP5::builder {}
                    .with_rows(rows)
                    .with_cols(cols)
+                   .with_origin(Origin::TOP_RIGHT)
                    .build();
     DigitalRegister out(rows, cols);
 
@@ -36,8 +37,5 @@ TEST_CASE("DNEWS0 is working correctly") {
                                  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
 
     s.DNEWS0(&out, &d);
-    utility::print_matrix<uint8_t>(out.value());
-    std::cout << "_________" << std::endl;
-    utility::print_matrix<uint8_t>(expected);
     REQUIRE(utility::mats_are_equal(out.value(), expected));
 }
