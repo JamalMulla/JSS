@@ -397,7 +397,8 @@ void DigitalBus::get_right(DigitalRegister &dst, DigitalRegister &src,
     auto write_chunk =
         cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
     src.value()(read_chunk).copyTo(dst.value()(write_chunk));
-    auto fill = cv::Rect(src.value().cols - offset, 0, offset, src.value().rows);
+    auto fill =
+        cv::Rect(src.value().cols - offset, 0, offset, src.value().rows);
     dst.value()(fill).setTo(cv::Scalar(boundary_fill));
 #ifdef TRACK_STATISTICS
     src.inc_read();
@@ -413,8 +414,7 @@ void DigitalBus::get_left(DigitalRegister &dst, DigitalRegister &src,
     auto write_chunk =
         cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
     src.value()(read_chunk).copyTo(dst.value()(write_chunk));
-    auto fill =
-        cv::Rect(0, 0, offset, src.value().rows);
+    auto fill = cv::Rect(0, 0, offset, src.value().rows);
     dst.value()(fill).setTo(cv::Scalar(boundary_fill));
 #ifdef TRACK_STATISTICS
     src.inc_read();
@@ -506,7 +506,7 @@ void DigitalBus::get_south(DigitalRegister &dst, DigitalRegister &src,
 // SuperPixel Operations
 
 void DigitalBus::superpixel_create(
-    AnalogueRegister &a, DigitalRegister &d,
+    DigitalRegister &dst, AnalogueRegister &src,
     const std::unordered_map<int, cv::Point> &locations) {
     // Converts an analogue image to a digital superpixel format
     // For now assume 1 bank
@@ -515,10 +515,10 @@ void DigitalBus::superpixel_create(
     int num_banks = 1;
     int pixel_size = 2;
 
-    for(int col = 0; col < a.value().cols; col += pixel_size) {
-        for(int row = 0; row < a.value().rows; row += pixel_size) {
+    for(int col = 0; col < src.value().cols; col += pixel_size) {
+        for(int row = 0; row < src.value().rows; row += pixel_size) {
             int sum = cv::sum(
-                a.value()(cv::Rect(col, row, pixel_size, pixel_size)))[0];
+                src.value()(cv::Rect(col, row, pixel_size, pixel_size)))[0];
             sum /= (pixel_size * pixel_size);  // <- this truncates values
             // convert value to bit array of length n. LSB first
             // write out bits to block in correct order - assume 16 bit snake
@@ -527,15 +527,45 @@ void DigitalBus::superpixel_create(
                 int bit = (sum >> i) & 1;
                 cv::Point relative_pos =
                     locations.at(i + 1);  // bitorder snake starts at 1 not 0
-                d.value().at<uint8_t>(relative_pos.y + row,
-                                      relative_pos.x + col) = bit;
+                dst.value().at<uint8_t>(relative_pos.y + row,
+                                        relative_pos.x + col) = bit;
             }
         }
     }
 }
 
-void DigitalBus::superpixel_shift_right(
-    DigitalRegister &d, const std::unordered_map<int, cv::Point> &locations) {}
+void DigitalBus::superpixel_shift_right(DigitalRegister &dst,
+                                        DigitalRegister &src, Origin origin) {
+    int rows = src.value().rows;
+    int cols = src.value().cols;
+    DigitalRegister east = DigitalRegister(rows, cols);
+    DigitalRegister north = DigitalRegister(rows, cols);
+    DigitalRegister west = DigitalRegister(rows, cols);
+    DigitalRegister south = DigitalRegister(rows, cols);
+
+    DigitalRegister R_NORTH =
+        (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+                  0, 1, 0, 0, 0, 0);
+    DigitalRegister R_SOUTH =
+        (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1, 0, 1, 0, 1, 0,
+                  1, 0, 1, 0, 1, 0);
+    DigitalRegister R_EAST = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 1,
+                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1);
+    DigitalRegister R_WEST = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    get_east(east, src, 1, 0, origin);
+    get_north(north, src, 1, 0, origin);
+    get_west(west, src, 1, 0, origin);
+    get_south(south, src, 1, 0, origin);
+
+    AND(east, east, R_EAST);
+    AND(north, north, R_NORTH);
+    AND(west, west, R_WEST);
+    AND(south, south, R_SOUTH);
+
+    OR(dst, east, north, south, west);
+}
 
 void DigitalBus::positions_from_bitorder(
     std::vector<std::vector<std::vector<int>>> bitorder, int banks, int height,

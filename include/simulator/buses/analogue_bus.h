@@ -63,6 +63,7 @@ class AnalogueBus {
 
     // Neighbour Access
 
+    // TODO need to be parameterised, checked and tested
     void push_north(AnalogueRegister& src, AnalogueRegister& dst, int offset,
                     DigitalRegister& FLAG);
     void push_east(AnalogueRegister& src, AnalogueRegister& dst, int offset,

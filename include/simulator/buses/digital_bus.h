@@ -5,9 +5,9 @@
 #ifndef SIMULATOR_DIGITAL_BUS_H
 #define SIMULATOR_DIGITAL_BUS_H
 
+#include "simulator/base/plane_params.h"
 #include "simulator/registers/analogue_register.h"
 #include "simulator/registers/digital_register.h"
-#include "simulator/base/plane_params.h"
 
 class DigitalBus {
    public:
@@ -80,12 +80,18 @@ class DigitalBus {
 
     /* These first neighbour functions are absolute and do not depend on origin.
      * They function as expected assuming a grid with origin in bottom left */
-    void get_up(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
-    void get_right(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
-    void get_left(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
-    void get_down(DigitalRegister& dst, DigitalRegister& src, int offset, int boundary_fill);
+    void get_up(DigitalRegister& dst, DigitalRegister& src, int offset,
+                int boundary_fill);
+    void get_right(DigitalRegister& dst, DigitalRegister& src, int offset,
+                   int boundary_fill);
+    void get_left(DigitalRegister& dst, DigitalRegister& src, int offset,
+                  int boundary_fill);
+    void get_down(DigitalRegister& dst, DigitalRegister& src, int offset,
+                  int boundary_fill);
 
-    /* The following are dependent on origin. For example, North when the origin is at the bottom is not the same as North when the origin is at the top. Top north = bottom south*/
+    /* The following are dependent on origin. For example, North when the origin
+     * is at the bottom is not the same as North when the origin is at the top.
+     * Top north = bottom south*/
     void get_east(DigitalRegister& dst, DigitalRegister& src, int offset,
                   int boundary_fill, Origin origin);
     void get_west(DigitalRegister& dst, DigitalRegister& src, int offset,
@@ -97,13 +103,12 @@ class DigitalBus {
 
     // Higher level functions
 
-
     // Superpixel Operations
-    void superpixel_create(AnalogueRegister& a, DigitalRegister& d,
+    void superpixel_create(DigitalRegister& dst, AnalogueRegister& src,
                            const std::unordered_map<int, cv::Point>& locations);
-    void superpixel_shift_right(
-        DigitalRegister& d,
-        const std::unordered_map<int, cv::Point>& locations);
+    void superpixel_shift_right(DigitalRegister& dst,
+        DigitalRegister& src,
+        Origin origin);
     void positions_from_bitorder(
         std::vector<std::vector<std::vector<int>>> bitorder, int banks,
         int height, int width, std::unordered_map<int, cv::Point>& locations);

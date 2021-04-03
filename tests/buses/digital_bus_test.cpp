@@ -10,29 +10,6 @@
 #include "../../include/simulator/util/utility.h"
 #include "../utility.h"
 
-TEST_CASE("images can be converted to digital superpixel format") {
-    int rows = 4;
-    int cols = 4;
-    DigitalBus bus;
-
-    AnalogueRegister a = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 3, 4, 1, 0,
-                                   3, 3, 15, 15, 1, 10, 8, 7, 13, 11, 6, 15);
-    DigitalRegister out(rows, cols);
-
-    std::vector<std::vector<std::vector<int>>> bitorder = {
-        {{1, 4}, {2, 3}},
-    };
-    std::unordered_map<int, cv::Point> locations;
-
-    bus.positions_from_bitorder(bitorder, 1, 2, 2, locations);
-    bus.superpixel_create(a, out, locations);
-
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 1, 0, 1,
-                                 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0);
-
-    REQUIRE(utility::mats_are_equal(out.value(), expected));
-}
-
 TEST_CASE("get_X neighbour methods work correctly for BOTTOM_LEFT origin") {
     int rows = 4;
     int cols = 4;
@@ -119,9 +96,49 @@ TEST_CASE("get_X neighbour methods work correctly for TOP_RIGHT origin") {
         DigitalRegister south = DigitalRegister(rows, cols);
         bus.get_south(south, d, 1, 0, origin);
         cv::Mat expected_south =
-
             (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1, 0, 0, 0,
                       0, 0, 0, 0, 0, 1, 0, 0);
         REQUIRE(utility::mats_are_equal(south.value(), expected_south));
     }
+}
+
+TEST_CASE("images can be converted to digital superpixel format") {
+    int rows = 4;
+    int cols = 4;
+    DigitalBus bus;
+
+    AnalogueRegister a = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 3, 4, 1, 0,
+                                   3, 3, 15, 15, 1, 10, 8, 7, 13, 11, 6, 15);
+    DigitalRegister out(rows, cols);
+
+    std::vector<std::vector<std::vector<int>>> bitorder = {
+        {{1, 4}, {2, 3}},
+    };
+    std::unordered_map<int, cv::Point> locations;
+
+    bus.positions_from_bitorder(bitorder, 1, 2, 2, locations);
+    bus.superpixel_create(out, a, locations);
+
+    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 1, 0, 1,
+                                 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0);
+
+    REQUIRE(utility::mats_are_equal(out.value(), expected));
+}
+
+TEST_CASE("superpixel images can be shifted") {
+    int rows = 4;
+    int cols = 4;
+    DigitalBus bus;
+    Origin origin = Origin::TOP_RIGHT;
+
+    DigitalRegister d = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0);
+    DigitalRegister out(rows, cols);
+
+    bus.superpixel_shift_right(out, d, origin);
+
+    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1,
+                                 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+
+    REQUIRE(utility::mats_are_equal(out.value(), expected));
 }
