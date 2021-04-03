@@ -135,10 +135,16 @@ TEST_CASE("superpixel images can be shifted") {
                                   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0);
     DigitalRegister out(rows, cols);
 
-    bus.superpixel_shift_right(out, d, origin);
+    SECTION("shift right") {
+        bus.superpixel_shift_right(out, d, origin);
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+        REQUIRE(utility::mats_are_equal(out.value(), expected));
+    }
 
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1,
-                                 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
-
-    REQUIRE(utility::mats_are_equal(out.value(), expected));
+    SECTION("shift left") {
+        bus.superpixel_shift_left(out, d, origin);
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,0,0);
+        REQUIRE(utility::mats_are_equal(out.value(), expected));
+    }
 }

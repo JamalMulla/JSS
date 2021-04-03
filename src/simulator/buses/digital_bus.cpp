@@ -534,14 +534,34 @@ void DigitalBus::superpixel_create(
     }
 }
 
-void DigitalBus::superpixel_shift_right(DigitalRegister &dst,
-                                        DigitalRegister &src, Origin origin) {
+void DigitalBus::superpixel_shift(DigitalRegister &dst, DigitalRegister &src,
+                                  Origin origin, DigitalRegister &RN,
+                                  DigitalRegister &RS, DigitalRegister &RE,
+                                  DigitalRegister &RW) {
     int rows = src.value().rows;
     int cols = src.value().cols;
     DigitalRegister east = DigitalRegister(rows, cols);
     DigitalRegister north = DigitalRegister(rows, cols);
     DigitalRegister west = DigitalRegister(rows, cols);
     DigitalRegister south = DigitalRegister(rows, cols);
+
+    get_east(east, src, 1, 0, origin);
+    get_north(north, src, 1, 0, origin);
+    get_west(west, src, 1, 0, origin);
+    get_south(south, src, 1, 0, origin);
+
+    AND(east, east, RE);
+    AND(north, north, RN);
+    AND(west, west, RW);
+    AND(south, south, RS);
+
+    OR(dst, east, north, south, west);
+}
+
+void DigitalBus::superpixel_shift_right(DigitalRegister &dst,
+                                        DigitalRegister &src, Origin origin) {
+    int rows = src.value().rows;
+    int cols = src.value().cols;
 
     DigitalRegister R_NORTH =
         (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
@@ -554,17 +574,26 @@ void DigitalBus::superpixel_shift_right(DigitalRegister &dst,
     DigitalRegister R_WEST = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0,
                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-    get_east(east, src, 1, 0, origin);
-    get_north(north, src, 1, 0, origin);
-    get_west(west, src, 1, 0, origin);
-    get_south(south, src, 1, 0, origin);
+    superpixel_shift(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
+}
 
-    AND(east, east, R_EAST);
-    AND(north, north, R_NORTH);
-    AND(west, west, R_WEST);
-    AND(south, south, R_SOUTH);
+void DigitalBus::superpixel_shift_left(DigitalRegister &dst,
+                                       DigitalRegister &src, Origin origin) {
+    int rows = src.value().rows;
+    int cols = src.value().cols;
 
-    OR(dst, east, north, south, west);
+    DigitalRegister R_NORTH =
+        (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+                  1, 0, 0, 0, 0, 0);
+    DigitalRegister R_SOUTH =
+        (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 0, 1, 0, 1, 0, 1,
+                  0, 1, 0, 1, 0, 1);
+    DigitalRegister R_EAST = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    DigitalRegister R_WEST = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 1, 0,
+                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0);
+
+    superpixel_shift(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
 }
 
 void DigitalBus::positions_from_bitorder(
