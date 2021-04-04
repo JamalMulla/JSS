@@ -615,7 +615,30 @@ void DigitalBus::superpixel_add(DigitalRegister &dst, DigitalRegister &src1,
         AND(and_, A, B);
     }
     XOR(dst, A, B);
+}
 
+void DigitalBus::superpixel_sub(DigitalRegister &dst, DigitalRegister &src1,
+                                DigitalRegister &src2, Origin origin) {
+    DigitalRegister A = src1.value().clone();
+    DigitalRegister B = src2.value().clone();
+    DigitalRegister NOT_A = src1.value().clone();
+    DigitalRegister and_ = DigitalRegister(src1.value().rows, src1.value().cols);
+    DigitalRegister xor_ = DigitalRegister(src1.value().rows, src1.value().cols);
+
+    NOT(NOT_A, A);
+    AND(and_, NOT_A, B);
+
+    while (cv::sum(and_.value())[0] != 0) {
+        XOR(xor_, A, B);
+        NOT(NOT_A, A);
+        AND(and_, NOT_A, B);
+        superpixel_shift_right(and_, and_, origin);
+        xor_.value().copyTo(A.value());
+        and_.value().copyTo(B.value());
+        NOT(NOT_A, A);
+        AND(and_, NOT_A, B);
+    }
+    XOR(dst, A, B);
 }
 
 void DigitalBus::positions_from_bitorder(

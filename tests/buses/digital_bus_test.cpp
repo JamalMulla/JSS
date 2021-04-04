@@ -176,9 +176,21 @@ TEST_CASE("superpixel images can be added") {
 
     bus.superpixel_add(out, A, B, origin);
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,0,0, 0,1,1,0, 0,1,1,0);
-    utility::print_matrix<uint8_t>(expected);
-    std::cout << "---------------" << std::endl;
-    utility::print_matrix<uint8_t>(out.value());
     REQUIRE(utility::mats_are_equal(out.value(), expected));
+}
 
+TEST_CASE("superpixel images can be subtracted") {
+    int rows = 4;
+    int cols = 4;
+    DigitalBus bus;
+    Origin origin = Origin::TOP_RIGHT;
+
+    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0);
+    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,0,0);
+
+    DigitalRegister out(rows, cols);
+
+    bus.superpixel_sub(out, A, B, origin);
+    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,1,0, 0,0,0,0, 0,0,0,0);
+    REQUIRE(utility::mats_are_equal(out.value(), expected));
 }
