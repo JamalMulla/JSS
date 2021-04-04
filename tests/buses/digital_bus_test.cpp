@@ -116,6 +116,70 @@ TEST_CASE("get_X neighbour methods work correctly for TOP_RIGHT origin") {
     }
 }
 
+// Superpixel
+
+TEST_CASE("patterns are generated correctly for arbitrary bitorders") {
+    DigitalBus bus;
+    int rows = 4;
+    int cols = 4;
+
+    SECTION("16 bit boustrophedonic pattern") {
+        std::vector<std::vector<std::vector<int>>> bitorder = {
+            {
+                {1, 8, 9, 16},
+                {2, 7, 10, 15},
+                {3, 6, 11, 14},
+                {4, 5, 12, 13}
+            },
+        };
+
+        DigitalRegister RN = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+        DigitalRegister RE = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+        DigitalRegister RS = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+        DigitalRegister RW = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+
+        bus.superpixel_patterns_from_bitorder(bitorder, RN, RS, RE, RW);
+        cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,1, 0,1,0,1, 0,1,0,1, 0,0,0,0);
+        cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,0,0, 0,0,0,0, 0,1,0,1);
+        cv::Mat expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 1,0,1,0, 1,0,1,0, 1,0,1,0);
+        cv::Mat expected_w = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0);
+
+        REQUIRE(utility::mats_are_equal(RN.value(), expected_n));
+        REQUIRE(utility::mats_are_equal(RE.value(), expected_e));
+        REQUIRE(utility::mats_are_equal(RS.value(), expected_s));
+        REQUIRE(utility::mats_are_equal(RW.value(), expected_w));
+    }
+
+    SECTION("16 bit spiral pattern") {
+        // TODO double check
+        std::vector<std::vector<std::vector<int>>> bitorder = {
+            {
+                {4, 3, 2, 1},
+                {5, 14, 13, 12},
+                {6, 15, 16, 11},
+                {7, 8, 9, 10}
+            },
+        };
+
+        DigitalRegister RN = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+        DigitalRegister RE = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+        DigitalRegister RS = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+        DigitalRegister RW = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+
+        bus.superpixel_patterns_from_bitorder(bitorder, RN, RS, RE, RW);
+        cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,1, 0,0,0,1, 0,0,0,0);
+        cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,1,1);
+        cv::Mat expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 1,0,0,0, 1,1,0,0, 1,0,0,0);
+        cv::Mat expected_w = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,1,0, 0,1,1,0, 0,0,0,0, 0,0,0,0);
+
+        REQUIRE(utility::mats_are_equal(RN.value(), expected_n));
+        REQUIRE(utility::mats_are_equal(RE.value(), expected_e));
+        REQUIRE(utility::mats_are_equal(RS.value(), expected_s));
+        REQUIRE(utility::mats_are_equal(RW.value(), expected_w));
+    }
+
+}
+
 TEST_CASE("images can be converted to digital superpixel format") {
     int rows = 4;
     int cols = 4;
@@ -142,6 +206,7 @@ TEST_CASE("images can be converted to digital superpixel format") {
 TEST_CASE("superpixel images can be shifted") {
     int rows = 4;
     int cols = 4;
+    int superpixel_size = 4;
     DigitalBus bus;
     Origin origin = Origin::TOP_RIGHT;
 
@@ -150,14 +215,14 @@ TEST_CASE("superpixel images can be shifted") {
     DigitalRegister out(rows, cols);
 
     SECTION("shift right") {
-        bus.superpixel_shift_right(out, d, origin);
+        bus.superpixel_shift_block_right(out, d, superpixel_size, origin);
         cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
         REQUIRE(utility::mats_are_equal(out.value(), expected));
     }
 
     SECTION("shift left") {
-        bus.superpixel_shift_left(out, d, origin);
+        bus.superpixel_shift_block_left(out, d, superpixel_size, origin);
         cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,0,0);
         REQUIRE(utility::mats_are_equal(out.value(), expected));
     }

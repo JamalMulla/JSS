@@ -389,6 +389,11 @@ class SCAMP5 {
 
     void scamp5_get_io_agent();
 
+    // Superpixel methods
+    void superpixel_create(DREG *dst, AREG *src);
+    void superpixel_shift_right(DREG* dst, DREG* src);
+    void superpixel_shift_left(DREG* dst, DREG* src);
+
     // Simulator specific methods
     void print_stats(const CycleCounter *counter);
 };

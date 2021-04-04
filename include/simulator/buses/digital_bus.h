@@ -106,19 +106,30 @@ class DigitalBus {
     // Superpixel Operations
     void superpixel_create(DigitalRegister& dst, AnalogueRegister& src,
                            const std::unordered_map<int, cv::Point>& locations);
-    void superpixel_shift(DigitalRegister& dst, DigitalRegister& src,
-                          Origin origin, DigitalRegister& RN,
-                          DigitalRegister& RS, DigitalRegister& RE,
-                          DigitalRegister& RW);
-    void superpixel_shift_right(DigitalRegister& dst, DigitalRegister& src,
-                                Origin origin);
-    void superpixel_shift_left(DigitalRegister& dst, DigitalRegister& src,
-                               Origin origin);
-    void superpixel_add(DigitalRegister& dst, DigitalRegister& src1, DigitalRegister& src2, Origin origin);
-    void superpixel_sub(DigitalRegister& dst, DigitalRegister& src1, DigitalRegister& src2, Origin origin);
+    void superpixel_patterns_from_bitorder(
+        std::vector<std::vector<std::vector<int>>> bitorder,
+        DigitalRegister& RN, DigitalRegister& RS, DigitalRegister& RE,
+        DigitalRegister& RW);
     void positions_from_bitorder(
         std::vector<std::vector<std::vector<int>>> bitorder, int banks,
         int height, int width, std::unordered_map<int, cv::Point>& locations);
+    void superpixel_shift_block(DigitalRegister& dst, DigitalRegister& src,
+                                Origin origin, DigitalRegister& RN,
+                                DigitalRegister& RS, DigitalRegister& RE,
+                                DigitalRegister& RW);
+    void superpixel_shift_block_right(DigitalRegister& dst,
+                                      DigitalRegister& src, int superpixel_size,
+                                      Origin origin);
+    void superpixel_shift_block_left(DigitalRegister& dst, DigitalRegister& src,
+                                     int superpixel_size, Origin origin);
+    void superpixel_shift_right(DigitalRegister& dst, DigitalRegister& src,
+                                int superpixel_size, Origin origin);
+    void superpixel_shift_left(DigitalRegister& dst, DigitalRegister& src,
+                               int superpixel_size, Origin origin);
+    void superpixel_add(DigitalRegister& dst, DigitalRegister& src1,
+                        DigitalRegister& src2, Origin origin);
+    void superpixel_sub(DigitalRegister& dst, DigitalRegister& src1,
+                        DigitalRegister& src2, Origin origin);
 };
 
 #endif  // SIMULATOR_DIGITAL_BUS_H

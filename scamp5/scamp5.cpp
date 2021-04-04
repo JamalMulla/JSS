@@ -1576,6 +1576,38 @@ void SCAMP5::scamp5_scan_boundingbox(DREG *dr, uint8_t *vec4v) {
     // pointer to a buffer of 4 byte
 }
 
+// EXTENSIONS
+
+// Superpixel methods
+void SCAMP5::superpixel_create(DREG *dst, AREG *src) {
+    std::vector<std::vector<std::vector<int>>> bitorder = {
+        {{1, 8, 9, 16},
+         {2, 7, 10, 15},
+         {3, 6, 11, 14},
+         {4, 5, 12, 13}
+        },
+    };
+    std::unordered_map<int, cv::Point> locations;
+
+    this->pe->local_read_bus.positions_from_bitorder(bitorder, 1, 4, 4, locations);
+    this->pe->local_read_bus.superpixel_create(*dst, *src, locations);
+}
+void SCAMP5::superpixel_shift_right(DigitalRegister *dst,
+                                    DigitalRegister *src) {
+    // TODO Superpixel size
+    this->pe->local_read_bus.superpixel_shift_right(*dst, *src, 4,
+                                                          this->origin_);
+}
+
+void SCAMP5::superpixel_shift_left(DigitalRegister *dst,
+                                    DigitalRegister *src) {
+    // TODO superpixel size
+    this->pe->local_read_bus.superpixel_shift_left(*dst, *src, 4,
+                                                         this->origin_);
+}
+
+// Builder
+
 SCAMP5::builder &SCAMP5::builder::with_rows(int rows) {
     this->rows_ = rows;
     return *this;
