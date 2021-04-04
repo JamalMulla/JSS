@@ -1595,8 +1595,9 @@ void SCAMP5::superpixel_create(DREG *dst, AREG *src) {
 void SCAMP5::superpixel_shift_right(DigitalRegister *dst,
                                     DigitalRegister *src) {
     // TODO Superpixel size
-    this->pe->local_read_bus.superpixel_shift_right(*dst, *src, 4,
-                                                          this->origin_);
+    this->pe->local_read_bus.superpixel_shift_right(
+        *dst, *src, std::vector<std::vector<std::vector<int>>>(), 4,
+        this->origin_);
 }
 
 void SCAMP5::superpixel_shift_left(DigitalRegister *dst,

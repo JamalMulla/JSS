@@ -118,12 +118,12 @@ TEST_CASE("get_X neighbour methods work correctly for TOP_RIGHT origin") {
 
 // Superpixel
 
-TEST_CASE("patterns are generated correctly for arbitrary bitorders") {
+TEST_CASE("shift patterns are generated correctly for arbitrary bitorders") {
     DigitalBus bus;
     int rows = 4;
     int cols = 4;
 
-    SECTION("16 bit boustrophedonic pattern") {
+    SECTION("16 bit boustrophedonic shift right pattern") {
         std::vector<std::vector<std::vector<int>>> bitorder = {
             {
                 {1, 8, 9, 16},
@@ -138,7 +138,8 @@ TEST_CASE("patterns are generated correctly for arbitrary bitorders") {
         DigitalRegister RS = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
         DigitalRegister RW = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
 
-        bus.superpixel_patterns_from_bitorder(bitorder, RN, RS, RE, RW);
+        bus.superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE, RW,
+                                                    true);
         cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,1, 0,1,0,1, 0,1,0,1, 0,0,0,0);
         cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,0,0, 0,0,0,0, 0,1,0,1);
         cv::Mat expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 1,0,1,0, 1,0,1,0, 1,0,1,0);
@@ -150,7 +151,35 @@ TEST_CASE("patterns are generated correctly for arbitrary bitorders") {
         REQUIRE(utility::mats_are_equal(RW.value(), expected_w));
     }
 
-    SECTION("16 bit spiral pattern") {
+    SECTION("16 bit boustrophedonic shift left pattern") {
+        std::vector<std::vector<std::vector<int>>> bitorder = {
+            {
+                {1, 8, 9, 16},
+                {2, 7, 10, 15},
+                {3, 6, 11, 14},
+                {4, 5, 12, 13}
+            },
+        };
+
+        DigitalRegister RN = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+        DigitalRegister RE = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+        DigitalRegister RS = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+        DigitalRegister RW = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
+
+        bus.superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE,
+                                                       RW, false);
+        cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 1,0,1,0, 1,0,1,0, 0,0,0,0);
+        cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0);
+        cv::Mat expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,1,0,1, 0,1,0,1, 0,1,0,1);
+        cv::Mat expected_w = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,0,0, 0,0,0,0, 1,0,1,0);
+
+        REQUIRE(utility::mats_are_equal(RN.value(), expected_n));
+        REQUIRE(utility::mats_are_equal(RE.value(), expected_e));
+        REQUIRE(utility::mats_are_equal(RS.value(), expected_s));
+        REQUIRE(utility::mats_are_equal(RW.value(), expected_w));
+    }
+
+    SECTION("16 bit spiral shift right pattern") {
         // TODO double check
         std::vector<std::vector<std::vector<int>>> bitorder = {
             {
@@ -166,7 +195,8 @@ TEST_CASE("patterns are generated correctly for arbitrary bitorders") {
         DigitalRegister RS = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
         DigitalRegister RW = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
 
-        bus.superpixel_patterns_from_bitorder(bitorder, RN, RS, RE, RW);
+        bus.superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE, RW,
+                                                    true);
         cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,1, 0,0,0,1, 0,0,0,0);
         cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,1,1);
         cv::Mat expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 1,0,0,0, 1,1,0,0, 1,0,0,0);

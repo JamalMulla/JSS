@@ -106,10 +106,14 @@ class DigitalBus {
     // Superpixel Operations
     void superpixel_create(DigitalRegister& dst, AnalogueRegister& src,
                            const std::unordered_map<int, cv::Point>& locations);
-    void superpixel_patterns_from_bitorder(
+    void superpixel_shift_patterns_from_bitorder(
         std::vector<std::vector<std::vector<int>>> bitorder,
         DigitalRegister& RN, DigitalRegister& RS, DigitalRegister& RE,
-        DigitalRegister& RW);
+        DigitalRegister& RW, bool shift_right);
+    //    void superpixel_shift_down_patterns_from_bitorder(
+    //        std::vector<std::vector<std::vector<int>>> bitorder,
+    //        DigitalRegister& RN, DigitalRegister& RS, DigitalRegister& RE,
+    //        DigitalRegister& RW);
     void positions_from_bitorder(
         std::vector<std::vector<std::vector<int>>> bitorder, int banks,
         int height, int width, std::unordered_map<int, cv::Point>& locations);
@@ -117,14 +121,11 @@ class DigitalBus {
                                 Origin origin, DigitalRegister& RN,
                                 DigitalRegister& RS, DigitalRegister& RE,
                                 DigitalRegister& RW);
-    void superpixel_shift_block_right(DigitalRegister& dst,
-                                      DigitalRegister& src, int superpixel_size,
-                                      Origin origin);
-    void superpixel_shift_block_left(DigitalRegister& dst, DigitalRegister& src,
-                                     int superpixel_size, Origin origin);
-    void superpixel_shift_right(DigitalRegister& dst, DigitalRegister& src,
-                                int superpixel_size, Origin origin);
-    void superpixel_shift_left(DigitalRegister& dst, DigitalRegister& src,
+    void superpixel_shift_right(
+        DigitalRegister& dst, DigitalRegister& src,
+        std::vector<std::vector<std::vector<int>>> bitorder,
+        int superpixel_size, Origin origin);
+    void superpixel_shift_left(DigitalRegister& dst, DigitalRegister& src, std::vector<std::vector<std::vector<int>>> bitorder,
                                int superpixel_size, Origin origin);
     void superpixel_add(DigitalRegister& dst, DigitalRegister& src1,
                         DigitalRegister& src2, Origin origin);
