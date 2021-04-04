@@ -10,6 +10,20 @@
 #include "../../include/simulator/util/utility.h"
 #include "../utility.h"
 
+TEST_CASE("two images can be xor'd") {
+    int rows = 4;
+    int cols = 4;
+    DigitalBus bus;
+
+    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,1,0, 1,1,0,0, 1,1,0,0, 0,0,1,1);
+    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,0,0, 0,1,1,0, 1,0,0,1, 1,0,1,0);
+
+    bus.XOR(A, A, B);
+    DigitalRegister expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 1,0,1,0, 0,1,0,1, 1,0,0,1);
+    REQUIRE(utility::mats_are_equal(A.value(), expected.value()));
+
+}
+
 TEST_CASE("get_X neighbour methods work correctly for BOTTOM_LEFT origin") {
     int rows = 4;
     int cols = 4;
@@ -147,4 +161,24 @@ TEST_CASE("superpixel images can be shifted") {
         cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,0,0);
         REQUIRE(utility::mats_are_equal(out.value(), expected));
     }
+}
+
+TEST_CASE("superpixel images can be added") {
+    int rows = 4;
+    int cols = 4;
+    DigitalBus bus;
+    Origin origin = Origin::TOP_RIGHT;
+
+    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,1,0, 0,0,0,0, 1,0,1,0);
+    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,1,0, 0,1,0,0, 1,0,0,0);
+
+    DigitalRegister out(rows, cols);
+
+    bus.superpixel_add(out, A, B, origin);
+    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,0,0, 0,1,1,0, 0,1,1,0);
+    utility::print_matrix<uint8_t>(expected);
+    std::cout << "---------------" << std::endl;
+    utility::print_matrix<uint8_t>(out.value());
+    REQUIRE(utility::mats_are_equal(out.value(), expected));
+
 }

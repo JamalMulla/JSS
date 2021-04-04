@@ -114,6 +114,7 @@ class DigitalBus {
                                 Origin origin);
     void superpixel_shift_left(DigitalRegister& dst, DigitalRegister& src,
                                Origin origin);
+    void superpixel_add(DigitalRegister& dst, DigitalRegister& src1, DigitalRegister& src2, Origin origin);
     void positions_from_bitorder(
         std::vector<std::vector<std::vector<int>>> bitorder, int banks,
         int height, int width, std::unordered_map<int, cv::Point>& locations);

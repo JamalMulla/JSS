@@ -6,6 +6,7 @@
 
 #include <opencv2/core.hpp>
 
+#include "../../../tests/utility.h"
 #include "simulator/registers/analogue_register.h"
 
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
@@ -594,6 +595,27 @@ void DigitalBus::superpixel_shift_left(DigitalRegister &dst,
                                        0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0);
 
     superpixel_shift(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
+}
+
+void DigitalBus::superpixel_add(DigitalRegister &dst, DigitalRegister &src1,
+                                DigitalRegister &src2, Origin origin) {
+    DigitalRegister A = src1.value().clone();
+    DigitalRegister B = src2.value().clone();
+    DigitalRegister and_ = DigitalRegister(src1.value().rows, src1.value().cols);
+    DigitalRegister xor_ = DigitalRegister(src1.value().rows, src1.value().cols);
+
+    AND(and_, A, B);
+
+    while (cv::sum(and_.value())[0] != 0) {
+        XOR(xor_, A, B);
+        AND(and_, A, B);
+        superpixel_shift_right(and_, and_, origin);
+        xor_.value().copyTo(A.value());
+        and_.value().copyTo(B.value());
+        AND(and_, A, B);
+    }
+    XOR(dst, A, B);
+
 }
 
 void DigitalBus::positions_from_bitorder(
