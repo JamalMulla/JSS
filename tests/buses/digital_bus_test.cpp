@@ -284,8 +284,8 @@ TEST_CASE("images can be converted to digital superpixel format") {
     };
     std::unordered_map<int, cv::Point> locations;
 
-    bus.positions_from_bitorder(bitorder, 1, 2, 2, locations);
-    bus.superpixel_create(out, a, locations);
+    bus.positions_from_bitorder(bitorder, locations);
+    bus.superpixel_create(out, a, locations, 0);
 
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 1, 0, 1,
                                  0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0);
@@ -313,14 +313,14 @@ TEST_CASE("superpixel images can be shifted") {
     DigitalRegister out(rows, cols);
 
     SECTION("shift right") {
-        bus.superpixel_shift_right(out, d, bitorder, superpixel_size, origin);
+        bus.superpixel_shift_right(out, d, bitorder, origin);
         cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
         REQUIRE(utility::mats_are_equal(out.value(), expected));
     }
 
     SECTION("shift left") {
-        bus.superpixel_shift_left(out, d, bitorder, superpixel_size, origin);
+        bus.superpixel_shift_left(out, d, bitorder, origin);
         cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,0,0);
         REQUIRE(utility::mats_are_equal(out.value(), expected));
     }

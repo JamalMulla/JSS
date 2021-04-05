@@ -41,6 +41,23 @@ class SCAMP5 {
     int cols_;
     Origin origin_;
 
+//    std::vector<std::vector<std::vector<int>>> bitorder = {
+//        {
+//            {1, 8, 9, 16},
+//            {2, 7, 10, 15},
+//            {3, 6, 11, 14},
+//            {4, 5, 12, 13}
+//        },
+//    };
+    std::vector<std::vector<std::vector<int>>> bitorder = {
+        {
+            {4, 3, 2, 1},
+            {5, 14, 13, 12},
+            {6, 15, 16, 11},
+            {7, 8, 9, 10}
+        },
+    };
+
     void init();
 
    public:
@@ -393,6 +410,7 @@ class SCAMP5 {
     void superpixel_create(DREG *dst, AREG *src);
     void superpixel_shift_right(DREG* dst, DREG* src);
     void superpixel_shift_left(DREG* dst, DREG* src);
+    void superpixel_dac(AREG* dst, DREG* src);
 
     // Simulator specific methods
     void print_stats(const CycleCounter *counter);

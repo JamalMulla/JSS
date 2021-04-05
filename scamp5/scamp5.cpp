@@ -1580,31 +1580,25 @@ void SCAMP5::scamp5_scan_boundingbox(DREG *dr, uint8_t *vec4v) {
 
 // Superpixel methods
 void SCAMP5::superpixel_create(DREG *dst, AREG *src) {
-    std::vector<std::vector<std::vector<int>>> bitorder = {
-        {{1, 8, 9, 16},
-         {2, 7, 10, 15},
-         {3, 6, 11, 14},
-         {4, 5, 12, 13}
-        },
-    };
     std::unordered_map<int, cv::Point> locations;
 
-    this->pe->local_read_bus.positions_from_bitorder(bitorder, 1, 4, 4, locations);
-    this->pe->local_read_bus.superpixel_create(*dst, *src, locations);
+    this->pe->local_read_bus.positions_from_bitorder(this->bitorder, locations);
+    this->pe->local_read_bus.superpixel_create(*dst, *src, locations, 4);
 }
 void SCAMP5::superpixel_shift_right(DigitalRegister *dst,
                                     DigitalRegister *src) {
-    // TODO Superpixel size
-    this->pe->local_read_bus.superpixel_shift_right(
-        *dst, *src, std::vector<std::vector<std::vector<int>>>(), 4,
-        this->origin_);
+    this->pe->local_read_bus.superpixel_shift_right(*dst, *src, this->bitorder,this->origin_);
 }
 
 void SCAMP5::superpixel_shift_left(DigitalRegister *dst,
-                                    DigitalRegister *src) {
-    // TODO superpixel size
-//    this->pe->local_read_bus.superpixel_shift_left(*dst, *src, 4,
-//                                                         this->origin_);
+                                   DigitalRegister *src) {
+    this->pe->local_read_bus.superpixel_shift_left(*dst, *src, this->bitorder,
+                                                   this->origin_);
+}
+void SCAMP5::superpixel_dac(AREG *dst, DREG *src) {
+    std::unordered_map<int, cv::Point> locations;
+    this->pe->local_read_bus.positions_from_bitorder(this->bitorder, locations);
+    this->pe->local_read_bus.superpixel_dac(*dst, *src, locations, 4);
 }
 
 // Builder

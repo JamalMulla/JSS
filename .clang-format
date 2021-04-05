@@ -2,6 +2,8 @@
 BasedOnStyle: Google
 ColumnLimit: 0
 AllowShortBlocksOnASingleLine: Always
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: true
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: Never
 AlwaysBreakAfterReturnType: None
