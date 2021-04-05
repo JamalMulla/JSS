@@ -566,9 +566,6 @@ void DigitalBus::superpixel_shift_right(
     DigitalRegister &dst, DigitalRegister &src,
     std::vector<std::vector<std::vector<int>>> bitorder, int superpixel_size,
     Origin origin) {
-    PlaneParams p;
-    get_fixed_params(p, origin, 0, 0, src.value().rows, src.value().cols,
-                     superpixel_size, superpixel_size);
 
     int rows = src.value().rows;
     int cols = src.value().cols;
@@ -579,24 +576,21 @@ void DigitalBus::superpixel_shift_right(
     superpixel_shift_patterns_from_bitorder(std::move(bitorder), RN, RS, RE, RW,
                                             true, origin);
 
-    // Go through each block and perform shift individually
-    for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
-        for(int row = p.row_start; p.row_op(row, p.row_end);
-            row += p.row_step) {
-            // todo need to select rect
-            superpixel_shift_block(dst, src, origin, RN, RS, RE, RW);
-        }
-    }
+    // TODO non-square superpixels?
+    int num_of_repeats_y = rows / superpixel_size;
+    int num_of_repeats_x = cols / superpixel_size;
+    DigitalRegister R_NORTH = cv::repeat(RN.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_SOUTH = cv::repeat(RS.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_EAST = cv::repeat(RE.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_WEST = cv::repeat(RW.value(), num_of_repeats_y, num_of_repeats_x);
+    superpixel_shift_block(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
+
 }
 
 void DigitalBus::superpixel_shift_left(
     DigitalRegister &dst, DigitalRegister &src,
     std::vector<std::vector<std::vector<int>>> bitorder, int superpixel_size,
     Origin origin) {
-    PlaneParams p;
-    get_fixed_params(p, origin, 0, 0, src.value().rows, src.value().cols,
-                     superpixel_size, superpixel_size);
-
     int rows = src.value().rows;
     int cols = src.value().cols;
     DigitalRegister RE = DigitalRegister(rows, cols);
@@ -606,19 +600,19 @@ void DigitalBus::superpixel_shift_left(
     superpixel_shift_patterns_from_bitorder(std::move(bitorder), RN, RS, RE, RW,
                                             false, origin);
 
-        // Go through each block and perform shift individually
-        for(int col = p.col_start; p.col_op(col, p.col_end);
-            col += p.col_step) {
-        for(int row = p.row_start; p.row_op(row, p.row_end);
-            row += p.row_step) {
-            // todo need to select rect
-            superpixel_shift_block(dst, src, origin, RN, RS, RE, RW);
-        }
-    }
+    // TODO non-square superpixels?
+    int num_of_repeats_y = rows / superpixel_size;
+    int num_of_repeats_x = cols / superpixel_size;
+    DigitalRegister R_NORTH = cv::repeat(RN.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_SOUTH = cv::repeat(RS.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_EAST = cv::repeat(RE.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_WEST = cv::repeat(RW.value(), num_of_repeats_y, num_of_repeats_x);
+    superpixel_shift_block(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
 }
 
 void DigitalBus::superpixel_add(DigitalRegister &dst, DigitalRegister &src1,
-                                DigitalRegister &src2, Origin origin) {
+                                DigitalRegister &src2, std::vector<std::vector<std::vector<int>>> bitorder, Origin origin) {
+    int superpixel_size = bitorder[0][0].size(); // Assume square superpixel for now
     DigitalRegister A = src1.value().clone();
     DigitalRegister B = src2.value().clone();
     DigitalRegister and_ =
@@ -632,9 +626,7 @@ void DigitalBus::superpixel_add(DigitalRegister &dst, DigitalRegister &src1,
         XOR(xor_, A, B);
         AND(and_, A, B);
         // TODO superpixel size
-        superpixel_shift_right(and_, and_,
-                               std::vector<std::vector<std::vector<int>>>(), 4,
-                               origin);
+        superpixel_shift_right(and_, and_, bitorder, superpixel_size, origin);
         xor_.value().copyTo(A.value());
         and_.value().copyTo(B.value());
         AND(and_, A, B);
@@ -643,7 +635,8 @@ void DigitalBus::superpixel_add(DigitalRegister &dst, DigitalRegister &src1,
 }
 
 void DigitalBus::superpixel_sub(DigitalRegister &dst, DigitalRegister &src1,
-                                DigitalRegister &src2, Origin origin) {
+                                DigitalRegister &src2, std::vector<std::vector<std::vector<int>>> bitorder, Origin origin) {
+    int superpixel_size = bitorder[0][0].size(); // Assume square superpixel for now
     DigitalRegister A = src1.value().clone();
     DigitalRegister B = src2.value().clone();
     DigitalRegister NOT_A = src1.value().clone();
@@ -661,7 +654,7 @@ void DigitalBus::superpixel_sub(DigitalRegister &dst, DigitalRegister &src1,
         AND(and_, NOT_A, B);
         // TODO superpixel size
         superpixel_shift_right(and_, and_,
-                               std::vector<std::vector<std::vector<int>>>(), 4,
+                               bitorder, superpixel_size,
                                origin);
         xor_.value().copyTo(A.value());
         and_.value().copyTo(B.value());

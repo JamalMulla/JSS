@@ -1,5 +1,6 @@
 ---
 BasedOnStyle: Google
+ColumnLimit: 0
 AllowShortBlocksOnASingleLine: Always
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: Never

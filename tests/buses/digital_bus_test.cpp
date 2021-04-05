@@ -299,20 +299,28 @@ TEST_CASE("superpixel images can be shifted") {
     int superpixel_size = 4;
     DigitalBus bus;
     Origin origin = Origin::TOP_RIGHT;
+    std::vector<std::vector<std::vector<int>>> bitorder = {
+        {
+            {1, 8, 9, 16},
+            {2, 7, 10, 15},
+            {3, 6, 11, 14},
+            {4, 5, 12, 13}
+        },
+    };
 
     DigitalRegister d = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 0, 0,
                                   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0);
     DigitalRegister out(rows, cols);
 
     SECTION("shift right") {
-//        bus.superpixel_shift_right(out, d, superpixel_size, origin);
+        bus.superpixel_shift_right(out, d, bitorder, superpixel_size, origin);
         cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
         REQUIRE(utility::mats_are_equal(out.value(), expected));
     }
 
     SECTION("shift left") {
-//        bus.superpixel_shift_left(out, d, superpixel_size, origin);
+        bus.superpixel_shift_left(out, d, bitorder, superpixel_size, origin);
         cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,0,0);
         REQUIRE(utility::mats_are_equal(out.value(), expected));
     }
@@ -323,13 +331,21 @@ TEST_CASE("superpixel images can be added") {
     int cols = 4;
     DigitalBus bus;
     Origin origin = Origin::TOP_RIGHT;
+    std::vector<std::vector<std::vector<int>>> bitorder = {
+        {
+            {1, 8, 9, 16},
+            {2, 7, 10, 15},
+            {3, 6, 11, 14},
+            {4, 5, 12, 13}
+        },
+    };
 
     DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,1,0, 0,0,0,0, 1,0,1,0);
     DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,1,0, 0,1,0,0, 1,0,0,0);
 
     DigitalRegister out(rows, cols);
 
-    bus.superpixel_add(out, A, B, origin);
+    bus.superpixel_add(out, A, B, bitorder, origin);
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,0,0, 0,1,1,0, 0,1,1,0);
     REQUIRE(utility::mats_are_equal(out.value(), expected));
 }
@@ -339,13 +355,21 @@ TEST_CASE("superpixel images can be subtracted") {
     int cols = 4;
     DigitalBus bus;
     Origin origin = Origin::TOP_RIGHT;
+    std::vector<std::vector<std::vector<int>>> bitorder = {
+        {
+            {1, 8, 9, 16},
+            {2, 7, 10, 15},
+            {3, 6, 11, 14},
+            {4, 5, 12, 13}
+        },
+    };
 
     DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0);
     DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,0,0);
 
     DigitalRegister out(rows, cols);
 
-    bus.superpixel_sub(out, A, B, origin);
+    bus.superpixel_sub(out, A, B, bitorder, origin);
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,1,0, 0,0,0,0, 0,0,0,0);
     REQUIRE(utility::mats_are_equal(out.value(), expected));
 }

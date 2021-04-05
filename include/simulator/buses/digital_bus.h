@@ -128,9 +128,9 @@ class DigitalBus {
     void superpixel_shift_left(DigitalRegister& dst, DigitalRegister& src, std::vector<std::vector<std::vector<int>>> bitorder,
                                int superpixel_size, Origin origin);
     void superpixel_add(DigitalRegister& dst, DigitalRegister& src1,
-                        DigitalRegister& src2, Origin origin);
+                        DigitalRegister& src2, std::vector<std::vector<std::vector<int>>> bitorder, Origin origin);
     void superpixel_sub(DigitalRegister& dst, DigitalRegister& src1,
-                        DigitalRegister& src2, Origin origin);
+                        DigitalRegister& src2, std::vector<std::vector<std::vector<int>>> bitorder, Origin origin);
 };
 
 #endif  // SIMULATOR_DIGITAL_BUS_H
