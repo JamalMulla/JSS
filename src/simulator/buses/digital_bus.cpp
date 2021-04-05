@@ -577,7 +577,7 @@ void DigitalBus::superpixel_shift_right(
     DigitalRegister RW = DigitalRegister(rows, cols);
     DigitalRegister RS = DigitalRegister(rows, cols);
     superpixel_shift_patterns_from_bitorder(std::move(bitorder), RN, RS, RE, RW,
-                                            true);
+                                            true, origin);
 
     // Go through each block and perform shift individually
     for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
@@ -604,7 +604,7 @@ void DigitalBus::superpixel_shift_left(
     DigitalRegister RW = DigitalRegister(rows, cols);
     DigitalRegister RS = DigitalRegister(rows, cols);
     superpixel_shift_patterns_from_bitorder(std::move(bitorder), RN, RS, RE, RW,
-                                            false);
+                                            false, origin);
 
         // Go through each block and perform shift individually
         for(int col = p.col_start; p.col_op(col, p.col_end);
@@ -689,50 +689,95 @@ void DigitalBus::positions_from_bitorder(
 void DigitalBus::superpixel_shift_patterns_from_bitorder(
     std::vector<std::vector<std::vector<int>>> bitorder, DigitalRegister &RN,
     DigitalRegister &RS, DigitalRegister &RE, DigitalRegister &RW,
-    bool shift_right) {
-    for(size_t bank = 0; bank < bitorder.size(); bank++) {
-        for(size_t row = 0; row < bitorder[0].size(); row++) {
-            for(size_t col = 0; col < bitorder[0][0].size(); col++) {
+    bool shift_right, Origin origin) {
+    size_t rows = bitorder[0].size();
+    size_t cols = bitorder[0][0].size();
+    DigitalRegister R_NORTH(rows, cols);
+    DigitalRegister R_SOUTH(rows, cols);
+    DigitalRegister R_EAST(rows, cols);
+    DigitalRegister R_WEST(rows, cols);
+    
+    PlaneParams p;
+    get_fixed_params(p, origin, 0, 0, rows, cols,
+                     1, 1);
+
+    for(auto & bank : bitorder) {
+        for(size_t row = 0; row < rows; row++) {
+            for(size_t col = 0; col < cols; col++) {
                 int north;
                 int west;
-                int current = bitorder[bank][row][col];
+                int current = bank[row][col];
                 if(row == 0) {
                     // No north so set north to current
                     north = current;
                 } else {
-                    north = bitorder[bank][row - 1][col];
+                    north = bank[row - 1][col];
                 }
 
                 if(col == 0) {
                     // No west so set west to current
                     west = current;
                 } else {
-                    west = bitorder[bank][row][col - 1];
+                    west = bank[row][col - 1];
                 }
 
                 if(current == north + 1) {
                     // bigger than north
-                    (shift_right ? RS : RN)
+                    (shift_right ? R_SOUTH : R_NORTH)
                         .value()
                         .at<uint8_t>(row - (shift_right ? 0 : 1), col) = 1;
                 } else if(current == north - 1) {
                     // smaller than north
-                    (shift_right ? RN : RS)
+                    (shift_right ? R_NORTH : R_SOUTH)
                         .value()
                         .at<uint8_t>(row - (shift_right ? 1 : 0), col) = 1;
                 }
 
                 if(current == west + 1) {
                     // bigger than west
-                    (shift_right ? RE : RW)
+                    (shift_right ? R_EAST : R_WEST)
                         .value()
                         .at<uint8_t>(row, col - (shift_right ? 0 : 1)) = 1;
                 } else if(current == west - 1) {
                     // smaller than west
-                    RW.value().at<uint8_t>(row, col - (shift_right ? 1 : 0)) =
+                    (shift_right ? R_WEST : R_EAST).value().at<uint8_t>(row, col - (shift_right ? 1 : 0)) =
                         1;
                 }
             }
         }
     }
+
+    switch(origin) {
+        case BOTTOM_LEFT: {
+            R_NORTH.value().copyTo(RS.value());
+            R_SOUTH.value().copyTo(RN.value());
+            R_WEST.value().copyTo(RE.value());
+            R_EAST.value().copyTo(RW.value());
+            break;
+        }
+        case BOTTOM_RIGHT: {
+            R_NORTH.value().copyTo(RS.value());
+            R_SOUTH.value().copyTo(RN.value());
+            R_WEST.value().copyTo(RW.value());
+            R_EAST.value().copyTo(RE.value());
+            break;
+        }
+        case TOP_LEFT: {
+            // opencv default
+            R_NORTH.value().copyTo(RN.value());
+            R_SOUTH.value().copyTo(RS.value());
+            R_WEST.value().copyTo(RE.value());
+            R_EAST.value().copyTo(RW.value());
+            break;
+        }
+        case TOP_RIGHT: {
+            R_NORTH.value().copyTo(RN.value());
+            R_SOUTH.value().copyTo(RS.value());
+            R_WEST.value().copyTo(RW.value());
+            R_EAST.value().copyTo(RE.value());
+            break;
+        }
+    }
+
+
 }

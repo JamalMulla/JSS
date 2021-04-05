@@ -1603,8 +1603,8 @@ void SCAMP5::superpixel_shift_right(DigitalRegister *dst,
 void SCAMP5::superpixel_shift_left(DigitalRegister *dst,
                                     DigitalRegister *src) {
     // TODO superpixel size
-    this->pe->local_read_bus.superpixel_shift_left(*dst, *src, 4,
-                                                         this->origin_);
+//    this->pe->local_read_bus.superpixel_shift_left(*dst, *src, 4,
+//                                                         this->origin_);
 }
 
 // Builder

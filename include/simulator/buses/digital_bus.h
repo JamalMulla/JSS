@@ -109,7 +109,7 @@ class DigitalBus {
     void superpixel_shift_patterns_from_bitorder(
         std::vector<std::vector<std::vector<int>>> bitorder,
         DigitalRegister& RN, DigitalRegister& RS, DigitalRegister& RE,
-        DigitalRegister& RW, bool shift_right);
+        DigitalRegister& RW, bool shift_right, Origin origin);
     //    void superpixel_shift_down_patterns_from_bitorder(
     //        std::vector<std::vector<std::vector<int>>> bitorder,
     //        DigitalRegister& RN, DigitalRegister& RS, DigitalRegister& RE,
