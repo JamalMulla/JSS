@@ -124,6 +124,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
     SECTION("4 bit boustrophedonic shift left pattern with BOTTOM_LEFT origin") {
         int rows = 2;
         int cols = 2;
+        int bank = 0;
         std::vector<std::vector<std::vector<int>>> bitorder = {
             {
                 {1, 4},
@@ -136,7 +137,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
         DigitalRegister RS = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
         DigitalRegister RW = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
 
-        bus.superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE, RW,
+        bus.superpixel_shift_patterns_from_bitorder(bank, bitorder, RN, RS, RE, RW,
                                                     true, Origin::BOTTOM_LEFT);
         cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0);
         cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0);
@@ -152,6 +153,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
     SECTION("4 bit boustrophedonic shift left pattern with TOP_RIGHT origin") {
         int rows = 2;
         int cols = 2;
+        int bank = 0;
         std::vector<std::vector<std::vector<int>>> bitorder = {
             {
                 {1, 4},
@@ -164,7 +166,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
         DigitalRegister RS = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
         DigitalRegister RW = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
 
-        bus.superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE, RW,
+        bus.superpixel_shift_patterns_from_bitorder(bank, bitorder, RN, RS, RE, RW,
                                                     true, Origin::TOP_RIGHT);
         cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0);
         cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,1);
@@ -180,6 +182,8 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
     SECTION("16 bit boustrophedonic shift left pattern with TOP_RIGHT origin") {
         int rows = 4;
         int cols = 4;
+        int bank = 0;
+
         std::vector<std::vector<std::vector<int>>> bitorder = {
             {
                 {1, 8, 9, 16},
@@ -194,7 +198,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
         DigitalRegister RS = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
         DigitalRegister RW = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
 
-        bus.superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE, RW,
+        bus.superpixel_shift_patterns_from_bitorder(bank, bitorder, RN, RS, RE, RW,
                                                     true, Origin::TOP_RIGHT);
         cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,1, 0,1,0,1, 0,1,0,1, 0,0,0,0);
         cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,0,0, 0,0,0,0, 0,1,0,1);
@@ -210,6 +214,8 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
     SECTION("16 bit boustrophedonic shift true pattern with TOP_RIGHT origin") {
         int rows = 4;
         int cols = 4;
+        int bank = 0;
+
         std::vector<std::vector<std::vector<int>>> bitorder = {
             {
                 {1, 8, 9, 16},
@@ -224,7 +230,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
         DigitalRegister RS = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
         DigitalRegister RW = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
 
-        bus.superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE,
+        bus.superpixel_shift_patterns_from_bitorder(bank, bitorder, RN, RS, RE,
                                                        RW, false, Origin::TOP_RIGHT);
         cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 1,0,1,0, 1,0,1,0, 0,0,0,0);
         cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0);
@@ -240,6 +246,8 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
     SECTION("16 bit spiral shift left pattern with TOP_RIGHT origin") {
         int rows = 4;
         int cols = 4;
+        int bank = 0;
+
         // TODO double check
         std::vector<std::vector<std::vector<int>>> bitorder = {
             {
@@ -255,7 +263,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
         DigitalRegister RS = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
         DigitalRegister RW = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
 
-        bus.superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE, RW,
+        bus.superpixel_shift_patterns_from_bitorder(bank, bitorder, RN, RS, RE, RW,
                                                     true, Origin::TOP_RIGHT);
         cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,1, 0,0,0,1, 0,0,0,0);
         cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,1,1);
@@ -273,6 +281,8 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
 TEST_CASE("images can be converted to digital superpixel format") {
     int rows = 4;
     int cols = 4;
+    int bank = 0;
+
     DigitalBus bus;
 
     AnalogueRegister a = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 3, 4, 1, 0,
@@ -285,7 +295,7 @@ TEST_CASE("images can be converted to digital superpixel format") {
     std::unordered_map<std::string, cv::Point> locations;
 
     bus.positions_from_bitorder(bitorder, locations);
-    bus.superpixel_adc(out, 0, 4, a, locations, 2);
+    bus.superpixel_adc(out, bank, 4, a, locations, 2);
 
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 1, 0, 1,
                                  0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0);
@@ -296,6 +306,8 @@ TEST_CASE("images can be converted to digital superpixel format") {
 TEST_CASE("superpixel images can be shifted") {
     int rows = 4;
     int cols = 4;
+    int bank = 0;
+
     DigitalBus bus;
     Origin origin = Origin::TOP_RIGHT;
     std::vector<std::vector<std::vector<int>>> bitorder = {
@@ -312,22 +324,24 @@ TEST_CASE("superpixel images can be shifted") {
     DigitalRegister out(rows, cols);
 
     SECTION("shift right") {
-        bus.superpixel_shift_left(out, d, bitorder, origin);
+        bus.superpixel_shift_left(out, bank, d, bitorder, origin);
         cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
         REQUIRE(utility::mats_are_equal(out.value(), expected));
     }
 
     SECTION("shift left") {
-        bus.superpixel_shift_right(out, d, bitorder, origin);
+        bus.superpixel_shift_right(out, bank, d, bitorder, origin);
         cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,0,0);
         REQUIRE(utility::mats_are_equal(out.value(), expected));
     }
 }
 
-TEST_CASE("superpixel images can be added") {
+TEST_CASE("1 bank superpixel images can be added") {
     int rows = 4;
     int cols = 4;
+    int bank = 0;
+
     DigitalBus bus;
     Origin origin = Origin::TOP_RIGHT;
     std::vector<std::vector<std::vector<int>>> bitorder = {
@@ -344,7 +358,7 @@ TEST_CASE("superpixel images can be added") {
 
     DigitalRegister out(rows, cols);
 
-    bus.superpixel_add(out, A, B, bitorder, origin);
+    bus.superpixel_add(out, bank, A, B, bitorder, origin);
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,0,0, 0,1,1,0, 0,1,1,0);
     REQUIRE(utility::mats_are_equal(out.value(), expected));
 }
@@ -352,6 +366,8 @@ TEST_CASE("superpixel images can be added") {
 TEST_CASE("superpixel images can be subtracted") {
     int rows = 4;
     int cols = 4;
+    int bank = 0;
+
     DigitalBus bus;
     Origin origin = Origin::TOP_RIGHT;
     std::vector<std::vector<std::vector<int>>> bitorder = {
@@ -368,7 +384,7 @@ TEST_CASE("superpixel images can be subtracted") {
 
     DigitalRegister out(rows, cols);
 
-    bus.superpixel_sub(out, A, B, bitorder, origin);
+    bus.superpixel_sub(out, bank, A, B, bitorder, origin);
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,1,0, 0,0,0,0, 0,0,0,0);
     REQUIRE(utility::mats_are_equal(out.value(), expected));
 }

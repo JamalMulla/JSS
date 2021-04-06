@@ -109,6 +109,7 @@ class DigitalBus {
     void positions_from_bitorder(
         const std::vector<std::vector<std::vector<int>>>& bitorder, std::unordered_map<std::string, cv::Point>& locations);
     void superpixel_shift_patterns_from_bitorder(
+        int bank,
         const std::vector<std::vector<std::vector<int>>>& bitorder,
         DigitalRegister& RN, DigitalRegister& RS, DigitalRegister& RE,
         DigitalRegister& RW, bool shift_left, Origin origin);
@@ -116,11 +117,11 @@ class DigitalBus {
                                 Origin origin, DigitalRegister& RN,
                                 DigitalRegister& RS, DigitalRegister& RE,
                                 DigitalRegister& RW);
-    void superpixel_shift_left(DigitalRegister& dst, DigitalRegister& src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
-    void superpixel_shift_right(DigitalRegister& dst, DigitalRegister& src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
-    void superpixel_add(DigitalRegister& dst, DigitalRegister& src1,
+    void superpixel_shift_left(DigitalRegister& dst, int bank, DigitalRegister& src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
+    void superpixel_shift_right(DigitalRegister& dst, int bank, DigitalRegister& src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
+    void superpixel_add(DigitalRegister& dst, int bank, DigitalRegister& src1,
                         DigitalRegister& src2, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
-    void superpixel_sub(DigitalRegister& dst, DigitalRegister& src1,
+    void superpixel_sub(DigitalRegister& dst, int bank, DigitalRegister& src1,
                         DigitalRegister& src2, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
 };
 

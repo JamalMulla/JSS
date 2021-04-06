@@ -16,8 +16,11 @@ int main() {
         int e1 = cv::getTickCount();
         s.superpixel_adc(s.R5, 0, s.A);
         s.superpixel_adc(s.R5, 1, s.D);
-        s.superpixel_dac(s.B, 0, s.R5);
         s.superpixel_dac(s.C, 1, s.R5);
+        s.superpixel_add(s.R7, 0, s.R5, s.R5);
+        s.superpixel_dac(s.B, 0, s.R7);
+//        s.superpixel_dac(s.B, 0, s.R5);
+//        s.superpixel_dac(s.C, 1, s.R5);
 //        s.movx(s.B, s.A, south);
 //        s.add(s.B, s.B, s.A);
 //        s.movx(s.A, s.B, north);
@@ -30,6 +33,7 @@ int main() {
         ui.display_reg(s.B);
         ui.display_reg(s.C);
         ui.display_reg(s.D);
+        ui.display_reg(s.E);
         ui.display_reg(s.R5);
         ui.display_reg(s.R6);
         ui.display_reg(s.R7);

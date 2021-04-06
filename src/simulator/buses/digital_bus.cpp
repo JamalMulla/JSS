@@ -522,8 +522,8 @@ void DigitalBus::superpixel_adc(DigitalRegister &dst, int bank, int bits_in_bank
             int sum = cv::sum(src.value()(cv::Rect(col, row, superpixel_size, superpixel_size)))[0];
             sum /= (superpixel_size * superpixel_size);  // <- this truncates values
             for(int i = 0; i < bits_in_bank; i++) {
-                int bit = (sum >> i) & 1; // LSB to MSB
-                cv::Point relative_pos = locations.at(std::to_string(bank) + "." + std::to_string(i+1));  // bitorder starts at 1 not 0
+                int bit = (sum >> i) & 1;                                                                   // LSB to MSB
+                cv::Point relative_pos = locations.at(std::to_string(bank) + "." + std::to_string(i + 1));  // bitorder starts at 1 not 0
                 dst.value().at<uint8_t>(relative_pos.y + row,
                                         relative_pos.x + col) = bit;
             }
@@ -539,9 +539,9 @@ void DigitalBus::superpixel_dac(AnalogueRegister &dst, int bank, int bits_in_ban
             // Read value from superpixel
             int value = 0;
             for(int i = 0; i < bits_in_bank; i++) {
-                cv::Point relative_pos = locations.at(std::to_string(bank) + "." + std::to_string(i+1));  // bitorder starts at 1 not 0
+                cv::Point relative_pos = locations.at(std::to_string(bank) + "." + std::to_string(i + 1));  // bitorder starts at 1 not 0
                 int bit = src.value().at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
-                value |= bit << i; // LSB to MSB
+                value |= bit << i;  // LSB to MSB
             }
             value -= 128;
             dst.value()(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
@@ -550,7 +550,7 @@ void DigitalBus::superpixel_dac(AnalogueRegister &dst, int bank, int bits_in_ban
 }
 
 void DigitalBus::positions_from_bitorder(
-    const std::vector<std::vector<std::vector<int>>>& bitorder, std::unordered_map<std::string, cv::Point> &locations) {
+    const std::vector<std::vector<std::vector<int>>> &bitorder, std::unordered_map<std::string, cv::Point> &locations) {
     // Locations holds a map from <bank, index> -> x,y coords
     int banks = bitorder.size();
     int height = bitorder[0].size();
@@ -560,7 +560,8 @@ void DigitalBus::positions_from_bitorder(
         for(int h = 0; h < height; h++) {
             for(int w = 0; w < width; w++) {
                 int index = bitorder[b][h][w];
-                if (index < 1) continue; // Bitorder indices start 1
+                if(index < 1)
+                    continue;  // Bitorder indices start 1
                 locations[std::to_string(b) + "." + std::to_string(index)] = cv::Point(w, h);
             }
         }
@@ -568,7 +569,7 @@ void DigitalBus::positions_from_bitorder(
 }
 
 void DigitalBus::superpixel_shift_patterns_from_bitorder(
-    const std::vector<std::vector<std::vector<int>>>& bitorder, DigitalRegister &RN,
+    int bank, const std::vector<std::vector<std::vector<int>>> &bitorder, DigitalRegister &RN,
     DigitalRegister &RS, DigitalRegister &RE, DigitalRegister &RW,
     bool shift_left, Origin origin) {
     size_t rows = bitorder[0].size();
@@ -578,50 +579,41 @@ void DigitalBus::superpixel_shift_patterns_from_bitorder(
     DigitalRegister R_EAST(rows, cols);
     DigitalRegister R_WEST(rows, cols);
 
-    PlaneParams p;
-    get_fixed_params(p, origin, 0, 0, rows, cols, 1, 1);
+    for(size_t row = 0; row < rows; row++) {
+        for(size_t col = 0; col < cols; col++) {
+            int north;
+            int west;
+            int current = bitorder[bank][row][col];
+            // Indices start at 1
+            if(current < 1) continue;
+            if(row == 0) {
+                // No north so set north to current
+                north = current;
+            } else {
+                north = bitorder[bank][row - 1][col];
+            }
 
-    for(auto &bank: bitorder) {
-        for(size_t row = 0; row < rows; row++) {
-            for(size_t col = 0; col < cols; col++) {
-                int north;
-                int west;
-                int current = bank[row][col];
-                if(row == 0) {
-                    // No north so set north to current
-                    north = current;
-                } else {
-                    north = bank[row - 1][col];
-                }
+            if(col == 0) {
+                // No west so set west to current
+                west = current;
+            } else {
+                west = bitorder[bank][row][col - 1];
+            }
 
-                if(col == 0) {
-                    // No west so set west to current
-                    west = current;
-                } else {
-                    west = bank[row][col - 1];
-                }
+            if(current == north + 1) {
+                // bigger than north
+                (shift_left ? R_SOUTH : R_NORTH).value().at<uint8_t>(row - (shift_left ? 0 : 1), col) = 1;
+            } else if(current == north - 1) {
+                // smaller than north
+                (shift_left ? R_NORTH : R_SOUTH).value().at<uint8_t>(row - (shift_left ? 1 : 0), col) = 1;
+            }
 
-                if(current == north + 1) {
-                    // bigger than north
-                    (shift_left ? R_SOUTH : R_NORTH)
-                        .value()
-                        .at<uint8_t>(row - (shift_left ? 0 : 1), col) = 1;
-                } else if(current == north - 1) {
-                    // smaller than north
-                    (shift_left ? R_NORTH : R_SOUTH)
-                        .value()
-                        .at<uint8_t>(row - (shift_left ? 1 : 0), col) = 1;
-                }
-
-                if(current == west + 1) {
-                    // bigger than west
-                    (shift_left ? R_EAST : R_WEST)
-                        .value()
-                        .at<uint8_t>(row, col - (shift_left ? 0 : 1)) = 1;
-                } else if(current == west - 1) {
-                    // smaller than west
-                    (shift_left ? R_WEST : R_EAST).value().at<uint8_t>(row, col - (shift_left ? 1 : 0)) = 1;
-                }
+            if(current == west + 1) {
+                // bigger than west
+                (shift_left ? R_EAST : R_WEST).value().at<uint8_t>(row, col - (shift_left ? 0 : 1)) = 1;
+            } else if(current == west - 1) {
+                // smaller than west
+                (shift_left ? R_WEST : R_EAST).value().at<uint8_t>(row, col - (shift_left ? 1 : 0)) = 1;
             }
         }
     }
@@ -685,7 +677,7 @@ void DigitalBus::superpixel_shift_block(DigitalRegister &dst,
     OR(dst, east, north, south, west);
 }
 
-void DigitalBus::superpixel_shift_left(DigitalRegister &dst, DigitalRegister &src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin) {
+void DigitalBus::superpixel_shift_left(DigitalRegister &dst, int bank, DigitalRegister &src, const std::vector<std::vector<std::vector<int>>> &bitorder, Origin origin) {
     int superpixel_size = bitorder[0][0].size();  // Assume square superpixel for now
     int rows = src.value().rows;
     int cols = src.value().cols;
@@ -693,7 +685,7 @@ void DigitalBus::superpixel_shift_left(DigitalRegister &dst, DigitalRegister &sr
     DigitalRegister RN = DigitalRegister(rows, cols);
     DigitalRegister RW = DigitalRegister(rows, cols);
     DigitalRegister RS = DigitalRegister(rows, cols);
-    superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE, RW,
+    superpixel_shift_patterns_from_bitorder(bank, bitorder, RN, RS, RE, RW,
                                             true, origin);
 
     // TODO non-square superpixels?
@@ -706,7 +698,7 @@ void DigitalBus::superpixel_shift_left(DigitalRegister &dst, DigitalRegister &sr
     superpixel_shift_block(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
 }
 
-void DigitalBus::superpixel_shift_right(DigitalRegister &dst, DigitalRegister &src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin) {
+void DigitalBus::superpixel_shift_right(DigitalRegister &dst, int bank, DigitalRegister &src, const std::vector<std::vector<std::vector<int>>> &bitorder, Origin origin) {
     int superpixel_size = bitorder[0][0].size();  // Assume square superpixel for now
     int rows = src.value().rows;
     int cols = src.value().cols;
@@ -714,7 +706,7 @@ void DigitalBus::superpixel_shift_right(DigitalRegister &dst, DigitalRegister &s
     DigitalRegister RN = DigitalRegister(rows, cols);
     DigitalRegister RW = DigitalRegister(rows, cols);
     DigitalRegister RS = DigitalRegister(rows, cols);
-    superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE, RW,
+    superpixel_shift_patterns_from_bitorder(bank, bitorder, RN, RS, RE, RW,
                                             false, origin);
 
     // TODO non-square superpixels?
@@ -727,7 +719,7 @@ void DigitalBus::superpixel_shift_right(DigitalRegister &dst, DigitalRegister &s
     superpixel_shift_block(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
 }
 
-void DigitalBus::superpixel_add(DigitalRegister &dst, DigitalRegister &src1,
+void DigitalBus::superpixel_add(DigitalRegister &dst, int bank, DigitalRegister &src1,
                                 DigitalRegister &src2, const std::vector<std::vector<std::vector<int>>> &bitorder, Origin origin) {
     DigitalRegister A = src1.value().clone();
     DigitalRegister B = src2.value().clone();
@@ -741,7 +733,7 @@ void DigitalBus::superpixel_add(DigitalRegister &dst, DigitalRegister &src1,
     while(cv::sum(and_.value())[0] != 0) {
         XOR(xor_, A, B);
         AND(and_, A, B);
-        superpixel_shift_left(and_, and_, bitorder, origin);
+        superpixel_shift_left(and_, bank, and_, bitorder, origin);
         xor_.value().copyTo(A.value());
         and_.value().copyTo(B.value());
         AND(and_, A, B);
@@ -749,7 +741,7 @@ void DigitalBus::superpixel_add(DigitalRegister &dst, DigitalRegister &src1,
     XOR(dst, A, B);
 }
 
-void DigitalBus::superpixel_sub(DigitalRegister &dst, DigitalRegister &src1,
+void DigitalBus::superpixel_sub(DigitalRegister &dst, int bank, DigitalRegister &src1,
                                 DigitalRegister &src2, const std::vector<std::vector<std::vector<int>>> &bitorder, Origin origin) {
     DigitalRegister A = src1.value().clone();
     DigitalRegister B = src2.value().clone();
@@ -766,9 +758,7 @@ void DigitalBus::superpixel_sub(DigitalRegister &dst, DigitalRegister &src1,
         XOR(xor_, A, B);
         NOT(NOT_A, A);
         AND(and_, NOT_A, B);
-        superpixel_shift_left(and_, and_,
-                              bitorder,
-                              origin);
+        superpixel_shift_left(and_, bank, and_, bitorder, origin);
         xor_.value().copyTo(A.value());
         and_.value().copyTo(B.value());
         NOT(NOT_A, A);
@@ -776,4 +766,3 @@ void DigitalBus::superpixel_sub(DigitalRegister &dst, DigitalRegister &src1,
     }
     XOR(dst, A, B);
 }
-

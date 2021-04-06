@@ -1586,20 +1586,25 @@ void SCAMP5::superpixel_adc(DREG *dst, int bank, AREG *src) {
     this->pe->local_read_bus.superpixel_adc(*dst, bank, 8, *src, locations, 4);
 }
 
-void SCAMP5::superpixel_shift_right(DigitalRegister *dst,
-                                    DigitalRegister *src) {
-    this->pe->local_read_bus.superpixel_shift_right(*dst, *src, this->bitorder, this->origin_);
-}
-
-void SCAMP5::superpixel_shift_left(DigitalRegister *dst,
-                                   DigitalRegister *src) {
-    this->pe->local_read_bus.superpixel_shift_left(*dst, *src, this->bitorder,
-                                                    this->origin_);
-}
 void SCAMP5::superpixel_dac(AREG *dst, int bank, DREG *src) {
     std::unordered_map<std::string, cv::Point> locations;
     this->pe->local_read_bus.positions_from_bitorder(this->bitorder, locations);
     this->pe->local_read_bus.superpixel_dac(*dst, bank, 8, *src, locations, 4);
+}
+
+void SCAMP5::superpixel_shift_right(DREG *dst, int bank, DREG *src) {
+    this->pe->local_read_bus.superpixel_shift_right(*dst, bank, *src, this->bitorder, this->origin_);
+}
+void SCAMP5::superpixel_shift_left(DREG *dst, int bank, DREG *src) {
+    this->pe->local_read_bus.superpixel_shift_left(*dst, bank, *src, this->bitorder, this->origin_);
+}
+
+void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
+    this->pe->local_read_bus.superpixel_add(*dst, bank, *src1, *src2, this->bitorder, this->origin_);
+}
+
+void SCAMP5::superpixel_sub(DREG *dst, int bank, DREG* src1, DREG* src2) {
+    this->pe->local_read_bus.superpixel_sub(*dst, bank, *src1, *src2, this->bitorder, this->origin_);
 }
 
 // Builder
