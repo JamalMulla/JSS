@@ -82,7 +82,7 @@ inline void relu(int vec[SIZE]) {
 }
 
 void update(UI& ui, const std::vector<Register*>& reg) {
-    for(auto& r: reg) { ui.display_reg(*r); }
+    for(auto& r: reg) { ui.display_reg(r); }
 }
 
 int analog_main() {

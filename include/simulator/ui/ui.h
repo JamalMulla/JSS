@@ -53,7 +53,7 @@ class UI {
    public:
     void start();
     void send_string(const std::string &data) const;
-    void display_reg(Register &reg);
+    void display_reg(Register *reg);
 };
 
 #endif  // SIMULATOR_UI_H

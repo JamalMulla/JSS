@@ -104,8 +104,8 @@ class DigitalBus {
     // Higher level functions
 
     // Superpixel Operations
-    void superpixel_create(DigitalRegister& dst, AnalogueRegister& src, const std::unordered_map<std::string, cv::Point>& locations, int superpixel_size);
-    void superpixel_dac(AnalogueRegister& dst, int bank, DigitalRegister& src, const std::unordered_map<std::string, cv::Point>& locations, int superpixel_size);
+    void superpixel_adc(DigitalRegister& dst, int bank, int bits_in_bank, AnalogueRegister& src, const std::unordered_map<std::string, cv::Point>& locations, int superpixel_size);
+    void superpixel_dac(AnalogueRegister& dst, int bank, int bits_in_bank, DigitalRegister& src, const std::unordered_map<std::string, cv::Point>& locations, int superpixel_size);
     void positions_from_bitorder(
         const std::vector<std::vector<std::vector<int>>>& bitorder, std::unordered_map<std::string, cv::Point>& locations);
     void superpixel_shift_patterns_from_bitorder(

@@ -14,11 +14,10 @@ int main() {
     while(true) {
         s.get_image(s.A, s.D);
         int e1 = cv::getTickCount();
-        s.superpixel_create(s.R5, s.A);
-        s.superpixel_shift_left(s.R6, s.R5);
-        s.superpixel_shift_right(s.R7, s.R5);
-        s.superpixel_dac(s.B, 0, s.R6);
-        s.superpixel_dac(s.C, 0, s.R7);
+        s.superpixel_adc(s.R5, 0, s.A);
+        s.superpixel_adc(s.R5, 1, s.D);
+        s.superpixel_dac(s.B, 0, s.R5);
+        s.superpixel_dac(s.C, 1, s.R5);
 //        s.movx(s.B, s.A, south);
 //        s.add(s.B, s.B, s.A);
 //        s.movx(s.A, s.B, north);
@@ -27,12 +26,13 @@ int main() {
         int e2 = cv::getTickCount();
 //        std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms"
 //                  << std::endl;
-        ui.display_reg(*s.A);
-        ui.display_reg(*s.B);
-        ui.display_reg(*s.C);
-        ui.display_reg(*s.R5);
-        ui.display_reg(*s.R6);
-        ui.display_reg(*s.R7);
+        ui.display_reg(s.A);
+        ui.display_reg(s.B);
+        ui.display_reg(s.C);
+        ui.display_reg(s.D);
+        ui.display_reg(s.R5);
+        ui.display_reg(s.R6);
+        ui.display_reg(s.R7);
 //        utility::display_register<int8_t>("ORIGINAL", *s.A);
 //        utility::display_register<int8_t>("SHIFT_LEFT", *s.B);
 //        utility::display_register<int8_t>("SHIFT_RIGHT", *s.C);

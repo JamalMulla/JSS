@@ -47,7 +47,7 @@ void on_mouse_reg(int event, int x, int y, int, void* reg) {
     if(y < 0 || x < 0 || y > dr->value().rows || x > dr->value().cols)
         return;
     std::cout << "(" << x << ", " << y << ") ......  "
-              << (int)dr->value().at<interpret_type>(y, x) << '\n';
+              << (int) dr->value().at<interpret_type>(y, x) << '\n';
 }
 
 template<typename interpret_type>

@@ -41,6 +41,7 @@ class SCAMP5 {
     int cols_;
     Origin origin_;
 
+    // boustrophedonic bitorder
 //    std::vector<std::vector<std::vector<int>>> bitorder = {
 //        {
 //            {1, 8, 9, 16},
@@ -49,13 +50,30 @@ class SCAMP5 {
 //            {4, 5, 12, 13}
 //        },
 //    };
-    std::vector<std::vector<std::vector<int>>> bitorder = {
+    // Spiral bitorder
+//    std::vector<std::vector<std::vector<int>>> bitorder = {
+//        {
+//            {4, 3, 2, 1},
+//            {5, 14, 13, 12},
+//            {6, 15, 16, 11},
+//            {7, 8, 9, 10}
+//        },
+//    };
+
+    // 2 bank boustrophedonic
+        std::vector<std::vector<std::vector<int>>> bitorder = {
         {
-            {4, 3, 2, 1},
-            {5, 14, 13, 12},
-            {6, 15, 16, 11},
-            {7, 8, 9, 10}
+            {1, 8, 0, 0},
+            {2, 7, 0, 0},
+            {3, 6, 0, 0},
+            {4, 5, 0, 0}
         },
+        {
+            {0, 0, 1, 8},
+            {0, 0, 2, 7},
+            {0, 0, 3, 6},
+            {0, 0, 4, 5}
+        }
     };
 
     void init();
@@ -407,7 +425,7 @@ class SCAMP5 {
     void scamp5_get_io_agent();
 
     // Superpixel methods
-    void superpixel_create(DREG *dst, AREG *src);
+    void superpixel_adc(DREG *dst, int bank, AREG *src);
     void superpixel_shift_right(DREG* dst, DREG* src);
     void superpixel_shift_left(DREG* dst, DREG* src);
     void superpixel_dac(AREG* dst, int bank, DREG* src);

@@ -88,16 +88,16 @@ void UI::send_string(const std::string &data) const {
     for(auto &ws: wss) { ws->send(data, uWS::OpCode::TEXT); }
 }
 
-void UI::display_reg(Register &reg) {
+void UI::display_reg(Register *reg) {
     if(wss.empty())
         return;
     cv::Mat remapped;
-    utility::remap_register(reg, remapped);
+    utility::remap_register(*reg, remapped);
     std::vector<uchar> buf;
     cv::imencode(".jpg", remapped, buf);
     std::string out = base64::encode(&buf[0], buf.size());
     json j;
-    j["reg"] = reg.name_;
+    j["reg"] = reg->name_;
     j["data"] = out;
     for(auto &ws: wss) { ws->send(j.dump(0), uWS::OpCode::TEXT); }
 }

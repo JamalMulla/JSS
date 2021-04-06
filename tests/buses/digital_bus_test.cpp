@@ -121,7 +121,7 @@ TEST_CASE("get_X neighbour methods work correctly for TOP_RIGHT origin") {
 TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and different origins") {
     DigitalBus bus;
 
-    SECTION("4 bit boustrophedonic shift right pattern with BOTTOM_LEFT origin") {
+    SECTION("4 bit boustrophedonic shift left pattern with BOTTOM_LEFT origin") {
         int rows = 2;
         int cols = 2;
         std::vector<std::vector<std::vector<int>>> bitorder = {
@@ -149,7 +149,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
         REQUIRE(utility::mats_are_equal(RW.value(), expected_w));
     }
 
-    SECTION("4 bit boustrophedonic shift right pattern with TOP_RIGHT origin") {
+    SECTION("4 bit boustrophedonic shift left pattern with TOP_RIGHT origin") {
         int rows = 2;
         int cols = 2;
         std::vector<std::vector<std::vector<int>>> bitorder = {
@@ -177,7 +177,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
         REQUIRE(utility::mats_are_equal(RW.value(), expected_w));
     }
 
-    SECTION("16 bit boustrophedonic shift right pattern with TOP_RIGHT origin") {
+    SECTION("16 bit boustrophedonic shift left pattern with TOP_RIGHT origin") {
         int rows = 4;
         int cols = 4;
         std::vector<std::vector<std::vector<int>>> bitorder = {
@@ -207,7 +207,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
         REQUIRE(utility::mats_are_equal(RW.value(), expected_w));
     }
 
-    SECTION("16 bit boustrophedonic shift left pattern with TOP_RIGHT origin") {
+    SECTION("16 bit boustrophedonic shift true pattern with TOP_RIGHT origin") {
         int rows = 4;
         int cols = 4;
         std::vector<std::vector<std::vector<int>>> bitorder = {
@@ -237,7 +237,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
         REQUIRE(utility::mats_are_equal(RW.value(), expected_w));
     }
 
-    SECTION("16 bit spiral shift right pattern with TOP_RIGHT origin") {
+    SECTION("16 bit spiral shift left pattern with TOP_RIGHT origin") {
         int rows = 4;
         int cols = 4;
         // TODO double check
@@ -282,10 +282,10 @@ TEST_CASE("images can be converted to digital superpixel format") {
     std::vector<std::vector<std::vector<int>>> bitorder = {
         {{1, 4}, {2, 3}},
     };
-    std::unordered_map<int, cv::Point> locations;
+    std::unordered_map<std::string, cv::Point> locations;
 
     bus.positions_from_bitorder(bitorder, locations);
-    bus.superpixel_create(out, a, locations, 0);
+    bus.superpixel_adc(out, 0, 4, a, locations, 2);
 
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 1, 0, 1,
                                  0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0);
@@ -296,7 +296,6 @@ TEST_CASE("images can be converted to digital superpixel format") {
 TEST_CASE("superpixel images can be shifted") {
     int rows = 4;
     int cols = 4;
-    int superpixel_size = 4;
     DigitalBus bus;
     Origin origin = Origin::TOP_RIGHT;
     std::vector<std::vector<std::vector<int>>> bitorder = {
