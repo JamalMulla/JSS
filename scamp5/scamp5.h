@@ -55,25 +55,25 @@ class SCAMP5 {
 //            },
 //        };
     // Spiral bitorder
-        std::vector<std::vector<std::vector<int>>> bitorder = {
-            {
-                {4, 3, 2, 1},
-                {5, 14, 13, 12},
-                {6, 15, 16, 11},
-                {7, 8, 9, 10}
-            },
-        };
+//        std::vector<std::vector<std::vector<int>>> bitorder = {
+//            {
+//                {4, 3, 2, 1},
+//                {5, 14, 13, 12},
+//                {6, 15, 16, 11},
+//                {7, 8, 9, 10}
+//            },
+//        };
 
-    // 2 bank boustrophedonic
-//    std::vector<std::vector<std::vector<int>>> bitorder = {
-//        {{1, 8, 0, 0},
-//         {2, 7, 0, 0},
-//         {3, 6, 0, 0},
-//         {4, 5, 0, 0}},
-//        {{0, 0, 1, 8},
-//         {0, 0, 2, 7},
-//         {0, 0, 3, 6},
-//         {0, 0, 4, 5}}};
+    // 2 bank 8-bit boustrophedonic
+    std::vector<std::vector<std::vector<int>>> bitorder = {
+        {{1, 8, 0, 0},
+         {2, 7, 0, 0},
+         {3, 6, 0, 0},
+         {4, 5, 0, 0}},
+        {{0, 0, 1, 8},
+         {0, 0, 2, 7},
+         {0, 0, 3, 6},
+         {0, 0, 4, 5}}};
 
     void init();
 

@@ -292,7 +292,7 @@ TEST_CASE("images can be converted to digital superpixel format") {
     std::vector<std::vector<std::vector<int>>> bitorder = {
         {{1, 4}, {2, 3}},
     };
-    std::unordered_map<std::string, cv::Point> locations;
+    DigitalBus::position_map locations;
 
     bus.positions_from_bitorder(bitorder, locations);
     bus.superpixel_adc(out, bank, 4, a, locations, 2);

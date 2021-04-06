@@ -507,39 +507,55 @@ void DigitalBus::get_south(DigitalRegister &dst, DigitalRegister &src,
 
 // SuperPixel Operations
 
-void DigitalBus::superpixel_adc(DigitalRegister &dst, int bank, int bits_in_bank, AnalogueRegister &src, position_map& locations, int superpixel_size) {
+void DigitalBus::superpixel_adc(DigitalRegister &dst, int bank, int bits_in_bank, AnalogueRegister &src, position_map &locations, int superpixel_size) {
     // Converts an analogue image to a digital superpixel format
     // Values will always be put in bank 1
 
-    for(int row = 0; row < src.value().rows; row += superpixel_size) {
-        for(int col = 0; col < src.value().cols; col += superpixel_size) {
-            int sum = cv::sum(src.value()(cv::Rect(col, row, superpixel_size, superpixel_size)))[0];
-            sum /= (superpixel_size * superpixel_size);  // <- this truncates values
-            int8_t s = sum;
-            for(int i = 0; i < bits_in_bank; i++) {
-                int bit = (s >> i) & 1;  // LSB to MSB
-                cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
-                dst.value().at<uint8_t>(relative_pos.y + row,
-                                        relative_pos.x + col) = bit;
-            }
-        }
-    }
+    parallel_for_(cv::Range(0, src.value().rows*src.value().cols), [&](const cv::Range& range){
+      for (int r = range.start; r < range.end; r++)
+      {
+          int row = r / src.value().cols;
+          int col = r % src.value().cols;
+
+          if (row % superpixel_size != 0) continue; // Step size is not 1
+          if (col % superpixel_size != 0) continue;
+
+          int sum = cv::sum(src.value()(cv::Rect(col, row, superpixel_size, superpixel_size)))[0];
+          sum /= (superpixel_size * superpixel_size);  // <- this truncates values
+          int8_t s = sum; // Need to have another look at this. Is this correct?
+          for(int i = 0; i < bits_in_bank; i++) {
+              int bit = (s >> i) & 1;  // LSB to MSB
+              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
+              dst.value().at<uint8_t>(relative_pos.y + row,relative_pos.x + col) = bit;
+          }
+      }
+    });
 }
 
 void DigitalBus::superpixel_dac(AnalogueRegister &dst, int bank, int bits_in_bank, DigitalRegister &src, position_map &locations, int superpixel_size) {
     // Converts digital superpixel format image to an analogue image
-    for(int row = 0; row < src.value().rows; row += superpixel_size) {
-        for(int col = 0; col < src.value().cols; col += superpixel_size) {
-            // Read value from superpixel
-            int8_t value = 0;
-            for(int i = 0; i < bits_in_bank; i++) {
-                cv::Point relative_pos = locations.at({bank, i+1});  // bitorder starts at 1 not 0
-                int bit = src.value().at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
-                value |= bit << i;  // LSB to MSB
-            }
-            dst.value()(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
-        }
-    }
+
+    parallel_for_(cv::Range(0, src.value().rows*src.value().cols), [&](const cv::Range& range){
+      for (int r = range.start; r < range.end; r++)
+      {
+          int row = r / src.value().cols;
+          int col = r % src.value().cols;
+
+          if (row % superpixel_size != 0) continue; // Step size is superpixel_size
+          if (col % superpixel_size != 0) continue;
+
+          // Read value from superpixel
+          int8_t value = 0;
+          for(int i = 0; i < bits_in_bank; i++) {
+              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
+              int bit = src.value().at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+              value |= bit << i;  // LSB to MSB
+          }
+
+          dst.value()(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
+
+      }
+    });
 }
 
 void DigitalBus::superpixel_in(DigitalRegister &dst, int bank, int bits_in_bank, position_map &locations, int superpixel_size, int8_t value) {

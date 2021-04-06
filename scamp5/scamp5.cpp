@@ -920,11 +920,11 @@ void SCAMP5::print_stats(const CycleCounter *counter) {
     // TODO move
 #ifdef TRACK_STATISTICS
     json j;
-    j["Total number of cycles"] = counter.get_cycles();
-    j["Equivalent in seconds"] = counter.to_seconds(stats::CLOCK_RATE);
+    j["Total number of cycles"] = counter->get_cycles();
+    j["Equivalent in seconds"] = counter->to_seconds(stats::CLOCK_RATE);
 
     // this->array.print_stats(counter);
-    this->array.write_stats(counter, j);
+    this->array->write_stats(*counter, j);
     std::cout << std::setw(2) << j << std::endl;
     std::ofstream file_out;
     std::cout << std::filesystem::current_path().string() << std::endl;
@@ -1583,19 +1583,19 @@ void SCAMP5::superpixel_adc(DREG *dst, int bank, AREG *src) {
     // Remove redundancy
     DigitalBus::position_map locations;
     this->pe->local_read_bus.positions_from_bitorder(this->bitorder, locations);
-    this->pe->local_read_bus.superpixel_adc(*dst, bank, 16, *src, locations, 4);
+    this->pe->local_read_bus.superpixel_adc(*dst, bank, 8, *src, locations, 4);
 }
 
 void SCAMP5::superpixel_dac(AREG *dst, int bank, DREG *src) {
     DigitalBus::position_map locations;
     this->pe->local_read_bus.positions_from_bitorder(this->bitorder, locations);
-    this->pe->local_read_bus.superpixel_dac(*dst, bank, 16, *src, locations, 4);
+    this->pe->local_read_bus.superpixel_dac(*dst, bank, 8, *src, locations, 4);
 }
 
 void SCAMP5::superpixel_in(DREG *dst, int bank, int value) {
     DigitalBus::position_map locations;
     this->pe->local_read_bus.positions_from_bitorder(this->bitorder, locations);
-    this->pe->local_read_bus.superpixel_in(*dst, bank, 16, locations, 4, value);
+    this->pe->local_read_bus.superpixel_in(*dst, bank, 8, locations, 4, value);
 }
 
 void SCAMP5::superpixel_shift_right(DREG *dst, int bank, DREG *src) {
