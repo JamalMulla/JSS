@@ -9,11 +9,16 @@
 #include "simulator/metrics/stats.h"
 
 AnalogueRegister::AnalogueRegister(int rows, int columns)
-    : Register(rows, columns, MAT_TYPE, SI()) {}
+    : Register(rows, columns, MAT_TYPE, SI()) {
+          this->min_val = -128;
+          this->max_val = 127;
+}
 
 AnalogueRegister::AnalogueRegister(const Data &data)
     : Register(data.rows, data.cols, MAT_TYPE, SI()) {
     data.copyTo(this->value());
+    this->min_val = -128;
+    this->max_val = 127;
 }
 
 Data AnalogueRegister::read() {

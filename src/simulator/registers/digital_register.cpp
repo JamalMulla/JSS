@@ -10,12 +10,17 @@
 
 DigitalRegister::DigitalRegister(int rows, int columns,
                                  const MemoryType &memory_type)
-    : Register(rows, columns, CV_8U, memory_type) {}
+    : Register(rows, columns, CV_8U, memory_type) {
+    this->min_val = 0;
+    this->max_val = 1;
+}
 
 DigitalRegister::DigitalRegister(const Data &data,
                                  const MemoryType &memory_type)
     : Register(data.rows, data.cols, CV_8U, memory_type) {
     data.copyTo(this->value());
+    this->min_val = 0;
+    this->max_val = 1;
 }
 
 DigitalRegister &DigitalRegister::operator()(const std::string &name) {

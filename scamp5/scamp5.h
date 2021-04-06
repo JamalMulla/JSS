@@ -10,7 +10,11 @@
 #include "simulator/base/array.h"
 #include "simulator/base/processing_element.h"
 
-enum news_t { east = 1, west = 2, north = 4, south = 8, alldir = 15 };
+enum news_t { east = 1,
+              west = 2,
+              north = 4,
+              south = 8,
+              alldir = 15 };
 
 typedef AnalogueRegister AREG;
 typedef DigitalRegister DREG;
@@ -41,40 +45,35 @@ class SCAMP5 {
     int cols_;
     Origin origin_;
 
-    // boustrophedonic bitorder
-//    std::vector<std::vector<std::vector<int>>> bitorder = {
-//        {
-//            {1, 8, 9, 16},
-//            {2, 7, 10, 15},
-//            {3, 6, 11, 14},
-//            {4, 5, 12, 13}
-//        },
-//    };
+//     boustrophedonic bitorder
+//        std::vector<std::vector<std::vector<int>>> bitorder = {
+//            {
+//                {1, 8, 9, 16},
+//                {2, 7, 10, 15},
+//                {3, 6, 11, 14},
+//                {4, 5, 12, 13}
+//            },
+//        };
     // Spiral bitorder
-//    std::vector<std::vector<std::vector<int>>> bitorder = {
-//        {
-//            {4, 3, 2, 1},
-//            {5, 14, 13, 12},
-//            {6, 15, 16, 11},
-//            {7, 8, 9, 10}
-//        },
-//    };
+        std::vector<std::vector<std::vector<int>>> bitorder = {
+            {
+                {4, 3, 2, 1},
+                {5, 14, 13, 12},
+                {6, 15, 16, 11},
+                {7, 8, 9, 10}
+            },
+        };
 
     // 2 bank boustrophedonic
-        std::vector<std::vector<std::vector<int>>> bitorder = {
-        {
-            {1, 8, 0, 0},
-            {2, 7, 0, 0},
-            {3, 6, 0, 0},
-            {4, 5, 0, 0}
-        },
-        {
-            {0, 0, 1, 8},
-            {0, 0, 2, 7},
-            {0, 0, 3, 6},
-            {0, 0, 4, 5}
-        }
-    };
+//    std::vector<std::vector<std::vector<int>>> bitorder = {
+//        {{1, 8, 0, 0},
+//         {2, 7, 0, 0},
+//         {3, 6, 0, 0},
+//         {4, 5, 0, 0}},
+//        {{0, 0, 1, 8},
+//         {0, 0, 2, 7},
+//         {0, 0, 3, 6},
+//         {0, 0, 4, 5}}};
 
     void init();
 
@@ -426,11 +425,12 @@ class SCAMP5 {
 
     // Superpixel methods
     void superpixel_adc(DREG *dst, int bank, AREG *src);
-    void superpixel_dac(AREG* dst, int bank, DREG* src);
-    void superpixel_shift_right(DREG* dst, int bank, DREG* src);
-    void superpixel_shift_left(DREG* dst, int bank, DREG* src);
-    void superpixel_add(DREG* dst, int bank, DREG* src1, DREG* src2);
-    void superpixel_sub(DREG* dst, int bank, DREG* src1, DREG* src2);
+    void superpixel_dac(AREG *dst, int bank, DREG *src);
+    void superpixel_in(DREG* dst, int bank, int value);
+    void superpixel_shift_right(DREG *dst, int bank, DREG *src);
+    void superpixel_shift_left(DREG *dst, int bank, DREG *src);
+    void superpixel_add(DREG *dst, int bank, DREG *src1, DREG *src2);
+    void superpixel_sub(DREG *dst, int bank, DREG *src1, DREG *src2);
 
     // Simulator specific methods
     void print_stats(const CycleCounter *counter);

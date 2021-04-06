@@ -507,23 +507,18 @@ void DigitalBus::get_south(DigitalRegister &dst, DigitalRegister &src,
 
 // SuperPixel Operations
 
-void DigitalBus::superpixel_adc(DigitalRegister &dst, int bank, int bits_in_bank, AnalogueRegister &src, const std::unordered_map<std::string, cv::Point> &locations, int superpixel_size) {
+void DigitalBus::superpixel_adc(DigitalRegister &dst, int bank, int bits_in_bank, AnalogueRegister &src, position_map& locations, int superpixel_size) {
     // Converts an analogue image to a digital superpixel format
     // Values will always be put in bank 1
 
-    // AnalogueRegisters by default have a range of -128-127
-    // Ints are represented in 2s complement which causes issues because of the sign bit being lost or shifted
-    // Easy way around this is to +128 at the beginning and -128 at the end
-
-    src.value() = src.value() + 128;
-
-    for(int col = 0; col < src.value().cols; col += superpixel_size) {
-        for(int row = 0; row < src.value().rows; row += superpixel_size) {
+    for(int row = 0; row < src.value().rows; row += superpixel_size) {
+        for(int col = 0; col < src.value().cols; col += superpixel_size) {
             int sum = cv::sum(src.value()(cv::Rect(col, row, superpixel_size, superpixel_size)))[0];
             sum /= (superpixel_size * superpixel_size);  // <- this truncates values
+            int8_t s = sum;
             for(int i = 0; i < bits_in_bank; i++) {
-                int bit = (sum >> i) & 1;                                                                   // LSB to MSB
-                cv::Point relative_pos = locations.at(std::to_string(bank) + "." + std::to_string(i + 1));  // bitorder starts at 1 not 0
+                int bit = (s >> i) & 1;  // LSB to MSB
+                cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
                 dst.value().at<uint8_t>(relative_pos.y + row,
                                         relative_pos.x + col) = bit;
             }
@@ -531,26 +526,44 @@ void DigitalBus::superpixel_adc(DigitalRegister &dst, int bank, int bits_in_bank
     }
 }
 
-void DigitalBus::superpixel_dac(AnalogueRegister &dst, int bank, int bits_in_bank, DigitalRegister &src, const std::unordered_map<std::string, cv::Point> &locations, int superpixel_size) {
+void DigitalBus::superpixel_dac(AnalogueRegister &dst, int bank, int bits_in_bank, DigitalRegister &src, position_map &locations, int superpixel_size) {
     // Converts digital superpixel format image to an analogue image
-
-    for(int col = 0; col < src.value().cols; col += superpixel_size) {
-        for(int row = 0; row < src.value().rows; row += superpixel_size) {
+    for(int row = 0; row < src.value().rows; row += superpixel_size) {
+        for(int col = 0; col < src.value().cols; col += superpixel_size) {
             // Read value from superpixel
-            int value = 0;
+            int8_t value = 0;
             for(int i = 0; i < bits_in_bank; i++) {
-                cv::Point relative_pos = locations.at(std::to_string(bank) + "." + std::to_string(i + 1));  // bitorder starts at 1 not 0
+                cv::Point relative_pos = locations.at({bank, i+1});  // bitorder starts at 1 not 0
                 int bit = src.value().at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
                 value |= bit << i;  // LSB to MSB
             }
-            value -= 128;
             dst.value()(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
         }
     }
 }
 
+void DigitalBus::superpixel_in(DigitalRegister &dst, int bank, int bits_in_bank, position_map &locations, int superpixel_size, int8_t value) {
+    auto bits = std::make_unique<int[]>(bits_in_bank);
+
+    // Loads a constant value in each superpixel
+    for(int i = 0; i < bits_in_bank; i++) {
+        int bit = (value >> i) & 1;  // LSB to MSB
+        bits[i] = bit;
+    }
+
+    for(int col = 0; col < dst.value().cols; col += superpixel_size) {
+        for(int row = 0; row < dst.value().rows; row += superpixel_size) {
+            for(int i = 0; i < bits_in_bank; i++) {
+                cv::Point relative_pos = locations.at({bank, i + 1});
+                dst.value().at<uint8_t>(relative_pos.y + row,
+                                        relative_pos.x + col) = bits[i];
+            }
+        }
+    }
+}
+
 void DigitalBus::positions_from_bitorder(
-    const std::vector<std::vector<std::vector<int>>> &bitorder, std::unordered_map<std::string, cv::Point> &locations) {
+    const std::vector<std::vector<std::vector<int>>> &bitorder, position_map &locations) {
     // Locations holds a map from <bank, index> -> x,y coords
     int banks = bitorder.size();
     int height = bitorder[0].size();
@@ -560,9 +573,8 @@ void DigitalBus::positions_from_bitorder(
         for(int h = 0; h < height; h++) {
             for(int w = 0; w < width; w++) {
                 int index = bitorder[b][h][w];
-                if(index < 1)
-                    continue;  // Bitorder indices start 1
-                locations[std::to_string(b) + "." + std::to_string(index)] = cv::Point(w, h);
+                if(index < 1) continue;  // Bitorder indices start 1
+                locations[{b, index}] = cv::Point(w, h);
             }
         }
     }
@@ -584,8 +596,8 @@ void DigitalBus::superpixel_shift_patterns_from_bitorder(
             int north;
             int west;
             int current = bitorder[bank][row][col];
-            // Indices start at 1
-            if(current < 1) continue;
+            if(current < 1)
+                continue;  // Indices start at 1
             if(row == 0) {
                 // No north so set north to current
                 north = current;

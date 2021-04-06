@@ -23,15 +23,18 @@ class Register : public Component {
    protected:
     MemoryType memory_type_;
     Data value_;
-    cv::Mat read_counter;          // Number of reads for each PE
+#ifdef TRACK_STATISTICS
+cv::Mat read_counter;          // Number of reads for each PE
     cv::Mat write_counter;         // Number of writes
     cv::Mat read_energy_counter;   // Energy consumed by reads
     cv::Mat write_energy_counter;  // Energy consumed by writes
     int reads;   // Number of reads not per PE but across the array
     int writes;  // Number of writes not per PE but across the array
-
+#endif
    public:
     std::string name_;
+    int min_val;
+    int max_val;
 
     Register(int rows, int columns, int type, MemoryType memoryType);
 

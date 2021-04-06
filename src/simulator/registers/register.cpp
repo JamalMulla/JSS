@@ -10,13 +10,16 @@
 
 Register::Register(int rows, int columns, int type, MemoryType memoryType)
     : memory_type_(memoryType),
-      value_(rows, columns, type, cv::Scalar(0)),
-      read_counter(rows, columns, CV_32S, cv::Scalar(0)),
+      value_(rows, columns, type, cv::Scalar(0))
+#ifdef TRACK_STATISTICS
+      ,read_counter(rows, columns, CV_32S, cv::Scalar(0)),
       write_counter(rows, columns, CV_32S, cv::Scalar(0)),
       read_energy_counter(rows, columns, CV_64F, cv::Scalar(0)),
       write_energy_counter(rows, columns, CV_64F, cv::Scalar(0)),
       reads(0),
-      writes(0) {}
+      writes(0)
+#endif
+       {}
 
 #ifdef TRACK_STATISTICS
 void Register::inc_read(const cv::_InputOutputArray &mask) {

@@ -104,10 +104,26 @@ class DigitalBus {
     // Higher level functions
 
     // Superpixel Operations
-    void superpixel_adc(DigitalRegister& dst, int bank, int bits_in_bank, AnalogueRegister& src, const std::unordered_map<std::string, cv::Point>& locations, int superpixel_size);
-    void superpixel_dac(AnalogueRegister& dst, int bank, int bits_in_bank, DigitalRegister& src, const std::unordered_map<std::string, cv::Point>& locations, int superpixel_size);
+
+    struct pair_hash {
+        template <class T1, class T2>
+        std::size_t operator () (const std::pair<T1,T2> &p) const {
+            auto lhs = p.first;
+            auto rhs = p.second;
+            lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
+            return lhs;
+        }
+    };
+
+    using bank_index = std::pair<int, int>;
+    using position_map = std::unordered_map<bank_index, cv::Point, pair_hash>;
+
+
+    void superpixel_adc(DigitalRegister& dst, int bank, int bits_in_bank, AnalogueRegister& src, position_map& locations, int superpixel_size);
+    void superpixel_dac(AnalogueRegister& dst, int bank, int bits_in_bank, DigitalRegister& src, position_map& locations, int superpixel_size);
+    void superpixel_in(DigitalRegister& dst, int bank, int bits_in_bank, position_map& locations, int superpixel_size, int8_t value);
     void positions_from_bitorder(
-        const std::vector<std::vector<std::vector<int>>>& bitorder, std::unordered_map<std::string, cv::Point>& locations);
+        const std::vector<std::vector<std::vector<int>>>& bitorder, position_map& locations);
     void superpixel_shift_patterns_from_bitorder(
         int bank,
         const std::vector<std::vector<std::vector<int>>>& bitorder,

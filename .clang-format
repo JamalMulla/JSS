@@ -1,11 +1,12 @@
 ---
 BasedOnStyle: Google
 ColumnLimit: 0
-AllowShortBlocksOnASingleLine: Always
+AllowShortBlocksOnASingleLine: Empty
+AlignTrailingComments: false
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: false
 AllowShortCaseLabelsOnASingleLine: true
-AllowShortIfStatementsOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: WithoutElse
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 BinPackArguments: true
