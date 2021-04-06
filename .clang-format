@@ -3,7 +3,7 @@ BasedOnStyle: Google
 ColumnLimit: 0
 AllowShortBlocksOnASingleLine: Always
 AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: true
+AlignConsecutiveAssignments: false
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: Never
 AlwaysBreakAfterReturnType: None

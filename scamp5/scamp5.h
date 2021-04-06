@@ -410,7 +410,7 @@ class SCAMP5 {
     void superpixel_create(DREG *dst, AREG *src);
     void superpixel_shift_right(DREG* dst, DREG* src);
     void superpixel_shift_left(DREG* dst, DREG* src);
-    void superpixel_dac(AREG* dst, DREG* src);
+    void superpixel_dac(AREG* dst, int bank, DREG* src);
 
     // Simulator specific methods
     void print_stats(const CycleCounter *counter);

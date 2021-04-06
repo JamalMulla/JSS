@@ -507,19 +507,19 @@ void DigitalBus::get_south(DigitalRegister &dst, DigitalRegister &src,
 
 // SuperPixel Operations
 
-void DigitalBus::superpixel_create(DigitalRegister &dst, AnalogueRegister &src, const std::unordered_map<int, cv::Point> &locations, int superpixel_size) {
+void DigitalBus::superpixel_create(DigitalRegister &dst, AnalogueRegister &src, const std::unordered_map<std::string, cv::Point> &locations, int superpixel_size) {
     // Converts an analogue image to a digital superpixel format
-    // For now assume 1 bank
+    // Values will always be put in bank 1
 
     for(int col = 0; col < src.value().cols; col += superpixel_size) {
         for(int row = 0; row < src.value().rows; row += superpixel_size) {
             int sum = cv::sum(src.value()(cv::Rect(col, row, superpixel_size, superpixel_size)))[0];
             sum /= (superpixel_size * superpixel_size);  // <- this truncates values
             // TODO need to look at this again when data types can be parameterised
-            int8_t s = sum; // <-- Need to push it in a smaller container to capture the sign bit
+            int8_t s = sum;  // <-- Need to push it in a smaller container to capture the sign bit
             for(int i = 0; i < superpixel_size * superpixel_size; i++) {
                 int bit = (s >> i) & 1;
-                cv::Point relative_pos = locations.at(i + 1);  // bitorder starts at 1 not 0
+                cv::Point relative_pos = locations.at(std::to_string(0) + "." + std::to_string(i+1));  // bitorder starts at 1 not 0
                 dst.value().at<uint8_t>(relative_pos.y + row,
                                         relative_pos.x + col) = bit;
             }
@@ -527,17 +527,17 @@ void DigitalBus::superpixel_create(DigitalRegister &dst, AnalogueRegister &src, 
     }
 }
 
-void DigitalBus::superpixel_dac(AnalogueRegister &dst, DigitalRegister &src, std::unordered_map<int, cv::Point> &locations, int superpixel_size) {
+void DigitalBus::superpixel_dac(AnalogueRegister &dst, int bank, DigitalRegister &src, const std::unordered_map<std::string, cv::Point> &locations, int superpixel_size) {
     // Converts digital superpixel format image to an analogue image
 
-    for (int col = 0; col < src.value().cols; col+=superpixel_size) {
-        for (int row = 0; row < src.value().rows; row+=superpixel_size) {
+    for(int col = 0; col < src.value().cols; col += superpixel_size) {
+        for(int row = 0; row < src.value().rows; row += superpixel_size) {
             // Read value from superpixel
             // TODO need to look at this again when data types can be parameterised
             int8_t value = 0;
-            for (int i = 0; i < superpixel_size * superpixel_size; i++) {
-                cv::Point relative_pos = locations.at(i + 1);  // bitorder starts at 1 not 0
-                int bit = src.value().at<uint8_t>(relative_pos.y + row,relative_pos.x + col);
+            for(int i = 0; i < superpixel_size * superpixel_size; i++) {
+                cv::Point relative_pos = locations.at(std::to_string(bank) + "." + std::to_string(i+1));  // bitorder starts at 1 not 0
+                int bit = src.value().at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
                 value |= bit << i;
             }
             dst.value()(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
@@ -545,161 +545,39 @@ void DigitalBus::superpixel_dac(AnalogueRegister &dst, DigitalRegister &src, std
     }
 }
 
-void DigitalBus::superpixel_shift_block(DigitalRegister &dst,
-                                        DigitalRegister &src, Origin origin,
-                                        DigitalRegister &RN,
-                                        DigitalRegister &RS,
-                                        DigitalRegister &RE,
-                                        DigitalRegister &RW) {
-    int rows = src.value().rows;
-    int cols = src.value().cols;
-    DigitalRegister east = DigitalRegister(rows, cols);
-    DigitalRegister north = DigitalRegister(rows, cols);
-    DigitalRegister west = DigitalRegister(rows, cols);
-    DigitalRegister south = DigitalRegister(rows, cols);
-
-    get_east(east, src, 1, 0, origin);
-    get_north(north, src, 1, 0, origin);
-    get_west(west, src, 1, 0, origin);
-    get_south(south, src, 1, 0, origin);
-
-    AND(east, east, RE);
-    AND(north, north, RN);
-    AND(west, west, RW);
-    AND(south, south, RS);
-
-    OR(dst, east, north, south, west);
-}
-
-void DigitalBus::superpixel_shift_right(DigitalRegister &dst, DigitalRegister &src, std::vector<std::vector<std::vector<int>>> bitorder, Origin origin) {
-    int superpixel_size = bitorder[0][0].size(); // Assume square superpixel for now
-    int rows = src.value().rows;
-    int cols = src.value().cols;
-    DigitalRegister RE = DigitalRegister(rows, cols);
-    DigitalRegister RN = DigitalRegister(rows, cols);
-    DigitalRegister RW = DigitalRegister(rows, cols);
-    DigitalRegister RS = DigitalRegister(rows, cols);
-    superpixel_shift_patterns_from_bitorder(std::move(bitorder), RN, RS, RE, RW,
-                                            true, origin);
-
-    // TODO non-square superpixels?
-    int num_of_repeats_y = rows / superpixel_size;
-    int num_of_repeats_x = cols / superpixel_size;
-    DigitalRegister R_NORTH = cv::repeat(RN.value(), num_of_repeats_y, num_of_repeats_x);
-    DigitalRegister R_SOUTH = cv::repeat(RS.value(), num_of_repeats_y, num_of_repeats_x);
-    DigitalRegister R_EAST = cv::repeat(RE.value(), num_of_repeats_y, num_of_repeats_x);
-    DigitalRegister R_WEST = cv::repeat(RW.value(), num_of_repeats_y, num_of_repeats_x);
-    superpixel_shift_block(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
-
-}
-
-void DigitalBus::superpixel_shift_left(DigitalRegister &dst, DigitalRegister &src, std::vector<std::vector<std::vector<int>>> bitorder, Origin origin) {
-    int superpixel_size = bitorder[0][0].size(); // Assume square superpixel for now
-    int rows = src.value().rows;
-    int cols = src.value().cols;
-    DigitalRegister RE = DigitalRegister(rows, cols);
-    DigitalRegister RN = DigitalRegister(rows, cols);
-    DigitalRegister RW = DigitalRegister(rows, cols);
-    DigitalRegister RS = DigitalRegister(rows, cols);
-    superpixel_shift_patterns_from_bitorder(std::move(bitorder), RN, RS, RE, RW,
-                                            false, origin);
-
-    // TODO non-square superpixels?
-    int num_of_repeats_y = rows / superpixel_size;
-    int num_of_repeats_x = cols / superpixel_size;
-    DigitalRegister R_NORTH = cv::repeat(RN.value(), num_of_repeats_y, num_of_repeats_x);
-    DigitalRegister R_SOUTH = cv::repeat(RS.value(), num_of_repeats_y, num_of_repeats_x);
-    DigitalRegister R_EAST = cv::repeat(RE.value(), num_of_repeats_y, num_of_repeats_x);
-    DigitalRegister R_WEST = cv::repeat(RW.value(), num_of_repeats_y, num_of_repeats_x);
-    superpixel_shift_block(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
-}
-
-void DigitalBus::superpixel_add(DigitalRegister &dst, DigitalRegister &src1,
-                                DigitalRegister &src2, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin) {
-    DigitalRegister A = src1.value().clone();
-    DigitalRegister B = src2.value().clone();
-    DigitalRegister and_ =
-        DigitalRegister(src1.value().rows, src1.value().cols);
-    DigitalRegister xor_ =
-        DigitalRegister(src1.value().rows, src1.value().cols);
-
-    AND(and_, A, B);
-
-    while(cv::sum(and_.value())[0] != 0) {
-        XOR(xor_, A, B);
-        AND(and_, A, B);
-        // TODO superpixel size
-        superpixel_shift_right(and_, and_, bitorder, origin);
-        xor_.value().copyTo(A.value());
-        and_.value().copyTo(B.value());
-        AND(and_, A, B);
-    }
-    XOR(dst, A, B);
-}
-
-void DigitalBus::superpixel_sub(DigitalRegister &dst, DigitalRegister &src1,
-                                DigitalRegister &src2, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin) {
-    DigitalRegister A = src1.value().clone();
-    DigitalRegister B = src2.value().clone();
-    DigitalRegister NOT_A = src1.value().clone();
-    DigitalRegister and_ =
-        DigitalRegister(src1.value().rows, src1.value().cols);
-    DigitalRegister xor_ =
-        DigitalRegister(src1.value().rows, src1.value().cols);
-
-    NOT(NOT_A, A);
-    AND(and_, NOT_A, B);
-
-    while(cv::sum(and_.value())[0] != 0) {
-        XOR(xor_, A, B);
-        NOT(NOT_A, A);
-        AND(and_, NOT_A, B);
-        // TODO superpixel size
-        superpixel_shift_right(and_, and_,
-                               bitorder,
-                               origin);
-        xor_.value().copyTo(A.value());
-        and_.value().copyTo(B.value());
-        NOT(NOT_A, A);
-        AND(and_, NOT_A, B);
-    }
-    XOR(dst, A, B);
-}
-
 void DigitalBus::positions_from_bitorder(
-    std::vector<std::vector<std::vector<int>>> bitorder, std::unordered_map<int, cv::Point> &locations) {
+    const std::vector<std::vector<std::vector<int>>>& bitorder, std::unordered_map<std::string, cv::Point> &locations) {
+    // Locations holds a map from <bank, index> -> x,y coords
     int banks = bitorder.size();
     int height = bitorder[0].size();
     int width = bitorder[0][0].size();
 
-    // For now we only care about bank 1.
     for(int b = 0; b < banks; b++) {
         for(int h = 0; h < height; h++) {
             for(int w = 0; w < width; w++) {
                 int index = bitorder[b][h][w];
-                // todo double check w,h
-                locations[index] = cv::Point(w, h);
+                if (index < 1) continue; // Bitorder indices start 1
+                locations[std::to_string(b) + "." + std::to_string(index)] = cv::Point(w, h);
             }
         }
     }
 }
 
 void DigitalBus::superpixel_shift_patterns_from_bitorder(
-    std::vector<std::vector<std::vector<int>>> bitorder, DigitalRegister &RN,
+    const std::vector<std::vector<std::vector<int>>>& bitorder, DigitalRegister &RN,
     DigitalRegister &RS, DigitalRegister &RE, DigitalRegister &RW,
-    bool shift_right, Origin origin) {
+    bool shift_left, Origin origin) {
     size_t rows = bitorder[0].size();
     size_t cols = bitorder[0][0].size();
     DigitalRegister R_NORTH(rows, cols);
     DigitalRegister R_SOUTH(rows, cols);
     DigitalRegister R_EAST(rows, cols);
     DigitalRegister R_WEST(rows, cols);
-    
-    PlaneParams p;
-    get_fixed_params(p, origin, 0, 0, rows, cols,
-                     1, 1);
 
-    for(auto & bank : bitorder) {
+    PlaneParams p;
+    get_fixed_params(p, origin, 0, 0, rows, cols, 1, 1);
+
+    for(auto &bank: bitorder) {
         for(size_t row = 0; row < rows; row++) {
             for(size_t col = 0; col < cols; col++) {
                 int north;
@@ -721,25 +599,24 @@ void DigitalBus::superpixel_shift_patterns_from_bitorder(
 
                 if(current == north + 1) {
                     // bigger than north
-                    (shift_right ? R_SOUTH : R_NORTH)
+                    (shift_left ? R_SOUTH : R_NORTH)
                         .value()
-                        .at<uint8_t>(row - (shift_right ? 0 : 1), col) = 1;
+                        .at<uint8_t>(row - (shift_left ? 0 : 1), col) = 1;
                 } else if(current == north - 1) {
                     // smaller than north
-                    (shift_right ? R_NORTH : R_SOUTH)
+                    (shift_left ? R_NORTH : R_SOUTH)
                         .value()
-                        .at<uint8_t>(row - (shift_right ? 1 : 0), col) = 1;
+                        .at<uint8_t>(row - (shift_left ? 1 : 0), col) = 1;
                 }
 
                 if(current == west + 1) {
                     // bigger than west
-                    (shift_right ? R_EAST : R_WEST)
+                    (shift_left ? R_EAST : R_WEST)
                         .value()
-                        .at<uint8_t>(row, col - (shift_right ? 0 : 1)) = 1;
+                        .at<uint8_t>(row, col - (shift_left ? 0 : 1)) = 1;
                 } else if(current == west - 1) {
                     // smaller than west
-                    (shift_right ? R_WEST : R_EAST).value().at<uint8_t>(row, col - (shift_right ? 1 : 0)) =
-                        1;
+                    (shift_left ? R_WEST : R_EAST).value().at<uint8_t>(row, col - (shift_left ? 1 : 0)) = 1;
                 }
             }
         }
@@ -777,3 +654,122 @@ void DigitalBus::superpixel_shift_patterns_from_bitorder(
         }
     }
 }
+
+void DigitalBus::superpixel_shift_block(DigitalRegister &dst,
+                                        DigitalRegister &src, Origin origin,
+                                        DigitalRegister &RN,
+                                        DigitalRegister &RS,
+                                        DigitalRegister &RE,
+                                        DigitalRegister &RW) {
+    int rows = src.value().rows;
+    int cols = src.value().cols;
+    DigitalRegister east = DigitalRegister(rows, cols);
+    DigitalRegister north = DigitalRegister(rows, cols);
+    DigitalRegister west = DigitalRegister(rows, cols);
+    DigitalRegister south = DigitalRegister(rows, cols);
+
+    get_east(east, src, 1, 0, origin);
+    get_north(north, src, 1, 0, origin);
+    get_west(west, src, 1, 0, origin);
+    get_south(south, src, 1, 0, origin);
+
+    AND(east, east, RE);
+    AND(north, north, RN);
+    AND(west, west, RW);
+    AND(south, south, RS);
+
+    OR(dst, east, north, south, west);
+}
+
+void DigitalBus::superpixel_shift_left(DigitalRegister &dst, DigitalRegister &src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin) {
+    int superpixel_size = bitorder[0][0].size();  // Assume square superpixel for now
+    int rows = src.value().rows;
+    int cols = src.value().cols;
+    DigitalRegister RE = DigitalRegister(rows, cols);
+    DigitalRegister RN = DigitalRegister(rows, cols);
+    DigitalRegister RW = DigitalRegister(rows, cols);
+    DigitalRegister RS = DigitalRegister(rows, cols);
+    superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE, RW,
+                                            true, origin);
+
+    // TODO non-square superpixels?
+    int num_of_repeats_y = rows / superpixel_size;
+    int num_of_repeats_x = cols / superpixel_size;
+    DigitalRegister R_NORTH = cv::repeat(RN.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_SOUTH = cv::repeat(RS.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_EAST = cv::repeat(RE.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_WEST = cv::repeat(RW.value(), num_of_repeats_y, num_of_repeats_x);
+    superpixel_shift_block(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
+}
+
+void DigitalBus::superpixel_shift_right(DigitalRegister &dst, DigitalRegister &src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin) {
+    int superpixel_size = bitorder[0][0].size();  // Assume square superpixel for now
+    int rows = src.value().rows;
+    int cols = src.value().cols;
+    DigitalRegister RE = DigitalRegister(rows, cols);
+    DigitalRegister RN = DigitalRegister(rows, cols);
+    DigitalRegister RW = DigitalRegister(rows, cols);
+    DigitalRegister RS = DigitalRegister(rows, cols);
+    superpixel_shift_patterns_from_bitorder(bitorder, RN, RS, RE, RW,
+                                            false, origin);
+
+    // TODO non-square superpixels?
+    int num_of_repeats_y = rows / superpixel_size;
+    int num_of_repeats_x = cols / superpixel_size;
+    DigitalRegister R_NORTH = cv::repeat(RN.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_SOUTH = cv::repeat(RS.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_EAST = cv::repeat(RE.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_WEST = cv::repeat(RW.value(), num_of_repeats_y, num_of_repeats_x);
+    superpixel_shift_block(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
+}
+
+void DigitalBus::superpixel_add(DigitalRegister &dst, DigitalRegister &src1,
+                                DigitalRegister &src2, const std::vector<std::vector<std::vector<int>>> &bitorder, Origin origin) {
+    DigitalRegister A = src1.value().clone();
+    DigitalRegister B = src2.value().clone();
+    DigitalRegister and_ =
+        DigitalRegister(src1.value().rows, src1.value().cols);
+    DigitalRegister xor_ =
+        DigitalRegister(src1.value().rows, src1.value().cols);
+
+    AND(and_, A, B);
+
+    while(cv::sum(and_.value())[0] != 0) {
+        XOR(xor_, A, B);
+        AND(and_, A, B);
+        superpixel_shift_left(and_, and_, bitorder, origin);
+        xor_.value().copyTo(A.value());
+        and_.value().copyTo(B.value());
+        AND(and_, A, B);
+    }
+    XOR(dst, A, B);
+}
+
+void DigitalBus::superpixel_sub(DigitalRegister &dst, DigitalRegister &src1,
+                                DigitalRegister &src2, const std::vector<std::vector<std::vector<int>>> &bitorder, Origin origin) {
+    DigitalRegister A = src1.value().clone();
+    DigitalRegister B = src2.value().clone();
+    DigitalRegister NOT_A = src1.value().clone();
+    DigitalRegister and_ =
+        DigitalRegister(src1.value().rows, src1.value().cols);
+    DigitalRegister xor_ =
+        DigitalRegister(src1.value().rows, src1.value().cols);
+
+    NOT(NOT_A, A);
+    AND(and_, NOT_A, B);
+
+    while(cv::sum(and_.value())[0] != 0) {
+        XOR(xor_, A, B);
+        NOT(NOT_A, A);
+        AND(and_, NOT_A, B);
+        superpixel_shift_left(and_, and_,
+                              bitorder,
+                              origin);
+        xor_.value().copyTo(A.value());
+        and_.value().copyTo(B.value());
+        NOT(NOT_A, A);
+        AND(and_, NOT_A, B);
+    }
+    XOR(dst, A, B);
+}
+
