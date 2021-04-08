@@ -21,7 +21,14 @@ TEST_CASE("two images can be xor'd") {
     bus.XOR(A, A, B);
     DigitalRegister expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 1,0,1,0, 0,1,0,1, 1,0,0,1);
     REQUIRE(utility::mats_are_equal(A.value(), expected.value()));
+}
 
+TEST_CASE("digital image can be inverted") {
+    DigitalBus bus;
+    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(4, 4) << 0,1,1,0, 1,1,0,0, 1,1,0,0, 0,0,1,1);
+    bus.NOT(A);
+    DigitalRegister expected = (cv::Mat)(cv::Mat_<uint8_t>(4, 4) << 1,0,0,1, 0,0,1,1, 0,0,1,1, 1,1,0,0);
+    REQUIRE(utility::mats_are_equal(A.value(), expected.value()));
 }
 
 TEST_CASE("get_X neighbour methods work correctly for BOTTOM_LEFT origin") {

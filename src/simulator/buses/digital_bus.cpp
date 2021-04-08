@@ -52,7 +52,7 @@ void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
 
 void DigitalBus::NOT(DigitalRegister &d, DigitalRegister &d0) {
     // d := NOT d0
-    cv::bitwise_not(d0.value(), d.value());
+    cv::bitwise_xor(d0.value(), 1, d.value());
 #ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_write();
@@ -101,7 +101,7 @@ void DigitalBus::NOR(DigitalRegister &d, DigitalRegister &d0,
 
 void DigitalBus::NOT(DigitalRegister &Rl) {
     // Rl := NOT Rl
-    cv::bitwise_not(Rl.value(), Rl.value());
+    cv::bitwise_xor(Rl.value(), 1, Rl.value());
 #ifdef TRACK_STATISTICS
     Rl.inc_write();
     Rl.inc_read();
@@ -262,7 +262,7 @@ void DigitalBus::OR_MASKED(DigitalRegister &d, DigitalRegister &d0,
 void DigitalBus::NOT_MASKED(DigitalRegister &d, DigitalRegister &d0,
                             DigitalRegister &FLAG) {
     // d := NOT d0
-    cv::bitwise_not(d0.value(), d.value(), FLAG.value());
+    cv::bitwise_xor(d0.value(), 1, d.value(), FLAG.value());
 }
 
 void DigitalBus::NOR_MASKED(DigitalRegister &d, DigitalRegister &d0,
@@ -290,7 +290,7 @@ void DigitalBus::NOR_MASKED(DigitalRegister &d, DigitalRegister &d0,
 
 void DigitalBus::NOT_MASKED(DigitalRegister &Rl, DigitalRegister &FLAG) {
     // Rl := NOT Rl
-    cv::bitwise_not(Rl.value(), Rl.value(), FLAG.value());
+    cv::bitwise_xor(Rl.value(), 1, Rl.value(), FLAG.value());
 }
 
 void DigitalBus::OR_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
@@ -551,9 +551,7 @@ void DigitalBus::superpixel_dac(AnalogueRegister &dst, int bank, int bits_in_ban
               int bit = src.value().at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
               value |= bit << i;  // LSB to MSB
           }
-
           dst.value()(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
-
       }
     });
 }
