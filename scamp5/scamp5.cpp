@@ -1599,9 +1599,11 @@ void SCAMP5::superpixel_in(DREG *dst, int bank, int value) {
 }
 
 void SCAMP5::superpixel_shift_right(DREG *dst, int bank, DREG *src) {
+    // Logical shift right
     this->pe->local_read_bus.superpixel_shift_right(*dst, bank, *src, this->bitorder, this->origin_);
 }
 void SCAMP5::superpixel_shift_left(DREG *dst, int bank, DREG *src) {
+    // Logical shift left
     this->pe->local_read_bus.superpixel_shift_left(*dst, bank, *src, this->bitorder, this->origin_);
 }
 

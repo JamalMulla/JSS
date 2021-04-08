@@ -7,7 +7,10 @@
 #include "scamp5.h"
 
 int main() {
-    SCAMP5 s = SCAMP5::builder{}.build();
+    SCAMP5 s = SCAMP5::builder{}
+                   .with_rows(256)
+                   .with_cols(256)
+                   .build();
     UI ui;
     ui.start();
 
@@ -16,6 +19,11 @@ int main() {
         int e1 = cv::getTickCount();
         s.superpixel_adc(s.R5, 0, s.A);
         s.superpixel_adc(s.R5, 1, s.D);
+        s.superpixel_in(s.R6, 0, 30);
+        s.superpixel_in(s.R7, 1, 30);
+        s.superpixel_add(s.R5, 0, s.R5, s.R6);
+        s.superpixel_sub(s.R5, 1, s.R5, s.R7);
+//        s.superpixel_shift_left(s.R6, 0, s.R5);
         s.superpixel_dac(s.B, 0, s.R5);
         s.superpixel_dac(s.C, 1, s.R5);
         int e2 = cv::getTickCount();
@@ -29,7 +37,7 @@ int main() {
         ui.display_reg(s.R6);
         ui.display_reg(s.R7);
 //        utility::display_register<int8_t>("ORIGINAL", *s.A);
-//        utility::display_register<int8_t>("B", *s.B);
+//        utility::display_register<int8_t>("C", *s.C);
 //        utility::display_register<int8_t>("SHIFT_RIGHT", *s.C);
 //        cv::waitKey(1);
     }
