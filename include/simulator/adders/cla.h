@@ -14,8 +14,8 @@ class CarryLookAheadAdder : public Component {
    private:
     int cycle_count_;
     int transistor_count_;
-    double static_power_; // in watts
-    double dynamic_power_; // in watts for an addition
+    double static_power_; // in Watts
+    double dynamic_power_; // in Watts for an addition
     int fun_transistor(int bits, const Config& config);
     double fun_static(int bits, const Config& config);
     double fun_dynamic(int bits, const Config& config);

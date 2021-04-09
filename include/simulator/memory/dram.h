@@ -5,14 +5,24 @@
 #ifndef SIMULATOR_DRAM_H
 #define SIMULATOR_DRAM_H
 
-#include "simulator/memory/memory_type.h"
+#include "simulator/base/config.h"
+#include "simulator/memory/memory.h"
 
-class DRAM : public MemoryType {
+class DRAM : public Memory {
    protected:
-    float retention_time_;  // In S
+    double write_access_time_;  // In s
+    double read_access_time_;  // In s
+    double write_power_draw_;  // In W
+    double read_power_draw_;  // In W
+    double retention_time_;  // In S
+    Config* config_;
+
    public:
-    DRAM(float write_access_time, float read_access_time,
-         float write_power_draw, float read_power_draw, float retention_time);
+    DRAM(Config& config);
+    double get_static_power(double time) override;
+    double get_dynamic_power() override;
+    int get_cycle_count() override;
+    int get_transistor_count() override;
 };
 
 #endif  // SIMULATOR_DRAM_H

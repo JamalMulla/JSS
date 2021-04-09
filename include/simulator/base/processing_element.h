@@ -15,7 +15,7 @@
 #include "simulator/units/comparator.h"
 #include "simulator/units/squarer.h"
 
-class ProcessingElement : public Component {
+class ProcessingElement {
    public:
     class builder;
     Pixel photodiode;
@@ -28,11 +28,7 @@ class ProcessingElement : public Component {
     DigitalBus local_write_bus;
 
     ProcessingElement(int rows, int columns, int num_analogue, int num_digital,
-                      Source source, const std::string& path);
-#ifdef TRACK_STATISTICS
-    void print_stats(const CycleCounter& counter) override;
-    void write_stats(const CycleCounter& counter, json& j) override;
-#endif
+                      Source source, const std::string& path, Config& config);
 };
 
 class ProcessingElement::builder {

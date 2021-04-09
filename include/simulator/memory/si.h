@@ -5,9 +5,9 @@
 #ifndef SIMULATOR_SI_H
 #define SIMULATOR_SI_H
 
-#include "simulator/memory/memory_type.h"
+#include "simulator/memory/memory.h"
 
-class SI : public MemoryType {
+class SI : public Memory {
    public:
     SI();
 };

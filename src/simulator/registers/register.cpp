@@ -8,7 +8,7 @@
 
 #include "simulator/metrics/stats.h"
 
-Register::Register(int rows, int columns, int type, MemoryType memoryType)
+Register::Register(int rows, int columns, int type, Memory memoryType)
     : memory_type_(memoryType),
       value_(rows, columns, type, cv::Scalar(0))
 #ifdef TRACK_STATISTICS
@@ -67,7 +67,7 @@ double Register::get_total_energy() {
 Data &Register::value() { return this->value_; }
 const Data &Register::value() const { return this->value_; }
 
-void Register::change_memory_type(const MemoryType &memory_type) {
+void Register::change_memory_type(const Memory &memory_type) {
     this->memory_type_ = memory_type;
 }
 

@@ -13,9 +13,9 @@
 class DigitalRegister : public Register {
    public:
     DigitalRegister(int rows, int columns,
-                    const MemoryType& memory_type = DRAM_3T());
+                    const Memory& memory_type = DRAM_3T());
     DigitalRegister(const Data& data,
-                    const MemoryType& memory_type = DRAM_3T());
+                    const Memory& memory_type = DRAM_3T());
 
     DigitalRegister& operator()(const std::string& name);
     void set();

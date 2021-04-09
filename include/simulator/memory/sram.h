@@ -5,9 +5,9 @@
 #ifndef SIMULATOR_SRAM_H
 #define SIMULATOR_SRAM_H
 
-#include "simulator/memory/memory_type.h"
+#include "simulator/memory/memory.h"
 
-class SRAM : public MemoryType {
+class SRAM : public Memory {
    public:
     SRAM(float write_power, float read_power);
 };
