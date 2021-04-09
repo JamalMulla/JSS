@@ -7,7 +7,7 @@
  * */
 
 CarryLookAheadAdder::CarryLookAheadAdder(int bits, const Config& config) :
-    bits_(bits),
+    cycle_count_(1),
     transistor_count_(fun_transistor(bits, config)),
     static_power_(fun_static(bits, config)),
     dynamic_power_(fun_dynamic(bits, config)) {}
@@ -36,12 +36,22 @@ double CarryLookAheadAdder::get_dynamic_power() {
 }
 
 int CarryLookAheadAdder::get_cycle_count() {
-    return 1;
+    return cycle_count_;
 }
 
 int CarryLookAheadAdder::get_transistor_count() {
     return transistor_count_;
 }
+
+void CarryLookAheadAdder::print_stats(const CycleCounter& counter) {
+
+}
+
+void CarryLookAheadAdder::write_stats(const CycleCounter& counter, json& j) {
+
+}
+
 void CarryLookAheadAdder::add(DigitalRegister& dst, const DigitalRegister& src1, const DigitalRegister& src2) {
     dst.value() = src1.value() + src2.value();
 }
+

@@ -12,7 +12,7 @@
 
 class CarryLookAheadAdder : public Component {
    private:
-    int bits_; // n-bit addition. Both inputs and output are of this many bits
+    int cycle_count_;
     int transistor_count_;
     double static_power_; // in watts
     double dynamic_power_; // in watts for an addition
@@ -26,6 +26,8 @@ class CarryLookAheadAdder : public Component {
     double get_dynamic_power() override;
     int get_cycle_count() override;
     int get_transistor_count() override;
+    void print_stats(const CycleCounter &counter) override;
+    void write_stats(const CycleCounter &counter, json &j) override;
 
     void add(DigitalRegister& dst, const DigitalRegister& src1, const DigitalRegister& src2);
 

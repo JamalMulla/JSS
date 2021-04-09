@@ -25,8 +25,8 @@ class Component {
     /* The number of cycles needed for the operation.
      * Similar to dynamic power as the value is stored after an operation*/
     virtual int get_cycle_count() = 0;
-//    virtual void print_stats(const CycleCounter& counter) = 0;
-//    virtual void write_stats(const CycleCounter& counter, json& j) = 0;
+    virtual void print_stats(const CycleCounter& counter) = 0;
+    virtual void write_stats(const CycleCounter& counter, json& j) = 0;
 #endif
 };
 

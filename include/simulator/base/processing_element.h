@@ -8,7 +8,7 @@
 #include <iostream>
 #include <vector>
 
-#include "simulator/base/photodiode.h"
+#include "simulator/base/pixel.h"
 #include "simulator/buses/analogue_bus.h"
 #include "simulator/buses/digital_bus.h"
 #include "simulator/registers/digital_register.h"
@@ -18,7 +18,7 @@
 class ProcessingElement : public Component {
    public:
     class builder;
-    Photodiode photodiode;
+    Pixel photodiode;
     std::vector<AnalogueRegister> analogue_registers;
     std::vector<DigitalRegister> digital_registers;
     Squarer squarer;

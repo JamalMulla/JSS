@@ -9,7 +9,7 @@
 ProcessingElement::ProcessingElement(int rows, int columns, int num_analogue,
                                      int num_digital, Source source,
                                      const std::string &path)
-    : photodiode(Photodiode(rows, columns, source, path)) {
+    : photodiode(Pixel(rows, columns, source, path)) {
     for(int i = 0; i < num_analogue; i++) {
         analogue_registers.emplace_back(rows, columns);
     }
