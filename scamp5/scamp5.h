@@ -45,6 +45,7 @@ class SCAMP5 {
     int cols_;
     Origin origin_;
 
+
 //     boustrophedonic bitorder
 //        std::vector<std::vector<std::vector<int>>> bitorder = {
 //            {
@@ -63,6 +64,9 @@ class SCAMP5 {
 //                {7, 8, 9, 10}
 //            },
 //        };
+
+    // Make sure you also change the bit size and superpixel size in scamp5.cpp superpixel methods
+    // if the bitorder is changed here
 
     // 2 bank 8-bit boustrophedonic
     std::vector<std::vector<std::vector<int>>> bitorder = {

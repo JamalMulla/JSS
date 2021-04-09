@@ -40,6 +40,22 @@ Tracking statistics is expensive and will drastically slow down execution.
 
 Or just use Clion.
 
+# UI
+There is a browser based UI which can be used to display the outputs of the registers in realtime. Create a UI object and start it before the main loop like this:
+```
+UI ui;
+ui.start();
+```
+Then in the main loop, you can display a register by calling
+```
+ui.display_reg(REGISTER_HERE);
+```
+which will send the image to the web client. 
+
+By default the client can be accessed at `localhost:3000`
+
+
+
 # Tests
 
 The test suite can be run with `make test` after the above build steps.
