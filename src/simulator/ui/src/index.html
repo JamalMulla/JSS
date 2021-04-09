@@ -14,11 +14,18 @@
             border-color: black;
             border-style: solid;
             min-width: 256px;
+            max-width: 256px;
             height: auto;
         }
 
         .reg_image {
-            /*width: 100%;*/
+            /*Disable smoothing algorithm*/
+            image-rendering: optimizeSpeed;
+            image-rendering: -moz-crisp-edges;          /* Firefox */
+            image-rendering: pixelated;                 /* Chrome */
+
+            min-width: 256px;
+            max-width: 256px;             /* Chrome as of 2019   */
             border: 1px solid red;
         }
 
