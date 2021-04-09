@@ -5,5 +5,4 @@
 #include "simulator/memory/sram_6t.h"
 
 // TODO Find better power estimates
-SRAM_6T::SRAM_6T()
-        : SRAM(6.305e-8, 5.805e-8) {}
+SRAM_6T::SRAM_6T() : SRAM(6.305e-8, 5.805e-8) {}

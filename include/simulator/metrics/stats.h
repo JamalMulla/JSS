@@ -7,11 +7,10 @@
 
 namespace stats {
 
-    extern long CLOCK_RATE;
-    extern double CYCLE_TIME;
-    extern void set_clock_rate(long clock_rate);
+extern long CLOCK_RATE;
+extern double CYCLE_TIME;
+extern void set_clock_rate(long clock_rate);
 
-}
+}  // namespace stats
 
-
-#endif //SIMULATOR_STATS_H
+#endif  // SIMULATOR_STATS_H

@@ -5,18 +5,17 @@
 #ifndef SIMULATOR_IMAGE_INPUT_H
 #define SIMULATOR_IMAGE_INPUT_H
 
-
 #include "input_source.h"
 
 class ImageInput : public InputSource {
-private:
+   private:
     const std::string path_;
-public:
+
+   public:
     ImageInput(int rows, int cols, const std::string& path);
     void read(Register& reg) override;
     void reset() override;
     double last_frame_time() override;
 };
 
-
-#endif //SIMULATOR_IMAGE_INPUT_H
+#endif  // SIMULATOR_IMAGE_INPUT_H

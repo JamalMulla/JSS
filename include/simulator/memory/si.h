@@ -5,13 +5,11 @@
 #ifndef SIMULATOR_SI_H
 #define SIMULATOR_SI_H
 
-
 #include "simulator/memory/memory_type.h"
 
 class SI : public MemoryType {
-public:
+   public:
     SI();
 };
 
-
-#endif //SIMULATOR_SI_H
+#endif  // SIMULATOR_SI_H

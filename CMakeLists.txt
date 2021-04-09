@@ -17,20 +17,18 @@ string(
 
 add_compile_options("${_opts}")
 
-
-option(WITH_RUNTIME_CHECKS "Check arguments and emit warnings" OFF)
-option(WITH_STATISTICS "Tracks statistics such as register reads and energy use" OFF)
-if (WITH_RUNTIME_CHECKS)
+option(USE_RUNTIME_CHECKS "Check arguments and emit warnings" OFF)
+option(TRACK_STATISTICS "Tracks statistics such as register reads and energy use" OFF)
+if (USE_RUNTIME_CHECKS)
     message(STATUS "With runtime checks")
     add_definitions(-DUSE_RUNTIME_CHECKS)
 endif ()
-unset(WITH_RUNTIME_CHECKS CACHE)
-if (WITH_STATISTICS)
+unset(USE_RUNTIME_CHECKS CACHE)
+if (TRACK_STATISTICS)
     message(STATUS "Tracking statistics")
     add_definitions(-DTRACK_STATISTICS)
 endif ()
-unset(WITH_STATISTICS CACHE)
-
+unset(TRACK_STATISTICS CACHE)
 
 
 IF (UNIX)
@@ -52,7 +50,7 @@ ENDIF ()
 set(CONAN_SYSTEM_INCLUDES ON)
 conan_basic_setup()
 
-add_library(${SIM_LIB} STATIC src/simulator/registers/analogue_register.cpp include/simulator/registers/analogue_register.h src/simulator/registers/digital_register.cpp include/simulator/registers/digital_register.h src/simulator/buses/analogue_bus.cpp include/simulator/buses/analogue_bus.h src/simulator/buses/digital_bus.cpp include/simulator/buses/digital_bus.h src/simulator/base/photodiode.cpp include/simulator/base/photodiode.h src/simulator/base/array.cpp include/simulator/base/array.h src/simulator/base/processing_element.cpp include/simulator/base/processing_element.h src/simulator/units/comparator.cpp include/simulator/units/comparator.h src/simulator/units/squarer.cpp include/simulator/units/squarer.h src/simulator/registers/register.cpp include/simulator/registers/register.h src/simulator/base/component.cpp include/simulator/base/component.h src/simulator/memory/dram/dram.cpp include/simulator/memory/dram.h src/simulator/memory/sram/sram.cpp include/simulator/memory/sram.h src/simulator/memory/memory_type.cpp include/simulator/memory/memory_type.h src/simulator/memory/dram/dram_3t.cpp include/simulator/memory/dram_3t.h src/simulator/memory/si/si.cpp include/simulator/memory/si.h src/simulator/metrics/stats.cpp include/simulator/metrics/stats.h src/simulator/util/utility.cpp include/simulator/util/utility.h src/simulator/metrics/cycle_counter.cpp include/simulator/metrics/cycle_counter.h src/simulator/memory/sram/sram_6t.cpp include/simulator/memory/sram_6t.h src/simulator/metrics/json_writer.cpp include/simulator/metrics/json_writer.h include/simulator/ui/async_file_streamer.h include/simulator/ui/async_file_reader.h src/simulator/ui/ui.cpp include/simulator/ui/ui.h src/simulator/ui/file_watcher.cpp include/simulator/ui/file_watcher.h include/simulator/ui/base64_encoder.h src/simulator/ui/src/base64_encoder.cpp include/simulator/input/input_source.h src/simulator/input/live_input.cpp include/simulator/input/live_input.h src/simulator/input/image_input.cpp include/simulator/input/image_input.h src/simulator/input/video_input.cpp include/simulator/input/video_input.h)
+add_library(${SIM_LIB} STATIC src/simulator/registers/analogue_register.cpp include/simulator/registers/analogue_register.h src/simulator/registers/digital_register.cpp include/simulator/registers/digital_register.h src/simulator/buses/analogue_bus.cpp include/simulator/buses/analogue_bus.h src/simulator/buses/digital_bus.cpp include/simulator/buses/digital_bus.h src/simulator/base/photodiode.cpp include/simulator/base/photodiode.h src/simulator/base/array.cpp include/simulator/base/array.h src/simulator/base/processing_element.cpp include/simulator/base/processing_element.h src/simulator/units/comparator.cpp include/simulator/units/comparator.h src/simulator/units/squarer.cpp include/simulator/units/squarer.h src/simulator/registers/register.cpp include/simulator/registers/register.h src/simulator/base/component.cpp include/simulator/base/component.h src/simulator/memory/dram/dram.cpp include/simulator/memory/dram.h src/simulator/memory/sram/sram.cpp include/simulator/memory/sram.h src/simulator/memory/memory_type.cpp include/simulator/memory/memory_type.h src/simulator/memory/dram/dram_3t.cpp include/simulator/memory/dram_3t.h src/simulator/memory/si/si.cpp include/simulator/memory/si.h src/simulator/metrics/stats.cpp include/simulator/metrics/stats.h src/simulator/util/utility.cpp include/simulator/util/utility.h src/simulator/metrics/cycle_counter.cpp include/simulator/metrics/cycle_counter.h src/simulator/memory/sram/sram_6t.cpp include/simulator/memory/sram_6t.h src/simulator/metrics/json_writer.cpp include/simulator/metrics/json_writer.h include/simulator/ui/async_file_streamer.h include/simulator/ui/async_file_reader.h src/simulator/ui/ui.cpp include/simulator/ui/ui.h src/simulator/ui/file_watcher.cpp include/simulator/ui/file_watcher.h include/simulator/ui/base64_encoder.h src/simulator/ui/src/base64_encoder.cpp include/simulator/input/input_source.h src/simulator/input/live_input.cpp include/simulator/input/live_input.h src/simulator/input/image_input.cpp include/simulator/input/image_input.h src/simulator/input/video_input.cpp include/simulator/input/video_input.h include/simulator/base/plane_params.h src/simulator/base/plane_params.cpp)
 
 if (WIN32)
     string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
@@ -85,28 +83,9 @@ target_include_directories(${SIM_LIB} PRIVATE ${OpenCV_INCLUDE_DIRS})
 #endif()
 
 
-
 #######
 # Tests
 #######
 enable_testing()
+add_subdirectory(scamp5)
 add_subdirectory(tests)
-
-
-
-#######
-#Architectures
-#######
-SET(ARCH scamp5)
-add_executable(${ARCH} architectures/main.cpp architectures/scamp5.h architectures/scamp5.cpp architectures/analognet2/conv_instructions.h architectures/analognet2/fc_weights.h architectures/analognet2/analog_main.h architectures/analognet2/analog_main.cpp)
-if (WIN32)
-    string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
-    if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
-        target_link_libraries(${ARCH} PRIVATE ${CONAN_LIBS} ${OpenCV_libs} simulator opencv_world451d)
-    ELSEIF (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
-        target_link_libraries(${ARCH} PRIVATE ${CONAN_LIBS} ${OpenCV_libs} simulator opencv_world451)
-    ENDIF ()
-ELSEIF (UNIX)
-    target_link_libraries(${ARCH} PRIVATE ${CONAN_LIBS} ${OpenCV_LIBS} simulator)
-ENDIF ()
-target_include_directories(${ARCH} PUBLIC ${OpenCV_INCLUDE_DIRS} include)

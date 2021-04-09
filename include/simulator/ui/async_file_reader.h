@@ -6,19 +6,20 @@
 #ifndef SIMULATOR_ASYNC_FILE_READER_H
 #define SIMULATOR_ASYNC_FILE_READER_H
 
-#include <map>
+#include <uWebSockets/Loop.h>
+
 #include <cstring>
 #include <fstream>
-#include <sstream>
-#include <iostream>
 #include <future>
-#include <uWebSockets/Loop.h>
+#include <iostream>
+#include <map>
+#include <sstream>
 
 /* This is just a very simple and inefficient demo of async responses,
  * please do roll your own variant or use a database or Node.js's async
  * features instead of this really bad demo */
 struct AsyncFileReader {
-private:
+   private:
     /* The cache we have in memory for this file */
     std::string cache;
     int cacheOffset;
@@ -32,7 +33,7 @@ private:
     std::ifstream fin;
     uWS::Loop *loop;
 
-public:
+   public:
     /* Construct a demo async. file reader for fileName */
     AsyncFileReader(std::string fileName) : fileName(fileName) {
         fin.open(fileName, std::ios::binary);
@@ -41,12 +42,12 @@ public:
         fin.seekg(0, fin.end);
         fileSize = fin.tellg();
 
-        //std::cout << "File size is: " << fileSize << std::endl;
+        // std::cout << "File size is: " << fileSize << std::endl;
 
         // cache up 1 mb!
         cache.resize(1024 * 1024);
 
-        //std::cout << "Caching 1 MB at offset = " << 0 << std::endl;
+        // std::cout << "Caching 1 MB at offset = " << 0 << std::endl;
         fin.seekg(0, fin.beg);
         fin.read(cache.data(), cache.length());
         cacheOffset = 0;
@@ -60,31 +61,33 @@ public:
     /* Returns any data already cached for this offset */
     std::string_view peek(int offset) {
         /* Did we hit the cache? */
-        if (hasCache && offset >= cacheOffset && ((offset - cacheOffset) < cache.length())) {
+        if(hasCache && offset >= cacheOffset &&
+           ((offset - cacheOffset) < cache.length())) {
             /* Cache hit */
-            //std::cout << "Cache hit!" << std::endl;
+            // std::cout << "Cache hit!" << std::endl;
 
             /*if (fileSize - offset < cache.length()) {
                 std::cout << "LESS THAN WHAT WE HAVE!" << std::endl;
             }*/
 
-            int chunkSize = std::min<int>(fileSize - offset, cache.length() - offset + cacheOffset);
+            int chunkSize = std::min<int>(
+                fileSize - offset, cache.length() - offset + cacheOffset);
 
-            return std::string_view(cache.data() + offset - cacheOffset, chunkSize);
+            return std::string_view(cache.data() + offset - cacheOffset,
+                                    chunkSize);
         } else {
             /* Cache miss */
-            //std::cout << "Cache miss!" << std::endl;
+            // std::cout << "Cache miss!" << std::endl;
             return std::string_view(nullptr, 0);
         }
     }
 
     /* Asynchronously request more data at offset */
     void request(int offset, std::function<void(std::string_view)> cb) {
-
         // in this case, what do we do?
         // we need to queue up this chunk request and callback!
         // if queue is full, either block or close the connection via abort!
-        if (!hasCache) {
+        if(!hasCache) {
             // already requesting a chunk!
             std::cout << "ERROR: already requesting a chunk!" << std::endl;
             return;
@@ -94,14 +97,13 @@ public:
         hasCache = false;
 
         std::async(std::launch::async, [this, cb, offset]() {
-            //std::cout << "ASYNC Caching 1 MB at offset = " << offset << std::endl;
-
-
+            // std::cout << "ASYNC Caching 1 MB at offset = " << offset <<
+            // std::endl;
 
             // den har stängts! öppna igen!
-            if (!fin.good()) {
+            if(!fin.good()) {
                 fin.close();
-                //std::cout << "Reopening fin!" << std::endl;
+                // std::cout << "Reopening fin!" << std::endl;
                 fin.open(fileName, std::ios::binary);
             }
             fin.seekg(offset, fin.beg);
@@ -110,15 +112,15 @@ public:
             cacheOffset = offset;
 
             loop->defer([this, cb, offset]() {
-
-                int chunkSize = std::min<int>(cache.length(), fileSize - offset);
+                int chunkSize =
+                    std::min<int>(cache.length(), fileSize - offset);
 
                 // båda dessa sker, wtf?
-                if (chunkSize == 0) {
+                if(chunkSize == 0) {
                     std::cout << "Zero size!?" << std::endl;
                 }
 
-                if (chunkSize != cache.length()) {
+                if(chunkSize != cache.length()) {
                     std::cout << "LESS THAN A CACHE 1 MB!" << std::endl;
                 }
 
@@ -129,13 +131,9 @@ public:
     }
 
     /* Abort any pending async. request */
-    void abort() {
+    void abort() {}
 
-    }
-
-    int getFileSize() {
-        return fileSize;
-    }
+    int getFileSize() { return fileSize; }
 };
 
-#endif //SIMULATOR_ASYNC_FILE_READER_H
+#endif  // SIMULATOR_ASYNC_FILE_READER_H

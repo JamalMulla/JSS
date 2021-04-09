@@ -9,9 +9,8 @@
 
 using json = nlohmann::json;
 class JsonWriter {
-public:
+   public:
     json j;
 };
 
-
-#endif //SIMULATOR_JSON_WRITER_H
+#endif  // SIMULATOR_JSON_WRITER_H

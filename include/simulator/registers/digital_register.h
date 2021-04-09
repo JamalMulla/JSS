@@ -6,13 +6,16 @@
 #define SIMULATOR_DIGITAL_REGISTER_H
 
 #include <opencv2/core/mat.hpp>
+
 #include "register.h"
 #include "simulator/memory/dram_3t.h"
 
 class DigitalRegister : public Register {
-public:
-    DigitalRegister(int rows, int columns, const MemoryType& memory_type = DRAM_3T());
-    DigitalRegister(const Data& data, const MemoryType& memory_type = DRAM_3T());
+   public:
+    DigitalRegister(int rows, int columns,
+                    const MemoryType& memory_type = DRAM_3T());
+    DigitalRegister(const Data& data,
+                    const MemoryType& memory_type = DRAM_3T());
 
     DigitalRegister& operator()(const std::string& name);
     void set();
@@ -29,5 +32,4 @@ public:
 #endif
 };
 
-
-#endif //SIMULATOR_DIGITAL_REGISTER_H
+#endif  // SIMULATOR_DIGITAL_REGISTER_H

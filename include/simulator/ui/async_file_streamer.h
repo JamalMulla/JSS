@@ -6,16 +6,17 @@
 #ifndef SIMULATOR_ASYNC_FILE_STREAMER_H
 #define SIMULATOR_ASYNC_FILE_STREAMER_H
 
+#include <uWebSockets/HttpResponse.h>
+
+#include <cstring>
 #include <filesystem>
 #include <map>
-#include <cstring>
 #include <utility>
-#include <uWebSockets/HttpResponse.h>
+
 #include "async_file_reader.h"
 
 struct AsyncFileStreamer {
-
-    std::map<std::string_view, AsyncFileReader*> asyncFileReaders;
+    std::map<std::string_view, AsyncFileReader *> asyncFileReaders;
     std::string root;
 
     explicit AsyncFileStreamer(std::string root) : root(std::move(root)) {
@@ -25,23 +26,24 @@ struct AsyncFileStreamer {
 
     void updateRootCache() {
         // todo: if the root folder changes, we want to reload the cache
-        for(auto &p : std::filesystem::recursive_directory_iterator(root)) {
+        for(auto &p: std::filesystem::recursive_directory_iterator(root)) {
             std::string url = p.path().string().substr(root.length());
             // TODO check on windows
-            if (url == "/index.html") {
+            if(url == "/index.html") {
                 url = "/";
             }
 
             char *key = new char[url.length()];
             memcpy(key, url.data(), url.length());
-            asyncFileReaders[std::string_view(key, url.length())] = new AsyncFileReader(p.path().string());
+            asyncFileReaders[std::string_view(key, url.length())] =
+                new AsyncFileReader(p.path().string());
         }
     }
 
-    template <bool SSL>
+    template<bool SSL>
     void streamFile(uWS::HttpResponse<SSL> *res, std::string_view url) {
         auto it = asyncFileReaders.find(url);
-        if (it == asyncFileReaders.end()) {
+        if(it == asyncFileReaders.end()) {
             std::cout << "Did not find file: " << url << std::endl;
             res->end("404");
         } else {
@@ -49,14 +51,17 @@ struct AsyncFileStreamer {
         }
     }
 
-    template <bool SSL>
-    static void streamFile(uWS::HttpResponse<SSL> *res, AsyncFileReader *asyncFileReader) {
+    template<bool SSL>
+    static void streamFile(uWS::HttpResponse<SSL> *res,
+                           AsyncFileReader *asyncFileReader) {
         /* Peek from cache */
         std::string_view chunk = asyncFileReader->peek(res->getWriteOffset());
-        if (!chunk.length() || res->tryEnd(chunk, asyncFileReader->getFileSize()).first) {
+        if(!chunk.length() ||
+           res->tryEnd(chunk, asyncFileReader->getFileSize()).first) {
             /* Request new chunk */
             // todo: we need to abort this callback if peer closed!
-            // this also means Loop::defer needs to support aborting (functions should embedd an atomic boolean abort or something)
+            // this also means Loop::defer needs to support aborting (functions
+            // should embedd an atomic boolean abort or something)
 
             // Loop::defer(f) -> integer
             // Loop::abort(integer)
@@ -65,37 +70,38 @@ struct AsyncFileStreamer {
 
             // us_socket_up_ref eftersom vi delar ägandeskapet
 
-            if (chunk.length() < asyncFileReader->getFileSize()) {
-                asyncFileReader->request(res->getWriteOffset(), [res, asyncFileReader](std::string_view chunk) {
-                    // check if we were closed in the mean time
-                    //if (us_socket_is_closed()) {
-                    // free it here
-                    //return;
-                    //}
+            if(chunk.length() < asyncFileReader->getFileSize()) {
+                asyncFileReader->request(
+                    res->getWriteOffset(),
+                    [res, asyncFileReader](std::string_view chunk) {
+                        // check if we were closed in the mean time
+                        // if (us_socket_is_closed()) {
+                        // free it here
+                        // return;
+                        //}
 
-                    /* We were aborted for some reason */
-                    if (!chunk.length()) {
-                        // todo: make sure to check for is_closed internally after all callbacks!
-                        res->close();
-                    } else {
-                        AsyncFileStreamer::streamFile(res, asyncFileReader);
-                    }
-                });
+                        /* We were aborted for some reason */
+                        if(!chunk.length()) {
+                            // todo: make sure to check for is_closed internally
+                            // after all callbacks!
+                            res->close();
+                        } else {
+                            AsyncFileStreamer::streamFile(res, asyncFileReader);
+                        }
+                    });
             }
         } else {
             /* We failed writing everything, so let's continue when we can */
             res->onWritable([res, asyncFileReader](int offset) {
+                   // här kan skiten avbrytas!
 
-                // här kan skiten avbrytas!
-
-                AsyncFileStreamer::streamFile(res, asyncFileReader);
-                // todo: I don't really know what this is supposed to mean?
-                return false;
-            })->onAborted([]() {
-                std::cout << "ABORTED!" << std::endl;
-            });
+                   AsyncFileStreamer::streamFile(res, asyncFileReader);
+                   // todo: I don't really know what this is supposed to mean?
+                   return false;
+               })
+                ->onAborted([]() { std::cout << "ABORTED!" << std::endl; });
         }
     }
 };
 
-#endif //SIMULATOR_ASYNC_FILE_STREAMER_H
+#endif  // SIMULATOR_ASYNC_FILE_STREAMER_H

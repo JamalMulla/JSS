@@ -12,8 +12,8 @@
 
 #include "../scamp5.h"
 
-//Convolution: Filter A
-inline void conv_A(SCAMP5& s){
+// Convolution: Filter A
+inline void conv_A(SCAMP5& s) {
     s.movx(s.A, s.A, west);
     s.diva(s.A, s.E, s.F);
     s.diva(s.A, s.E, s.F);
@@ -39,8 +39,8 @@ inline void conv_A(SCAMP5& s){
     s.add(s.A, s.A, s.D);
 }
 
-//Convolution: Filter B
-inline void conv_B(SCAMP5& s){
+// Convolution: Filter B
+inline void conv_B(SCAMP5& s) {
     s.movx(s.B, s.B, east);
     s.diva(s.B, s.E, s.F);
     s.diva(s.B, s.E, s.F);
@@ -65,8 +65,8 @@ inline void conv_B(SCAMP5& s){
     s.add(s.B, s.B, s.D);
 }
 
-//Convolution: Filter C
-inline void conv_C(SCAMP5& s){
+// Convolution: Filter C
+inline void conv_C(SCAMP5& s) {
     s.movx(s.C, s.C, west);
     s.diva(s.C, s.E, s.F);
     s.diva(s.C, s.E, s.F);

@@ -9,5 +9,5 @@ double stats::CYCLE_TIME = 0;
 
 void stats::set_clock_rate(long clock_rate) {
     stats::CLOCK_RATE = clock_rate;
-    stats::CYCLE_TIME = 1.0/clock_rate;
+    stats::CYCLE_TIME = 1.0 / clock_rate;
 }

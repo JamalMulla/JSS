@@ -7,4 +7,4 @@
 
 int analog_main();
 
-#endif //SIMULATOR_ANALOG_MAIN_H
+#endif  // SIMULATOR_ANALOG_MAIN_H

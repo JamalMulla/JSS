@@ -8,17 +8,17 @@
 #include <iostream>
 
 class CycleCounter {
-private:
+   private:
     unsigned long long counter = 0;
 
-public:
+   public:
     CycleCounter& operator+=(int cycles);
-    CycleCounter& operator++();                  // Prefix
-    const CycleCounter  operator++(int cycles);  // Postfix
+    CycleCounter& operator++();                 // Prefix
+    const CycleCounter operator++(int cycles);  // Postfix
 
     CycleCounter& operator-=(int cycles);
-    CycleCounter& operator--();                  // Prefix
-    const CycleCounter operator--(int cycles);   // Postfix
+    CycleCounter& operator--();                 // Prefix
+    const CycleCounter operator--(int cycles);  // Postfix
 
     unsigned long long get_cycles() const;
 
@@ -26,10 +26,6 @@ public:
     long to_cycles(double seconds, long clock_rate) const;
 
     friend std::ostream& operator<<(std::ostream& os, const CycleCounter& cc);
-
 };
 
-
-
-
-#endif //SIMULATOR_CYCLE_COUNTER_H
+#endif  // SIMULATOR_CYCLE_COUNTER_H

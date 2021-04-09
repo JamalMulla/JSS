@@ -5,9 +5,6 @@
 #ifndef SIMULATOR_SQUARER_H
 #define SIMULATOR_SQUARER_H
 
-class Squarer {
+class Squarer {};
 
-};
-
-
-#endif //SIMULATOR_SQUARER_H
+#endif  // SIMULATOR_SQUARER_H

@@ -5,8 +5,10 @@
 #ifndef SIMULATOR_REGISTER_H
 #define SIMULATOR_REGISTER_H
 
-#include <opencv2/core/mat.hpp>
 #include <simulator/ui/ui.h>
+
+#include <opencv2/core/mat.hpp>
+
 #include "simulator/base/component.h"
 #include "simulator/memory/memory_type.h"
 
@@ -15,20 +17,24 @@ typedef cv::Mat Data;
 class UI;
 
 class Register : public Component {
-private:
+   private:
     UI* ui = nullptr;
-protected:
+
+   protected:
     MemoryType memory_type_;
     Data value_;
-    cv::Mat read_counter;           // Number of reads for each PE
-    cv::Mat write_counter;          // Number of writes
-    cv::Mat read_energy_counter;    // Energy consumed by reads
-    cv::Mat write_energy_counter;   // Energy consumed by writes
-    int reads;                      // Number of reads not per PE but across the array
-    int writes;                     // Number of writes not per PE but across the array
-
-public:
+#ifdef TRACK_STATISTICS
+cv::Mat read_counter;          // Number of reads for each PE
+    cv::Mat write_counter;         // Number of writes
+    cv::Mat read_energy_counter;   // Energy consumed by reads
+    cv::Mat write_energy_counter;  // Energy consumed by writes
+    int reads;   // Number of reads not per PE but across the array
+    int writes;  // Number of writes not per PE but across the array
+#endif
+   public:
     std::string name_;
+    int min_val;
+    int max_val;
 
     Register(int rows, int columns, int type, MemoryType memoryType);
 
@@ -54,14 +60,11 @@ public:
     void write_stats(const CycleCounter& counter, json& j) override = 0;
 #endif
 
-
     void set_ui_handler(UI* ui_ptr);
 
     virtual Data read() = 0;
     virtual void write(Data data) = 0;
     virtual void write(int data) = 0;
-
 };
 
-
-#endif //SIMULATOR_REGISTER_H
+#endif  // SIMULATOR_REGISTER_H

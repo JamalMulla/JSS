@@ -14,83 +14,79 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-#include <cstdint>
-#include <vector>
 #include <simulator/ui/ui.h>
+
+#include <cstdint>
 #include <random>
+#include <vector>
+
 #include "conv_instructions.h"
 #include "fc_weights.h"
-
 
 // Given SCAN_SIZE coordinates,
 // group them into 12 bins, filling the count array
 // central division, with overlaping bins
-template <int SCAN_SIZE>
-inline void sum_pooling_events(const uint8_t coordinates[2*SCAN_SIZE], int count[12]){
-    uint8_t x,y;
-    for(int i = 0; i < 12; i++){
-        count[i] = 0;
-    }
-    for(int i = 0; i < SCAN_SIZE; i++)
-    {
-        x = coordinates[2*i];
-        y = coordinates[2*i+1];
+template<int SCAN_SIZE>
+inline void sum_pooling_events(const uint8_t coordinates[2 * SCAN_SIZE],
+                               int count[12]) {
+    uint8_t x, y;
+    for(int i = 0; i < 12; i++) { count[i] = 0; }
+    for(int i = 0; i < SCAN_SIZE; i++) {
+        x = coordinates[2 * i];
+        y = coordinates[2 * i + 1];
         if(x == 0 && y == 0)
             return;
-        if(x >= 114 && x <= 141 && y >= 114 && y <= 141){
-            x = x-114;
-            y = y-114;
+        if(x >= 114 && x <= 141 && y >= 114 && y <= 141) {
+            x = x - 114;
+            y = y - 114;
 
             if(x >= 5 && x <= 13 && y >= 0 && y <= 8)
-                count[0] ++;
+                count[0]++;
             if(x >= 14 && x <= 22 && y >= 0 && y <= 8)
-                count[1] ++;
+                count[1]++;
 
             if(x >= 0 && x <= 8 && y >= 5 && y <= 13)
-                count[2] ++;
+                count[2]++;
             if(x >= 5 && x <= 13 && y >= 5 && y <= 13)
-                count[3] ++;
+                count[3]++;
             if(x >= 14 && x <= 22 && y >= 5 && y <= 13)
-                count[4] ++;
+                count[4]++;
             if(x >= 19 && x <= 27 && y >= 5 && y <= 13)
-                count[5] ++;
+                count[5]++;
 
             if(x >= 0 && x <= 8 && y >= 14 && y <= 22)
-                count[6] ++;
+                count[6]++;
             if(x >= 5 && x <= 13 && y >= 14 && y <= 22)
-                count[7] ++;
+                count[7]++;
             if(x >= 14 && x <= 22 && y >= 14 && y <= 22)
-                count[8] ++;
+                count[8]++;
             if(x >= 19 && x <= 27 && y >= 14 && y <= 22)
-                count[9] ++;
+                count[9]++;
 
             if(x >= 5 && x <= 13 && y >= 19 && y <= 27)
-                count[10] ++;
+                count[10]++;
             if(x >= 14 && x <= 22 && y >= 19 && y <= 27)
-                count[11] ++;
+                count[11]++;
         }
     }
 }
 
-
 // Apply ReLU to a fixed size array
-template <int SIZE>
-inline void relu(int vec[SIZE]){
-    for (int i=0; i< SIZE; i++){
-        if (vec[i] < 0){
+template<int SIZE>
+inline void relu(int vec[SIZE]) {
+    for(int i = 0; i < SIZE; i++) {
+        if(vec[i] < 0) {
             vec[i] = 0;
         }
     }
 }
 
 void update(UI& ui, const std::vector<Register*>& reg) {
-    for (auto& r : reg) {
-        ui.display_reg(*r);
-    }
+    for(auto& r: reg) { ui.display_reg(r); }
 }
 
-int analog_main(){
-    SCAMP5 s;
+int analog_main() {
+    SCAMP5 s = SCAMP5::builder{}.build();
     UI ui;
     ui.start();
 
@@ -115,26 +111,26 @@ int analog_main(){
     // Output label (index of max. in results)
     uint8_t max_index;
 
-    s.PIX.set_ui_handler(&ui);
+    s.PIX->set_ui_handler(&ui);
     std::vector<Register*> regs;
-    regs.push_back(&s.PIX);
-    regs.push_back(&s.A);
-    regs.push_back(&s.B);
-    regs.push_back(&s.C);
-    regs.push_back(&s.D);
-    regs.push_back(&s.R5);
-    regs.push_back(&s.R6);
-    regs.push_back(&s.R7);
-    regs.push_back(&s.R8);
-    regs.push_back(&s.R9);
-    regs.push_back(&s.R10);
-    regs.push_back(&s.NEWS);
-    regs.push_back(&s.FLAG);
-    regs.push_back(&s.E);
+    regs.push_back(s.PIX);
+    regs.push_back(s.A);
+    regs.push_back(s.B);
+    regs.push_back(s.C);
+    regs.push_back(s.D);
+    regs.push_back(s.R5);
+    regs.push_back(s.R6);
+    regs.push_back(s.R7);
+    regs.push_back(s.R8);
+    regs.push_back(s.R9);
+    regs.push_back(s.R10);
+    regs.push_back(s.NEWS);
+    regs.push_back(s.FLAG);
+    regs.push_back(s.E);
 
-    std::random_device rd; // obtain a random number from hardware
-    std::mt19937 gen(rd()); // seed the generator
-    std::uniform_int_distribution<> distr(0, 85); // define the range
+    std::random_device rd;   // obtain a random number from hardware
+    std::mt19937 gen(rd());  // seed the generator
+    std::uniform_int_distribution<> distr(0, 85);  // define the range
 
     // 67, 74, 71 works for 0
     // 75, 47, 41 works for 1
@@ -149,7 +145,6 @@ int analog_main(){
 
     // 20, 80, 10 works for 1, 2, 4 with new scan
 
-
     // 40, 60, 35 works for 5, 8, 9
     // 12, 48, 30 works for 1, 5, 9
     // 17, 60, 40 works for 1, 2, 5, 9
@@ -159,22 +154,22 @@ int analog_main(){
 
     // 17, 75, 10  works for 1, 2, 3, 5, 9 using default scan
 
-    t1_value = 13; //30 // 50
-    t2_value = 70; //15 // 25
-    t3_value = 5; //50 // 75
+    t1_value = 13;  // 30 // 50
+    t2_value = 70;  // 15 // 25
+    t3_value = 5;   // 50 // 75
 
     int index = 0;
     // Frame Loop
-    while(1){
-//        vs_process_message();
+    while(1) {
+        //        vs_process_message();
         std::fill(std::begin(coordinates), std::end(coordinates), 0);
         std::fill(std::begin(conv_outputs), std::end(conv_outputs), 0);
         std::fill(std::begin(fc1_result), std::end(fc1_result), 0);
         std::fill(std::begin(fc2_result), std::end(fc2_result), 0);
 
-//        t1_value = distr(gen);
-//        t2_value = distr(gen);
-//        t3_value = distr(gen);
+        //        t1_value = distr(gen);
+        //        t2_value = distr(gen);
+        //        t3_value = distr(gen);
 
         // Get GUI values at start of frame
         threshold_value = 50;
@@ -186,7 +181,7 @@ int analog_main(){
         // binarised input image in R6
         s.scamp5_in(s.D, threshold_value);
 
-//        s.scamp5_get_image(s.A, s.B, 1);
+        //        s.scamp5_get_image(s.A, s.B, 1);
         s.get_image(s.A, s.B);
 
         s.add(s.A, s.A, s.D);
@@ -206,8 +201,8 @@ int analog_main(){
         s.CLR(s.R7);
         s.AND(s.R7, s.R6, s.R5);
 
-        // Convert binary image into analog image with uniform analog value (120)
-        // Binary uniform analog images now stored in Registers A, B, C
+        // Convert binary image into analog image with uniform analog value
+        // (120) Binary uniform analog images now stored in Registers A, B, C
         s.scamp5_in(s.D, 120);
         s.res(s.A);
         s.res(s.B);
@@ -235,7 +230,6 @@ int analog_main(){
         s.MOV(s.R8, s.FLAG);
         s.ALL();
 
-
         // AREG B
         s.scamp5_in(s.F, t2_value);
         s.CLR(s.R9);
@@ -243,7 +237,6 @@ int analog_main(){
         s.where(s.E);
         s.MOV(s.R9, s.FLAG);
         s.ALL();
-
 
         // AREG C
         s.scamp5_in(s.F, t3_value);
@@ -279,38 +272,40 @@ int analog_main(){
 
         // Find max index in results
         max_index = 0;
-        for (int i=1; i<10; i++){
-//            std::cout << "i: " << i << " - " << fc2_result[i] << std::endl;
-            if (fc2_result[i] > fc2_result[max_index])
+        for(int i = 1; i < 10; i++) {
+            //            std::cout << "i: " << i << " - " << fc2_result[i] <<
+            //            std::endl;
+            if(fc2_result[i] > fc2_result[max_index])
                 max_index = i;
         }
-        std::cout << "Predicted: " << (int) max_index << std::endl;
+        std::cout << "Predicted: " << (int)max_index << std::endl;
 
-//        if ((int) max_index == 9) {
-//            std::cout << "Matched value: " << (int) max_index << std::endl;
-//            std::cout << "Found config" << std::endl;
-//            std::cout << "t1_value " << t1_value << std::endl;
-//            std::cout << "t2_value " << t2_value << std::endl;
-//            std::cout << "t3_value " << t3_value << std::endl;
-//            exit(0);
-//        }
+        //        if ((int) max_index == 9) {
+        //            std::cout << "Matched value: " << (int) max_index <<
+        //            std::endl; std::cout << "Found config" << std::endl;
+        //            std::cout << "t1_value " << t1_value << std::endl;
+        //            std::cout << "t2_value " << t2_value << std::endl;
+        //            std::cout << "t3_value " << t3_value << std::endl;
+        //            exit(0);
+        //        }
 
-//        if (max_index == index) {
-//            std::cout << "Matched value: " << (int) max_index << std::endl;
-//        } else {
-//            std::cout << "No match. Was " << (int) max_index << " but should be " << index << std::endl;
-//        }
-//        index++;
-//        if (index == 10) {
-//            index = 0;
-////            exit(0);
-//        }
+        //        if (max_index == index) {
+        //            std::cout << "Matched value: " << (int) max_index <<
+        //            std::endl;
+        //        } else {
+        //            std::cout << "No match. Was " << (int) max_index << " but
+        //            should be " << index << std::endl;
+        //        }
+        //        index++;
+        //        if (index == 10) {
+        //            index = 0;
+        ////            exit(0);
+        //        }
 
         // increase loop_counter by 1
-//        vs_loop_counter_inc();
+        //        vs_loop_counter_inc();
     }
     return 0;
 }
-
 
 #pragma clang diagnostic pop

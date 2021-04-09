@@ -5,15 +5,16 @@
 #ifndef SIMULATOR_LIVE_INPUT_H
 #define SIMULATOR_LIVE_INPUT_H
 
-
-#include "input_source.h"
 #include <opencv2/videoio.hpp>
 
+#include "input_source.h"
+
 class LiveInput : public InputSource {
-protected:
+   protected:
     std::unique_ptr<cv::VideoCapture> capture;
     std::unique_ptr<cv::Size> size;
-public:
+
+   public:
     LiveInput(int rows, int cols);
     LiveInput();
 
@@ -22,5 +23,4 @@ public:
     double last_frame_time() override;
 };
 
-
-#endif //SIMULATOR_LIVE_INPUT_H
+#endif  // SIMULATOR_LIVE_INPUT_H

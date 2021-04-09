@@ -5,5 +5,4 @@
 #include "simulator/memory/si.h"
 
 // TODO power
-SI::SI()
-    : MemoryType(0, 0, 0.00044, 0.00044){}
+SI::SI() : MemoryType(0, 0, 0.00044, 0.00044) {}

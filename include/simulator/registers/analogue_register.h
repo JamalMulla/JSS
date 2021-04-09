@@ -8,7 +8,7 @@
 #include "register.h"
 
 class AnalogueRegister : public Register {
-public:
+   public:
     AnalogueRegister(int rows, int columns);
     AnalogueRegister(const Data& data);
 
@@ -24,5 +24,4 @@ public:
 #endif
 };
 
-
-#endif //SIMULATOR_ANALOGUE_REGISTER_H
+#endif  // SIMULATOR_ANALOGUE_REGISTER_H

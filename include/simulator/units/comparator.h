@@ -5,9 +5,6 @@
 #ifndef SIMULATOR_COMPARATOR_H
 #define SIMULATOR_COMPARATOR_H
 
-class Comparator {
+class Comparator {};
 
-};
-
-
-#endif //SIMULATOR_COMPARATOR_H
+#endif  // SIMULATOR_COMPARATOR_H

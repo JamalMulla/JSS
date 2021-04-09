@@ -5,17 +5,19 @@
 #ifndef SIMULATOR_PHOTODIODE_H
 #define SIMULATOR_PHOTODIODE_H
 
+#include <simulator/input/input_source.h>
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/videoio.hpp>
-#include <simulator/input/input_source.h>
-#include "simulator/registers/analogue_register.h"
+
 #include "simulator/base/component.h"
+#include "simulator/registers/analogue_register.h"
 
 class Photodiode : public Component {
-private:
+   private:
     std::shared_ptr<InputSource> input_source;
-public:
+
+   public:
     Photodiode(int rows, int cols, Source src, const std::string& path);
     void reset();
     void read(Register& reg);
@@ -27,5 +29,4 @@ public:
     ~Photodiode();
 };
 
-
-#endif //SIMULATOR_PHOTODIODE_H
+#endif  // SIMULATOR_PHOTODIODE_H

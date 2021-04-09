@@ -4,12 +4,12 @@
 
 #include "simulator/metrics/cycle_counter.h"
 
-CycleCounter & CycleCounter::operator+=(int cycles) {
+CycleCounter &CycleCounter::operator+=(int cycles) {
     this->counter += cycles;
     return *this;
 }
 
-CycleCounter & CycleCounter::operator++() {
+CycleCounter &CycleCounter::operator++() {
     this->counter++;
     return *this;
 }
@@ -20,12 +20,12 @@ const CycleCounter CycleCounter::operator++(int cycles) {
     return ret;
 }
 
-CycleCounter & CycleCounter::operator-=(int cycles) {
+CycleCounter &CycleCounter::operator-=(int cycles) {
     this->counter -= cycles;
     return *this;
 }
 
-CycleCounter & CycleCounter::operator--() {
+CycleCounter &CycleCounter::operator--() {
     this->counter--;
     return *this;
 }
@@ -37,7 +37,7 @@ const CycleCounter CycleCounter::operator--(int cycles) {
 }
 
 double CycleCounter::to_seconds(long clock_rate) const {
-    return static_cast<double>(this->counter)/clock_rate;
+    return static_cast<double>(this->counter) / clock_rate;
 }
 
 long CycleCounter::to_cycles(double seconds, long clock_rate) const {
@@ -49,7 +49,4 @@ std::ostream &operator<<(std::ostream &os, const CycleCounter &cc) {
     return os;
 }
 
-unsigned long long CycleCounter::get_cycles() const {
-    return this->counter;
-}
-
+unsigned long long CycleCounter::get_cycles() const { return this->counter; }
