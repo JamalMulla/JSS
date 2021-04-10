@@ -11,6 +11,9 @@
 #include "simulator/registers/digital_register.h"
 
 class AnalogueBus {
+   private:
+    cv::Mat scratch;
+
    public:
     // Analogue Register Transfer
     void bus(AnalogueRegister& a, DigitalRegister& FLAG);

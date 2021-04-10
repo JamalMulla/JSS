@@ -12,8 +12,6 @@
 #include "simulator/base/component.h"
 #include "simulator/memory/memory.h"
 
-typedef cv::Mat Data;
-
 class UI;
 
 class Register : public Component {
@@ -21,27 +19,27 @@ class Register : public Component {
     UI* ui = nullptr;
 
    protected:
-    Memory memory_type_;
-    Data value_;
+    Memory* memory_;
+    cv::Mat value_;
 #ifdef TRACK_STATISTICS
-    cv::Mat read_counter;          // Number of reads for each PE
-    cv::Mat write_counter;         // Number of writes
-    cv::Mat read_energy_counter;   // Energy consumed by reads
+    cv::Mat read_counter;  // Number of reads for each PE
+    cv::Mat write_counter;  // Number of writes
+    cv::Mat read_energy_counter;  // Energy consumed by reads
     cv::Mat write_energy_counter;  // Energy consumed by writes
-    int reads;   // Number of reads not per PE but across the array
+    int reads;  // Number of reads not per PE but across the array
     int writes;  // Number of writes not per PE but across the array
 #endif
    public:
     std::string name_;
-    int min_val;
-    int max_val;
+    int min_val = 0;
+    int max_val = 0;
 
-    Register(int rows, int columns, int type, Memory memoryType);
+    Register(int rows, int columns, int type, Memory& memoryType);
 
-    Data& value();
-    const Data& value() const;
+//    Data& value();
+//    const Data& value() const;
 
-    void change_memory_type(const Memory& memory_type);
+    void change_memory_type(Memory& memory_type);
 
 #ifdef TRACK_STATISTICS
     void inc_read(const cv::_InputOutputArray& mask = cv::noArray());
@@ -61,15 +59,21 @@ class Register : public Component {
     double get_dynamic_power() override = 0;
     int get_cycle_count() override = 0;
     int get_transistor_count() override = 0;
-    void print_stats(const CycleCounter& counter) override = 0;
-    void write_stats(const CycleCounter& counter, json& j) override = 0;
+//    void print_stats(const CycleCounter& counter) override = 0;
+//    void write_stats(const CycleCounter& counter, json& j) override = 0;
 #endif
 
     void set_ui_handler(UI* ui_ptr);
 
-    virtual Data read() = 0;
-    virtual void write(Data data) = 0;
-    virtual void write(int data) = 0;
+    cv::Mat& read();
+    void write(cv::Mat& data);
+    void write(const cv::Mat& data);
+    void write(cv::Mat& data, cv::Mat& mask);
+    void write(Register& data);
+    void write(Register& data, Register& mask);
+    void write(int data);
+    void write(int data, cv::Mat& mask);
+    void write(int data, Register& mask);
 };
 
 #endif  // SIMULATOR_REGISTER_H

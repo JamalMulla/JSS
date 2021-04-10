@@ -13,7 +13,9 @@
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
                     DigitalRegister &d1) {
     // d := d0 OR d1
-    cv::bitwise_or(d0.value(), d1.value(), d.value());
+    // TODO this still isn't enough because the write to d is missed
+    // TODO Wrapper around all the opencv functions?
+    cv::bitwise_or(d0.read(), d1.read(), d.read());
 #ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
@@ -24,8 +26,8 @@ void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
                     DigitalRegister &d1, DigitalRegister &d2) {
     // d := d0 OR d1 OR d2
-    cv::bitwise_or(d0.value(), d1.value(), d0.value());
-    cv::bitwise_or(d0.value(), d2.value(), d.value());
+    cv::bitwise_or(d0.read(), d1.read(), d0.read());
+    cv::bitwise_or(d0.read(), d2.read(), d.read());
 #ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
@@ -38,9 +40,9 @@ void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
                     DigitalRegister &d1, DigitalRegister &d2,
                     DigitalRegister &d3) {
     // d := d0 OR d1 OR d2 OR d3
-    cv::bitwise_or(d0.value(), d1.value(), d0.value());
-    cv::bitwise_or(d0.value(), d2.value(), d0.value());
-    cv::bitwise_or(d0.value(), d3.value(), d.value());
+    cv::bitwise_or(d0.read(), d1.read(), d0.read());
+    cv::bitwise_or(d0.read(), d2.read(), d0.read());
+    cv::bitwise_or(d0.read(), d3.read(), d.read());
 #ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
@@ -52,7 +54,7 @@ void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
 
 void DigitalBus::NOT(DigitalRegister &d, DigitalRegister &d0) {
     // d := NOT d0
-    cv::bitwise_xor(d0.value(), 1, d.value());
+    cv::bitwise_xor(d0.read(), 1, d.read());
 #ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_write();
@@ -101,7 +103,7 @@ void DigitalBus::NOR(DigitalRegister &d, DigitalRegister &d0,
 
 void DigitalBus::NOT(DigitalRegister &Rl) {
     // Rl := NOT Rl
-    cv::bitwise_xor(Rl.value(), 1, Rl.value());
+    cv::bitwise_xor(Rl.read(), 1, Rl.read());
 #ifdef TRACK_STATISTICS
     Rl.inc_write();
     Rl.inc_read();
@@ -131,7 +133,7 @@ void DigitalBus::NOR(DigitalRegister &Rl, DigitalRegister &Rx) {
 void DigitalBus::AND(DigitalRegister &Ra, const DigitalRegister &Rx,
                      const DigitalRegister &Ry) {
     // Ra := Rx AND Ry
-    cv::bitwise_and(Rx.value(), Ry.value(), Ra.value());
+    cv::bitwise_and(Rx.read(), Ry.read(), Ra.read());
 #ifdef TRACK_STATISTICS
     Ra.inc_write();
     Rx.inc_read();
@@ -160,7 +162,7 @@ void DigitalBus::IMP(DigitalRegister &Rl, DigitalRegister &Rx,
     //    0   1     0
     //    1   0     1
     //    1   1     1
-    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
+    DigitalRegister intermediate(Rl.read().rows, Rl.read().cols);
     DigitalBus::NOT(intermediate, Ry);
     DigitalBus::OR(Rl, Rx, intermediate);
 #ifdef TRACK_STATISTICS
@@ -173,7 +175,7 @@ void DigitalBus::IMP(DigitalRegister &Rl, DigitalRegister &Rx,
 void DigitalBus::NIMP(DigitalRegister &Rl, DigitalRegister &Rx,
                       DigitalRegister &Ry) {
     // Rl := Rx NIMP Ry
-    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
+    DigitalRegister intermediate(Rl.read().rows, Rl.read().cols);
     DigitalBus::NOT(intermediate);
     DigitalBus::NOR(Rl, Rx, intermediate);
 #ifdef TRACK_STATISTICS
@@ -186,7 +188,7 @@ void DigitalBus::NIMP(DigitalRegister &Rl, DigitalRegister &Rx,
 void DigitalBus::XOR(DigitalRegister &Rl, DigitalRegister &Rx,
                      DigitalRegister &Ry) {
     // Rl := Rx XOR Ry
-    cv::bitwise_xor(Rx.value(), Ry.value(), Rl.value());
+    cv::bitwise_xor(Rx.read(), Ry.read(), Rl.read());
 #ifdef TRACK_STATISTICS
     Rl.inc_write();
     Rx.inc_read();
@@ -196,7 +198,7 @@ void DigitalBus::XOR(DigitalRegister &Rl, DigitalRegister &Rx,
 
 void DigitalBus::MOV(DigitalRegister &d, DigitalRegister &d0) {
     // d := d0
-    cv::copyTo(d0.value(), d.value(), cv::noArray());
+    cv::copyTo(d0.read(), d.read(), cv::noArray());
 #ifdef TRACK_STATISTICS
     d.inc_write();
     d0.inc_read();
@@ -207,9 +209,9 @@ void DigitalBus::MUX(DigitalRegister &Rl, DigitalRegister &Rx,
                      DigitalRegister &Ry, DigitalRegister &Rz) {
     // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
     // R1 = (Ry.~Rx) + (Rz.Rx)
-    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
-    DigitalRegister intermediate2(Rl.value().rows, Rl.value().cols);
-    cv::bitwise_not(Rx.value(), intermediate.value());
+    DigitalRegister intermediate(Rl.read().rows, Rl.read().cols);
+    DigitalRegister intermediate2(Rl.read().rows, Rl.read().cols);
+    cv::bitwise_not(Rx.read(), intermediate.read());
     DigitalBus::AND(intermediate2, Ry, intermediate);
     DigitalBus::AND(intermediate, Rz, Rx);
     DigitalBus::OR(Rl, intermediate, intermediate2);
@@ -224,7 +226,7 @@ void DigitalBus::MUX(DigitalRegister &Rl, DigitalRegister &Rx,
 
 void DigitalBus::CLR_IF(DigitalRegister &Rl, DigitalRegister &Rx) {
     // Rl := 0 IF Rx = 1, Rl := Rl IF Rx = 0
-    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
+    DigitalRegister intermediate(Rl.read().rows, Rl.read().cols);
     DigitalBus::NOT(intermediate, Rl);
     DigitalBus::NOR(Rl, intermediate, Rx);
 #ifdef TRACK_STATISTICS
@@ -239,30 +241,30 @@ void DigitalBus::CLR_IF(DigitalRegister &Rl, DigitalRegister &Rx) {
 void DigitalBus::OR_MASKED(DigitalRegister &d, DigitalRegister &d0,
                            DigitalRegister &d1, DigitalRegister &FLAG) {
     // d := d0 OR d1
-    cv::bitwise_or(d0.value(), d1.value(), d.value(), FLAG.value());
+    cv::bitwise_or(d0.read(), d1.read(), d.read(), FLAG.read());
 }
 
 void DigitalBus::OR_MASKED(DigitalRegister &d, DigitalRegister &d0,
                            DigitalRegister &d1, DigitalRegister &d2,
                            DigitalRegister &FLAG) {
     // d := d0 OR d1 OR d2
-    cv::bitwise_or(d0.value(), d1.value(), d0.value(), FLAG.value());
-    cv::bitwise_or(d0.value(), d2.value(), d.value(), FLAG.value());
+    cv::bitwise_or(d0.read(), d1.read(), d0.read(), FLAG.read());
+    cv::bitwise_or(d0.read(), d2.read(), d.read(), FLAG.read());
 }
 
 void DigitalBus::OR_MASKED(DigitalRegister &d, DigitalRegister &d0,
                            DigitalRegister &d1, DigitalRegister &d2,
                            DigitalRegister &d3, DigitalRegister &FLAG) {
     // d := d0 OR d1 OR d2 OR d3
-    cv::bitwise_or(d0.value(), d1.value(), d0.value(), FLAG.value());
-    cv::bitwise_or(d0.value(), d2.value(), d0.value(), FLAG.value());
-    cv::bitwise_or(d0.value(), d3.value(), d.value(), FLAG.value());
+    cv::bitwise_or(d0.read(), d1.read(), d0.read(), FLAG.read());
+    cv::bitwise_or(d0.read(), d2.read(), d0.read(), FLAG.read());
+    cv::bitwise_or(d0.read(), d3.read(), d.read(), FLAG.read());
 }
 
 void DigitalBus::NOT_MASKED(DigitalRegister &d, DigitalRegister &d0,
                             DigitalRegister &FLAG) {
     // d := NOT d0
-    cv::bitwise_xor(d0.value(), 1, d.value(), FLAG.value());
+    cv::bitwise_xor(d0.read(), 1, d.read(), FLAG.read());
 }
 
 void DigitalBus::NOR_MASKED(DigitalRegister &d, DigitalRegister &d0,
@@ -290,7 +292,7 @@ void DigitalBus::NOR_MASKED(DigitalRegister &d, DigitalRegister &d0,
 
 void DigitalBus::NOT_MASKED(DigitalRegister &Rl, DigitalRegister &FLAG) {
     // Rl := NOT Rl
-    cv::bitwise_xor(Rl.value(), 1, Rl.value(), FLAG.value());
+    cv::bitwise_xor(Rl.read(), 1, Rl.read(), FLAG.read());
 }
 
 void DigitalBus::OR_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
@@ -308,7 +310,7 @@ void DigitalBus::NOR_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
 void DigitalBus::AND_MASKED(DigitalRegister &Ra, DigitalRegister &Rx,
                             DigitalRegister &Ry, DigitalRegister &FLAG) {
     // Ra := Rx AND Ry
-    cv::bitwise_and(Rx.value(), Ry.value(), Ra.value(), FLAG.value());
+    cv::bitwise_and(Rx.read(), Ry.read(), Ra.read(), FLAG.read());
 }
 
 void DigitalBus::NAND_MASKED(DigitalRegister &Ra, DigitalRegister &Rx,
@@ -327,7 +329,7 @@ void DigitalBus::IMP_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
     //    0   1     0
     //    1   0     1
     //    1   1     1
-    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
+    DigitalRegister intermediate(Rl.read().rows, Rl.read().cols);
     DigitalBus::NOT_MASKED(intermediate, Ry, FLAG);
     DigitalBus::OR_MASKED(Rl, Rx, intermediate, FLAG);
 }
@@ -335,7 +337,7 @@ void DigitalBus::IMP_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
 void DigitalBus::NIMP_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
                              DigitalRegister &Ry, DigitalRegister &FLAG) {
     // Rl := Rx NIMP Ry
-    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
+    DigitalRegister intermediate(Rl.read().rows, Rl.read().cols);
     DigitalBus::NOR_MASKED(intermediate, Ry, FLAG);
     DigitalBus::NOR_MASKED(Rl, Rx, intermediate, FLAG);
 }
@@ -343,13 +345,13 @@ void DigitalBus::NIMP_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
 void DigitalBus::XOR_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
                             DigitalRegister &Ry, DigitalRegister &FLAG) {
     // Rl := Rx XOR Ry
-    cv::bitwise_xor(Rx.value(), Ry.value(), Rl.value(), FLAG.value());
+    cv::bitwise_xor(Rx.read(), Ry.read(), Rl.read(), FLAG.read());
 }
 
 void DigitalBus::MOV_MASKED(DigitalRegister &d, DigitalRegister &d0,
                             DigitalRegister &FLAG) {
     // d := d0
-    cv::copyTo(d0.value(), d.value(), FLAG.value());
+    cv::copyTo(d0.read(), d.read(), FLAG.read());
 }
 
 void DigitalBus::MUX_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
@@ -357,9 +359,9 @@ void DigitalBus::MUX_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
                             DigitalRegister &FLAG) {
     // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
     // R1 = (Ry.~Rx) + (Rz.Rx)
-    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
-    DigitalRegister intermediate2(Rl.value().rows, Rl.value().cols);
-    cv::bitwise_not(Rx.value(), intermediate.value());
+    DigitalRegister intermediate(Rl.read().rows, Rl.read().cols);
+    DigitalRegister intermediate2(Rl.read().rows, Rl.read().cols);
+    cv::bitwise_not(Rx.read(), intermediate.read());
     DigitalBus::AND_MASKED(intermediate2, Ry, intermediate, FLAG);
     DigitalBus::AND_MASKED(intermediate, Rz, Rx, FLAG);
     DigitalBus::OR_MASKED(Rl, intermediate, intermediate2, FLAG);
@@ -368,7 +370,7 @@ void DigitalBus::MUX_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
 void DigitalBus::CLR_IF_MASKED(DigitalRegister &Rl, DigitalRegister &Rx,
                                DigitalRegister &FLAG) {
     // Rl := 0 IF Rx = 1, Rl := Rl IF Rx = 0
-    DigitalRegister intermediate(Rl.value().rows, Rl.value().cols);
+    DigitalRegister intermediate(Rl.read().rows, Rl.read().cols);
     DigitalBus::NOT_MASKED(intermediate, Rl, FLAG);
     DigitalBus::NOR_MASKED(Rl, intermediate, Rx, FLAG);
 }
@@ -379,12 +381,12 @@ void DigitalBus::get_up(DigitalRegister &dst, const DigitalRegister &src, int of
                         int boundary_fill) {
     // x, y, width, height
     auto read_chunk =
-        cv::Rect(0, 0, src.value().cols, src.value().rows - offset);
+        cv::Rect(0, 0, src.read().cols, src.read().rows - offset);
     auto write_chunk =
-        cv::Rect(0, offset, src.value().cols, src.value().rows - offset);
-    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
-    auto fill = cv::Rect(0, 0, src.value().cols, offset);
-    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
+        cv::Rect(0, offset, src.read().cols, src.read().rows - offset);
+    src.read()(read_chunk).copyTo(dst.read()(write_chunk));
+    auto fill = cv::Rect(0, 0, src.read().cols, offset);
+    dst.read()(fill).setTo(cv::Scalar(boundary_fill));
 #ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write();
@@ -395,13 +397,13 @@ void DigitalBus::get_right(DigitalRegister &dst, const DigitalRegister &src,
                            int offset, int boundary_fill) {
     // x, y, width, height
     auto read_chunk =
-        cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
+        cv::Rect(offset, 0, src.read().cols - offset, src.read().rows);
     auto write_chunk =
-        cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
-    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+        cv::Rect(0, 0, src.read().cols - offset, src.read().rows);
+    src.read()(read_chunk).copyTo(dst.read()(write_chunk));
     auto fill =
-        cv::Rect(src.value().cols - offset, 0, offset, src.value().rows);
-    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
+        cv::Rect(src.read().cols - offset, 0, offset, src.read().rows);
+    dst.read()(fill).setTo(cv::Scalar(boundary_fill));
 #ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write();
@@ -412,12 +414,12 @@ void DigitalBus::get_left(DigitalRegister &dst, const DigitalRegister &src,
                           int offset, int boundary_fill) {
     // x, y, width, height
     auto read_chunk =
-        cv::Rect(0, 0, src.value().cols - offset, src.value().rows);
+        cv::Rect(0, 0, src.read().cols - offset, src.read().rows);
     auto write_chunk =
-        cv::Rect(offset, 0, src.value().cols - offset, src.value().rows);
-    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
-    auto fill = cv::Rect(0, 0, offset, src.value().rows);
-    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
+        cv::Rect(offset, 0, src.read().cols - offset, src.read().rows);
+    src.read()(read_chunk).copyTo(dst.read()(write_chunk));
+    auto fill = cv::Rect(0, 0, offset, src.read().rows);
+    dst.read()(fill).setTo(cv::Scalar(boundary_fill));
 #ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write();
@@ -428,13 +430,13 @@ void DigitalBus::get_down(DigitalRegister &dst, const DigitalRegister &src,
                           int offset, int boundary_fill) {
     // x, y, width, height
     auto read_chunk =
-        cv::Rect(0, offset, src.value().cols, src.value().rows - offset);
+        cv::Rect(0, offset, src.read().cols, src.read().rows - offset);
     auto write_chunk =
-        cv::Rect(0, 0, src.value().cols, src.value().rows - offset);
-    src.value()(read_chunk).copyTo(dst.value()(write_chunk));
+        cv::Rect(0, 0, src.read().cols, src.read().rows - offset);
+    src.read()(read_chunk).copyTo(dst.read()(write_chunk));
     auto fill =
-        cv::Rect(0, src.value().rows - offset, src.value().cols, offset);
-    dst.value()(fill).setTo(cv::Scalar(boundary_fill));
+        cv::Rect(0, src.read().rows - offset, src.read().cols, offset);
+    dst.read()(fill).setTo(cv::Scalar(boundary_fill));
 #ifdef TRACK_STATISTICS
     src.inc_read();
     dst.inc_write();
@@ -511,22 +513,22 @@ void DigitalBus::superpixel_adc(DigitalRegister &dst, int bank, int bits_in_bank
     // Converts an analogue image to a digital superpixel format
     // Values will always be put in bank 1
 
-    parallel_for_(cv::Range(0, src.value().rows*src.value().cols), [&](const cv::Range& range){
+    parallel_for_(cv::Range(0, src.read().rows*src.read().cols), [&](const cv::Range& range){
       for (int r = range.start; r < range.end; r++)
       {
-          int row = r / src.value().cols;
-          int col = r % src.value().cols;
+          int row = r / src.read().cols;
+          int col = r % src.read().cols;
 
           if (row % superpixel_size != 0) continue; // Step size is not 1
           if (col % superpixel_size != 0) continue;
 
-          int sum = cv::sum(src.value()(cv::Rect(col, row, superpixel_size, superpixel_size)))[0];
+          int sum = cv::sum(src.read()(cv::Rect(col, row, superpixel_size, superpixel_size)))[0];
           sum /= (superpixel_size * superpixel_size);  // <- this truncates values
           int8_t s = sum; // Need to have another look at this. Is this correct?
           for(int i = 0; i < bits_in_bank; i++) {
               int bit = (s >> i) & 1;  // LSB to MSB
               cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
-              dst.value().at<uint8_t>(relative_pos.y + row,relative_pos.x + col) = bit;
+              dst.read().at<uint8_t>(relative_pos.y + row,relative_pos.x + col) = bit;
           }
       }
     });
@@ -535,11 +537,11 @@ void DigitalBus::superpixel_adc(DigitalRegister &dst, int bank, int bits_in_bank
 void DigitalBus::superpixel_dac(AnalogueRegister &dst, int bank, int bits_in_bank, DigitalRegister &src, position_map &locations, int superpixel_size) {
     // Converts digital superpixel format image to an analogue image
 
-    parallel_for_(cv::Range(0, src.value().rows*src.value().cols), [&](const cv::Range& range){
+    parallel_for_(cv::Range(0, src.read().rows*src.read().cols), [&](const cv::Range& range){
       for (int r = range.start; r < range.end; r++)
       {
-          int row = r / src.value().cols;
-          int col = r % src.value().cols;
+          int row = r / src.read().cols;
+          int col = r % src.read().cols;
 
           if (row % superpixel_size != 0) continue; // Step size is superpixel_size
           if (col % superpixel_size != 0) continue;
@@ -548,10 +550,10 @@ void DigitalBus::superpixel_dac(AnalogueRegister &dst, int bank, int bits_in_ban
           int8_t value = 0;
           for(int i = 0; i < bits_in_bank; i++) {
               cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
-              int bit = src.value().at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+              int bit = src.read().at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
               value |= bit << i;  // LSB to MSB
           }
-          dst.value()(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
+          dst.read()(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
       }
     });
 }
@@ -565,11 +567,11 @@ void DigitalBus::superpixel_in(DigitalRegister &dst, int bank, int bits_in_bank,
         bits[i] = bit;
     }
 
-    for(int col = 0; col < dst.value().cols; col += superpixel_size) {
-        for(int row = 0; row < dst.value().rows; row += superpixel_size) {
+    for(int col = 0; col < dst.read().cols; col += superpixel_size) {
+        for(int row = 0; row < dst.read().rows; row += superpixel_size) {
             for(int i = 0; i < bits_in_bank; i++) {
                 cv::Point relative_pos = locations.at({bank, i + 1});
-                dst.value().at<uint8_t>(relative_pos.y + row,
+                dst.read().at<uint8_t>(relative_pos.y + row,
                                         relative_pos.x + col) = bits[i];
             }
         }
@@ -628,50 +630,50 @@ void DigitalBus::superpixel_shift_patterns_from_bitorder(
 
             if(current == north + 1) {
                 // bigger than north
-                (shift_left ? R_SOUTH : R_NORTH).value().at<uint8_t>(row - (shift_left ? 0 : 1), col) = 1;
+                (shift_left ? R_SOUTH : R_NORTH).read().at<uint8_t>(row - (shift_left ? 0 : 1), col) = 1;
             } else if(current == north - 1) {
                 // smaller than north
-                (shift_left ? R_NORTH : R_SOUTH).value().at<uint8_t>(row - (shift_left ? 1 : 0), col) = 1;
+                (shift_left ? R_NORTH : R_SOUTH).read().at<uint8_t>(row - (shift_left ? 1 : 0), col) = 1;
             }
 
             if(current == west + 1) {
                 // bigger than west
-                (shift_left ? R_EAST : R_WEST).value().at<uint8_t>(row, col - (shift_left ? 0 : 1)) = 1;
+                (shift_left ? R_EAST : R_WEST).read().at<uint8_t>(row, col - (shift_left ? 0 : 1)) = 1;
             } else if(current == west - 1) {
                 // smaller than west
-                (shift_left ? R_WEST : R_EAST).value().at<uint8_t>(row, col - (shift_left ? 1 : 0)) = 1;
+                (shift_left ? R_WEST : R_EAST).read().at<uint8_t>(row, col - (shift_left ? 1 : 0)) = 1;
             }
         }
     }
 
     switch(origin) {
         case BOTTOM_LEFT: {
-            R_NORTH.value().copyTo(RS.value());
-            R_SOUTH.value().copyTo(RN.value());
-            R_WEST.value().copyTo(RE.value());
-            R_EAST.value().copyTo(RW.value());
+            R_NORTH.read().copyTo(RS.read());
+            R_SOUTH.read().copyTo(RN.read());
+            R_WEST.read().copyTo(RE.read());
+            R_EAST.read().copyTo(RW.read());
             break;
         }
         case BOTTOM_RIGHT: {
-            R_NORTH.value().copyTo(RS.value());
-            R_SOUTH.value().copyTo(RN.value());
-            R_WEST.value().copyTo(RW.value());
-            R_EAST.value().copyTo(RE.value());
+            R_NORTH.read().copyTo(RS.read());
+            R_SOUTH.read().copyTo(RN.read());
+            R_WEST.read().copyTo(RW.read());
+            R_EAST.read().copyTo(RE.read());
             break;
         }
         case TOP_LEFT: {
             // opencv default
-            R_NORTH.value().copyTo(RN.value());
-            R_SOUTH.value().copyTo(RS.value());
-            R_WEST.value().copyTo(RE.value());
-            R_EAST.value().copyTo(RW.value());
+            R_NORTH.read().copyTo(RN.read());
+            R_SOUTH.read().copyTo(RS.read());
+            R_WEST.read().copyTo(RE.read());
+            R_EAST.read().copyTo(RW.read());
             break;
         }
         case TOP_RIGHT: {
-            R_NORTH.value().copyTo(RN.value());
-            R_SOUTH.value().copyTo(RS.value());
-            R_WEST.value().copyTo(RW.value());
-            R_EAST.value().copyTo(RE.value());
+            R_NORTH.read().copyTo(RN.read());
+            R_SOUTH.read().copyTo(RS.read());
+            R_WEST.read().copyTo(RW.read());
+            R_EAST.read().copyTo(RE.read());
             break;
         }
     }
@@ -683,8 +685,8 @@ void DigitalBus::superpixel_shift_block(DigitalRegister &dst,
                                         DigitalRegister &RS,
                                         DigitalRegister &RE,
                                         DigitalRegister &RW) {
-    int rows = src.value().rows;
-    int cols = src.value().cols;
+    int rows = src.read().rows;
+    int cols = src.read().cols;
     DigitalRegister east = DigitalRegister(rows, cols);
     DigitalRegister north = DigitalRegister(rows, cols);
     DigitalRegister west = DigitalRegister(rows, cols);
@@ -708,8 +710,8 @@ void DigitalBus::superpixel_shift_block(DigitalRegister &dst,
 
 void DigitalBus::superpixel_shift(DigitalRegister &dst, int bank, const DigitalRegister &src, const std::vector<std::vector<std::vector<int>>> &bitorder, Origin origin, int shift_left) {
     int superpixel_size = bitorder[0][0].size();  // Assume square superpixel for now
-    int rows = src.value().rows;
-    int cols = src.value().cols;
+    int rows = src.read().rows;
+    int cols = src.read().cols;
     DigitalRegister RN = DigitalRegister(superpixel_size, superpixel_size);
     DigitalRegister RS = DigitalRegister(superpixel_size, superpixel_size);
     DigitalRegister RE = DigitalRegister(superpixel_size, superpixel_size);
@@ -720,10 +722,10 @@ void DigitalBus::superpixel_shift(DigitalRegister &dst, int bank, const DigitalR
     // TODO non-square superpixels?
     int num_of_repeats_y = rows / superpixel_size;
     int num_of_repeats_x = cols / superpixel_size;
-    DigitalRegister R_NORTH = cv::repeat(RN.value(), num_of_repeats_y, num_of_repeats_x);
-    DigitalRegister R_SOUTH = cv::repeat(RS.value(), num_of_repeats_y, num_of_repeats_x);
-    DigitalRegister R_EAST = cv::repeat(RE.value(), num_of_repeats_y, num_of_repeats_x);
-    DigitalRegister R_WEST = cv::repeat(RW.value(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_NORTH = cv::repeat(RN.read(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_SOUTH = cv::repeat(RS.read(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_EAST = cv::repeat(RE.read(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_WEST = cv::repeat(RW.read(), num_of_repeats_y, num_of_repeats_x);
     superpixel_shift_block(dst, src, origin, R_NORTH, R_SOUTH, R_EAST, R_WEST);
 
     if (bitorder.size() > 1) {
@@ -737,13 +739,13 @@ void DigitalBus::superpixel_shift(DigitalRegister &dst, int bank, const DigitalR
                     if(current < 1) continue; // Indices start at 1
                     if (b != bank) {
                         // Set mask bit to 1 everywhere other than the bank
-                        block_mask.value().at<uint8_t>(row, col) = 1;
+                        block_mask.read().at<uint8_t>(row, col) = 1;
                     }
                 }
             }
         }
 
-        DigitalRegister mask = cv::repeat(block_mask.value(), num_of_repeats_y, num_of_repeats_x);
+        DigitalRegister mask = cv::repeat(block_mask.read(), num_of_repeats_y, num_of_repeats_x);
         DigitalRegister and_ = DigitalRegister(rows, cols);
 
         AND(and_, mask, src);
@@ -763,19 +765,19 @@ void DigitalBus::superpixel_shift_right(DigitalRegister &dst, int bank, const Di
 
 void DigitalBus::superpixel_add(DigitalRegister &dst, int bank, const DigitalRegister &src1,
                                 const DigitalRegister &src2, const std::vector<std::vector<std::vector<int>>> &bitorder, Origin origin) {
-    DigitalRegister A = src1.value().clone();
-    DigitalRegister B = src2.value().clone();
-    DigitalRegister and_ = DigitalRegister(src1.value().rows, src1.value().cols);
-    DigitalRegister xor_ = DigitalRegister(src1.value().rows, src1.value().cols);
+    DigitalRegister A = src1.read().clone();
+    DigitalRegister B = src2.read().clone();
+    DigitalRegister and_ = DigitalRegister(src1.read().rows, src1.read().cols);
+    DigitalRegister xor_ = DigitalRegister(src1.read().rows, src1.read().cols);
 
     AND(and_, A, B);
 
-    while(cv::sum(and_.value())[0] != 0) {
+    while(cv::sum(and_.read())[0] != 0) {
         XOR(xor_, A, B);
         AND(and_, A, B);
         superpixel_shift_left(and_, bank, and_, bitorder, origin);
-        xor_.value().copyTo(A.value());
-        and_.value().copyTo(B.value());
+        xor_.read().copyTo(A.read());
+        and_.read().copyTo(B.read());
         AND(and_, A, B);
     }
     XOR(dst, A, B);
@@ -783,24 +785,24 @@ void DigitalBus::superpixel_add(DigitalRegister &dst, int bank, const DigitalReg
 
 void DigitalBus::superpixel_sub(DigitalRegister &dst, int bank, const DigitalRegister &src1,
                                 const DigitalRegister &src2, const std::vector<std::vector<std::vector<int>>> &bitorder, Origin origin) {
-    DigitalRegister A = src1.value().clone();
-    DigitalRegister B = src2.value().clone();
-    DigitalRegister NOT_A = src1.value().clone();
+    DigitalRegister A = src1.read().clone();
+    DigitalRegister B = src2.read().clone();
+    DigitalRegister NOT_A = src1.read().clone();
     DigitalRegister and_ =
-        DigitalRegister(src1.value().rows, src1.value().cols);
+        DigitalRegister(src1.read().rows, src1.read().cols);
     DigitalRegister xor_ =
-        DigitalRegister(src1.value().rows, src1.value().cols);
+        DigitalRegister(src1.read().rows, src1.read().cols);
 
     NOT(NOT_A, A);
     AND(and_, NOT_A, B);
 
-    while(cv::sum(and_.value())[0] != 0) {
+    while(cv::sum(and_.read())[0] != 0) {
         XOR(xor_, A, B);
         NOT(NOT_A, A);
         AND(and_, NOT_A, B);
         superpixel_shift_left(and_, bank, and_, bitorder, origin);
-        xor_.value().copyTo(A.value());
-        and_.value().copyTo(B.value());
+        xor_.read().copyTo(A.read());
+        and_.read().copyTo(B.read());
         NOT(NOT_A, A);
         AND(and_, NOT_A, B);
     }

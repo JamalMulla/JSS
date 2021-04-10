@@ -8,27 +8,22 @@
 #include <opencv2/core/mat.hpp>
 
 #include "register.h"
-#include "simulator/memory/dram_3t.h"
+#include "simulator/memory/dram_3t_cell.h"
 
 class DigitalRegister : public Register {
    public:
     DigitalRegister(int rows, int columns,
-                    const Memory& memory_type = DRAM_3T());
-    DigitalRegister(const Data& data,
-                    const Memory& memory_type = DRAM_3T());
+                    Memory& memory_type);
+    DigitalRegister(const cv::Mat& data,
+                    Memory& memory_type);
 
     DigitalRegister& operator()(const std::string& name);
     void set();
     void clear();
 
-    Data read() override;
-    // TODO here and in AnalogueRegister make reference
-    void write(Data data) override;
-    void write(int data) override;
-
 #ifdef TRACK_STATISTICS
-    void print_stats(const CycleCounter& counter) override;
-    void write_stats(const CycleCounter& counter, json& j) override;
+//    void print_stats(const CycleCounter& counter) override;
+//    void write_stats(const CycleCounter& counter, json& j) override;
 #endif
 };
 
