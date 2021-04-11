@@ -6,6 +6,9 @@
 
 #include "scamp5.h"
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
+
 int main() {
     SCAMP5 s = SCAMP5::builder{}
                    .with_rows(256)
@@ -44,3 +47,5 @@ int main() {
 
     return 0;
 }
+
+#pragma clang diagnostic pop

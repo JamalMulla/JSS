@@ -13,21 +13,22 @@
 
 #define MAT_TYPE CV_16S
 
-class Array : public Component {
+class Array {
+   private:
+    CycleCounter counter;
+
    protected:
     int rows_;
     int columns_;
 
    public:
     Array(int rows, int columns, ProcessingElement pe);
-    /* OpenCV uses a BottomLeft origin.
-     * This method converts other coordinate systems to the OpenCV one so that
-     * operations on images happen as expected*/
+    void update_cycles(int cycles);
 
     ProcessingElement pe;
 #ifdef TRACK_STATISTICS
-    void print_stats(const CycleCounter& counter) override;
-    void write_stats(const CycleCounter& counter, json& j) override;
+//    void print_stats(const CycleCounter& counter) override;
+//    void write_stats(const CycleCounter& counter, json& j) override;
 #endif
 };
 

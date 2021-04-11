@@ -22,12 +22,7 @@ class Register : public Component {
     Memory* memory_;
     cv::Mat value_;
 #ifdef TRACK_STATISTICS
-    cv::Mat read_counter;  // Number of reads for each PE
-    cv::Mat write_counter;  // Number of writes
-    cv::Mat read_energy_counter;  // Energy consumed by reads
-    cv::Mat write_energy_counter;  // Energy consumed by writes
-    int reads;  // Number of reads not per PE but across the array
-    int writes;  // Number of writes not per PE but across the array
+
 #endif
    public:
     std::string name_;
@@ -36,29 +31,17 @@ class Register : public Component {
 
     Register(int rows, int columns, int type, Memory& memoryType);
 
-//    Data& value();
-//    const Data& value() const;
-
     void change_memory_type(Memory& memory_type);
 
 #ifdef TRACK_STATISTICS
     void inc_read(const cv::_InputOutputArray& mask = cv::noArray());
     void inc_write(const cv::_InputOutputArray& mask = cv::noArray());
 
-    int get_reads();
-    int get_writes();
-
-    int get_total_reads();
-    int get_total_writes();
-
-    double get_read_energy();
-    double get_write_energy();
-    double get_total_energy();
-
-    double get_static_power(double time) override = 0;
-    double get_dynamic_power() override = 0;
-    int get_cycle_count() override = 0;
-    int get_transistor_count() override = 0;
+    void update(double time) override;
+    cv::Mat& get_static_power() override;
+    cv::Mat& get_dynamic_power() override;
+    cv::Mat& get_transistor_count() override;
+    int get_cycle_count() override;
 //    void print_stats(const CycleCounter& counter) override = 0;
 //    void write_stats(const CycleCounter& counter, json& j) override = 0;
 #endif

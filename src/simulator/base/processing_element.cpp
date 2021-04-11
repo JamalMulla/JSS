@@ -17,35 +17,41 @@ ProcessingElement::ProcessingElement(int rows, int columns, int num_analogue,
         digital_registers.emplace_back(rows, columns);
     }
 }
+void ProcessingElement::update_cycles(int cycles) {
+    for (DigitalRegister& digital_register : digital_registers) {
+        digital_register.update_cycles(cycles);
+    }
+
+}
 
 #ifdef TRACK_STATISTICS
-void ProcessingElement::print_stats(const CycleCounter &counter) {
-    for(auto &analogue: analogue_registers) { analogue.print_stats(counter); }
-    for(auto &digital: digital_registers) { digital.print_stats(counter); }
-}
-
-void ProcessingElement::write_stats(const CycleCounter &counter, json &j) {
-    double total_analogue = 0;
-    double total_digital = 0;
-    double runtime = counter.to_seconds(stats::CLOCK_RATE);
-    auto analogues = json::array();
-    auto digitals = json::array();
-    for(auto &analogue: analogue_registers) {
-        analogue.write_stats(counter, analogues);
-        total_analogue += analogue.get_total_energy();
-    }
-    for(auto &digital: digital_registers) {
-        digital.write_stats(counter, digitals);
-        total_digital += digital.get_total_energy();
-    }
-
-    j["Total analogue energy (J)"] = total_analogue;
-    j["Total digital energy (J)"] = total_digital;
-    j["Total analogue power (W)"] = total_analogue / runtime;
-    j["Total digital power (W)"] = total_digital / runtime;
-    j["Analogue registers"] = analogues;
-    j["Digital registers"] = digitals;
-}
+//void ProcessingElement::print_stats(const CycleCounter &counter) {
+//    for(auto &analogue: analogue_registers) { analogue.print_stats(counter); }
+//    for(auto &digital: digital_registers) { digital.print_stats(counter); }
+//}
+//
+//void ProcessingElement::write_stats(const CycleCounter &counter, json &j) {
+//    double total_analogue = 0;
+//    double total_digital = 0;
+//    double runtime = counter.to_seconds(stats::CLOCK_RATE);
+//    auto analogues = json::array();
+//    auto digitals = json::array();
+//    for(auto &analogue: analogue_registers) {
+//        analogue.write_stats(counter, analogues);
+//        total_analogue += analogue.get_total_energy();
+//    }
+//    for(auto &digital: digital_registers) {
+//        digital.write_stats(counter, digitals);
+//        total_digital += digital.get_total_energy();
+//    }
+//
+//    j["Total analogue energy (J)"] = total_analogue;
+//    j["Total digital energy (J)"] = total_digital;
+//    j["Total analogue power (W)"] = total_analogue / runtime;
+//    j["Total digital power (W)"] = total_digital / runtime;
+//    j["Analogue registers"] = analogues;
+//    j["Digital registers"] = digitals;
+//}
 #endif
 
 ProcessingElement::builder &ProcessingElement::builder::with_rows(int rows) {

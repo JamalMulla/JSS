@@ -86,7 +86,6 @@ class SCAMP5 {
 
     const int ANALOGUE_REGISTERS = 13;
     const int DIGITAL_REGISTERS = 16;
-    CycleCounter cycles;
 
     // Analogue registers
     AREG *PIX;

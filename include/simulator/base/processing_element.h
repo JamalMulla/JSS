@@ -29,6 +29,9 @@ class ProcessingElement {
 
     ProcessingElement(int rows, int columns, int num_analogue, int num_digital,
                       Source source, const std::string& path, Config& config);
+    void update_cycles(int cycles);
+
+
 };
 
 class ProcessingElement::builder {

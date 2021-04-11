@@ -10,12 +10,17 @@
 Array::Array(int rows, int columns, ProcessingElement pe)
     : rows_(rows), columns_(columns), pe(std::move(pe)) {}
 
-#ifdef TRACK_STATISTICS
-void Array::print_stats(const CycleCounter& counter) {
-    this->pe.print_stats(counter);
+void Array::update_cycles(int cycles) {
+    counter += cycles;
+    this->pe.update_cycles(cycles);
 }
 
-void Array::write_stats(const CycleCounter& counter, json& j) {
-    this->pe.write_stats(counter, j);
-}
+#ifdef TRACK_STATISTICS
+//void Array::print_stats(const CycleCounter& counter) {
+//    this->pe.print_stats(counter);
+//}
+//
+//void Array::write_stats(const CycleCounter& counter, json& j) {
+//    this->pe.write_stats(counter, j);
+//}
 #endif

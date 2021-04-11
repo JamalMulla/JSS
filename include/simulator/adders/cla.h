@@ -8,27 +8,38 @@
 #include "simulator/base/component.h"
 #include "simulator/base/config.h"
 #include "simulator/registers/digital_register.h"
+#include <opencv2/core.hpp>
 
 class CarryLookAheadAdder : public Component {
    private:
+    int rows_;
+    int cols_;
+    int row_stride_;
+    int col_stride_;
     int cycle_count_;
     int transistor_count_;
     double static_power_;  // in Watts
     double dynamic_power_;  // in Watts for an addition
+    cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
+    cv::Mat array_transistor_count_;
+    cv::Mat array_static_power_;
+    cv::Mat array_dynamic_power_;
     int fun_transistor(int bits, const Config& config);
     double fun_static(int bits, const Config& config);
     double fun_dynamic(int bits, const Config& config);
+    void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
+    cv::Mat scratch;
 
    public:
-    CarryLookAheadAdder(int bits, const Config& config);
-    double get_static_power(double time) override;
-    double get_dynamic_power() override;
+    CarryLookAheadAdder(int rows, int cols, int row_stride, int col_stride, int bits, const Config& config);
+    void update(double time) override;
     int get_cycle_count() override;
-    int get_transistor_count() override;
-    void print_stats(const CycleCounter& counter) override;
-    void write_stats(const CycleCounter& counter, json& j) override;
+    cv::Mat& get_static_power() override;
+    cv::Mat& get_dynamic_power() override;
+    cv::Mat& get_transistor_count() override;
 
-    void add(DigitalRegister& dst, const DigitalRegister& src1, const DigitalRegister& src2);
+
+    void add(DigitalRegister& dst, DigitalRegister& src1, DigitalRegister& src2, const cv::_InputOutputArray& mask);
 };
 
 #endif  //SIMULATOR_CLA_H

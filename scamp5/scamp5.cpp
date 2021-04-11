@@ -66,20 +66,18 @@ void SCAMP5::init() {
     intermediate_d = std::make_unique<DREG>(this->rows_, this->cols_);
 }
 
-void SCAMP5::nop() { cycles++; }
+void SCAMP5::nop() { this->array->update_cycles(1); }
 
 void SCAMP5::rpix() {
     // reset *PIX
     this->pe->photodiode.reset();
-    cycles++;
+    this->array->update_cycles(1);
 }
 
 void SCAMP5::get_image(AREG *y) {
     // y := half-range image, and reset *PIX
     this->pe->photodiode.read(*PIX);
-    double seconds = this->pe->photodiode.last_frame_time();
-    int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
-    cycles += c / 300;
+    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->rpix();
     this->rpix();
@@ -90,9 +88,7 @@ void SCAMP5::get_image(AREG *y) {
 void SCAMP5::get_image(AREG *y, AREG *h) {
     // y := full-range image, h := negative half-range image, and reset *PIX
     this->pe->photodiode.read(*PIX);
-    double seconds = this->pe->photodiode.last_frame_time();
-    int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
-    cycles += c / 300;
+    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(h, PIX);
     this->rpix();
@@ -114,9 +110,7 @@ void SCAMP5::respix(AREG *y) {
     this->rpix();
     this->nop();
     this->pe->photodiode.read(*PIX);
-    double seconds = this->pe->photodiode.last_frame_time();
-    int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
-    cycles += c / 300;
+    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(y, NEWS);
 }
@@ -124,9 +118,7 @@ void SCAMP5::respix(AREG *y) {
 void SCAMP5::getpix(AREG *y, AREG *pix_res) {
     // y := half-range image, supplying the reset level of *PIX
     this->pe->photodiode.read(*PIX);
-    double seconds = this->pe->photodiode.last_frame_time();
-    int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
-    cycles += c / 300;
+    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(y, NEWS, pix_res);
 }
@@ -134,9 +126,7 @@ void SCAMP5::getpix(AREG *y, AREG *pix_res) {
 void SCAMP5::getpix(AREG *y, AREG *h, AREG *pix_res) {
     // y := full-range, h := half-range image, supplying the reset level of *PIX
     this->pe->photodiode.read(*PIX);
-    double seconds = this->pe->photodiode.last_frame_time();
-    int c = cycles.to_cycles(seconds, stats::CLOCK_RATE);
-    cycles += c / 300;
+    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(h, PIX);
     this->bus(NEWS, PIX);
     this->bus(y, h, NEWS, pix_res);
@@ -145,79 +135,79 @@ void SCAMP5::getpix(AREG *y, AREG *h, AREG *pix_res) {
 void SCAMP5::bus(AREG *a) {
     // a = 0 + error
     this->pe->analogue_bus.bus(*a, *FLAG);
-    cycles++;
+    this->array->update_cycles(1);
 }
 
 void SCAMP5::bus(AREG *a, AREG *a0) {
     // a = -a0 + error
     this->pe->analogue_bus.bus(*a, *a0, *FLAG);
-    cycles++;
+    this->array->update_cycles(1);
 }
 
 void SCAMP5::bus(AREG *a, AREG *a0, AREG *a1) {
     // a = -(a0 + a1) + error
     this->pe->analogue_bus.bus(*a, *a0, *a1, *FLAG);
-    cycles += 4;  // 2 reads, 1 add, 1 write
+    this->array->update_cycles(4); // 2 reads, 1 add, 1 write
 }
 
 void SCAMP5::bus(AREG *a, AREG *a0, AREG *a1, AREG *a2) {
     // a = -(a0 + a1 + a2) + error
     this->pe->analogue_bus.bus(*a, *a0, *a1, *a2, *FLAG);
-    cycles += 5;  // 3 reads, 1 add, 1 write
+    this->array->update_cycles(5);  // 3 reads, 1 add, 1 write
 }
 
 void SCAMP5::bus(AREG *a, AREG *a0, AREG *a1, AREG *a2, AREG *a3) {
     // a = -(a0 + a1 + a2 + a3) + error
     this->pe->analogue_bus.bus(*a, *a0, *a1, *a2, *a3, *FLAG);
-    cycles += 6;  // 4 reads, 1 add, 1 write
+    this->array->update_cycles(6);  // 4 reads, 1 add, 1 write
 }
 
 void SCAMP5::bus2(AREG *a, AREG *b) {
     // a,b = 0 + error
     this->pe->analogue_bus.bus2(*a, *b, *FLAG);
-    cycles += 2;  // 2 writes
+    this->array->update_cycles(2);  // 2 writes
 }
 
 void SCAMP5::bus2(AREG *a, AREG *b, AREG *a0) {
     // a,b = -0.5*a0 + error + noise
     this->pe->analogue_bus.bus2(*a, *b, *a0, *FLAG);
-    cycles += 3;  // 1 read, 2 writes
+    this->array->update_cycles(3);  // 1 read, 2 writes
 }
 
 void SCAMP5::bus2(AREG *a, AREG *b, AREG *a0, AREG *a1) {
     // a,b = -0.5*(a0 + a1) + error + noise
     this->pe->analogue_bus.bus2(*a, *b, *a0, *a1, *FLAG);
-    cycles += 5;  // 2 reads, 1 add, 2 writes
+    this->array->update_cycles(5);  // 2 reads, 1 add, 2 writes
 }
 
 void SCAMP5::bus3(AREG *a, AREG *b, AREG *c, AREG *a0) {
     // a,b,c = -0.33*a0 + error + noise
     this->pe->analogue_bus.bus3(*a, *b, *c, *a0, *FLAG);
-    cycles += 2;  // 1 read, 3 writes
+    this->array->update_cycles(2);  // 1 read, 3 writes
 }
 
 void SCAMP5::where(AREG *a) {
     // FLAG := a > 0.
     this->pe->analogue_bus.conditional_positive_set(*FLAG, *a);
-    cycles += 2;  // 1 read, 1 write
+    this->array->update_cycles(2);  // 1 read, 1 write
 }
 
 void SCAMP5::where(AREG *a0, AREG *a1) {
     // FLAG := (a0 + a1) > 0.
     this->pe->analogue_bus.conditional_positive_set(*FLAG, *a0, *a1);
-    cycles += 4;  // 2 reads, 1 add, 1 write
+    this->array->update_cycles(4);  // 2 reads, 1 add, 1 write
 }
 
 void SCAMP5::where(AREG *a0, AREG *a1, AREG *a2) {
     // FLAG := (a0 + a1 + a2) > 0.
     this->pe->analogue_bus.conditional_positive_set(*FLAG, *a0, *a1, *a2);
-    cycles += 5;  // 3 reads, 1 add, 1 write
+    this->array->update_cycles(5);  // 3 reads, 1 add, 1 write
 }
 
 void SCAMP5::all() {
     // FLAG := 1.
     this->FLAG->set();
-    cycles += 1;  // 1 writes
+    this->array->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::mov(AREG *y, AREG *x0) {
@@ -325,6 +315,7 @@ void SCAMP5::movx(AREG *y, AREG *x0, news_t dir) {
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
     this->bus(y, NEWS);
+    this->array->update_cycles(1);  // movement?
 }
 
 void SCAMP5::mov2x(AREG *y, AREG *x0, news_t dir, news_t dir2) {
@@ -376,8 +367,8 @@ void SCAMP5::mov2x(AREG *y, AREG *x0, news_t dir, news_t dir2) {
             break;
         }
     }
-
     this->bus(y, intermediate_a2.get());
+    this->array->update_cycles(2);  // movement
 }
 
 void SCAMP5::addx(AREG *y, AREG *x0, AREG *x1, news_t dir) {
@@ -400,6 +391,7 @@ void SCAMP5::addx(AREG *y, AREG *x0, AREG *x1, news_t dir) {
     }
 
     this->bus(y, NEWS);
+    this->array->update_cycles(1);  //movement
 }
 
 void SCAMP5::add2x(AREG *y, AREG *x0, AREG *x1, news_t dir, news_t dir2) {
@@ -438,6 +430,7 @@ void SCAMP5::add2x(AREG *y, AREG *x0, AREG *x1, news_t dir, news_t dir2) {
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
     this->bus(y, intermediate_a2.get());
+    this->array->update_cycles(2);  // movement
 }
 
 void SCAMP5::subx(AREG *y, AREG *x0, news_t dir, AREG *x1) {
@@ -459,6 +452,7 @@ void SCAMP5::subx(AREG *y, AREG *x0, news_t dir, AREG *x1) {
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
     this->bus(y, NEWS, x1);
+    this->array->update_cycles(1);  // movement
 }
 
 void SCAMP5::sub2x(AREG *y, AREG *x0, news_t dir, news_t dir2, AREG *x1) {
@@ -497,6 +491,7 @@ void SCAMP5::sub2x(AREG *y, AREG *x0, news_t dir, news_t dir2, AREG *x1) {
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
     this->bus(y, intermediate_a2.get(), x1);
+    this->array->update_cycles(2);  // movement
 }
 
 void SCAMP5::blurset() {
@@ -504,12 +499,15 @@ void SCAMP5::blurset() {
     // TODO check
     R1->set();
     R2->set();
+    this->array->update_cycles(2);  // 2 writes
 }
 
 void SCAMP5::blur(AREG *a, AREG *a0) {
     // blur a0 into a
-    cv::GaussianBlur(a0->value(), a->value(), cv::Size(3, 3), 0);
-    cv::bitwise_not(a->value(), a->value());
+    // full blur across array.
+    cv::GaussianBlur(a0->read(), a->read(), cv::Size(3, 3), 0);
+    cv::bitwise_not(a->read(), a->read());
+    this->array->update_cycles(sqrt(rows_ * cols_)); // TODO get reasonable numbers for the cycle count
 }
 
 void SCAMP5::blurh(AREG *a, AREG *a0) {
@@ -519,8 +517,9 @@ void SCAMP5::blurh(AREG *a, AREG *a0) {
     float gaussian_1d[10] = {0.006, 0.061, 0.242, 0.383, 0.242, 0.061, 0.006};
     cv::Mat horizontal_kernel = cv::Mat(1, 6, CV_32F, gaussian_1d);
 
-    cv::filter2D(a0->value(), a->value(), -1, horizontal_kernel);
-    cv::bitwise_not(a->value(), a->value());
+    cv::filter2D(a0->read(), a->read(), -1, horizontal_kernel);
+    cv::bitwise_not(a->read(), a->read());
+    this->array->update_cycles(sqrt(rows_)); // TODO get reasonable numbers for the cycle count
 }
 
 void SCAMP5::blurv(AREG *a, AREG *a0) {
@@ -529,8 +528,9 @@ void SCAMP5::blurv(AREG *a, AREG *a0) {
     float gaussian_1d[10] = {0.006, 0.061, 0.242, 0.383, 0.242, 0.061, 0.006};
     cv::Mat vertical_kernel = cv::Mat(6, 1, CV_32F, gaussian_1d);
 
-    cv::filter2D(a0->value(), a->value(), -1, vertical_kernel);
-    cv::bitwise_not(a->value(), a->value());
+    cv::filter2D(a0->read(), a->read(), -1, vertical_kernel);
+    cv::bitwise_not(a->read(), a->read());
+    this->array->update_cycles(sqrt(cols_)); // TODO get reasonable numbers for the cycle count
 }
 
 void SCAMP5::gauss(AREG *y, AREG *x, const int iterations) {
@@ -573,13 +573,14 @@ void SCAMP5::newsblur(AREG *y, AREG *x, const int iterations) {
     cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
 
     bus(NEWS, x);
-    cv::filter2D(NEWS->value(), y->value(), -1, neighbour_kernel);
-    cv::bitwise_not(y->value(), y->value());
+    cv::filter2D(NEWS->read(), y->read(), -1, neighbour_kernel);
+    cv::bitwise_not(y->read(), y->read());
 
     for(int i = 1; i < iterations; i++) {
         bus(NEWS, y);
-        cv::filter2D(NEWS->value(), y->value(), -1, neighbour_kernel);
-        cv::bitwise_not(y->value(), y->value());
+        cv::filter2D(NEWS->read(), y->read(), -1, neighbour_kernel);
+        cv::bitwise_not(y->read(), y->read());
+        this->array->update_cycles(sqrt(rows_ * cols_)); // TODO get reasonable numbers for the cycle count
     }
 }
 
@@ -590,13 +591,14 @@ void SCAMP5::newsblurh(AREG *y, AREG *x, const int iterations) {
     cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
 
     bus(NEWS, x);
-    cv::filter2D(NEWS->value(), y->value(), -1, neighbour_kernel);
-    cv::bitwise_not(y->value(), y->value());
+    cv::filter2D(NEWS->read(), y->read(), -1, neighbour_kernel);
+    cv::bitwise_not(y->read(), y->read());
 
     for(int i = 1; i < iterations; i++) {
         bus(NEWS, y);
-        cv::filter2D(NEWS->value(), y->value(), -1, neighbour_kernel);
-        cv::bitwise_not(y->value(), y->value());
+        cv::filter2D(NEWS->read(), y->read(), -1, neighbour_kernel);
+        cv::bitwise_not(y->read(), y->read());
+        this->array->update_cycles(sqrt(rows_)); // TODO get reasonable numbers for the cycle count
     }
 }
 
@@ -607,62 +609,63 @@ void SCAMP5::newsblurv(AREG *y, AREG *x, const int iterations) {
     cv::Mat neighbour_kernel = cv::Mat(3, 3, CV_32F, data);
 
     bus(NEWS, x);
-    cv::filter2D(NEWS->value(), y->value(), -1, neighbour_kernel);
-    cv::bitwise_not(y->value(), y->value());
+    cv::filter2D(NEWS->read(), y->read(), -1, neighbour_kernel);
+    cv::bitwise_not(y->read(), y->read());
 
     for(int i = 1; i < iterations; i++) {
         bus(NEWS, y);
-        cv::filter2D(NEWS->value(), y->value(), -1, neighbour_kernel);
-        cv::bitwise_not(y->value(), y->value());
+        cv::filter2D(NEWS->read(), y->read(), -1, neighbour_kernel);
+        cv::bitwise_not(y->read(), y->read());
+        this->array->update_cycles(sqrt(cols_)); // TODO get reasonable numbers for the cycle count
     }
 }
 
 void SCAMP5::OR(DREG *d, DREG *d0, DREG *d1) {
     // d := d0 OR d1
     this->pe->local_read_bus.OR(*d, *d0, *d1);
-    cycles += 4;  // 2 reads, 1 or, 1 write
+    this->array->update_cycles(4); // 2 reads, 1 op, 1 write
 }
 
 void SCAMP5::OR(DREG *d, DREG *d0, DREG *d1, DREG *d2) {
     // d := d0 OR d1 OR d2
     this->pe->local_read_bus.OR(*d, *d0, *d1, *d2);
-    cycles += 5;  // 3 reads, 1 or, 1 write
+    this->array->update_cycles(5);  // 3 reads, 1 op, 1 write
 }
 
 void SCAMP5::OR(DREG *d, DREG *d0, DREG *d1, DREG *d2, DREG *d3) {
     // d := d0 OR d1 OR d2 OR d3
     this->pe->local_read_bus.OR(*d, *d0, *d1, *d2, *d3);
-    cycles += 6;  // 4 reads, 1 or, 1 write
+    this->array->update_cycles(6);  // 4 reads, 1 op, 1 write
 }
 
 void SCAMP5::NOT(DREG *d, DREG *d0) {
     // d := NOT d0
     this->pe->local_read_bus.NOT(*d, *d0);
-    cycles += 3;  // 1 read, 1 op, 1 write
+    this->array->update_cycles(3); // 1 read, 1 op, 1 write
 }
 
 void SCAMP5::NOR(DREG *d, DREG *d0, DREG *d1) {
     // d := NOR(d0 OR d1)
     this->pe->local_read_bus.NOR(*d, *d0, *d1);
-    cycles += 5;  // 2 reads, 2 op, 1 write
+    this->array->update_cycles(5);  // 2 reads, 2 op, 1 write
 }
 
 void SCAMP5::NOR(DREG *d, DREG *d0, DREG *d1, DREG *d2) {
     // d := NOR(d0 OR d1 OR d2)
     this->pe->local_read_bus.NOR(*d, *d0, *d1, *d2);
-    cycles += 6;  // 3 reads, 2 op, 1 write
+    this->array->update_cycles(6);  // 3 reads, 2 op, 1 write
 }
 
 void SCAMP5::NOR(DREG *d, DREG *d0, DREG *d1, DREG *d2, DREG *d3) {
     // d := NOTRd0 OR d1 OR d2 OR d3)
     this->pe->local_read_bus.NOR(*d, *d0, *d1, *d2, *d3);
-    cycles += 7;  // 4 reads, 2 op, 1 write
+    this->array->update_cycles(7); // 4 reads, 2 op, 1 write
 }
 
 void SCAMP5::NOT(DREG *Rl) {
     // Rl := NOT Rl
     this->NOT(Rl, Rl);
-    cycles += 4;  // 2 reads, 1 not, 1 write
+    this->array->update_cycles(4); // 2 reads, 1 op, 1 write
 }
 
 void SCAMP5::OR(DREG *Rl, DREG *Rx) {
@@ -734,41 +737,41 @@ void SCAMP5::XOR(DREG *Rl, DREG *Rx, DREG *Ry) {
 
 void SCAMP5::WHERE(DREG *d) {
     // FLAG := d.
-    this->FLAG->write(d->value());
-    cycles += 2;  // 1 read, 1 write
+    this->FLAG->write(d->read());
+    this->array->update_cycles(2);  // 1 read, 1 write
 }
 
 void SCAMP5::WHERE(DREG *d0, DREG *d1) {
     // FLAG := d0 OR d1.
     this->OR(intermediate_d.get(), d0, d1);
-    this->FLAG->write(intermediate_d->value());
-    cycles++;  // 1 write
+    this->FLAG->write(intermediate_d->read());
+    this->array->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::WHERE(DREG *d0, DREG *d1, DREG *d2) {
     // FLAG := d0 OR d1 OR d2.
     this->OR(intermediate_d.get(), d0, d1, d2);
-    this->FLAG->write(intermediate_d->value());
-    cycles++;  // 1 write
+    this->FLAG->write(intermediate_d->read());
+    this->array->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::ALL() {
     // FLAG := 1, same as all.
     this->FLAG->set();
-    cycles++;  // 1 write
+    this->array->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::SET(DREG *d0) {
     // d0 := 1
     d0->set();
-    cycles++;  // 1 write
+    this->array->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::SET(DREG *d0, DREG *d1) {
     // d0, d1 := 1
     d0->set();
     d1->set();
-    cycles += 2;  // 2 writes
+    this->array->update_cycles(2);  // 2 writes
 }
 
 void SCAMP5::SET(DREG *d0, DREG *d1, DREG *d2) {
@@ -776,7 +779,7 @@ void SCAMP5::SET(DREG *d0, DREG *d1, DREG *d2) {
     d0->set();
     d1->set();
     d2->set();
-    cycles += 3;  // 3 writes
+    this->array->update_cycles(3);  // 3 writes
 }
 
 void SCAMP5::SET(DREG *d0, DREG *d1, DREG *d2, DREG *d3) {
@@ -785,20 +788,20 @@ void SCAMP5::SET(DREG *d0, DREG *d1, DREG *d2, DREG *d3) {
     d1->set();
     d2->set();
     d3->set();
-    cycles += 4;  // 4 writes
+    this->array->update_cycles(4);  // 4 writes
 }
 
 void SCAMP5::CLR(DREG *d0) {
     // d0 := 0
     d0->clear();
-    cycles++;  // 1 write
+    this->array->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::CLR(DREG *d0, DREG *d1) {
     // d0, d1 := 0
     d0->clear();
     d1->clear();
-    cycles += 2;  // 2 writes
+    this->array->update_cycles(2);  // 2 writes
 }
 
 void SCAMP5::CLR(DREG *d0, DREG *d1, DREG *d2) {
@@ -806,7 +809,7 @@ void SCAMP5::CLR(DREG *d0, DREG *d1, DREG *d2) {
     d0->clear();
     d1->clear();
     d2->clear();
-    cycles += 3;  // 3 writes
+    this->array->update_cycles(3);  // 3 writes
 }
 
 void SCAMP5::CLR(DREG *d0, DREG *d1, DREG *d2, DREG *d3) {
@@ -815,25 +818,25 @@ void SCAMP5::CLR(DREG *d0, DREG *d1, DREG *d2, DREG *d3) {
     d1->clear();
     d2->clear();
     d3->clear();
-    cycles += 4;  // 4 writes
+    this->array->update_cycles(4);  // 4 writes
 }
 
 void SCAMP5::MOV(DREG *d, DREG *d0) {
     // d := d0
     this->pe->local_read_bus.MOV(*d, *d0);
-    cycles += 2;  // 1 read, 1 write
+    this->array->update_cycles(2);  // 1 read, 1 write
 }
 
 void SCAMP5::MUX(DREG *Rl, DREG *Rx, DREG *Ry, DREG *Rz) {
     // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
     this->pe->local_read_bus.MUX(*Rl, *Rx, *Ry, *Rz);
-    cycles += 4;  // 3 reads, 1 write, some op?
+    this->array->update_cycles(4);  // 3 reads, 1 write, some op?
 }
 
 void SCAMP5::CLR_IF(DREG *Rl, DREG *Rx) {
     // Rl := 0 IF Rx = 1, Rl := Rl IF Rx = 0
     this->pe->local_read_bus.CLR_IF(*Rl, *Rx);
-    cycles += 2;  // 1 read, up to 1 write, some op for if?
+    this->array->update_cycles(2);  // 1 read, up to 1 write, some op for if?
 }
 
 void SCAMP5::REFRESH(DREG *Rl) {
@@ -982,7 +985,7 @@ void SCAMP5::scamp5_in(AREG *areg, int8_t value, AREG *temp) {
         temp = NEWS;
     }
     IN->write(value);
-    cycles++;
+    this->array->update_cycles(1);
     bus(temp, IN);
     bus(areg, temp);
 }
@@ -994,7 +997,7 @@ void SCAMP5::scamp5_load_in(AREG *areg, int8_t value, AREG *temp) {
         temp = NEWS;
     }
     IN->write(value);
-    cycles++;
+    this->array->update_cycles(1);
     bus(temp, IN);
     bus(areg, temp);
 }
@@ -1003,7 +1006,7 @@ void SCAMP5::scamp5_load_in(int8_t value) {
     // load a analog value to IN without error&noise correction
     // TODO noise
     IN->write(value);
-    cycles++;
+    this->array->update_cycles(1);
 }
 
 void SCAMP5::scamp5_load_dac(AREG *areg, uint16_t value, AREG *temp) {
@@ -1015,7 +1018,7 @@ void SCAMP5::scamp5_load_dac(AREG *areg, uint16_t value, AREG *temp) {
         temp = NEWS;
     }
     IN->write(value);
-    cycles++;
+    this->array->update_cycles(1);
     bus(temp, IN);
     bus(areg, temp);
 }
@@ -1025,7 +1028,7 @@ void SCAMP5::scamp5_load_dac(uint16_t value) {
     // TODO What is with the range of values here. Why can some registers hold a
     // much larger range?
     IN->write(value);
-    cycles++;
+    this->array->update_cycles(1);
 }
 
 void SCAMP5::scamp5_shift(AREG *areg, int h, int v) {
@@ -1101,7 +1104,7 @@ void SCAMP5::scamp5_diffuse(AREG *target, int iterations, bool vertical,
 uint8_t SCAMP5::scamp5_read_areg(AREG *areg, uint8_t r, uint8_t c) {
     // read a single pixel
     // TODO check that the value is properly mapped to uint8_t from CV_16U
-    return areg->value().at<uint8_t>(r, c);
+    return areg->read().at<uint8_t>(r, c);
 }
 
 uint32_t SCAMP5::scamp5_global_sum_16(AREG *areg, uint8_t *result16v) {
@@ -1119,7 +1122,7 @@ uint32_t SCAMP5::scamp5_global_sum_16(AREG *areg, uint8_t *result16v) {
         for(int row = 0; row < this->rows_; row += rs) {
             // TODO double check width and height
             int val = cv::sum(
-                areg->value()(cv::Rect(col, row, col + cs, row + rs)))[0];
+                areg->read()(cv::Rect(col, row, col + cs, row + rs)))[0];
             if(result16v == nullptr) {
                 sum += val;
             } else {
@@ -1143,7 +1146,7 @@ uint32_t SCAMP5::scamp5_global_sum_64(AREG *areg, uint8_t *result64v) {
     for(int col = 0; col < this->cols_; col += cs) {
         for(int row = 0; row < this->rows_; row += rs) {
             int val = cv::sum(
-                areg->value()(cv::Rect(col, row, col + cs, row + rs)))[0];
+                areg->read()(cv::Rect(col, row, col + cs, row + rs)))[0];
             if(result64v == nullptr) {
                 sum += val;
             } else {
@@ -1158,7 +1161,7 @@ uint8_t SCAMP5::scamp5_global_sum_fast(AREG *areg) {
     // get approximate sum level of the whole AREG plane
     // TODO should be approximate sum not exact. Also need to abstract away cv
     // call
-    return cv::sum(areg->value())[0];
+    return cv::sum(areg->read())[0];
 }
 
 uint8_t SCAMP5::scamp5_global_sum_sparse(AREG *areg, uint8_t r, uint8_t c,
@@ -1177,7 +1180,7 @@ uint8_t SCAMP5::scamp5_global_sum_sparse(AREG *areg, uint8_t r, uint8_t c,
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                sum += areg->value().at<uint8_t>(row_index, col_index);
+                sum += areg->read().at<uint8_t>(row_index, col_index);
             }
         }
     }
@@ -1207,7 +1210,7 @@ int SCAMP5::scamp5_global_or(DREG *dreg, uint8_t r, uint8_t c, uint8_t rx,
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                val |= dreg->value().at<uint8_t>(row_index, col_index);
+                val |= dreg->read().at<uint8_t>(row_index, col_index);
             }
         }
     }
@@ -1221,10 +1224,10 @@ int SCAMP5::scamp5_global_count(DREG *dreg, AREG *temp, int options) {
     // levels to represent '0's and '1's. Then a AREG global sum is done and the
     // result is uniformed into [0,4095].
     // TODO options and estimation
-    dreg->value().convertTo(temp->value(), 255, 0);
-    int total = cv::sum(temp->value())[0];
+    dreg->read().convertTo(temp->read(), 255, 0);
+    int total = cv::sum(temp->read())[0];
     double min_val, max_val;
-    cv::minMaxLoc(temp->value(), &min_val, &max_val);
+    cv::minMaxLoc(temp->read(), &min_val, &max_val);
     return utility::normalise(total, min_val, max_val, 0, 4096);
 }
 
@@ -1247,27 +1250,27 @@ void SCAMP5::scamp5_flood(DREG *dreg_target, DREG *dreg_mask, int boundary,
 
     std::vector<cv::Point>
         seeds;  // locations of white pixels in the original image
-    cv::findNonZero(dreg_target->value(), seeds);
+    cv::findNonZero(dreg_target->read(), seeds);
 
     uint8_t fillValue = 1;
 
     // Add additional pixel to each side
     cv::Mat mask;
-    cv::copyMakeBorder(dreg_mask->value(), mask, 1, 1, 1, 1,
+    cv::copyMakeBorder(dreg_mask->read(), mask, 1, 1, 1, 1,
                        cv::BORDER_REPLICATE);
 
-    dreg_mask->value() = 1 - dreg_mask->value();
+    dreg_mask->read() = 1 - dreg_mask->read();
 
     for(auto &seed: seeds) {
-        cv::floodFill(dreg_mask->value(), mask, seed, cv::Scalar(1), nullptr,
+        cv::floodFill(dreg_mask->read(), mask, seed, cv::Scalar(1), nullptr,
                       cv::Scalar(0), cv::Scalar(1), 4);
     }
 }
 
 void SCAMP5::scamp5_load_point(DREG *dr, uint8_t r, uint8_t c) {
     // set a single pixel on a DREG image to 1, the rest to 0
-    dr->value().setTo(0);
-    dr->value().at<uint8_t>(r, c) = 1;
+    dr->read().setTo(0);
+    dr->read().at<uint8_t>(r, c) = 1;
 }
 
 void SCAMP5::scamp5_load_rect(DREG *dr, uint8_t r0, uint8_t c0, uint8_t r1,
@@ -1289,7 +1292,7 @@ void SCAMP5::scamp5_load_rect(DREG *dr, uint8_t r0, uint8_t c0, uint8_t r1,
     int width = c0 - c1;
     int height = r0 - r1;
     dr->clear();
-    dr->value()(cv::Rect(r0, c1, width, height)).setTo(1);
+    dr->read()(cv::Rect(r0, c1, width, height)).setTo(1);
 }
 
 void SCAMP5::scamp5_load_pattern(DREG *dr, uint8_t r, uint8_t c, uint8_t rx,
@@ -1311,7 +1314,7 @@ void SCAMP5::scamp5_load_pattern(DREG *dr, uint8_t r, uint8_t c, uint8_t rx,
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index * r_mask) == r_f) && ((col_index * c_mask) == c_f)) {
-                dr->value().at<uint8_t>(row_index, col_index) = 1;
+                dr->read().at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
@@ -1342,7 +1345,7 @@ void SCAMP5::scamp5_select_col(uint8_t c) {
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(col_index == c) {
-                SELECT->value().at<uint8_t>(row_index, col_index) = 1;
+                SELECT->read().at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
@@ -1353,7 +1356,7 @@ void SCAMP5::scamp5_select_row(uint8_t r) {
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(row_index == r) {
-                SELECT->value().at<uint8_t>(row_index, col_index) = 1;
+                SELECT->read().at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
@@ -1379,7 +1382,7 @@ void SCAMP5::scamp5_draw_end() {
 
 void SCAMP5::scamp5_draw_pixel(uint8_t r, uint8_t c) {
     // draw a point, wrap around if it's outside the border
-    scratch->value().at<uint8_t>(r % this->rows_, c % this->cols_) = 1;
+    scratch->read().at<uint8_t>(r % this->rows_, c % this->cols_) = 1;
 }
 
 bool SCAMP5::scamp5_draw_point(int r, int c) {
@@ -1388,7 +1391,7 @@ bool SCAMP5::scamp5_draw_point(int r, int c) {
     if(r >= this->rows_ || c >= this->cols_) {
         return false;
     }
-    scratch->value().at<uint8_t>(r, c) = 1;
+    scratch->read().at<uint8_t>(r, c) = 1;
     return true;
 }
 
@@ -1402,7 +1405,7 @@ void SCAMP5::scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1) {
     int width = c1 - c0;
     int height = r1 - r0;
     scratch->clear();
-    scratch->value()(cv::Rect(c0, r0, width, height)).setTo(1);
+    scratch->read()(cv::Rect(c0, r0, width, height)).setTo(1);
 }
 
 void SCAMP5::scamp5_draw_line(int r0, int c0, int r1, int c1, bool repeat) {
@@ -1413,7 +1416,7 @@ void SCAMP5::scamp5_draw_line(int r0, int c0, int r1, int c1, bool repeat) {
     // c1 - finishing point column coordinate
     // repeat - whether to wrap around when point goes outside the image
     // TODO wrap around
-    cv::line(scratch->value(), {r0, c0}, {r1, c1}, 1);
+    cv::line(scratch->read(), {r0, c0}, {r1, c1}, 1);
 }
 
 void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
@@ -1432,10 +1435,10 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
     int x = 0;
     int y = radius;
 
-    scratch->value().at<uint8_t>(y0 + radius, x0) = 1;
-    scratch->value().at<uint8_t>(y0 - radius, x0) = 1;
-    scratch->value().at<uint8_t>(y0, x0 + radius) = 1;
-    scratch->value().at<uint8_t>(y0, x0 - radius) = 1;
+    scratch->read().at<uint8_t>(y0 + radius, x0) = 1;
+    scratch->read().at<uint8_t>(y0 - radius, x0) = 1;
+    scratch->read().at<uint8_t>(y0, x0 + radius) = 1;
+    scratch->read().at<uint8_t>(y0, x0 - radius) = 1;
 
     while(x < y) {
         if(f >= 0) {
@@ -1448,21 +1451,21 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
         ddf_x += 2;
         f += ddf_x;
 
-        scratch->value().at<uint8_t>(y0 + y, x0 + x) = 1;
-        scratch->value().at<uint8_t>(y0 + y, x0 - x) = 1;
-        scratch->value().at<uint8_t>(y0 - y, x0 + x) = 1;
-        scratch->value().at<uint8_t>(y0 - y, x0 - x) = 1;
-        scratch->value().at<uint8_t>(y0 + x, x0 + y) = 1;
-        scratch->value().at<uint8_t>(y0 + x, x0 - y) = 1;
-        scratch->value().at<uint8_t>(y0 - x, x0 + y) = 1;
-        scratch->value().at<uint8_t>(y0 - x, x0 - y) = 1;
+        scratch->read().at<uint8_t>(y0 + y, x0 + x) = 1;
+        scratch->read().at<uint8_t>(y0 + y, x0 - x) = 1;
+        scratch->read().at<uint8_t>(y0 - y, x0 + x) = 1;
+        scratch->read().at<uint8_t>(y0 - y, x0 - x) = 1;
+        scratch->read().at<uint8_t>(y0 + x, x0 + y) = 1;
+        scratch->read().at<uint8_t>(y0 + x, x0 - y) = 1;
+        scratch->read().at<uint8_t>(y0 - x, x0 + y) = 1;
+        scratch->read().at<uint8_t>(y0 - x, x0 - y) = 1;
     }
 }
 
 void SCAMP5::scamp5_draw_negate() {
     // do a binary inversion of the DREG image.
     // TODO abstraction
-    scratch->value() = 1 - scratch->value();
+    scratch->read() = 1 - scratch->read();
 }
 
 // Image Readout
@@ -1488,7 +1491,7 @@ void SCAMP5::scamp5_scan_areg_8x8(AREG *areg, uint8_t *result8x8) {
     int rs = this->rows_ / 8;
     for(int col = 0; col < this->cols_; col += cs) {
         for(int row = 0; row < this->rows_; row += rs) {
-            result8x8[buf_index++] = areg->value().at<uint8_t>(row, col);
+            result8x8[buf_index++] = areg->read().at<uint8_t>(row, col);
         }
     }
 }
@@ -1513,14 +1516,14 @@ void SCAMP5::scamp5_scan_dreg(DREG *dreg, uint8_t *mem, uint8_t r0,
     for(uint32_t row_index = r0; row_index <= r1; row_index++) {
         // Read 8 values at a time to make up a byte
         for(int col_index = 0; col_index < this->cols_; col_index += 8) {
-            uint8_t b0 = dreg->value().at<uint8_t>(row_index, col_index);
-            uint8_t b1 = dreg->value().at<uint8_t>(row_index, col_index + 1);
-            uint8_t b2 = dreg->value().at<uint8_t>(row_index, col_index + 2);
-            uint8_t b3 = dreg->value().at<uint8_t>(row_index, col_index + 3);
-            uint8_t b4 = dreg->value().at<uint8_t>(row_index, col_index + 4);
-            uint8_t b5 = dreg->value().at<uint8_t>(row_index, col_index + 5);
-            uint8_t b6 = dreg->value().at<uint8_t>(row_index, col_index + 6);
-            uint8_t b7 = dreg->value().at<uint8_t>(row_index, col_index + 7);
+            uint8_t b0 = dreg->read().at<uint8_t>(row_index, col_index);
+            uint8_t b1 = dreg->read().at<uint8_t>(row_index, col_index + 1);
+            uint8_t b2 = dreg->read().at<uint8_t>(row_index, col_index + 2);
+            uint8_t b3 = dreg->read().at<uint8_t>(row_index, col_index + 3);
+            uint8_t b4 = dreg->read().at<uint8_t>(row_index, col_index + 4);
+            uint8_t b5 = dreg->read().at<uint8_t>(row_index, col_index + 5);
+            uint8_t b6 = dreg->read().at<uint8_t>(row_index, col_index + 6);
+            uint8_t b7 = dreg->read().at<uint8_t>(row_index, col_index + 7);
             uint8_t value = (b0 << 7) | (b1 << 6) | (b2 << 5) | (b3 << 4) |
                             (b4 << 3) | (b5 << 2) | (b6 << 1) | (b7 << 0);
             mem[buf_index++] = value;
@@ -1542,7 +1545,7 @@ void SCAMP5::scamp5_scan_events(DREG *dreg, uint8_t *mem, uint16_t max_num,
     // FIXME with proper setting of (0, 0)
     // TODO does not take scanning direction into account. Rewrite
     std::vector<cv::Point> locations;  // output, locations of non-zero pixels
-    cv::findNonZero(dreg->value(), locations);
+    cv::findNonZero(dreg->read(), locations);
     int buf_index = 0;
     for(auto &p: locations) {
         if(buf_index == 2 * max_num)
@@ -1559,7 +1562,7 @@ void SCAMP5::scamp5_scan_events(DREG *dreg, uint8_t *buffer, uint16_t max_num,
     int buf_index = 0;
     for(int col = c0; col < c1; col += cs) {
         for(int row = r0; row < r1; row += rs) {
-            if(dreg->value().at<uint8_t>(row, col) > 0) {
+            if(dreg->read().at<uint8_t>(row, col) > 0) {
                 if(buf_index == 2 * max_num)
                     return;
                 buffer[buf_index++] = col;
