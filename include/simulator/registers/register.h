@@ -19,7 +19,7 @@ class Register : public Component {
     UI* ui = nullptr;
 
    protected:
-    Memory* memory_;
+    Memory* memory_ = nullptr;
     cv::Mat value_;
 #ifdef TRACK_STATISTICS
 
@@ -30,6 +30,7 @@ class Register : public Component {
     int max_val = 0;
 
     Register(int rows, int columns, int type, Memory& memoryType);
+    Register(int rows, int columns, int type);
 
     void change_memory_type(Memory& memory_type);
 

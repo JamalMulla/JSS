@@ -8,16 +8,27 @@
 
 #include "simulator/metrics/stats.h"
 
-DigitalRegister::DigitalRegister(int rows, int columns,
-                                 Memory &memory_type)
-    : Register(rows, columns, CV_8U, memory_type) {
+DigitalRegister::DigitalRegister(int rows, int columns, Memory &memory_type) :
+    Register(rows, columns, CV_8U, memory_type) {
     this->min_val = 0;
     this->max_val = 1;
 }
 
-DigitalRegister::DigitalRegister(const cv::Mat &data,
-                                 Memory &memory_type)
-    : Register(data.rows, data.cols, CV_8U, memory_type) {
+DigitalRegister::DigitalRegister(int rows, int columns) :
+    Register(rows, columns, CV_8U) {
+    this->min_val = 0;
+    this->max_val = 1;
+}
+
+DigitalRegister::DigitalRegister(const cv::Mat &data, Memory &memory_type) :
+    Register(data.rows, data.cols, CV_8U, memory_type) {
+    data.copyTo(this->value_);
+    this->min_val = 0;
+    this->max_val = 1;
+}
+
+DigitalRegister::DigitalRegister(const cv::Mat &data) :
+    Register(data.rows, data.cols, CV_8U) {
     data.copyTo(this->value_);
     this->min_val = 0;
     this->max_val = 1;

@@ -11,6 +11,9 @@ Register::Register(int rows, int columns, int type, Memory& memoryType)
       value_(rows, columns, type, cv::Scalar(0))
        {}
 
+Register::Register(int rows, int columns, int type)
+    : value_(rows, columns, type, cv::Scalar(0)) {}
+
 void Register::update(double time) {
     memory_->update(time);
 }
