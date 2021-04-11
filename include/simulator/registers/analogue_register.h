@@ -10,7 +10,9 @@
 class AnalogueRegister : public Register {
    public:
     AnalogueRegister(int rows, int columns, Memory& memory);
+    AnalogueRegister(int rows, int columns);
     AnalogueRegister(const cv::Mat& data, Memory& memory);
+    AnalogueRegister(const cv::Mat& data);
 
     AnalogueRegister& operator()(const std::string& name);
 

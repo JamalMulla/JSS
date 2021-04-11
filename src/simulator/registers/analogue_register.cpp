@@ -8,14 +8,27 @@
 #include "simulator/memory/si.h"
 #include "simulator/metrics/stats.h"
 
-AnalogueRegister::AnalogueRegister(int rows, int columns, Memory& memory)
-    : Register(rows, columns, MAT_TYPE, memory) {
-          this->min_val = -128;
-          this->max_val = 127;
+AnalogueRegister::AnalogueRegister(int rows, int columns, Memory &memory) :
+    Register(rows, columns, MAT_TYPE, memory) {
+    this->min_val = -128;
+    this->max_val = 127;
 }
 
-AnalogueRegister::AnalogueRegister(const cv::Mat &data, Memory& memory)
-    : Register(data.rows, data.cols, MAT_TYPE, memory) {
+AnalogueRegister::AnalogueRegister(int rows, int columns) :
+    Register(rows, columns, MAT_TYPE) {
+    this->min_val = -128;
+    this->max_val = 127;
+}
+
+AnalogueRegister::AnalogueRegister(const cv::Mat &data, Memory &memory) :
+    Register(data.rows, data.cols, MAT_TYPE, memory) {
+    data.copyTo(this->value_);
+    this->min_val = -128;
+    this->max_val = 127;
+}
+
+AnalogueRegister::AnalogueRegister(const cv::Mat &data) :
+    Register(data.rows, data.cols, MAT_TYPE) {
     data.copyTo(this->value_);
     this->min_val = -128;
     this->max_val = 127;
