@@ -5,31 +5,24 @@
 #include "simulator/registers/analogue_register.h"
 
 #include "simulator/base/array.h"
-#include "simulator/memory/si.h"
+#include "simulator/memory/si_cell.h"
 #include "simulator/metrics/stats.h"
 
-AnalogueRegister::AnalogueRegister(int rows, int columns, Memory &memory) :
-    Register(rows, columns, MAT_TYPE, memory) {
+AnalogueRegister::AnalogueRegister(int rows, int cols, int row_stride, int col_stride, Config &config, MemoryType memory) :
+    Register(rows, cols, row_stride, col_stride, MAT_TYPE, config, memory) {
     this->min_val = -128;
     this->max_val = 127;
 }
 
-AnalogueRegister::AnalogueRegister(int rows, int columns) :
-    Register(rows, columns, MAT_TYPE) {
+AnalogueRegister::AnalogueRegister(int rows, int cols, int row_stride, int col_stride) :
+    Register(rows, cols, row_stride, col_stride, MAT_TYPE) {
     this->min_val = -128;
     this->max_val = 127;
 }
 
-AnalogueRegister::AnalogueRegister(const cv::Mat &data, Memory &memory) :
-    Register(data.rows, data.cols, MAT_TYPE, memory) {
-    data.copyTo(this->value_);
-    this->min_val = -128;
-    this->max_val = 127;
-}
-
-AnalogueRegister::AnalogueRegister(const cv::Mat &data) :
-    Register(data.rows, data.cols, MAT_TYPE) {
-    data.copyTo(this->value_);
+AnalogueRegister::AnalogueRegister(const cv::Mat &data, int row_stride, int col_stride) :
+    Register(data.rows, data.cols, row_stride, col_stride, MAT_TYPE) {
+    this->write(data);
     this->min_val = -128;
     this->max_val = 127;
 }

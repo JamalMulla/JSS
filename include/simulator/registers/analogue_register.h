@@ -9,10 +9,9 @@
 
 class AnalogueRegister : public Register {
    public:
-    AnalogueRegister(int rows, int columns, Memory& memory);
-    AnalogueRegister(int rows, int columns);
-    AnalogueRegister(const cv::Mat& data, Memory& memory);
-    AnalogueRegister(const cv::Mat& data);
+    AnalogueRegister(int rows, int cols, int row_stride, int col_stride, Config& config, MemoryType memory = MemoryType::S2I);
+    AnalogueRegister(int rows, int cols, int row_stride = 1, int col_stride = 1);
+    AnalogueRegister(const cv::Mat& data, int row_stride = 1, int col_stride = 1);
 
     AnalogueRegister& operator()(const std::string& name);
 

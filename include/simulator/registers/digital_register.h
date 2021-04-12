@@ -12,10 +12,9 @@
 
 class DigitalRegister : public Register {
    public:
-    DigitalRegister(int rows, int columns, Memory& memory_type);
-    DigitalRegister(int rows, int columns);
-    DigitalRegister(const cv::Mat& data, Memory& memory_type);
-    DigitalRegister(const cv::Mat& data);
+    DigitalRegister(int rows, int columns, Config& config, int row_stride = 1, int col_stride = 1, MemoryType memory_type = MemoryType::DRAM3T);
+    DigitalRegister(int rows, int cols, int row_stride = 1, int col_stride = 1);
+    DigitalRegister(const cv::Mat& data, int row_stride = 1, int col_stride = 1);
 
     DigitalRegister& operator()(const std::string& name);
     void set();

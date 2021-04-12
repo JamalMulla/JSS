@@ -62,7 +62,7 @@ void SCAMP5::init() {
     config_.temperature = 20;
     config_.voltage = 1.8;
 
-    FLAG->change_memory_type(Sram6tCell());
+    FLAG->change_memory_type(Sram6tCell(rows_, cols_, 1, 1, config_));
 
     intermediate_a = std::make_unique<AREG>(this->rows_, this->cols_);
     intermediate_a2 = std::make_unique<AREG>(this->rows_, this->cols_);

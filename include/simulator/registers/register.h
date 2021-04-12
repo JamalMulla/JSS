@@ -18,8 +18,14 @@ class Register : public Component {
    private:
     UI* ui = nullptr;
 
+    // TODO internal mask
    protected:
-    Memory* memory_ = nullptr;
+    int rows_;
+    int cols_;
+    int row_stride_;
+    int col_stride_;
+    Config* config_;
+    std::shared_ptr<Memory> memory_;
     cv::Mat value_;
 #ifdef TRACK_STATISTICS
 
@@ -29,16 +35,18 @@ class Register : public Component {
     int min_val = 0;
     int max_val = 0;
 
-    Register(int rows, int columns, int type, Memory& memoryType);
-    Register(int rows, int columns, int type);
+    Register(int rows, int columns, int row_stride, int col_stride, int type, Config& config, MemoryType memoryType);
 
-    void change_memory_type(Memory& memory_type);
+    Register(int rows, int columns, int row_stride, int col_stride, int type);
+
+    void change_memory_type(MemoryType memory_type);
 
 #ifdef TRACK_STATISTICS
-    void inc_read(const cv::_InputOutputArray& mask = cv::noArray());
-    void inc_write(const cv::_InputOutputArray& mask = cv::noArray());
-
+    // Can only be used if memory_ is defined
     void update(double time) override;
+    void inc_read(const cv::_InputOutputArray& mask = cv::noArray());
+
+    void inc_write(const cv::_InputOutputArray& mask = cv::noArray());
     cv::Mat& get_static_power() override;
     cv::Mat& get_dynamic_power() override;
     cv::Mat& get_transistor_count() override;

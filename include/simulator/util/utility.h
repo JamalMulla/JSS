@@ -44,10 +44,10 @@ void on_mouse_reg(int event, int x, int y, int, void* reg) {
     if(event != cv::EVENT_MOUSEMOVE)
         return;
     auto* dr = static_cast<Register*>(reg);
-    if(y < 0 || x < 0 || y > dr->value().rows || x > dr->value().cols)
+    if(y < 0 || x < 0 || y > dr->read().rows || x > dr->read().cols)
         return;
     std::cout << "(" << x << ", " << y << ") ......  "
-              << (int) dr->value().at<interpret_type>(y, x) << '\n';
+              << (int) dr->read().at<interpret_type>(y, x) << '\n';
 }
 
 template<typename interpret_type>

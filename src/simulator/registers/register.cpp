@@ -6,13 +6,22 @@
 
 #include <opencv2/core.hpp>
 
-Register::Register(int rows, int columns, int type, Memory& memoryType)
-    : memory_(&memoryType),
-      value_(rows, columns, type, cv::Scalar(0))
-       {}
+Register::Register(int rows, int cols, int row_stride, int col_stride, int type, Config &config, MemoryType memory_type) :
+    rows_(rows),
+    cols_(cols),
+    row_stride_(row_stride),
+    col_stride_(col_stride),
+    config_(&config),
+    value_(rows, cols, type, cv::Scalar(0)) {
+    this->memory_ = Memory::construct(memory_type, rows, cols, row_stride, col_stride, config);
+}
 
-Register::Register(int rows, int columns, int type)
-    : value_(rows, columns, type, cv::Scalar(0)) {}
+Register::Register(int rows, int cols, int row_stride, int col_stride, int type) :
+    rows_(rows),
+    cols_(cols),
+    row_stride_(row_stride),
+    col_stride_(col_stride),
+    value_(rows, cols, type, cv::Scalar(0)) {}
 
 void Register::update(double time) {
     memory_->update(time);
@@ -41,7 +50,7 @@ cv::Mat &Register::read() {
     return this->value_;
 }
 
-void Register::write(cv::Mat& data) {
+void Register::write(cv::Mat &data) {
     data.copyTo(this->value_);
 #ifdef TRACK_STATISTICS
     this->inc_write();
@@ -99,8 +108,8 @@ void Register::inc_write(const cv::_InputOutputArray &mask) {
 
 #endif
 
-void Register::change_memory_type(Memory &memory_type) {
-    this->memory_ = &memory_type;
+void Register::change_memory_type(MemoryType memory_type) {
+    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, *config_);
 }
 
 void Register::set_ui_handler(UI *ui_ptr) { this->ui = ui_ptr; }
