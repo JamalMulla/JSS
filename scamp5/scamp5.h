@@ -44,6 +44,7 @@ class SCAMP5 {
     int rows_;
     int cols_;
     Origin origin_;
+    Config config_;
 
 
 //     boustrophedonic bitorder

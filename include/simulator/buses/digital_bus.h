@@ -25,7 +25,7 @@ class DigitalBus {
     void NOT(DigitalRegister& Rl);
     void OR(DigitalRegister& Rl, DigitalRegister& Rx);
     void NOR(DigitalRegister& Rl, DigitalRegister& Rx);
-    void AND(DigitalRegister& Ra, const DigitalRegister& Rx, const DigitalRegister& Ry);
+    void AND(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry);
     void NAND(DigitalRegister& Ra, DigitalRegister& Rx, DigitalRegister& Ry);
     void IMP(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry);
     void NIMP(DigitalRegister& Rl, DigitalRegister& Rx, DigitalRegister& Ry);
@@ -80,25 +80,25 @@ class DigitalBus {
 
     /* These first neighbour functions are absolute and do not depend on origin.
      * They function as expected assuming a grid with origin in bottom left */
-    void get_up(DigitalRegister& dst, const DigitalRegister& src, int offset,
+    void get_up(DigitalRegister& dst, DigitalRegister& src, int offset,
                 int boundary_fill);
-    void get_right(DigitalRegister& dst, const DigitalRegister& src, int offset,
+    void get_right(DigitalRegister& dst, DigitalRegister& src, int offset,
                    int boundary_fill);
-    void get_left(DigitalRegister& dst, const DigitalRegister& src, int offset,
+    void get_left(DigitalRegister& dst, DigitalRegister& src, int offset,
                   int boundary_fill);
-    void get_down(DigitalRegister& dst, const DigitalRegister& src, int offset,
+    void get_down(DigitalRegister& dst, DigitalRegister& src, int offset,
                   int boundary_fill);
 
     /* The following are dependent on origin. For example, North when the origin
      * is at the bottom is not the same as North when the origin is at the top.
      * Top north = bottom south*/
-    void get_east(DigitalRegister& dst, const DigitalRegister& src, int offset,
+    void get_east(DigitalRegister& dst, DigitalRegister& src, int offset,
                   int boundary_fill, Origin origin);
-    void get_west(DigitalRegister& dst, const DigitalRegister& src, int offset,
+    void get_west(DigitalRegister& dst, DigitalRegister& src, int offset,
                   int boundary_fill, Origin origin);
-    void get_north(DigitalRegister& dst, const DigitalRegister& src, int offset,
+    void get_north(DigitalRegister& dst, DigitalRegister& src, int offset,
                    int boundary_fill, Origin origin);
-    void get_south(DigitalRegister& dst, const DigitalRegister& src, int offset,
+    void get_south(DigitalRegister& dst, DigitalRegister& src, int offset,
                    int boundary_fill, Origin origin);
 
     // Higher level functions
@@ -128,17 +128,17 @@ class DigitalBus {
         const std::vector<std::vector<std::vector<int>>>& bitorder,
         DigitalRegister& RN, DigitalRegister& RS, DigitalRegister& RE,
         DigitalRegister& RW, bool shift_left, Origin origin);
-    void superpixel_shift_block(DigitalRegister& dst, const DigitalRegister& src,
+    void superpixel_shift_block(DigitalRegister& dst, DigitalRegister& src,
                                 Origin origin, DigitalRegister& RN,
                                 DigitalRegister& RS, DigitalRegister& RE,
                                 DigitalRegister& RW);
-    void superpixel_shift(DigitalRegister& dst, int bank, const DigitalRegister& src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin, int shift_left);
-    void superpixel_shift_left(DigitalRegister& dst, int bank, const DigitalRegister& src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
-    void superpixel_shift_right(DigitalRegister& dst, int bank, const DigitalRegister& src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
-    void superpixel_add(DigitalRegister& dst, int bank, const DigitalRegister& src1,
-                        const DigitalRegister& src2, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
-    void superpixel_sub(DigitalRegister& dst, int bank, const DigitalRegister& src1,
-                        const DigitalRegister& src2, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
+    void superpixel_shift(DigitalRegister& dst, int bank, DigitalRegister& src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin, int shift_left);
+    void superpixel_shift_left(DigitalRegister& dst, int bank, DigitalRegister& src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
+    void superpixel_shift_right(DigitalRegister& dst, int bank, DigitalRegister& src, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
+    void superpixel_add(DigitalRegister& dst, int bank, DigitalRegister& src1,
+                        DigitalRegister& src2, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
+    void superpixel_sub(DigitalRegister& dst, int bank, DigitalRegister& src1,
+                        DigitalRegister& src2, const std::vector<std::vector<std::vector<int>>>& bitorder, Origin origin);
 };
 
 #endif  // SIMULATOR_DIGITAL_BUS_H

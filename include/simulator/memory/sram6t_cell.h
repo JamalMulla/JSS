@@ -2,39 +2,32 @@
 // Created by jm1417 on 08/02/2021.
 //
 
-#ifndef SIMULATOR_DRAM_3T_CELL_H
-#define SIMULATOR_DRAM_3T_CELL_H
+#ifndef SIMULATOR_SRAM6T_CELL_H
+#define SIMULATOR_SRAM6T_CELL_H
 
 #include <opencv2/core.hpp>
 
 #include "simulator/base/config.h"
 #include "simulator/memory/memory.h"
 
-class Dram3tCell : public Memory {
+class Sram6tCell : public Memory {
    private:
-    int rows_;
-    int cols_;
-    int row_stride_;
-    int col_stride_;
-    int cycle_count_ = 2;  // TODO find proper numbers for cycle counts
-    int transistor_count_ = 3;
+    int cycle_count_ = 1;  // TODO find proper numbers for cycle counts
+    int transistor_count_ = 6;
     double static_power_;  // in Watts
     double dynamic_read_power_;  // in Watts for a read
     double dynamic_write_power_;  // in Watts for a read
     Config* config_;
-    cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
     cv::Mat array_transistor_count_;
     cv::Mat array_static_power_;
     cv::Mat array_dynamic_power_;
-    double refresh_time_ = 0.064;  // In S
     double fun_static(const Config& config);
     double fun_dynamic_read(const Config& config);
     double fun_dynamic_write(const Config& config);
-    void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
     cv::Mat scratch;
 
-public:
-    explicit Dram3tCell(int rows, int cols, int row_stride, int col_stride, Config& config);
+   public:
+    explicit Sram6tCell(int rows, int cols, int row_stride, int col_stride, Config& config);
 
     void update(double time) override;
     int get_cycle_count() override;
@@ -47,4 +40,4 @@ public:
     void write() override;
 };
 
-#endif  // SIMULATOR_DRAM_3T_CELL_H
+#endif  // SIMULATOR_SRAM6T_CELL_H

@@ -4,6 +4,7 @@
 
 #include "scamp5.h"
 
+#include <simulator/memory/sram6t_cell.h>
 #include <simulator/util/utility.h>
 
 #include <filesystem>
@@ -11,8 +12,6 @@
 #include <iostream>
 #include <ostream>
 
-#include "simulator/memory/sram_6t.h"
-#include "simulator/metrics/stats.h"
 
 SCAMP5::SCAMP5(int rows, int cols, Origin origin)
     : rows_(rows), cols_(cols), origin_(origin) {
@@ -58,8 +57,12 @@ void SCAMP5::init() {
 
     // Initially all PEs are active
     FLAG->write(1);
-    stats::set_clock_rate(1e7);
-    FLAG->change_memory_type(SRAM_6T());
+    config_.clock_rate = 1e7;
+    config_.process_node = 180;
+    config_.temperature = 20;
+    config_.voltage = 1.8;
+
+    FLAG->change_memory_type(Sram6tCell());
 
     intermediate_a = std::make_unique<AREG>(this->rows_, this->cols_);
     intermediate_a2 = std::make_unique<AREG>(this->rows_, this->cols_);

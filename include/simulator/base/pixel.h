@@ -19,23 +19,30 @@ class Pixel : public Component {
 #ifdef TRACK_STATISTICS
     int cycle_count_;
     int transistor_count_;
-    double static_power_; // in watts
-    double dynamic_power_; // in watts
+    double static_power_;  // in watts
+    double dynamic_power_;  // in watts
+    cv::Mat array_transistor_count_;
+    cv::Mat array_static_power_;
+    cv::Mat array_dynamic_power_;
+    cv::Mat internal_mask;
     Config* config_;
+
+    void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
 #endif
 
    public:
-    Pixel(int rows, int cols, Source src, const std::string& path, Config& config);
+    Pixel(int rows, int cols, int row_stride, int col_stride, Source src, const std::string& path, Config& config);
     void reset();
     void read(Register& reg);
     double last_frame_time();
 #ifdef TRACK_STATISTICS
-    double get_static_power(double time) override;
-    double get_dynamic_power() override;
+    cv::Mat& get_static_power() override;
+    cv::Mat& get_dynamic_power() override;
+    cv::Mat& get_transistor_count() override;
+    void update(double time) override;
     int get_cycle_count() override;
-    int get_transistor_count() override;
-    void print_stats(const CycleCounter& counter) override;
-    void write_stats(const CycleCounter& counter, json& j) override;
+//    void print_stats(const CycleCounter& counter) override;
+//    void write_stats(const CycleCounter& counter, json& j) override;
 #endif
     ~Pixel();
 };

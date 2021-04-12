@@ -6,10 +6,12 @@
 
 #include "simulator/metrics/stats.h"
 
-ProcessingElement::ProcessingElement(int rows, int columns, int num_analogue,
-                                     int num_digital, Source source,
-                                     const std::string &path, Config& config)
-    : photodiode(Pixel(rows, columns, source, path, config)) {
+ProcessingElement::ProcessingElement(int rows, int columns, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config) :
+    photodiode(Pixel(rows, columns, row_stride, col_stride, source, path, config)),
+    config_(&config)
+
+{
+    // TODO need to be able to pass in some way of creating the underlying memory
     for(int i = 0; i < num_analogue; i++) {
         analogue_registers.emplace_back(rows, columns);
     }
@@ -18,10 +20,15 @@ ProcessingElement::ProcessingElement(int rows, int columns, int num_analogue,
     }
 }
 void ProcessingElement::update_cycles(int cycles) {
-    for (DigitalRegister& digital_register : digital_registers) {
-        digital_register.update_cycles(cycles);
+    double time = (1 / config_->clock_rate) * cycles;
+    for(DigitalRegister &digital_register: digital_registers) {
+        digital_register.update(time);
     }
 
+    for(AnalogueRegister &analogue_register: analogue_registers) {
+        analogue_register.update(time);
+    }
+    photodiode.update(time);
 }
 
 #ifdef TRACK_STATISTICS
@@ -64,6 +71,16 @@ ProcessingElement::builder &ProcessingElement::builder::with_cols(int cols) {
     return *this;
 }
 
+ProcessingElement::builder &ProcessingElement::builder::with_row_stride(int row_stride) {
+    this->row_stride_ = row_stride;
+    return *this;
+}
+
+ProcessingElement::builder &ProcessingElement::builder::with_col_stride(int col_stride) {
+    this->col_stride_ = col_stride;
+    return *this;
+}
+
 ProcessingElement::builder &ProcessingElement::builder::with_analogue_registers(
     int num_analogue) {
     this->num_analogue_ = num_analogue;
@@ -88,14 +105,18 @@ ProcessingElement::builder &ProcessingElement::builder::with_file_path(
     return *this;
 }
 
+ProcessingElement::builder &ProcessingElement::builder::with_config(Config &config) {
+    this->config_ = config;
+    return *this;
+}
+
 ProcessingElement ProcessingElement::builder::build() {
 #ifdef USE_RUNTIME_CHECKS
-    if(rows_ < 0 || cols_ < 0 || num_analogue_ < 0 || num_digital_ < 0) {
+    if(rows_ < 0 || cols_ < 0 || row_stride_ < 0 || col_stride < 0 || num_analogue_ < 0 || num_digital_ < 0) {
         std::cerr << "ProcessingElement cannot be created as all necessary "
                      "parameters have not been set"
                   << std::endl;
     }
 #endif
-    return ProcessingElement(rows_, cols_, num_analogue_, num_digital_, source_,
-                             path_);
+    return ProcessingElement(rows_, cols_, row_stride_, col_stride_, num_analogue_, num_digital_, source_, path_, config_);
 }
