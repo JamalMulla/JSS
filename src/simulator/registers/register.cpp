@@ -24,7 +24,9 @@ Register::Register(int rows, int cols, int row_stride, int col_stride, int type)
     value_(rows, cols, type, cv::Scalar(0)) {}
 
 void Register::update(double time) {
-    memory_->update(time);
+    if (memory_) {
+        memory_->update(time);
+    }
 }
 
 cv::Mat &Register::get_static_power() {
@@ -99,13 +101,28 @@ void Register::write(int data, Register &mask) {
 
 #ifdef TRACK_STATISTICS
 void Register::inc_read(const cv::_InputOutputArray &mask) {
-    this->memory_->read(mask);
+    if (memory_) {
+        this->memory_->read(mask);
+    }
+}
+
+void Register::inc_read() {
+    if (memory_) {
+        this->memory_->read();
+    }
 }
 
 void Register::inc_write(const cv::_InputOutputArray &mask) {
-    this->memory_->write(mask);
+    if (memory_) {
+        this->memory_->write(mask);
+    }
 }
 
+void Register::inc_write() {
+    if (memory_) {
+        this->memory_->write();
+    }
+}
 #endif
 
 void Register::change_memory_type(MemoryType memory_type) {

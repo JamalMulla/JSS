@@ -9,7 +9,7 @@
 
 class AnalogueRegister : public Register {
    public:
-    AnalogueRegister(int rows, int cols, int row_stride, int col_stride, Config& config, MemoryType memory = MemoryType::S2I);
+    AnalogueRegister(int rows, int cols, Config& config, int row_stride = 1, int col_stride = 1, MemoryType memory = MemoryType::S2I);
     AnalogueRegister(int rows, int cols, int row_stride = 1, int col_stride = 1);
     AnalogueRegister(const cv::Mat& data, int row_stride = 1, int col_stride = 1);
 

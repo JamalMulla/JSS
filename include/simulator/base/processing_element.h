@@ -38,13 +38,13 @@ class ProcessingElement::builder {
    private:
     int rows_ = -1;
     int cols_ = -1;
-    int row_stride_ = -1;
-    int col_stride_ = -1;
+    int row_stride_ = 1;
+    int col_stride_ = 1;
     int num_analogue_ = -1;
     int num_digital_ = -1;
     Source source_;
     std::string path_;
-    Config config_;
+    Config* config_;
 
    public:
     builder& with_rows(int rows);

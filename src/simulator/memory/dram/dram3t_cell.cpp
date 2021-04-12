@@ -18,7 +18,8 @@ Dram3tCell::Dram3tCell(int rows, int cols, int row_stride, int col_stride, Confi
     config_(&config),
     array_transistor_count_(rows, cols, CV_32S, cv::Scalar(transistor_count_)),
     array_static_power_(rows, cols, CV_32F, cv::Scalar(0)),
-    array_dynamic_power_(rows, cols, CV_32F, cv::Scalar(0)) {
+    array_dynamic_power_(rows, cols, CV_32F, cv::Scalar(0)),
+    scratch(rows, cols, CV_8U, cv::Scalar(0)) {
 }
 
 double Dram3tCell::fun_static(const Config& config) {

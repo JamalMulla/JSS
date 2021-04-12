@@ -13,10 +13,10 @@ ProcessingElement::ProcessingElement(int rows, int columns, int row_stride, int 
 {
     // TODO need to be able to pass in some way of creating the underlying memory
     for(int i = 0; i < num_analogue; i++) {
-        analogue_registers.emplace_back(rows, columns);
+        analogue_registers.emplace_back(rows, columns, config);
     }
     for(int i = 0; i < num_digital; i++) {
-        digital_registers.emplace_back(rows, columns);
+        digital_registers.emplace_back(rows, columns, config);
     }
 }
 void ProcessingElement::update_cycles(int cycles) {
@@ -106,7 +106,7 @@ ProcessingElement::builder &ProcessingElement::builder::with_file_path(
 }
 
 ProcessingElement::builder &ProcessingElement::builder::with_config(Config &config) {
-    this->config_ = config;
+    this->config_ = &config;
     return *this;
 }
 
@@ -118,5 +118,5 @@ ProcessingElement ProcessingElement::builder::build() {
                   << std::endl;
     }
 #endif
-    return ProcessingElement(rows_, cols_, row_stride_, col_stride_, num_analogue_, num_digital_, source_, path_, config_);
+    return ProcessingElement(rows_, cols_, row_stride_, col_stride_, num_analogue_, num_digital_, source_, path_, *config_);
 }

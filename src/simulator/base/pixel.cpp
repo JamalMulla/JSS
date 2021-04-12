@@ -19,8 +19,7 @@ Pixel::Pixel(int rows, int cols, int row_stride, int col_stride, Source src, con
     array_static_power_(rows, cols, CV_32F, cv::Scalar(0)),
     array_dynamic_power_(rows, cols, CV_32F, cv::Scalar(0)),
     internal_mask(rows, cols, CV_8U, cv::Scalar(0)),
-    config_(&config)
-{
+    config_(&config) {
     switch(src) {
         case LIVE: {
             input_source = std::make_shared<LiveInput>(rows, cols);
@@ -47,7 +46,9 @@ void Pixel::read(Register& reg) {
     cv::add(this->array_dynamic_power_, this->dynamic_power_, this->array_dynamic_power_, this->internal_mask);
 }
 
-double Pixel::last_frame_time() { return input_source->last_frame_time(); }
+double Pixel::last_frame_time() {
+    return input_source->last_frame_time();
+}
 
 #ifdef TRACK_STATISTICS
 
@@ -67,8 +68,8 @@ cv::Mat& Pixel::get_transistor_count() {
     return array_transistor_count_;
 }
 void Pixel::fun_internal_mask(int rows, int cols, int row_stride, int col_stride) {
-    for (int row = 0; row < rows; row += row_stride) {
-        for (int col = 0; col < cols; col += col_stride) {
+    for(int row = 0; row < rows; row += row_stride) {
+        for(int col = 0; col < cols; col += col_stride) {
             this->internal_mask.at<uint8_t>(row, col) = 1;
         }
     }

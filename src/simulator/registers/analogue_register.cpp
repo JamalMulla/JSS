@@ -8,7 +8,7 @@
 #include "simulator/memory/si_cell.h"
 #include "simulator/metrics/stats.h"
 
-AnalogueRegister::AnalogueRegister(int rows, int cols, int row_stride, int col_stride, Config &config, MemoryType memory) :
+AnalogueRegister::AnalogueRegister(int rows, int cols, Config &config, int row_stride, int col_stride, MemoryType memory) :
     Register(rows, cols, row_stride, col_stride, MAT_TYPE, config, memory) {
     this->min_val = -128;
     this->max_val = 127;

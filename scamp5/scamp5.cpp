@@ -14,7 +14,8 @@
 
 
 SCAMP5::SCAMP5(int rows, int cols, Origin origin)
-    : rows_(rows), cols_(cols), origin_(origin) {
+    : rows_(rows), cols_(cols), origin_(origin), config_(1e7) {
+
     pe = std::make_unique<ProcessingElement>(
         ProcessingElement::builder {}
             .with_rows(rows)
@@ -22,6 +23,7 @@ SCAMP5::SCAMP5(int rows, int cols, Origin origin)
             .with_analogue_registers(ANALOGUE_REGISTERS)
             .with_digital_registers(DIGITAL_REGISTERS)
             .with_input_source(Source::LIVE)
+            .with_config(config_)
             .build());
     array = std::make_unique<Array>(rows, cols, *pe);
     this->init();
@@ -57,12 +59,8 @@ void SCAMP5::init() {
 
     // Initially all PEs are active
     FLAG->write(1);
-    config_.clock_rate = 1e7;
-    config_.process_node = 180;
-    config_.temperature = 20;
-    config_.voltage = 1.8;
 
-    FLAG->change_memory_type(Sram6tCell(rows_, cols_, 1, 1, config_));
+    FLAG->change_memory_type(MemoryType::SRAM6T);
 
     intermediate_a = std::make_unique<AREG>(this->rows_, this->cols_);
     intermediate_a2 = std::make_unique<AREG>(this->rows_, this->cols_);

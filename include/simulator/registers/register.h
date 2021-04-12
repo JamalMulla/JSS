@@ -44,9 +44,11 @@ class Register : public Component {
 #ifdef TRACK_STATISTICS
     // Can only be used if memory_ is defined
     void update(double time) override;
-    void inc_read(const cv::_InputOutputArray& mask = cv::noArray());
+    void inc_read(const cv::_InputOutputArray& mask);
 
-    void inc_write(const cv::_InputOutputArray& mask = cv::noArray());
+    void inc_write(const cv::_InputOutputArray& mask);
+    void inc_read();
+    void inc_write();
     cv::Mat& get_static_power() override;
     cv::Mat& get_dynamic_power() override;
     cv::Mat& get_transistor_count() override;
