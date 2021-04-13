@@ -25,9 +25,9 @@ class Array {
 
    public:
     Array(int rows, int columns, Config& config, ProcessingElement pe);
-    void update_cycles(int cycles);
 
     ProcessingElement pe;
+    void update_cycles(int cycles);
 #ifdef TRACK_STATISTICS
     void print_stats();
 #endif

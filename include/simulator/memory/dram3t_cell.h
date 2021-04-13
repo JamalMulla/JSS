@@ -12,6 +12,7 @@
 
 class Dram3tCell : public Memory {
    private:
+#ifdef TRACK_STATISTICS
     int cycle_count_ = 2;  // TODO find proper numbers for cycle counts
     int transistor_count_ = 3;
     double static_power_;  // in Watts
@@ -27,10 +28,12 @@ class Dram3tCell : public Memory {
     double fun_dynamic_read(const Config& config);
     double fun_dynamic_write(const Config& config);
     cv::Mat scratch;
+#endif
 
 public:
     explicit Dram3tCell(int rows, int cols, int row_stride, int col_stride, Config& config);
 
+#ifdef TRACK_STATISTICS
     void update(double time) override;
     int get_cycle_count() override;
     cv::Mat& get_static_energy() override;
@@ -40,7 +43,6 @@ public:
     void read() override;
     void write(const cv::_InputOutputArray& mask) override;
     void write() override;
-#ifdef TRACK_STATISTICS
     void print_stats(const CycleCounter& counter) override;
 //    void write_stats(const CycleCounter& counter, json& j) override;
 #endif

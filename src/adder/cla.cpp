@@ -47,6 +47,7 @@ void CarryLookAheadAdder::fun_internal_mask(int rows, int cols, int row_stride, 
     }
 }
 
+#ifdef TRACK_STATISTICS
 int CarryLookAheadAdder::get_cycle_count() {
     return cycle_count_;
 }
@@ -66,6 +67,8 @@ cv::Mat& CarryLookAheadAdder::get_dynamic_energy() {
 cv::Mat& CarryLookAheadAdder::get_transistor_count() {
     return array_transistor_count_;
 }
+#endif
+
 void CarryLookAheadAdder::add(DigitalRegister& dst, DigitalRegister& src1, DigitalRegister& src2, const cv::_InputOutputArray& mask) {
     scratch = 0;
     cv::bitwise_and(this->internal_mask, mask, scratch);

@@ -12,6 +12,7 @@
 
 class Sram6tCell : public Memory {
    private:
+#ifdef TRACK_STATISTICS
     int cycle_count_ = 1;  // TODO find proper numbers for cycle counts
     int transistor_count_ = 6;
     double static_power_;  // in Watts
@@ -26,10 +27,12 @@ class Sram6tCell : public Memory {
     double fun_dynamic_read(const Config& config);
     double fun_dynamic_write(const Config& config);
     cv::Mat scratch;
+#endif
 
    public:
     explicit Sram6tCell(int rows, int cols, int row_stride, int col_stride, Config& config);
 
+#ifdef TRACK_STATISTICS
     void update(double time) override;
     int get_cycle_count() override;
     cv::Mat& get_static_energy() override;
@@ -39,7 +42,6 @@ class Sram6tCell : public Memory {
     void read() override;
     void write(const cv::_InputOutputArray& mask) override;
     void write() override;
-#ifdef TRACK_STATISTICS
     void print_stats(const CycleCounter& counter) override;
 //    void write_stats(const CycleCounter& counter, json& j) override;
 #endif

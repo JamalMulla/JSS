@@ -31,9 +31,8 @@ class ProcessingElement : public StatsOutputter {
     Config* config_;
 
     ProcessingElement(int rows, int cols, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config);
-    void update_cycles(int cycles);
-
 #ifdef TRACK_STATISTICS
+    void update_cycles(int cycles);
     cv::Mat get_transistor_count();
     cv::Mat get_static_energy();
     cv::Mat get_dynamic_energy();

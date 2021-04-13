@@ -29,7 +29,6 @@ class Component : public StatsOutputter {
     virtual int get_cycle_count() = 0;
     void print_stats(const CycleCounter& counter) override = 0;
 //    virtual void write_stats(const CycleCounter& counter, json& j) = 0;
-
 #endif
 };
 

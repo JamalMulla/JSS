@@ -28,9 +28,7 @@ class Register : public Component {
     Config* config_;
     std::shared_ptr<Memory> memory_;
     cv::Mat value_;
-#ifdef TRACK_STATISTICS
 
-#endif
    public:
     std::string name_;
     int min_val = 0;

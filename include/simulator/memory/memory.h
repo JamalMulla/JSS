@@ -15,7 +15,6 @@ enum MemoryType {
     S2I
 };
 
-
 class Memory : public Component {
    protected:
     int rows_;
@@ -27,10 +26,12 @@ class Memory : public Component {
     void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
    public:
     Memory(int rows, int cols, int row_stride, int col_stride);
+#ifdef TRACK_STATISTICS
     virtual void read(const cv::_InputOutputArray &mask) = 0;
     virtual void read() = 0;
     virtual void write(const cv::_InputOutputArray &mask) = 0;
     virtual void write() = 0;
+#endif
     static std::shared_ptr<Memory> construct(MemoryType memory_type, int rows, int cols, int row_stride, int col_stride, Config& config);
 };
 

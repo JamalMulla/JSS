@@ -10,11 +10,14 @@ Array::Array(int rows, int columns, Config& config, ProcessingElement pe) :
     rows_(rows), columns_(columns), config_(&config), pe(std::move(pe)) {}
 
 void Array::update_cycles(int cycles) {
+#ifdef TRACK_STATISTICS
     counter_ += cycles;
     this->pe.update_cycles(cycles);
+#endif
 }
 
 #ifdef TRACK_STATISTICS
+
 void Array::print_stats() {
     std::cout << "==============================" << "\n";
     std::cout << "Results" << "\n";

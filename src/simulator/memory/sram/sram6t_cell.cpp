@@ -9,7 +9,9 @@
 #include "simulator/base/config.h"
 
 Sram6tCell::Sram6tCell(int rows, int cols, int row_stride, int col_stride, Config& config) :
-    Memory(rows, cols, row_stride, col_stride),
+    Memory(rows, cols, row_stride, col_stride)
+#ifdef TRACK_STATISTICS
+    ,
     static_power_(fun_static(config)),
     dynamic_read_power_(fun_dynamic_read(config)),
     dynamic_write_power_(fun_dynamic_write(config)),
@@ -18,8 +20,11 @@ Sram6tCell::Sram6tCell(int rows, int cols, int row_stride, int col_stride, Confi
     array_transistor_count_(rows, cols, CV_32S, cv::Scalar(transistor_count_)),
     array_static_energy_(rows, cols, CV_64F, cv::Scalar(0)),
     array_dynamic_energy_(rows, cols, CV_64F, cv::Scalar(0)),
-    scratch(rows, cols, CV_8U, cv::Scalar(0)) {
-}
+    scratch(rows, cols, CV_8U, cv::Scalar(0))
+#endif
+{}
+
+#ifdef TRACK_STATISTICS
 
 double Sram6tCell::fun_static(const Config& config) {
     return 1.2991e-10;  // TODO find better numbers
@@ -76,3 +81,5 @@ void Sram6tCell::update(double time) {
 void Sram6tCell::print_stats(const CycleCounter& counter) {
     std::cout << "TODO: Implement in SRAM6TCELL" << std::endl;
 }
+
+#endif

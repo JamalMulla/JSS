@@ -23,6 +23,9 @@ Register::Register(int rows, int cols, int row_stride, int col_stride, int type)
     col_stride_(col_stride),
     value_(rows, cols, type, cv::Scalar(0)) {}
 
+
+#ifdef TRACK_STATISTICS
+
 void Register::update(double time) {
     if (memory_) {
         memory_->update(time);
@@ -44,6 +47,8 @@ cv::Mat &Register::get_transistor_count() {
 int Register::get_cycle_count() {
     return this->memory_->get_cycle_count();
 }
+
+#endif
 
 cv::Mat &Register::read() {
 #ifdef TRACK_STATISTICS

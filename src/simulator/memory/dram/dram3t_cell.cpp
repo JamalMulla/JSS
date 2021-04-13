@@ -11,7 +11,9 @@
 // TODO take refresh into account for dynamic power? Or average out and include as part of static power.
 
 Dram3tCell::Dram3tCell(int rows, int cols, int row_stride, int col_stride, Config& config) :
-    Memory(rows, cols, row_stride, col_stride),
+    Memory(rows, cols, row_stride, col_stride)
+#ifdef TRACK_STATISTICS
+    ,
     static_power_(fun_static(config)),
     dynamic_read_power_(fun_dynamic_read(config)),
     dynamic_write_power_(fun_dynamic_write(config)),
@@ -20,8 +22,12 @@ Dram3tCell::Dram3tCell(int rows, int cols, int row_stride, int col_stride, Confi
     array_transistor_count_(rows, cols, CV_32S, cv::Scalar(transistor_count_)),
     array_static_energy_(rows, cols, CV_64F, cv::Scalar(0)),
     array_dynamic_energy_(rows, cols, CV_64F, cv::Scalar(0)),
-    scratch(rows, cols, CV_8U, cv::Scalar(0)) {
-}
+    scratch(rows, cols, CV_8U, cv::Scalar(0))
+#endif
+{}
+
+#ifdef TRACK_STATISTICS
+
 
 double Dram3tCell::fun_static(const Config& config) {
     return 2.17e-8;  // TODO find better numbers
@@ -51,6 +57,14 @@ int Dram3tCell::get_cycle_count() {
     return cycle_count_;
 }
 
+void Dram3tCell::update(double time) {
+    cv::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
+}
+
+void Dram3tCell::print_stats(const CycleCounter& counter) {
+    std::cout << "TODO: Implement in DRAM3TCELL" << std::endl;
+}
+
 void Dram3tCell::read(const cv::_InputOutputArray& mask) {
     scratch = 0;
     cv::bitwise_and(this->internal_mask, mask, scratch);
@@ -70,11 +84,5 @@ void Dram3tCell::write(const cv::_InputOutputArray& mask) {
 void Dram3tCell::write() {
     cv::add(this->array_dynamic_energy_, this->dynamic_write_power_ * time_, this->array_dynamic_energy_, internal_mask);
 }
+#endif
 
-void Dram3tCell::update(double time) {
-    cv::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
-}
-
-void Dram3tCell::print_stats(const CycleCounter& counter) {
-    std::cout << "TODO: Implement in DRAM3TCELL" << std::endl;
-}

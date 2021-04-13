@@ -33,12 +33,13 @@ class CarryLookAheadAdder : public Component {
 
    public:
     CarryLookAheadAdder(int rows, int cols, int row_stride, int col_stride, int bits, const Config& config);
+#ifdef TRACK_STATISTICS
     void update(double time) override;
     int get_cycle_count() override;
     cv::Mat& get_static_energy() override;
     cv::Mat& get_dynamic_energy() override;
     cv::Mat& get_transistor_count() override;
-
+#endif
 
     void add(DigitalRegister& dst, DigitalRegister& src1, DigitalRegister& src2, const cv::_InputOutputArray& mask);
 };

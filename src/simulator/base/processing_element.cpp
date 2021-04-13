@@ -19,6 +19,7 @@ ProcessingElement::ProcessingElement(int rows, int cols, int row_stride, int col
         digital_registers.emplace_back(rows, cols, config);
     }
 }
+#ifdef TRACK_STATISTICS
 void ProcessingElement::update_cycles(int cycles) {
     double time = (1 / (double) config_->clock_rate) * cycles;
     for(DigitalRegister &digital_register: digital_registers) {
@@ -30,8 +31,6 @@ void ProcessingElement::update_cycles(int cycles) {
     }
     photodiode.update(time);
 }
-
-#ifdef TRACK_STATISTICS
 
 cv::Mat ProcessingElement::get_transistor_count() {
     cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_32S);

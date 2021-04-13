@@ -12,8 +12,10 @@ using json = nlohmann::json;
 
 /*Interface for outputting of metrics*/
 class StatsOutputter {
-    virtual void print_stats(const CycleCounter& counter) = 0;
+#ifdef TRACK_STATISTICS
+virtual void print_stats(const CycleCounter& counter) = 0;
 //    virtual void write_stats(const CycleCounter& counter, json& j) = 0;
+#endif
 };
 
 #endif  //SIMULATOR_STATS_OUTPUTTER_H

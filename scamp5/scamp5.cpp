@@ -78,7 +78,7 @@ void SCAMP5::rpix() {
 void SCAMP5::get_image(AREG *y) {
     // y := half-range image, and reset *PIX
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
+    this->array->update_cycles(30);
     this->bus(NEWS, PIX);
     this->rpix();
     this->rpix();
@@ -89,7 +89,7 @@ void SCAMP5::get_image(AREG *y) {
 void SCAMP5::get_image(AREG *y, AREG *h) {
     // y := full-range image, h := negative half-range image, and reset *PIX
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(30);
+    this->array->update_cycles(30); //todo
 //    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(h, PIX);
@@ -112,7 +112,8 @@ void SCAMP5::respix(AREG *y) {
     this->rpix();
     this->nop();
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
+    this->array->update_cycles(30); //todo
+//    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(y, NEWS);
 }
@@ -120,7 +121,8 @@ void SCAMP5::respix(AREG *y) {
 void SCAMP5::getpix(AREG *y, AREG *pix_res) {
     // y := half-range image, supplying the reset level of *PIX
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
+    this->array->update_cycles(30); //todo
+//    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(y, NEWS, pix_res);
 }
@@ -128,7 +130,8 @@ void SCAMP5::getpix(AREG *y, AREG *pix_res) {
 void SCAMP5::getpix(AREG *y, AREG *h, AREG *pix_res) {
     // y := full-range, h := half-range image, supplying the reset level of *PIX
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
+    this->array->update_cycles(30); //todo
+//    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(h, PIX);
     this->bus(NEWS, PIX);
     this->bus(y, h, NEWS, pix_res);
