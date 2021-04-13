@@ -11,6 +11,7 @@
 void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {
     // a = 0 + error
     a.write(0, FLAG);
+    FLAG.inc_read();
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,

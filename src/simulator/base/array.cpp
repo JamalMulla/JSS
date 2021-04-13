@@ -37,7 +37,7 @@ void Array::print_stats() {
     std::cout << "Array dynamic power: " <<  dynamic_power << " W\n";
     std::cout << "Array total power: " << static_power + dynamic_power << " W\n";
 
-    this->pe.print_stats(counter_);
+//    this->pe.print_stats(counter_);
 }
 //void Array::print_stats(const CycleCounter& counter) {
 //    this->pe.print_stats(counter);

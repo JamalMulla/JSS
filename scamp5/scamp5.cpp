@@ -921,25 +921,6 @@ void SCAMP5::PROP1() {
     // async-propagation on R12, masked by R0 when boundaries are considered '1'
 }
 
-void SCAMP5::print_stats() {
-    // TODO move
-#ifdef TRACK_STATISTICS
-    this->array->print_stats();
-//    json j;
-//    j["Total number of cycles"] = counter->get_cycles();
-//    j["Equivalent in seconds"] = counter->to_seconds(config_.clock_rate);
-//
-//    // this->array.print_stats(counter);
-//    this->array->write_stats(*counter, j);
-//    std::cout << std::setw(2) << j << std::endl;
-//    std::ofstream file_out;
-//    std::cout << std::filesystem::current_path().string() << std::endl;
-//    file_out.open(std::filesystem::current_path().string() + "/output.json");
-//    file_out << std::setw(2) << j;
-//    file_out.close();
-#endif
-}
-
 void SCAMP5::scamp5_get_image(AREG *yf, AREG *yh, int gain) {
     // put the exposure result in *PIX to AREGs and reset *PIX
     // yf	full range [-128,127]
@@ -1582,43 +1563,318 @@ void SCAMP5::scamp5_scan_boundingbox(DREG *dr, uint8_t *vec4v) {
     // pointer to a buffer of 4 byte
 }
 
+// Simulator specific
+
+void SCAMP5::print_stats() {
+    // TODO move
+#ifdef TRACK_STATISTICS
+    this->array->print_stats();
+//    json j;
+//    j["Total number of cycles"] = counter->get_cycles();
+//    j["Equivalent in seconds"] = counter->to_seconds(config_.clock_rate);
+//
+//    // this->array.print_stats(counter);
+//    this->array->write_stats(*counter, j);
+//    std::cout << std::setw(2) << j << std::endl;
+//    std::ofstream file_out;
+//    std::cout << std::filesystem::current_path().string() << std::endl;
+//    file_out.open(std::filesystem::current_path().string() + "/output.json");
+//    file_out << std::setw(2) << j;
+//    file_out.close();
+#endif
+}
+
 // EXTENSIONS
 
 // Superpixel methods
+
+void SCAMP5::superpixel_positions_from_bitorder(position_map &locations) {
+    // Locations holds a map from <bank, index> -> x,y coords
+    int banks = bitorder.size();
+    int height = bitorder[0].size();
+    int width = bitorder[0][0].size();
+
+    for(int b = 0; b < banks; b++) {
+        for(int h = 0; h < height; h++) {
+            for(int w = 0; w < width; w++) {
+                int index = bitorder[b][h][w];
+                if(index < 1) continue;  // Bitorder indices start 1
+                locations[{b, index}] = cv::Point(w, h);
+            }
+        }
+    }
+}
+
+void SCAMP5::superpixel_shift_patterns_from_bitorder(int bank, DREG* RNORTH, DREG* RSOUTH, DREG* REAST, DREG* RWEST, bool shift_left) {
+    size_t rows = bitorder[0].size();
+    size_t cols = bitorder[0][0].size();
+    DigitalRegister R_NORTH(rows, cols);
+    DigitalRegister R_SOUTH(rows, cols);
+    DigitalRegister R_EAST(rows, cols);
+    DigitalRegister R_WEST(rows, cols);
+
+    for(size_t row = 0; row < rows; row++) {
+        for(size_t col = 0; col < cols; col++) {
+            int north;
+            int west;
+            int current = bitorder[bank][row][col];
+            if(current < 1) continue;  // Indices start at 1
+            if(row == 0) {
+                // No north so set north to current
+                north = current;
+            } else {
+                north = bitorder[bank][row - 1][col];
+            }
+
+            if(col == 0) {
+                // No west so set west to current
+                west = current;
+            } else {
+                west = bitorder[bank][row][col - 1];
+            }
+
+            if(current == north + 1) {
+                // bigger than north
+                (shift_left ? R_SOUTH : R_NORTH).read().at<uint8_t>(row - (shift_left ? 0 : 1), col) = 1;
+            } else if(current == north - 1) {
+                // smaller than north
+                (shift_left ? R_NORTH : R_SOUTH).read().at<uint8_t>(row - (shift_left ? 1 : 0), col) = 1;
+            }
+
+            if(current == west + 1) {
+                // bigger than west
+                (shift_left ? R_EAST : R_WEST).read().at<uint8_t>(row, col - (shift_left ? 0 : 1)) = 1;
+            } else if(current == west - 1) {
+                // smaller than west
+                (shift_left ? R_WEST : R_EAST).read().at<uint8_t>(row, col - (shift_left ? 1 : 0)) = 1;
+            }
+        }
+    }
+
+    switch(origin_) {
+        case BOTTOM_LEFT: {
+            RSOUTH->write(R_NORTH);
+            RNORTH->write(R_SOUTH);
+            REAST->write(R_WEST);
+            RWEST->write(R_EAST);
+            break;
+        }
+        case BOTTOM_RIGHT: {
+            RSOUTH->write(R_NORTH);
+            RNORTH->write(R_SOUTH);
+            REAST->write(R_EAST);
+            RWEST->write(R_WEST);
+            break;
+        }
+        case TOP_LEFT: {
+            // opencv default
+            RSOUTH->write(R_SOUTH);
+            RNORTH->write(R_NORTH);
+            REAST->write(R_WEST);
+            RWEST->write(R_EAST);
+            break;
+        }
+        case TOP_RIGHT: {
+            RSOUTH->write(R_SOUTH);
+            RNORTH->write(R_NORTH);
+            REAST->write(R_EAST);
+            RWEST->write(R_WEST);
+            break;
+        }
+    }
+}
+
+void SCAMP5::superpixel_shift_block(DREG* dst, DREG* src, DREG* RNORTH, DREG* RSOUTH, DREG* REAST, DREG* RWEST) {
+    int rows = src->read().rows;
+    int cols = src->read().cols;
+    DigitalRegister east = DigitalRegister(rows, cols);
+    DigitalRegister north = DigitalRegister(rows, cols);
+    DigitalRegister west = DigitalRegister(rows, cols);
+    DigitalRegister south = DigitalRegister(rows, cols);
+
+    this->pe->local_read_bus.get_east(east, *src, 1, 0, origin_);
+    this->pe->local_read_bus.get_north(north, *src, 1, 0, origin_);
+    this->pe->local_read_bus.get_west(west, *src, 1, 0, origin_);
+    this->pe->local_read_bus.get_south(south, *src, 1, 0, origin_);
+
+    AND(&east, &east, REAST);
+    AND(&north, &north, RNORTH);
+    AND(&west, &west, RWEST);
+    AND(&south, &south, RSOUTH);
+
+    OR(dst, &east, &north, &south, &west);
+}
+
 void SCAMP5::superpixel_adc(DREG *dst, int bank, AREG *src) {
-    // Remove redundancy
-    DigitalBus::position_map locations;
-    this->pe->local_read_bus.positions_from_bitorder(this->bitorder, locations);
-    this->pe->local_read_bus.superpixel_adc(*dst, bank, 8, *src, locations, 4);
+    // Converts an analogue image to a digital superpixel format
+    // Values will always be put in bank 0
+    position_map locations;
+
+    this->superpixel_positions_from_bitorder(locations);
+
+    parallel_for_(cv::Range(0, src->read().rows * src->read().cols), [&](const cv::Range &range) {
+      for(int r = range.start; r < range.end; r++) {
+          int row = r / src->read().cols;
+          int col = r % src->read().cols;
+
+          if(row % superpixel_size != 0) continue;  // Step size is not 1
+          if(col % superpixel_size != 0) continue;
+
+          int sum = cv::sum(src->read()(cv::Rect(col, row, superpixel_size, superpixel_size)))[0];
+          sum /= (superpixel_size * superpixel_size);  // <- this truncates values
+          int8_t s = sum;  // Need to have another look at this. Is this correct?
+          for(int i = 0; i < bits_in_bank; i++) {
+              int bit = (s >> i) & 1;  // LSB to MSB
+              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
+              dst->read().at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bit;
+          }
+      }
+    });
 }
 
 void SCAMP5::superpixel_dac(AREG *dst, int bank, DREG *src) {
-    DigitalBus::position_map locations;
-    this->pe->local_read_bus.positions_from_bitorder(this->bitorder, locations);
-    this->pe->local_read_bus.superpixel_dac(*dst, bank, 8, *src, locations, 4);
+    position_map locations;
+    this->superpixel_positions_from_bitorder(locations);
+    // Converts digital superpixel format image to an analogue image
+
+    parallel_for_(cv::Range(0, src->read().rows * src->read().cols), [&](const cv::Range &range) {
+      for(int r = range.start; r < range.end; r++) {
+          int row = r / src->read().cols;
+          int col = r % src->read().cols;
+
+          if(row % superpixel_size != 0) continue;  // Step size is superpixel_size
+          if(col % superpixel_size != 0) continue;
+
+          // Read value from superpixel
+          int8_t value = 0;
+          for(int i = 0; i < bits_in_bank; i++) {
+              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
+              int bit = src->read().at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+              value |= bit << i;  // LSB to MSB
+          }
+          dst->read()(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
+      }
+    });
 }
 
 void SCAMP5::superpixel_in(DREG *dst, int bank, int value) {
-    DigitalBus::position_map locations;
-    this->pe->local_read_bus.positions_from_bitorder(this->bitorder, locations);
-    this->pe->local_read_bus.superpixel_in(*dst, bank, 8, locations, 4, value);
+    position_map locations;
+    this->superpixel_positions_from_bitorder(locations);
+    auto bits = std::make_unique<int[]>(bits_in_bank);
+
+    // Loads a constant value in each superpixel
+    for(int i = 0; i < bits_in_bank; i++) {
+        int bit = (value >> i) & 1;  // LSB to MSB
+        bits[i] = bit;
+    }
+
+    for(int col = 0; col < dst->read().cols; col += superpixel_size) {
+        for(int row = 0; row < dst->read().rows; row += superpixel_size) {
+            for(int i = 0; i < bits_in_bank; i++) {
+                cv::Point relative_pos = locations.at({bank, i + 1});
+                dst->read().at<uint8_t>(relative_pos.y + row,relative_pos.x + col) = bits[i];
+            }
+        }
+    }
+}
+
+void SCAMP5::superpixel_shift(DREG *dst, int bank, DREG *src, int shift_left) {
+    int rows = src->read().rows;
+    int cols = src->read().cols;
+    DigitalRegister RNORTH = DigitalRegister(superpixel_size, superpixel_size);
+    DigitalRegister RSOUTH = DigitalRegister(superpixel_size, superpixel_size);
+    DigitalRegister REAST = DigitalRegister(superpixel_size, superpixel_size);
+    DigitalRegister RWEST = DigitalRegister(superpixel_size, superpixel_size);
+    superpixel_shift_patterns_from_bitorder(bank, &RNORTH, &RSOUTH, &REAST, &RWEST,
+                                            shift_left);
+
+    // TODO non-square superpixels?
+    int num_of_repeats_y = rows / superpixel_size;
+    int num_of_repeats_x = cols / superpixel_size;
+    DigitalRegister R_NORTH = cv::repeat(RNORTH.read(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_SOUTH = cv::repeat(RSOUTH.read(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_EAST = cv::repeat(REAST.read(), num_of_repeats_y, num_of_repeats_x);
+    DigitalRegister R_WEST = cv::repeat(RWEST.read(), num_of_repeats_y, num_of_repeats_x);
+    superpixel_shift_block(dst, src, &R_NORTH, &R_SOUTH, &R_EAST, &R_WEST);
+
+    if(bitorder.size() > 1) {
+        // only need to preserve other banks if we have more than 1 bank
+        DigitalRegister block_mask = DigitalRegister(superpixel_size, superpixel_size);
+
+        for(size_t b = 0; b < bitorder.size(); b++) {
+            for(size_t row = 0; row < superpixel_size; row++) {
+                for(size_t col = 0; col < superpixel_size; col++) {
+                    int current = bitorder[b][row][col];
+                    if(current < 1) continue;  // Indices start at 1
+                    if(b != bank) {
+                        // Set mask bit to 1 everywhere other than the bank
+                        block_mask.read().at<uint8_t>(row, col) = 1;
+                    }
+                }
+            }
+        }
+
+        DigitalRegister mask = cv::repeat(block_mask.read(), num_of_repeats_y, num_of_repeats_x);
+        DigitalRegister and_ = DigitalRegister(rows, cols);
+
+        AND(&and_, &mask, src);
+        OR(dst, &and_, dst);
+    }
 }
 
 void SCAMP5::superpixel_shift_right(DREG *dst, int bank, DREG *src) {
     // Logical shift right
-    this->pe->local_read_bus.superpixel_shift_right(*dst, bank, *src, this->bitorder, this->origin_);
+    // src and dst cannot be the same
+    superpixel_shift(dst, bank, src, false);
 }
 void SCAMP5::superpixel_shift_left(DREG *dst, int bank, DREG *src) {
     // Logical shift left
-    this->pe->local_read_bus.superpixel_shift_left(*dst, bank, *src, this->bitorder, this->origin_);
+    // src and dst cannot be the same
+    superpixel_shift(dst, bank, src, true);
 }
 
 void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
-    this->pe->local_read_bus.superpixel_add(*dst, bank, *src1, *src2, this->bitorder, this->origin_);
+    DigitalRegister A = src1->read().clone();
+    DigitalRegister B = src2->read().clone();
+    DigitalRegister and_ = DigitalRegister(src1->read().rows, src1->read().cols);
+    DigitalRegister xor_ = DigitalRegister(src1->read().rows, src1->read().cols);
+
+    AND(&and_, &A, &B);
+
+    while(cv::sum(and_.read())[0] != 0) {
+        XOR(&xor_, &A, &B);
+        AND(&and_, &A, &B);
+        superpixel_shift_left(&and_, bank, &and_);
+        A.write(xor_);
+        B.write(and_);
+        AND(&and_, &A, &B);
+    }
+    XOR(dst, &A, &B);
 }
 
 void SCAMP5::superpixel_sub(DREG *dst, int bank, DREG* src1, DREG* src2) {
-    this->pe->local_read_bus.superpixel_sub(*dst, bank, *src1, *src2, this->bitorder, this->origin_);
+    DigitalRegister A = src1->read().clone();
+    DigitalRegister B = src2->read().clone();
+    DigitalRegister NOT_A = src1->read().clone();
+    DigitalRegister and_ =
+        DigitalRegister(src1->read().rows, src1->read().cols);
+    DigitalRegister xor_ =
+        DigitalRegister(src1->read().rows, src1->read().cols);
+
+    NOT(&NOT_A, &A);
+    AND(&and_, &NOT_A, &B);
+
+    while(cv::sum(and_.read())[0] != 0) {
+        XOR(&xor_, &A, &B);
+        NOT(&NOT_A, &A);
+        AND(&and_, &NOT_A, &B);
+        superpixel_shift_left(&and_, bank, &and_);
+        A.write(xor_);
+        B.write(and_);
+        NOT(&NOT_A, &A);
+        AND(&and_, &NOT_A, &B);
+    }
+    XOR(dst, &A, &B);
 }
 
 // Builder

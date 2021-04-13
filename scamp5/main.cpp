@@ -22,14 +22,14 @@ int main() {
     UI ui;
     ui.start();
 
-    int frames = 500;
+    int frames = 1000;
 
     int i = 0;
     while(i < frames) {
         int e1 = cv::getTickCount();
-        sobel(s);
+        gaussian5x5(s);
         int e2 = cv::getTickCount();
-//        std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
+        //        std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
         ui.display_reg(s.A);
         ui.display_reg(s.B);
         ui.display_reg(s.C);
@@ -41,7 +41,6 @@ int main() {
         std::cout << "Frame: " << i << "/" << frames << std::endl;
         i++;
     }
-
 
     s.print_stats();
 
