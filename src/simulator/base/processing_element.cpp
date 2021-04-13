@@ -4,23 +4,23 @@
 
 #include "simulator/base/processing_element.h"
 
-#include "simulator/metrics/stats.h"
-
-ProcessingElement::ProcessingElement(int rows, int columns, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config) :
-    photodiode(Pixel(rows, columns, row_stride, col_stride, source, path, config)),
+ProcessingElement::ProcessingElement(int rows, int cols, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config) :
+    rows_(rows),
+    cols_(cols),
+    photodiode(Pixel(rows, cols, row_stride, col_stride, source, path, config)),
     config_(&config)
 
 {
     // TODO need to be able to pass in some way of creating the underlying memory
     for(int i = 0; i < num_analogue; i++) {
-        analogue_registers.emplace_back(rows, columns, config);
+        analogue_registers.emplace_back(rows, cols, config);
     }
     for(int i = 0; i < num_digital; i++) {
-        digital_registers.emplace_back(rows, columns, config);
+        digital_registers.emplace_back(rows, cols, config);
     }
 }
 void ProcessingElement::update_cycles(int cycles) {
-    double time = (1 / config_->clock_rate) * cycles;
+    double time = (1 / (double) config_->clock_rate) * cycles;
     for(DigitalRegister &digital_register: digital_registers) {
         digital_register.update(time);
     }
@@ -32,6 +32,51 @@ void ProcessingElement::update_cycles(int cycles) {
 }
 
 #ifdef TRACK_STATISTICS
+
+cv::Mat ProcessingElement::get_transistor_count() {
+    cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_32S);
+    for(auto &analogue: analogue_registers) {
+        out += analogue.get_transistor_count();
+    }
+    for(auto &digital: digital_registers) {
+        out += digital.get_transistor_count();
+    }
+    out += photodiode.get_transistor_count();
+    return out;
+}
+
+cv::Mat ProcessingElement::get_static_energy() {
+    cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_64F);
+    for(auto &analogue: analogue_registers) {
+        out += analogue.get_static_energy();
+    }
+    for(auto &digital: digital_registers) {
+        out += digital.get_static_energy();
+    }
+    out += photodiode.get_static_energy();
+    return out;
+}
+
+cv::Mat ProcessingElement::get_dynamic_energy() {
+    cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_64F);
+    for(auto &analogue: analogue_registers) {
+        out += analogue.get_dynamic_energy();
+    }
+    for(auto &digital: digital_registers) {
+        out += digital.get_dynamic_energy();
+    }
+    out += photodiode.get_dynamic_energy();
+    return out;
+}
+
+void ProcessingElement::print_stats(const CycleCounter &counter) {
+    std::cout << "====================" << "\n";
+    for(auto &analogue: analogue_registers) { analogue.print_stats(counter); }
+    for(auto &digital: digital_registers) { digital.print_stats(counter); }
+    photodiode.print_stats(counter);
+    std::cout << "====================" << "\n";
+}
+
 //void ProcessingElement::print_stats(const CycleCounter &counter) {
 //    for(auto &analogue: analogue_registers) { analogue.print_stats(counter); }
 //    for(auto &digital: digital_registers) { digital.print_stats(counter); }

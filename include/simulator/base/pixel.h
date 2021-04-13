@@ -22,8 +22,8 @@ class Pixel : public Component {
     double static_power_;  // in watts
     double dynamic_power_;  // in watts
     cv::Mat array_transistor_count_;
-    cv::Mat array_static_power_;
-    cv::Mat array_dynamic_power_;
+    cv::Mat array_static_energy_;
+    cv::Mat array_dynamic_energy_;
     cv::Mat internal_mask;
     Config* config_;
 
@@ -36,12 +36,12 @@ class Pixel : public Component {
     void read(Register& reg);
     double last_frame_time();
 #ifdef TRACK_STATISTICS
-    cv::Mat& get_static_power() override;
-    cv::Mat& get_dynamic_power() override;
+    cv::Mat& get_static_energy() override;
+    cv::Mat& get_dynamic_energy() override;
     cv::Mat& get_transistor_count() override;
     void update(double time) override;
     int get_cycle_count() override;
-//    void print_stats(const CycleCounter& counter) override;
+    void print_stats(const CycleCounter& counter) override;
 //    void write_stats(const CycleCounter& counter, json& j) override;
 #endif
     ~Pixel();

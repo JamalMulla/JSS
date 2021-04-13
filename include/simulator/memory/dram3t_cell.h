@@ -18,9 +18,10 @@ class Dram3tCell : public Memory {
     double dynamic_read_power_;  // in Watts for a read
     double dynamic_write_power_;  // in Watts for a read
     Config* config_;
+    double time_; // time in seconds for read/write
     cv::Mat array_transistor_count_;
-    cv::Mat array_static_power_;
-    cv::Mat array_dynamic_power_;
+    cv::Mat array_static_energy_;
+    cv::Mat array_dynamic_energy_;
     double refresh_time_ = 0.064;  // In S
     double fun_static(const Config& config);
     double fun_dynamic_read(const Config& config);
@@ -32,13 +33,17 @@ public:
 
     void update(double time) override;
     int get_cycle_count() override;
-    cv::Mat& get_static_power() override;
-    cv::Mat& get_dynamic_power() override;
+    cv::Mat& get_static_energy() override;
+    cv::Mat& get_dynamic_energy() override;
     cv::Mat& get_transistor_count() override;
     void read(const cv::_InputOutputArray& mask) override;
     void read() override;
     void write(const cv::_InputOutputArray& mask) override;
     void write() override;
+#ifdef TRACK_STATISTICS
+    void print_stats(const CycleCounter& counter) override;
+//    void write_stats(const CycleCounter& counter, json& j) override;
+#endif
 };
 
 #endif  // SIMULATOR_DRAM3T_CELL_H

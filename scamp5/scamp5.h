@@ -437,7 +437,7 @@ class SCAMP5 {
     void superpixel_sub(DREG *dst, int bank, DREG *src1, DREG *src2);
 
     // Simulator specific methods
-    void print_stats(const CycleCounter *counter);
+    void print_stats();
 };
 
 class SCAMP5::builder {

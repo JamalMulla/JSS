@@ -15,9 +15,11 @@
 #include "simulator/units/comparator.h"
 #include "simulator/units/squarer.h"
 
-class ProcessingElement {
+class ProcessingElement : public StatsOutputter {
    public:
     class builder;
+    int rows_;
+    int cols_;
     Pixel photodiode;
     std::vector<AnalogueRegister> analogue_registers;
     std::vector<DigitalRegister> digital_registers;
@@ -28,8 +30,15 @@ class ProcessingElement {
     DigitalBus local_write_bus;
     Config* config_;
 
-    ProcessingElement(int rows, int columns, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config);
+    ProcessingElement(int rows, int cols, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config);
     void update_cycles(int cycles);
+
+#ifdef TRACK_STATISTICS
+    cv::Mat get_transistor_count();
+    cv::Mat get_static_energy();
+    cv::Mat get_dynamic_energy();
+    void print_stats(const CycleCounter &counter) override;
+#endif
 
 
 };

@@ -6,7 +6,6 @@
 
 #include "simulator/base/array.h"
 #include "simulator/memory/si_cell.h"
-#include "simulator/metrics/stats.h"
 
 AnalogueRegister::AnalogueRegister(int rows, int cols, Config &config, int row_stride, int col_stride, MemoryType memory) :
     Register(rows, cols, row_stride, col_stride, MAT_TYPE, config, memory) {
@@ -33,6 +32,13 @@ AnalogueRegister &AnalogueRegister::operator()(const std::string &name) {
 }
 
 #ifdef TRACK_STATISTICS
+void AnalogueRegister::print_stats(const CycleCounter &counter) {
+    std::cout << "===================" << std::endl;
+    std::cout << "Name: " << name_ << "\n";
+    std::cout << "Static power: " << cv::sum(this->get_static_energy())[0] << std::endl;
+    std::cout << "Dynamic power: " << cv::sum(this->get_dynamic_energy())[0] << std::endl;
+
+}
 //void AnalogueRegister::print_stats(const CycleCounter &counter) {
 //    std::cout << counter.to_seconds(stats::CLOCK_RATE) << std::endl;
 //}

@@ -20,10 +20,11 @@ class CarryLookAheadAdder : public Component {
     int transistor_count_;
     double static_power_;  // in Watts
     double dynamic_power_;  // in Watts for an addition
+    double time_; // time in seconds for an addition
     cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
     cv::Mat array_transistor_count_;
-    cv::Mat array_static_power_;
-    cv::Mat array_dynamic_power_;
+    cv::Mat array_static_energy_;
+    cv::Mat array_dynamic_energy_;
     int fun_transistor(int bits, const Config& config);
     double fun_static(int bits, const Config& config);
     double fun_dynamic(int bits, const Config& config);
@@ -34,8 +35,8 @@ class CarryLookAheadAdder : public Component {
     CarryLookAheadAdder(int rows, int cols, int row_stride, int col_stride, int bits, const Config& config);
     void update(double time) override;
     int get_cycle_count() override;
-    cv::Mat& get_static_power() override;
-    cv::Mat& get_dynamic_power() override;
+    cv::Mat& get_static_energy() override;
+    cv::Mat& get_dynamic_energy() override;
     cv::Mat& get_transistor_count() override;
 
 

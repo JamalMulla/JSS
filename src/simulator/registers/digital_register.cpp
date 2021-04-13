@@ -6,8 +6,6 @@
 
 #include <iostream>
 
-#include "simulator/metrics/stats.h"
-
 DigitalRegister::DigitalRegister(int rows, int columns, Config& config, int row_stride, int col_stride, MemoryType memory_type) :
     Register(rows, columns, row_stride, col_stride, CV_8U, config, memory_type) {
     this->min_val = 0;
@@ -37,6 +35,9 @@ void DigitalRegister::set() { this->write(1); }
 void DigitalRegister::clear() { this->write(0); }
 
 #ifdef TRACK_STATISTICS
+void DigitalRegister::print_stats(const CycleCounter &counter) {
+
+}
 //void DigitalRegister::print_stats(const CycleCounter &counter) {
 //    // power x time = energy
 //    // energy / time = power

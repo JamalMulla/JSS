@@ -25,7 +25,7 @@ SCAMP5::SCAMP5(int rows, int cols, Origin origin)
             .with_input_source(Source::LIVE)
             .with_config(config_)
             .build());
-    array = std::make_unique<Array>(rows, cols, *pe);
+    array = std::make_unique<Array>(rows, cols, config_, *pe);
     this->init();
 }
 
@@ -89,7 +89,8 @@ void SCAMP5::get_image(AREG *y) {
 void SCAMP5::get_image(AREG *y, AREG *h) {
     // y := full-range image, h := negative half-range image, and reset *PIX
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
+    this->array->update_cycles(30);
+//    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(h, PIX);
     this->rpix();
@@ -920,12 +921,13 @@ void SCAMP5::PROP1() {
     // async-propagation on R12, masked by R0 when boundaries are considered '1'
 }
 
-void SCAMP5::print_stats(const CycleCounter *counter) {
+void SCAMP5::print_stats() {
     // TODO move
-//#ifdef TRACK_STATISTICS
+#ifdef TRACK_STATISTICS
+    this->array->print_stats();
 //    json j;
 //    j["Total number of cycles"] = counter->get_cycles();
-//    j["Equivalent in seconds"] = counter->to_seconds(stats::CLOCK_RATE);
+//    j["Equivalent in seconds"] = counter->to_seconds(config_.clock_rate);
 //
 //    // this->array.print_stats(counter);
 //    this->array->write_stats(*counter, j);
@@ -935,7 +937,7 @@ void SCAMP5::print_stats(const CycleCounter *counter) {
 //    file_out.open(std::filesystem::current_path().string() + "/output.json");
 //    file_out << std::setw(2) << j;
 //    file_out.close();
-//#endif
+#endif
 }
 
 void SCAMP5::scamp5_get_image(AREG *yf, AREG *yh, int gain) {

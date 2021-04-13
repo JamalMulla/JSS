@@ -10,6 +10,7 @@
 #include <opencv2/core/mat.hpp>
 
 #include "simulator/base/component.h"
+#include "simulator/metrics/cycle_counter.h"
 #include "simulator/memory/memory.h"
 
 class UI;
@@ -46,14 +47,14 @@ class Register : public Component {
     void update(double time) override;
     void inc_read(const cv::_InputOutputArray& mask);
 
-    void inc_write(const cv::_InputOutputArray& mask);
     void inc_read();
+    void inc_write(const cv::_InputOutputArray& mask);
     void inc_write();
-    cv::Mat& get_static_power() override;
-    cv::Mat& get_dynamic_power() override;
+    cv::Mat& get_static_energy() override;
+    cv::Mat& get_dynamic_energy() override;
     cv::Mat& get_transistor_count() override;
     int get_cycle_count() override;
-//    void print_stats(const CycleCounter& counter) override = 0;
+    void print_stats(const CycleCounter& counter) override = 0;
 //    void write_stats(const CycleCounter& counter, json& j) override = 0;
 #endif
 

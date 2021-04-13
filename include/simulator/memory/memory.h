@@ -27,11 +27,6 @@ class Memory : public Component {
     void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
    public:
     Memory(int rows, int cols, int row_stride, int col_stride);
-    virtual cv::Mat& get_transistor_count() override = 0;
-    virtual int get_cycle_count() override = 0;
-    virtual cv::Mat& get_dynamic_power() override = 0;
-    virtual cv::Mat& get_static_power() override = 0;
-    virtual void update(double time) override = 0;
     virtual void read(const cv::_InputOutputArray &mask) = 0;
     virtual void read() = 0;
     virtual void write(const cv::_InputOutputArray &mask) = 0;

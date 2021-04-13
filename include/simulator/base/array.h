@@ -5,6 +5,8 @@
 #ifndef SIMULATOR_ARRAY_H
 #define SIMULATOR_ARRAY_H
 
+#include <simulator/metrics/stats_outputter.h>
+
 #include <functional>
 
 #include "component.h"
@@ -13,22 +15,21 @@
 
 #define MAT_TYPE CV_16S
 
+// TODO implement StatsOutputter
 class Array {
    private:
-    CycleCounter counter;
-
-   protected:
     int rows_;
     int columns_;
+    Config* config_;
+    CycleCounter counter_;
 
    public:
-    Array(int rows, int columns, ProcessingElement pe);
+    Array(int rows, int columns, Config& config, ProcessingElement pe);
     void update_cycles(int cycles);
 
     ProcessingElement pe;
 #ifdef TRACK_STATISTICS
-//    void print_stats(const CycleCounter& counter) override;
-//    void write_stats(const CycleCounter& counter, json& j) override;
+    void print_stats();
 #endif
 };
 

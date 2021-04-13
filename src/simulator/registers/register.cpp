@@ -29,12 +29,12 @@ void Register::update(double time) {
     }
 }
 
-cv::Mat &Register::get_static_power() {
-    return memory_->get_static_power();
+cv::Mat &Register::get_static_energy() {
+    return memory_->get_static_energy();
 }
 
-cv::Mat &Register::get_dynamic_power() {
-    return memory_->get_dynamic_power();
+cv::Mat &Register::get_dynamic_energy() {
+    return memory_->get_dynamic_energy();
 }
 
 cv::Mat &Register::get_transistor_count() {
