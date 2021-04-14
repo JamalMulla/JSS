@@ -19,6 +19,18 @@ int main() {
                    .with_rows(256)
                    .with_cols(256)
                    .build();
+    Bitorder bitorder = {
+        {{1, 8, 0, 0},
+         {2, 7, 0, 0},
+         {3, 6, 0, 0},
+         {4, 5, 0, 0}},
+        {{0, 0, 1, 8},
+         {0, 0, 2, 7},
+         {0, 0, 3, 6},
+         {0, 0, 4, 5}}};
+    s.set_superpixel(bitorder, 4, 8);
+
+
     UI ui;
     ui.start();
 

@@ -18,6 +18,7 @@ enum news_t { east = 1,
 
 typedef AnalogueRegister AREG;
 typedef DigitalRegister DREG;
+typedef std::vector<std::vector<std::vector<int>>> Bitorder;
 
 #define RS R1
 #define RW R2
@@ -37,14 +38,17 @@ class SCAMP5 {
    private:
     std::unique_ptr<ProcessingElement> pe;
     std::unique_ptr<Array> array;
-    DREG *scratch = nullptr;
     std::unique_ptr<AREG> intermediate_a;
     std::unique_ptr<AREG> intermediate_a2;
     std::unique_ptr<DREG> intermediate_d;
+    DREG *scratch = nullptr;
     int rows_;
     int cols_;
     Origin origin_;
     Config config_;
+    Bitorder bitorder_;
+    int superpixel_size_;
+    int bits_in_bank_;
 
     //     boustrophedonic bitorder
     //        std::vector<std::vector<std::vector<int>>> bitorder = {
@@ -69,17 +73,17 @@ class SCAMP5 {
     // if the bitorder is changed here
 
     // 2 bank 8-bit boustrophedonic
-    std::vector<std::vector<std::vector<int>>> bitorder = {
-        {{1, 8, 0, 0},
-         {2, 7, 0, 0},
-         {3, 6, 0, 0},
-         {4, 5, 0, 0}},
-        {{0, 0, 1, 8},
-         {0, 0, 2, 7},
-         {0, 0, 3, 6},
-         {0, 0, 4, 5}}};
-    int superpixel_size = 4;
-    int bits_in_bank = 8;
+//    std::vector<std::vector<std::vector<int>>> bitorder = {
+//        {{1, 8, 0, 0},
+//         {2, 7, 0, 0},
+//         {3, 6, 0, 0},
+//         {4, 5, 0, 0}},
+//        {{0, 0, 1, 8},
+//         {0, 0, 2, 7},
+//         {0, 0, 3, 6},
+//         {0, 0, 4, 5}}};
+//    int superpixel_size = 4;
+//    int bits_in_bank = 8;
 
     void init();
 
@@ -125,6 +129,7 @@ class SCAMP5 {
     DREG *RECT;
 
     SCAMP5(int rows, int cols, Origin origin);
+    void set_superpixel(Bitorder bitorder, int superpixel_size, int bits_in_bank);
 
     // Misc
     void nop();
