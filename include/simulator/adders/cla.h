@@ -39,9 +39,11 @@ class CarryLookAheadAdder : public Component {
     cv::Mat& get_static_energy() override;
     cv::Mat& get_dynamic_energy() override;
     cv::Mat& get_transistor_count() override;
+    void print_stats(const CycleCounter &counter) override;
+    void inc_add();
 #endif
 
-    void add(DigitalRegister& dst, DigitalRegister& src1, DigitalRegister& src2, const cv::_InputOutputArray& mask);
+    int add(int src1, int src2);
 };
 
 #endif  //SIMULATOR_CLA_H

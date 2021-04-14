@@ -31,11 +31,11 @@ double Sram6tCell::fun_static(const Config& config) {
 }
 
 double Sram6tCell::fun_dynamic_read(const Config& config) {
-    return 5.805e-8;
+    return 5.805e-7;
 }
 
 double Sram6tCell::fun_dynamic_write(const Config& config) {
-    return 6.305e-8;
+    return 6.305e-7;
 }
 
 cv::Mat& Sram6tCell::get_static_energy() {

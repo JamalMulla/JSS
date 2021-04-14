@@ -5,6 +5,7 @@
 #ifndef SIMULATOR_ARRAY_H
 #define SIMULATOR_ARRAY_H
 
+#include <simulator/adders/cla.h>
 #include <simulator/metrics/stats_outputter.h>
 
 #include <functional>
@@ -27,9 +28,11 @@ class Array {
     Array(int rows, int columns, Config& config, ProcessingElement pe);
 
     ProcessingElement pe;
+    CarryLookAheadAdder cla;
     void update_cycles(int cycles);
 #ifdef TRACK_STATISTICS
     void print_stats();
+    unsigned long long get_cycles();
 #endif
 };
 

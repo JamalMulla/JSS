@@ -78,7 +78,7 @@ void SCAMP5::rpix() {
 void SCAMP5::get_image(AREG *y) {
     // y := half-range image, and reset *PIX
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(30);
+    this->array->update_cycles(10000);
     this->bus(NEWS, PIX);
     this->rpix();
     this->rpix();
@@ -89,7 +89,8 @@ void SCAMP5::get_image(AREG *y) {
 void SCAMP5::get_image(AREG *y, AREG *h) {
     // y := full-range image, h := negative half-range image, and reset *PIX
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(30); //todo
+//    this->array->update_cycles(420000); //todo
+    this->array->update_cycles(100); //2000
 //    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(h, PIX);
@@ -112,7 +113,7 @@ void SCAMP5::respix(AREG *y) {
     this->rpix();
     this->nop();
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(30); //todo
+    this->array->update_cycles(30000); //todo
 //    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(y, NEWS);
@@ -121,7 +122,7 @@ void SCAMP5::respix(AREG *y) {
 void SCAMP5::getpix(AREG *y, AREG *pix_res) {
     // y := half-range image, supplying the reset level of *PIX
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(30); //todo
+    this->array->update_cycles(30000); //todo
 //    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(y, NEWS, pix_res);
@@ -130,7 +131,7 @@ void SCAMP5::getpix(AREG *y, AREG *pix_res) {
 void SCAMP5::getpix(AREG *y, AREG *h, AREG *pix_res) {
     // y := full-range, h := half-range image, supplying the reset level of *PIX
     this->pe->photodiode.read(*PIX);
-    this->array->update_cycles(30); //todo
+    this->array->update_cycles(30000); //todo
 //    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
     this->bus(h, PIX);
     this->bus(NEWS, PIX);
@@ -1117,6 +1118,7 @@ uint32_t SCAMP5::scamp5_global_sum_16(AREG *areg, uint8_t *result16v) {
             }
         }
     }
+    this->array->update_cycles(140); // 14usec at 10MHz. TODO make flexible
     return sum;
 }
 
@@ -1141,13 +1143,14 @@ uint32_t SCAMP5::scamp5_global_sum_64(AREG *areg, uint8_t *result64v) {
             }
         }
     }
+    this->array->update_cycles(280); // 28usec at 10MHz. TODO improve
     return sum;
 }
 
 uint8_t SCAMP5::scamp5_global_sum_fast(AREG *areg) {
     // get approximate sum level of the whole AREG plane
-    // TODO should be approximate sum not exact. Also need to abstract away cv
-    // call
+    // TODO should be approximate sum not exact. Also need to abstract away cv call
+    this->array->update_cycles(70); // TODO improve
     return cv::sum(areg->read())[0];
 }
 
@@ -1171,7 +1174,7 @@ uint8_t SCAMP5::scamp5_global_sum_sparse(AREG *areg, uint8_t r, uint8_t c,
             }
         }
     }
-
+    this->array->update_cycles(70); // TODO improve
     return sum;
 }
 
@@ -1201,7 +1204,7 @@ int SCAMP5::scamp5_global_or(DREG *dreg, uint8_t r, uint8_t c, uint8_t rx,
             }
         }
     }
-
+    this->array->update_cycles(70); // TODO improve
     return val;
 }
 
@@ -1712,24 +1715,25 @@ void SCAMP5::superpixel_adc(DREG *dst, int bank, AREG *src) {
     // Converts an analogue image to a digital superpixel format
     // Values will always be put in bank 0
     position_map locations;
-
     this->superpixel_positions_from_bitorder(locations);
 
-    parallel_for_(cv::Range(0, src->read().rows * src->read().cols), [&](const cv::Range &range) {
+    cv::Mat &d = dst->read();
+    cv::Mat &sr = src->read();
+    parallel_for_(cv::Range(0, sr.rows * sr.cols), [&](const cv::Range &range) {
       for(int r = range.start; r < range.end; r++) {
-          int row = r / src->read().cols;
-          int col = r % src->read().cols;
+          int row = r / sr.cols;
+          int col = r % sr.cols;
 
           if(row % superpixel_size != 0) continue;  // Step size is not 1
           if(col % superpixel_size != 0) continue;
 
-          int sum = cv::sum(src->read()(cv::Rect(col, row, superpixel_size, superpixel_size)))[0];
+          int sum = cv::sum(sr(cv::Rect(col, row, superpixel_size, superpixel_size)))[0];
           sum /= (superpixel_size * superpixel_size);  // <- this truncates values
           int8_t s = sum;  // Need to have another look at this. Is this correct?
           for(int i = 0; i < bits_in_bank; i++) {
               int bit = (s >> i) & 1;  // LSB to MSB
               cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
-              dst->read().at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bit;
+              d.at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bit;
           }
       }
     });
@@ -1740,10 +1744,12 @@ void SCAMP5::superpixel_dac(AREG *dst, int bank, DREG *src) {
     this->superpixel_positions_from_bitorder(locations);
     // Converts digital superpixel format image to an analogue image
 
-    parallel_for_(cv::Range(0, src->read().rows * src->read().cols), [&](const cv::Range &range) {
+    cv::Mat &d = dst->read();
+    cv::Mat &s = src->read();
+    parallel_for_(cv::Range(0, s.rows * s.cols), [&](const cv::Range &range) {
       for(int r = range.start; r < range.end; r++) {
-          int row = r / src->read().cols;
-          int col = r % src->read().cols;
+          int row = r / s.cols;
+          int col = r % s.cols;
 
           if(row % superpixel_size != 0) continue;  // Step size is superpixel_size
           if(col % superpixel_size != 0) continue;
@@ -1752,10 +1758,10 @@ void SCAMP5::superpixel_dac(AREG *dst, int bank, DREG *src) {
           int8_t value = 0;
           for(int i = 0; i < bits_in_bank; i++) {
               cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
-              int bit = src->read().at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+              int bit = s.at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
               value |= bit << i;  // LSB to MSB
           }
-          dst->read()(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
+          d(cv::Rect(col, row, superpixel_size, superpixel_size)) = value;
       }
     });
 }
@@ -1771,11 +1777,12 @@ void SCAMP5::superpixel_in(DREG *dst, int bank, int value) {
         bits[i] = bit;
     }
 
-    for(int col = 0; col < dst->read().cols; col += superpixel_size) {
-        for(int row = 0; row < dst->read().rows; row += superpixel_size) {
+    cv::Mat &d = dst->read();
+    for(int col = 0; col < d.cols; col += superpixel_size) {
+        for(int row = 0; row < d.rows; row += superpixel_size) {
             for(int i = 0; i < bits_in_bank; i++) {
                 cv::Point relative_pos = locations.at({bank, i + 1});
-                dst->read().at<uint8_t>(relative_pos.y + row,relative_pos.x + col) = bits[i];
+                d.at<uint8_t>(relative_pos.y + row,relative_pos.x + col) = bits[i];
             }
         }
     }
@@ -1804,6 +1811,7 @@ void SCAMP5::superpixel_shift(DREG *dst, int bank, DREG *src, int shift_left) {
         // only need to preserve other banks if we have more than 1 bank
         DigitalRegister block_mask = DigitalRegister(superpixel_size, superpixel_size);
 
+        cv::Mat &bm = block_mask.read();
         for(size_t b = 0; b < bitorder.size(); b++) {
             for(size_t row = 0; row < superpixel_size; row++) {
                 for(size_t col = 0; col < superpixel_size; col++) {
@@ -1811,13 +1819,13 @@ void SCAMP5::superpixel_shift(DREG *dst, int bank, DREG *src, int shift_left) {
                     if(current < 1) continue;  // Indices start at 1
                     if(b != bank) {
                         // Set mask bit to 1 everywhere other than the bank
-                        block_mask.read().at<uint8_t>(row, col) = 1;
+                        bm.at<uint8_t>(row, col) = 1;
                     }
                 }
             }
         }
 
-        DigitalRegister mask = cv::repeat(block_mask.read(), num_of_repeats_y, num_of_repeats_x);
+        DigitalRegister mask = cv::repeat(bm, num_of_repeats_y, num_of_repeats_x);
         DigitalRegister and_ = DigitalRegister(rows, cols);
 
         AND(&and_, &mask, src);
@@ -1836,23 +1844,61 @@ void SCAMP5::superpixel_shift_left(DREG *dst, int bank, DREG *src) {
     superpixel_shift(dst, bank, src, true);
 }
 
+//void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
+//    DigitalRegister A = src1->read().clone();
+//    DigitalRegister B = src2->read().clone();
+//    DigitalRegister and_ = DigitalRegister(src1->read().rows, src1->read().cols);
+//    DigitalRegister xor_ = DigitalRegister(src1->read().rows, src1->read().cols);
+//
+//    AND(&and_, &A, &B);
+//
+//    while(cv::sum(and_.read())[0] != 0) {
+//        XOR(&xor_, &A, &B);
+//        AND(&and_, &A, &B);
+//        superpixel_shift_left(&and_, bank, &and_);
+//        A.write(xor_);
+//        B.write(and_);
+//        AND(&and_, &A, &B);
+//    }
+//    XOR(dst, &A, &B);
+//}
+
 void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
-    DigitalRegister A = src1->read().clone();
-    DigitalRegister B = src2->read().clone();
-    DigitalRegister and_ = DigitalRegister(src1->read().rows, src1->read().cols);
-    DigitalRegister xor_ = DigitalRegister(src1->read().rows, src1->read().cols);
+    position_map locations;
+    this->superpixel_positions_from_bitorder(locations);
 
-    AND(&and_, &A, &B);
+    cv::Mat &d = dst->read();
+    cv::Mat &s1 = src1->read();
+    cv::Mat &s2 = src2->read();
+    parallel_for_(cv::Range(0, rows_ * cols_), [&](const cv::Range &range) {
+      for(int r = range.start; r < range.end; r++) {
+          int row = r / cols_;
+          int col = r % cols_;
 
-    while(cv::sum(and_.read())[0] != 0) {
-        XOR(&xor_, &A, &B);
-        AND(&and_, &A, &B);
-        superpixel_shift_left(&and_, bank, &and_);
-        A.write(xor_);
-        B.write(and_);
-        AND(&and_, &A, &B);
-    }
-    XOR(dst, &A, &B);
+          if(row % superpixel_size != 0) continue;  // Step size is superpixel_size
+          if(col % superpixel_size != 0) continue;
+
+          // Read value from each superpixel
+          int8_t value1 = 0;
+          int8_t value2 = 0;
+          for(int i = 0; i < bits_in_bank; i++) {
+              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
+              int bit = s1.at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+              value1 |= bit << i;  // LSB to MSB
+              int bit2 = s2.at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+              value2 |= bit2 << i;  // LSB to MSB
+          }
+
+          int8_t sum = this->array->cla.add(value1, value2);  // Need to have another look at this. Is this correct?
+          for(int i = 0; i < bits_in_bank; i++) {
+              int bit = (sum >> i) & 1;  // LSB to MSB
+              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
+              d.at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bit;
+          }
+      }
+    });
+    this->array->cla.inc_add();
+    this->array->update_cycles(8);
 }
 
 void SCAMP5::superpixel_sub(DREG *dst, int bank, DREG* src1, DREG* src2) {

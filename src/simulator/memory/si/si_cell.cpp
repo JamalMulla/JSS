@@ -30,11 +30,11 @@ double SiCell::fun_static(const Config& config) {
 }
 
 double SiCell::fun_dynamic_read(const Config& config) {
-    return 0.00001;
+    return 0.0001;
 }
 
 double SiCell::fun_dynamic_write(const Config& config) {
-    return 0.00001;
+    return 0.0001;
 }
 
 cv::Mat& SiCell::get_static_energy() {
