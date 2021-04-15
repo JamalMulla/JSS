@@ -47,6 +47,33 @@ TEST_CASE("XOR is working correctly") {
     REQUIRE(utility::mats_are_equal(out.read(), expected));
 }
 
+TEST_CASE("movx is working correctly") {
+    int rows = 4;
+    int cols = 4;
+    SCAMP5 s = SCAMP5::builder {}
+        .with_rows(rows)
+        .with_cols(cols)
+        .with_origin(Origin::TOP_RIGHT)
+        .build();
+
+    AnalogueRegister out(rows, cols);
+
+    AnalogueRegister src = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
+        29,10,20,-10,
+        111,4,5,6,
+        0,1,1,1,
+        10,19,99,-90);
+
+    cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
+        111,4,5,6,
+        0,1,1,1,
+        10,19,99,-90,
+        0,0,0,0);
+
+    s.movx(&out, &src, north);
+    REQUIRE(utility::mats_are_equal(out.read(), expected));
+}
+
 
 TEST_CASE("DNEWS0 is working correctly") {
     int rows = 4;
@@ -313,7 +340,7 @@ TEST_CASE("images can be converted to digital superpixel format") {
     REQUIRE(utility::mats_are_equal(out.read(), expected));
 }
 
-TEST_CASE("superpixel images can be shifted") {
+TEST_CASE("1 bank superpixel images can be shifted") {
     int rows = 4;
     int cols = 4;
     int bank = 0;
@@ -388,7 +415,54 @@ TEST_CASE("1 bank superpixel images can be added") {
     REQUIRE(utility::mats_are_equal(out.read(), expected));
 }
 
-TEST_CASE("superpixel images can be subtracted") {
+TEST_CASE("2 bank superpixel images can be added") {
+    int rows = 4;
+    int cols = 4;
+    int bank = 0;
+
+    SCAMP5 s = SCAMP5::builder {}
+        .with_rows(rows)
+        .with_cols(cols)
+        .with_origin(Origin::TOP_RIGHT)
+        .build();
+
+    Bitorder bitorder = {
+        {{1, 8, 0, 0},
+         {2, 7, 0, 0},
+         {3, 6, 0, 0},
+         {4, 5, 0, 0}},
+        {{0, 0, 1, 8},
+         {0, 0, 2, 7},
+         {0, 0, 3, 6},
+         {0, 0, 4, 5}}};
+
+    s.set_superpixel(bitorder, 4, 8);
+
+    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        0,0,0,0,
+        0,0,1,0,
+        0,0,0,0,
+        1,0,1,0);
+    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        0,1,0,0,
+        0,0,0,0,
+        0,1,0,0,
+        1,0,0,0);
+
+    DigitalRegister out(rows, cols);
+
+    s.superpixel_add(&out, bank, &A, &B);
+    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        1,1,0,0,
+        0,0,0,0,
+        0,1,0,0,
+        1,0,0,0);
+    std::cout << out.read() << std::endl;
+    std::cout << expected << std::endl;
+    REQUIRE(utility::mats_are_equal(out.read(), expected));
+}
+
+TEST_CASE("1 bank superpixel images can be subtracted") {
     int rows = 4;
     int cols = 4;
     int bank = 0;

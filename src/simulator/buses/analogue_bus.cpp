@@ -206,108 +206,16 @@ void AnalogueBus::divq(AnalogueRegister &y0, AnalogueRegister &x0,
     AnalogueBus::bus(y0, intermediate, FLAG);
 }
 
-void AnalogueBus::push_north(AnalogueRegister &src, AnalogueRegister &dst,
-                             int offset, DigitalRegister &FLAG) {
-    // Push value of register src north by offset into register dst
-    int width = src.read().cols;
-    int height = src.read().rows;
-    auto src_rect = cv::Rect(0, 0, width, height - offset);
-    auto dst_rect = cv::Rect(0, offset, width, height - offset);
-    auto fill_rect = cv::Rect(0, 0, src.read().cols, offset);
-    src.read()(src_rect).copyTo(dst.read()(dst_rect), FLAG.read()(dst_rect));
-    dst.read()(fill_rect).setTo(cv::Scalar(0), FLAG.read()(fill_rect));
-#ifdef TRACK_STATISTICS
-    src.inc_read();
-    dst.inc_write(FLAG.read());
-    FLAG.inc_read();
-#endif
-}
 
-void AnalogueBus::push_east(AnalogueRegister &src, AnalogueRegister &dst,
-                            int offset, DigitalRegister &FLAG) {
-    // Push value of register src east by offset into register dst
-    int width = src.read().cols;
-    int height = src.read().rows;
-    auto src_rect = cv::Rect(0, 0, width - offset, height);
-    auto dst_rect = cv::Rect(offset, 0, width - offset, height);
-    auto fill_rect = cv::Rect(0, 0, offset, height);
-    auto a = src.read()(src_rect);
-    a.copyTo(dst.read()(dst_rect), FLAG.read()(dst_rect));
-    dst.read()(fill_rect).setTo(cv::Scalar(0), FLAG.read()(fill_rect));
-#ifdef TRACK_STATISTICS
-    src.inc_read();
-    dst.inc_write(FLAG.read());
-    FLAG.inc_read();
-#endif
-}
 
-void AnalogueBus::push_south(AnalogueRegister &src, AnalogueRegister &dst,
-                             int offset, DigitalRegister &FLAG) {
-    // Push value of register src south by offset into register dst
-    int width = src.read().cols;
-    int height = src.read().rows;
-    auto src_rect = cv::Rect(0, offset, width, height - offset);
-    auto dst_rect = cv::Rect(0, 0, width, height - offset);
-    auto fill_rect = cv::Rect(0, height - offset, width, offset);
-    src.read()(src_rect).copyTo(dst.read()(dst_rect), FLAG.read()(dst_rect));
-    dst.read()(fill_rect).setTo(cv::Scalar(0), FLAG.read()(fill_rect));
-#ifdef TRACK_STATISTICS
-    src.inc_read();
-    dst.inc_write(FLAG.read());
-    FLAG.inc_read();
-#endif
-}
-
-void AnalogueBus::push_west(AnalogueRegister &src, AnalogueRegister &dst,
-                            int offset, DigitalRegister &FLAG) {
-    // Push value of register src west by offset into register dst
-    int width = src.read().cols;
-    int height = src.read().rows;
-    auto src_rect = cv::Rect(offset, 0, width - offset, height);
-    auto dst_rect = cv::Rect(0, 0, width - offset, height);
-    auto fill_rect = cv::Rect(width - offset, 0, offset, height);
-    src.read()(src_rect).copyTo(dst.read()(dst_rect), FLAG.read()(dst_rect));
-    dst.read()(fill_rect).setTo(cv::Scalar(0), FLAG.read()(fill_rect));
-#ifdef TRACK_STATISTICS
-    src.inc_read();
-    dst.inc_write(FLAG.read());
-    FLAG.inc_read();
-#endif
-}
-
-void AnalogueBus::pull_north(AnalogueRegister &src, AnalogueRegister &dst,
-                             int offset, DigitalRegister &FLAG) {
-    // Pull value from north src by offset into register dst
-    this->push_south(src, dst, offset, FLAG);
-}
-
-void AnalogueBus::pull_east(AnalogueRegister &src, AnalogueRegister &dst,
-                            int offset, DigitalRegister &FLAG) {
-    // Pull value from east src by offset into register dst
-    this->push_west(src, dst, offset, FLAG);
-}
-
-void AnalogueBus::pull_south(AnalogueRegister &src, AnalogueRegister &dst,
-                             int offset, DigitalRegister &FLAG) {
-    // Pull value from south src by offset into register dst
-    this->push_north(src, dst, offset, FLAG);
-}
-
-void AnalogueBus::pull_west(AnalogueRegister &src, AnalogueRegister &dst,
-                            int offset, DigitalRegister &FLAG) {
-    // Pull value from south src by offset into register dst
-    this->push_east(src, dst, offset, FLAG);
-}
-
-void AnalogueBus::get_east(AnalogueRegister &src, AnalogueRegister &dst,
-                           int offset) {
+void AnalogueBus::get_up(AnalogueRegister &dst, AnalogueRegister &src, int offset) {
     // x, y, width, height
     auto read_chunk =
-        cv::Rect(offset, 0, src.read().cols - offset, src.read().rows);
+        cv::Rect(0, 0, src.read().cols, src.read().rows - offset);
     auto write_chunk =
-        cv::Rect(0, 0, src.read().cols - offset, src.read().rows);
+        cv::Rect(0, offset, src.read().cols, src.read().rows - offset);
     src.read()(read_chunk).copyTo(dst.read()(write_chunk));
-    auto fill = cv::Rect(0, 0, offset, src.read().rows);
+    auto fill = cv::Rect(0, 0, src.read().cols, offset);
     dst.read()(fill).setTo(cv::Scalar(0));
 #ifdef TRACK_STATISTICS
     src.inc_read();
@@ -315,13 +223,12 @@ void AnalogueBus::get_east(AnalogueRegister &src, AnalogueRegister &dst,
 #endif
 }
 
-void AnalogueBus::get_west(AnalogueRegister &src, AnalogueRegister &dst,
-                           int offset) {
+void AnalogueBus::get_right(AnalogueRegister &dst, AnalogueRegister &src, int offset) {
     // x, y, width, height
     auto read_chunk =
-        cv::Rect(0, 0, src.read().cols - offset, src.read().rows);
-    auto write_chunk =
         cv::Rect(offset, 0, src.read().cols - offset, src.read().rows);
+    auto write_chunk =
+        cv::Rect(0, 0, src.read().cols - offset, src.read().rows);
     src.read()(read_chunk).copyTo(dst.read()(write_chunk));
     auto fill =
         cv::Rect(src.read().cols - offset, 0, offset, src.read().rows);
@@ -332,15 +239,14 @@ void AnalogueBus::get_west(AnalogueRegister &src, AnalogueRegister &dst,
 #endif
 }
 
-void AnalogueBus::get_north(AnalogueRegister &src, AnalogueRegister &dst,
-                            int offset) {
+void AnalogueBus::get_left(AnalogueRegister &dst, AnalogueRegister &src, int offset) {
     // x, y, width, height
     auto read_chunk =
-        cv::Rect(0, offset, src.read().cols, src.read().rows - offset);
+        cv::Rect(0, 0, src.read().cols - offset, src.read().rows);
     auto write_chunk =
-        cv::Rect(0, 0, src.read().cols, src.read().rows - offset);
+        cv::Rect(offset, 0, src.read().cols - offset, src.read().rows);
     src.read()(read_chunk).copyTo(dst.read()(write_chunk));
-    auto fill = cv::Rect(0, 0, src.read().cols, offset);
+    auto fill = cv::Rect(0, 0, offset, src.read().rows);
     dst.read()(fill).setTo(cv::Scalar(0));
 #ifdef TRACK_STATISTICS
     src.inc_read();
@@ -348,13 +254,13 @@ void AnalogueBus::get_north(AnalogueRegister &src, AnalogueRegister &dst,
 #endif
 }
 
-void AnalogueBus::get_south(AnalogueRegister &src, AnalogueRegister &dst,
-                            int offset) {
+void AnalogueBus::get_down(AnalogueRegister &dst, AnalogueRegister &src,
+                          int offset) {
     // x, y, width, height
     auto read_chunk =
-        cv::Rect(0, 0, src.read().cols, src.read().rows - offset);
-    auto write_chunk =
         cv::Rect(0, offset, src.read().cols, src.read().rows - offset);
+    auto write_chunk =
+        cv::Rect(0, 0, src.read().cols, src.read().rows - offset);
     src.read()(read_chunk).copyTo(dst.read()(write_chunk));
     auto fill =
         cv::Rect(0, src.read().rows - offset, src.read().cols, offset);
@@ -364,6 +270,69 @@ void AnalogueBus::get_south(AnalogueRegister &src, AnalogueRegister &dst,
     dst.inc_write();
 #endif
 }
+
+void AnalogueBus::get_east(AnalogueRegister &dst, AnalogueRegister &src, int offset, Origin origin) {
+    switch(origin) {
+        case TOP_LEFT:
+        case BOTTOM_LEFT: {
+            get_right(dst, src, offset);
+            break;
+        }
+        case TOP_RIGHT:
+        case BOTTOM_RIGHT: {
+            get_left(dst, src, offset);
+            break;
+        }
+    }
+}
+
+void AnalogueBus::get_west(AnalogueRegister &dst, AnalogueRegister &src, int offset, Origin origin) {
+    switch(origin) {
+        case TOP_LEFT:
+        case BOTTOM_LEFT: {
+            get_left(dst, src, offset);
+            break;
+        }
+        case TOP_RIGHT:
+        case BOTTOM_RIGHT: {
+            get_right(dst, src, offset);
+            break;
+        }
+    }
+}
+
+void AnalogueBus::get_north(AnalogueRegister &dst, AnalogueRegister &src,
+                           int offset, Origin origin) {
+    switch(origin) {
+        case BOTTOM_LEFT:
+        case BOTTOM_RIGHT: {
+            get_up(dst, src, offset);
+            break;
+        }
+        case TOP_RIGHT:
+        case TOP_LEFT: {
+            get_down(dst, src, offset);
+            break;
+        }
+    }
+}
+
+void AnalogueBus::get_south(AnalogueRegister &dst, AnalogueRegister &src,
+                           int offset, Origin origin) {
+    switch(origin) {
+        case BOTTOM_LEFT:
+        case BOTTOM_RIGHT: {
+            get_down(dst, src, offset);
+            break;
+        }
+        case TOP_RIGHT:
+        case TOP_LEFT: {
+            get_up(dst, src, offset);
+            break;
+        }
+    }
+}
+
 
 
 // Higher level functions

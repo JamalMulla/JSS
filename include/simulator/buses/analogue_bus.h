@@ -66,30 +66,21 @@ class AnalogueBus {
 
     // Neighbour Access
 
-    // TODO need to be parameterised, checked and tested
-    void push_north(AnalogueRegister& src, AnalogueRegister& dst, int offset,
-                    DigitalRegister& FLAG);
-    void push_east(AnalogueRegister& src, AnalogueRegister& dst, int offset,
-                   DigitalRegister& FLAG);
-    void push_south(AnalogueRegister& src, AnalogueRegister& dst, int offset,
-                    DigitalRegister& FLAG);
-    void push_west(AnalogueRegister& src, AnalogueRegister& dst, int offset,
-                   DigitalRegister& FLAG);
-
-    void pull_north(AnalogueRegister& src, AnalogueRegister& dst, int offset,
-                    DigitalRegister& FLAG);
-    void pull_east(AnalogueRegister& src, AnalogueRegister& dst, int offset,
-                   DigitalRegister& FLAG);
-    void pull_south(AnalogueRegister& src, AnalogueRegister& dst, int offset,
-                    DigitalRegister& FLAG);
-    void pull_west(AnalogueRegister& src, AnalogueRegister& dst, int offset,
-                   DigitalRegister& FLAG);
-
     // Get registers in direction
-    void get_east(AnalogueRegister& src, AnalogueRegister& dst, int offset);
-    void get_west(AnalogueRegister& src, AnalogueRegister& dst, int offset);
-    void get_north(AnalogueRegister& src, AnalogueRegister& dst, int offset);
-    void get_south(AnalogueRegister& src, AnalogueRegister& dst, int offset);
+    /* These first neighbour functions are absolute and do not depend on origin.
+     * They function as expected assuming a grid with origin in bottom left */
+    void get_up(AnalogueRegister& dst, AnalogueRegister& src, int offset);
+    void get_right(AnalogueRegister& dst, AnalogueRegister& src, int offset);
+    void get_left(AnalogueRegister& dst, AnalogueRegister& src, int offset);
+    void get_down(AnalogueRegister& dst, AnalogueRegister& src, int offset);
+
+    /* The following are dependent on origin. For example, North when the origin
+     * is at the bottom is not the same as North when the origin is at the top.
+     * Top north = bottom south*/
+    void get_east(AnalogueRegister& dst, AnalogueRegister& src, int offset, Origin origin);
+    void get_west(AnalogueRegister& dst, AnalogueRegister& src, int offset, Origin origin);
+    void get_north(AnalogueRegister& dst, AnalogueRegister& src, int offset,Origin origin);
+    void get_south(AnalogueRegister& dst, AnalogueRegister& src, int offset, Origin origin);
 
     // Higher level functions
     void scan(uint8_t* dst, AnalogueRegister& src, uint8_t row_start,

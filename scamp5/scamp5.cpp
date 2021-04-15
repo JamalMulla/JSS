@@ -314,16 +314,16 @@ void SCAMP5::movx(AREG *y, AREG *x0, news_t dir) {
     this->bus(intermediate_a.get(), x0);
     switch(dir) {
         case south:
-            this->pe->analogue_bus.push_north(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
             break;
         case west:
-            this->pe->analogue_bus.push_east(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
             break;
         case east:
-            this->pe->analogue_bus.push_west(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
             break;
         case north:
-            this->pe->analogue_bus.push_south(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
             break;
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
@@ -336,19 +336,19 @@ void SCAMP5::mov2x(AREG *y, AREG *x0, news_t dir, news_t dir2) {
     this->bus(intermediate_a.get(), x0);
     switch(dir) {
         case north: {
-            this->pe->analogue_bus.push_south(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
             break;
         }
         case east: {
-            this->pe->analogue_bus.push_west(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
             break;
         }
         case west: {
-            this->pe->analogue_bus.push_east(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
             break;
         }
         case south: {
-            this->pe->analogue_bus.push_north(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
             break;
         }
         case alldir: {
@@ -358,21 +358,19 @@ void SCAMP5::mov2x(AREG *y, AREG *x0, news_t dir, news_t dir2) {
     }
     switch(dir2) {
         case north: {
-            this->pe->analogue_bus.push_north(*NEWS, *intermediate_a2, 1,
-                                              *FLAG);
+            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
             break;
         }
         case east: {
-            this->pe->analogue_bus.push_east(*NEWS, *intermediate_a2, 1, *FLAG);
+            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
             break;
         }
         case west: {
-            this->pe->analogue_bus.push_west(*NEWS, *intermediate_a2, 1, *FLAG);
+            this->pe->analogue_bus.get_east(*intermediate_a2, *NEWS, 1, origin_);
             break;
         }
         case south: {
-            this->pe->analogue_bus.push_south(*NEWS, *intermediate_a2, 1,
-                                              *FLAG);
+            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
             break;
         }
         case alldir: {
@@ -389,16 +387,16 @@ void SCAMP5::addx(AREG *y, AREG *x0, AREG *x1, news_t dir) {
     this->bus(intermediate_a.get(), x0, x1);
     switch(dir) {
         case north:
-            this->pe->analogue_bus.push_south(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
             break;
         case east:
-            this->pe->analogue_bus.push_west(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
             break;
         case west:
-            this->pe->analogue_bus.push_east(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
             break;
         case south:
-            this->pe->analogue_bus.push_north(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
             break;
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
@@ -412,33 +410,31 @@ void SCAMP5::add2x(AREG *y, AREG *x0, AREG *x1, news_t dir, news_t dir2) {
     this->bus(intermediate_a.get(), x0, x1);
     switch(dir) {
         case north:
-            this->pe->analogue_bus.push_south(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
             break;
         case east:
-            this->pe->analogue_bus.push_west(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
             break;
         case west:
-            this->pe->analogue_bus.push_east(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
             break;
         case south:
-            this->pe->analogue_bus.push_north(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
             break;
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
     switch(dir2) {
         case north:
-            this->pe->analogue_bus.pull_north(*NEWS, *intermediate_a2, 1,
-                                              *FLAG);
+            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case east:
-            this->pe->analogue_bus.pull_east(*NEWS, *intermediate_a2, 1, *FLAG);
+            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case west:
-            this->pe->analogue_bus.pull_west(*NEWS, *intermediate_a2, 1, *FLAG);
+            this->pe->analogue_bus.get_east(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case south:
-            this->pe->analogue_bus.pull_south(*NEWS, *intermediate_a2, 1,
-                                              *FLAG);
+            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
@@ -451,16 +447,16 @@ void SCAMP5::subx(AREG *y, AREG *x0, news_t dir, AREG *x1) {
     this->bus(intermediate_a.get(), x0);
     switch(dir) {
         case north:
-            this->pe->analogue_bus.push_south(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
             break;
         case east:
-            this->pe->analogue_bus.push_west(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
             break;
         case west:
-            this->pe->analogue_bus.push_east(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
             break;
         case south:
-            this->pe->analogue_bus.push_north(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
             break;
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
@@ -473,33 +469,31 @@ void SCAMP5::sub2x(AREG *y, AREG *x0, news_t dir, news_t dir2, AREG *x1) {
     this->bus(intermediate_a.get(), x0);
     switch(dir) {
         case north:
-            this->pe->analogue_bus.push_south(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
             break;
         case east:
-            this->pe->analogue_bus.push_west(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
             break;
         case west:
-            this->pe->analogue_bus.push_east(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
             break;
         case south:
-            this->pe->analogue_bus.push_north(*intermediate_a, *NEWS, 1, *FLAG);
+            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
             break;
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
     switch(dir2) {
         case north:
-            this->pe->analogue_bus.pull_north(*NEWS, *intermediate_a2, 1,
-                                              *FLAG);
+            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case east:
-            this->pe->analogue_bus.pull_east(*NEWS, *intermediate_a2, 1, *FLAG);
+            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case west:
-            this->pe->analogue_bus.pull_west(*NEWS, *intermediate_a2, 1, *FLAG);
+            this->pe->analogue_bus.get_east(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case south:
-            this->pe->analogue_bus.pull_south(*NEWS, *intermediate_a2, 1,
-                                              *FLAG);
+            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
@@ -1851,6 +1845,7 @@ void SCAMP5::superpixel_shift_left(DREG *dst, int bank, DREG *src) {
 }
 
 void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
+    // Clobbers R11
     DigitalRegister A = src1->read().clone();
     DigitalRegister B = src2->read().clone();
     DigitalRegister and_ = DigitalRegister(src1->read().rows, src1->read().cols);
@@ -1872,7 +1867,7 @@ void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
     XOR(dst, &A, &B);
     MOV(&A, R11);
 }
-
+//
 //void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
 //    position_map locations;
 //    this->superpixel_positions_from_bitorder(locations);
@@ -1911,7 +1906,9 @@ void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
 //    this->array->update_cycles(8);
 //}
 
+
 void SCAMP5::superpixel_sub(DREG *dst, int bank, DREG* src1, DREG* src2) {
+    // Clobbers R11
     DigitalRegister A = src1->read().clone();
     DigitalRegister B = src2->read().clone();
     DigitalRegister NOT_A = src1->read().clone();
