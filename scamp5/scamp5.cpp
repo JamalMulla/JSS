@@ -332,7 +332,7 @@ void SCAMP5::movx(AREG *y, AREG *x0, news_t dir) {
 }
 
 void SCAMP5::mov2x(AREG *y, AREG *x0, news_t dir, news_t dir2) {
-    // y = x0_dir_dir (note: this only works when FLAG is "all")
+    // y = x0_dir_dir2 (note: this only works when FLAG is "all")
     this->bus(intermediate_a.get(), x0);
     switch(dir) {
         case north: {
@@ -358,19 +358,19 @@ void SCAMP5::mov2x(AREG *y, AREG *x0, news_t dir, news_t dir2) {
     }
     switch(dir2) {
         case north: {
-            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
+            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
             break;
         }
         case east: {
-            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        }
-        case west: {
             this->pe->analogue_bus.get_east(*intermediate_a2, *NEWS, 1, origin_);
             break;
         }
+        case west: {
+            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
+            break;
+        }
         case south: {
-            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
+            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
             break;
         }
         case alldir: {
@@ -425,16 +425,16 @@ void SCAMP5::add2x(AREG *y, AREG *x0, AREG *x1, news_t dir, news_t dir2) {
     }
     switch(dir2) {
         case north:
-            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
+            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case east:
-            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        case west:
             this->pe->analogue_bus.get_east(*intermediate_a2, *NEWS, 1, origin_);
             break;
+        case west:
+            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
+            break;
         case south:
-            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
+            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
@@ -484,16 +484,16 @@ void SCAMP5::sub2x(AREG *y, AREG *x0, news_t dir, news_t dir2, AREG *x1) {
     }
     switch(dir2) {
         case north:
-            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
+            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case east:
-            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        case west:
             this->pe->analogue_bus.get_east(*intermediate_a2, *NEWS, 1, origin_);
             break;
+        case west:
+            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
+            break;
         case south:
-            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
+            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
             break;
         case alldir: std::cerr << "Unhandled direction" << std::endl; break;
     }
