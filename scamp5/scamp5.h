@@ -18,6 +18,7 @@ enum news_t { east = 1,
 
 typedef AnalogueRegister AREG;
 typedef DigitalRegister DREG;
+typedef std::vector<std::vector<std::vector<int>>> Bitorder;
 
 #define RS R1
 #define RW R2
@@ -37,47 +38,52 @@ class SCAMP5 {
    private:
     std::unique_ptr<ProcessingElement> pe;
     std::unique_ptr<Array> array;
-    DREG *scratch = nullptr;
     std::unique_ptr<AREG> intermediate_a;
     std::unique_ptr<AREG> intermediate_a2;
     std::unique_ptr<DREG> intermediate_d;
+    DREG *scratch = nullptr;
     int rows_;
     int cols_;
     Origin origin_;
+    Config config_;
+    Bitorder bitorder_;
+    int superpixel_size_;
+    int bits_in_bank_;
 
-
-//     boustrophedonic bitorder
-//        std::vector<std::vector<std::vector<int>>> bitorder = {
-//            {
-//                {1, 8, 9, 16},
-//                {2, 7, 10, 15},
-//                {3, 6, 11, 14},
-//                {4, 5, 12, 13}
-//            },
-//        };
+    //     boustrophedonic bitorder
+    //        std::vector<std::vector<std::vector<int>>> bitorder = {
+    //            {
+    //                {1, 8, 9, 16},
+    //                {2, 7, 10, 15},
+    //                {3, 6, 11, 14},
+    //                {4, 5, 12, 13}
+    //            },
+    //        };
     // Spiral bitorder
-//        std::vector<std::vector<std::vector<int>>> bitorder = {
-//            {
-//                {4, 3, 2, 1},
-//                {5, 14, 13, 12},
-//                {6, 15, 16, 11},
-//                {7, 8, 9, 10}
-//            },
-//        };
+    //        std::vector<std::vector<std::vector<int>>> bitorder = {
+    //            {
+    //                {4, 3, 2, 1},
+    //                {5, 14, 13, 12},
+    //                {6, 15, 16, 11},
+    //                {7, 8, 9, 10}
+    //            },
+    //        };
 
     // Make sure you also change the bit size and superpixel size in scamp5.cpp superpixel methods
     // if the bitorder is changed here
 
     // 2 bank 8-bit boustrophedonic
-    std::vector<std::vector<std::vector<int>>> bitorder = {
-        {{1, 8, 0, 0},
-         {2, 7, 0, 0},
-         {3, 6, 0, 0},
-         {4, 5, 0, 0}},
-        {{0, 0, 1, 8},
-         {0, 0, 2, 7},
-         {0, 0, 3, 6},
-         {0, 0, 4, 5}}};
+//    std::vector<std::vector<std::vector<int>>> bitorder = {
+//        {{1, 8, 0, 0},
+//         {2, 7, 0, 0},
+//         {3, 6, 0, 0},
+//         {4, 5, 0, 0}},
+//        {{0, 0, 1, 8},
+//         {0, 0, 2, 7},
+//         {0, 0, 3, 6},
+//         {0, 0, 4, 5}}};
+//    int superpixel_size = 4;
+//    int bits_in_bank = 8;
 
     void init();
 
@@ -86,7 +92,6 @@ class SCAMP5 {
 
     const int ANALOGUE_REGISTERS = 13;
     const int DIGITAL_REGISTERS = 16;
-    CycleCounter cycles;
 
     // Analogue registers
     AREG *PIX;
@@ -124,6 +129,7 @@ class SCAMP5 {
     DREG *RECT;
 
     SCAMP5(int rows, int cols, Origin origin);
+    void set_superpixel(Bitorder bitorder, int superpixel_size, int bits_in_bank);
 
     // Misc
     void nop();
@@ -428,16 +434,39 @@ class SCAMP5 {
     void scamp5_get_io_agent();
 
     // Superpixel methods
+
+    struct pair_hash {
+        template<class T1, class T2>
+        std::size_t operator()(const std::pair<T1, T2>& p) const {
+            auto lhs = p.first;
+            auto rhs = p.second;
+            lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
+            return lhs;
+        }
+    };
+
+    using bank_index = std::pair<int, int>;
+    using position_map = std::unordered_map<bank_index, cv::Point, pair_hash>;
+
+    void superpixel_positions_from_bitorder(position_map &locations);
+    void superpixel_shift_patterns_from_bitorder(int bank, DREG *RNORTH,
+                                                 DREG *RSOUTH, DREG *REAST, DREG *RWEST,
+                                                 bool shift_left);
+    void superpixel_shift_block(DREG *dst, DREG *src,
+                                DREG *RNORTH,
+                                DREG *RSOUTH, DREG *REAST,
+                                DREG *RWEST);
     void superpixel_adc(DREG *dst, int bank, AREG *src);
     void superpixel_dac(AREG *dst, int bank, DREG *src);
-    void superpixel_in(DREG* dst, int bank, int value);
+    void superpixel_in(DREG *dst, int bank, int value);
+    void superpixel_shift(DREG* dst, int bank, DREG* src, int shift_left);
     void superpixel_shift_right(DREG *dst, int bank, DREG *src);
     void superpixel_shift_left(DREG *dst, int bank, DREG *src);
     void superpixel_add(DREG *dst, int bank, DREG *src1, DREG *src2);
     void superpixel_sub(DREG *dst, int bank, DREG *src1, DREG *src2);
 
     // Simulator specific methods
-    void print_stats(const CycleCounter *counter);
+    void print_stats();
 };
 
 class SCAMP5::builder {

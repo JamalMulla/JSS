@@ -6,68 +6,132 @@
 
 #include <opencv2/core.hpp>
 
-#include "simulator/metrics/stats.h"
+Register::Register(int rows, int cols, int row_stride, int col_stride, int type, Config &config, MemoryType memory_type) :
+    rows_(rows),
+    cols_(cols),
+    row_stride_(row_stride),
+    col_stride_(col_stride),
+    config_(&config),
+    value_(rows, cols, type, cv::Scalar(0)) {
+    this->memory_ = Memory::construct(memory_type, rows, cols, row_stride, col_stride, config);
+}
 
-Register::Register(int rows, int columns, int type, MemoryType memoryType)
-    : memory_type_(memoryType),
-      value_(rows, columns, type, cv::Scalar(0))
+Register::Register(int rows, int cols, int row_stride, int col_stride, int type) :
+    rows_(rows),
+    cols_(cols),
+    row_stride_(row_stride),
+    col_stride_(col_stride),
+    value_(rows, cols, type, cv::Scalar(0)) {}
+
+
 #ifdef TRACK_STATISTICS
-      ,read_counter(rows, columns, CV_32S, cv::Scalar(0)),
-      write_counter(rows, columns, CV_32S, cv::Scalar(0)),
-      read_energy_counter(rows, columns, CV_64F, cv::Scalar(0)),
-      write_energy_counter(rows, columns, CV_64F, cv::Scalar(0)),
-      reads(0),
-      writes(0)
+
+void Register::update(double time) {
+    if (memory_) {
+        memory_->update(time);
+    }
+}
+
+cv::Mat &Register::get_static_energy() {
+    return memory_->get_static_energy();
+}
+
+cv::Mat &Register::get_dynamic_energy() {
+    return memory_->get_dynamic_energy();
+}
+
+cv::Mat &Register::get_transistor_count() {
+    return memory_->get_transistor_count();
+}
+
+int Register::get_cycle_count() {
+    return this->memory_->get_cycle_count();
+}
+
 #endif
-       {}
+
+cv::Mat &Register::read() {
+#ifdef TRACK_STATISTICS
+    this->inc_read();
+#endif
+    return this->value_;
+}
+
+void Register::write(cv::Mat &data) {
+    data.copyTo(this->value_);
+#ifdef TRACK_STATISTICS
+    this->inc_write();
+#endif
+}
+
+void Register::write(const cv::Mat &data) {
+    data.copyTo(this->value_);
+#ifdef TRACK_STATISTICS
+    this->inc_write();
+#endif
+}
+
+void Register::write(Register &data) {
+    this->write(data.read());
+}
+
+void Register::write(cv::Mat &data, cv::Mat &mask) {
+    data.copyTo(this->value_, mask);
+#ifdef TRACK_STATISTICS
+    this->inc_write(mask);
+#endif
+}
+
+void Register::write(Register &data, Register &mask) {
+    this->write(data.read(), mask.read());
+}
+
+void Register::write(int data) {
+    this->value_.setTo(data);
+#ifdef TRACK_STATISTICS
+    this->inc_write();
+#endif
+}
+
+void Register::write(int data, cv::Mat &mask) {
+    this->value_.setTo(data, mask);
+#ifdef TRACK_STATISTICS
+    this->inc_write(mask);
+#endif
+}
+
+void Register::write(int data, Register &mask) {
+    this->write(data, mask.read());
+}
 
 #ifdef TRACK_STATISTICS
 void Register::inc_read(const cv::_InputOutputArray &mask) {
-    cv::add(this->read_counter, 1, this->read_counter, mask);
-    int number_of_cycle = 1;  // Should be parameterisable
-    double energy_usage = this->memory_type_.read_power_draw *
-                          stats::CYCLE_TIME * number_of_cycle;
-    cv::add(this->read_energy_counter, energy_usage, this->read_energy_counter,
-            mask);
-    this->reads++;
+    if (memory_) {
+        this->memory_->read(mask);
+    }
+}
+
+void Register::inc_read() {
+    if (memory_) {
+        this->memory_->read();
+    }
 }
 
 void Register::inc_write(const cv::_InputOutputArray &mask) {
-    cv::add(this->write_counter, 1, this->write_counter, mask);
-    int number_of_cycle = 1;
-    double energy_usage = this->memory_type_.write_power_draw *
-                          stats::CYCLE_TIME * number_of_cycle;
-    cv::add(this->write_energy_counter, energy_usage,
-            this->write_energy_counter, mask);
-    this->writes++;
+    if (memory_) {
+        this->memory_->write(mask);
+    }
 }
 
-int Register::get_reads() { return this->reads; }
-
-int Register::get_writes() { return this->writes; }
-
-int Register::get_total_reads() { return cv::sum(this->read_counter)[0]; }
-
-int Register::get_total_writes() { return cv::sum(this->write_counter)[0]; }
-
-double Register::get_read_energy() {
-    return cv::sum(this->read_energy_counter)[0];
+void Register::inc_write() {
+    if (memory_) {
+        this->memory_->write();
+    }
 }
-
-double Register::get_write_energy() {
-    return cv::sum(this->write_energy_counter)[0];
-}
-
-double Register::get_total_energy() {
-    return get_read_energy() + get_write_energy();
-}
-
 #endif
 
-Data &Register::value() { return this->value_; }
-
-void Register::change_memory_type(const MemoryType &memory_type) {
-    this->memory_type_ = memory_type;
+void Register::change_memory_type(MemoryType memory_type) {
+    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, *config_);
 }
 
 void Register::set_ui_handler(UI *ui_ptr) { this->ui = ui_ptr; }

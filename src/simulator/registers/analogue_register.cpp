@@ -5,41 +5,25 @@
 #include "simulator/registers/analogue_register.h"
 
 #include "simulator/base/array.h"
-#include "simulator/memory/si.h"
-#include "simulator/metrics/stats.h"
+#include "simulator/memory/si_cell.h"
 
-AnalogueRegister::AnalogueRegister(int rows, int columns)
-    : Register(rows, columns, MAT_TYPE, SI()) {
-          this->min_val = -128;
-          this->max_val = 127;
-}
-
-AnalogueRegister::AnalogueRegister(const Data &data)
-    : Register(data.rows, data.cols, MAT_TYPE, SI()) {
-    data.copyTo(this->value());
+AnalogueRegister::AnalogueRegister(int rows, int cols, Config &config, int row_stride, int col_stride, MemoryType memory) :
+    Register(rows, cols, row_stride, col_stride, MAT_TYPE, config, memory) {
     this->min_val = -128;
     this->max_val = 127;
 }
 
-Data AnalogueRegister::read() {
-#ifdef TRACK_STATISTICS
-    this->inc_read();
-#endif
-    return this->value();
+AnalogueRegister::AnalogueRegister(int rows, int cols, int row_stride, int col_stride) :
+    Register(rows, cols, row_stride, col_stride, MAT_TYPE) {
+    this->min_val = -128;
+    this->max_val = 127;
 }
 
-void AnalogueRegister::write(Data data) {
-    data.copyTo(this->value());
-#ifdef TRACK_STATISTICS
-    this->inc_write();
-#endif
-}
-
-void AnalogueRegister::write(int data) {
-    this->value().setTo(data);
-#ifdef TRACK_STATISTICS
-    this->inc_read();
-#endif
+AnalogueRegister::AnalogueRegister(const cv::Mat &data, int row_stride, int col_stride) :
+    Register(data.rows, data.cols, row_stride, col_stride, MAT_TYPE) {
+    this->write(data);
+    this->min_val = -128;
+    this->max_val = 127;
 }
 
 AnalogueRegister &AnalogueRegister::operator()(const std::string &name) {
@@ -49,29 +33,36 @@ AnalogueRegister &AnalogueRegister::operator()(const std::string &name) {
 
 #ifdef TRACK_STATISTICS
 void AnalogueRegister::print_stats(const CycleCounter &counter) {
-    std::cout << counter.to_seconds(stats::CLOCK_RATE) << std::endl;
-}
+    std::cout << "===================" << std::endl;
+    std::cout << "Name: " << name_ << "\n";
+    std::cout << "Static power: " << cv::sum(this->get_static_energy())[0] << std::endl;
+    std::cout << "Dynamic power: " << cv::sum(this->get_dynamic_energy())[0] << std::endl;
 
-void AnalogueRegister::write_stats(const CycleCounter &counter, json &j) {
-    double runtime = counter.to_seconds(stats::CLOCK_RATE);
-    auto reg_stats = json::object();
-    reg_stats[this->name_] = {
-        {"Energy (J)",
-         {
-             {"Reads", this->get_read_energy()},
-             {"Writes", this->get_write_energy()},
-             {"Total", this->get_total_energy()},
-         }},
-        {"Power (W)",
-         {
-             {"Reads", this->get_read_energy() / runtime},
-             {"Writes", this->get_write_energy() / runtime},
-             {"Total", this->get_total_energy() / runtime},
-         }},
-        {"Accesses",
-         {{"Reads", this->get_reads()}, {"Writes", this->get_writes()}}
-
-        }};
-    j.push_back(reg_stats);
 }
+//void AnalogueRegister::print_stats(const CycleCounter &counter) {
+//    std::cout << counter.to_seconds(stats::CLOCK_RATE) << std::endl;
+//}
+//
+//void AnalogueRegister::write_stats(const CycleCounter &counter, json &j) {
+//    double runtime = counter.to_seconds(stats::CLOCK_RATE);
+//    auto reg_stats = json::object();
+//    reg_stats[this->name_] = {
+//        {"Energy (J)",
+//         {
+//             {"Reads", this->get_read_energy()},
+//             {"Writes", this->get_write_energy()},
+//             {"Total", this->get_total_energy()},
+//         }},
+//        {"Power (W)",
+//         {
+//             {"Reads", this->get_read_energy() / runtime},
+//             {"Writes", this->get_write_energy() / runtime},
+//             {"Total", this->get_total_energy() / runtime},
+//         }},
+//        {"Accesses",
+//         {{"Reads", this->get_reads()}, {"Writes", this->get_writes()}}
+//
+//        }};
+//    j.push_back(reg_stats);
+//}
 #endif

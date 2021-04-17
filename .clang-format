@@ -2,6 +2,11 @@
 BasedOnStyle: Google
 ColumnLimit: 0
 AllowShortBlocksOnASingleLine: Empty
+ConstructorInitializerIndentWidth: 4
+BreakBeforeInheritanceComma: false
+BreakInheritanceList: AfterColon
+BreakConstructorInitializersBeforeComma: false
+BreakConstructorInitializers: AfterColon
 AlignTrailingComments: false
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: false

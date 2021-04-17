@@ -8,17 +8,19 @@
 #include <iostream>
 #include <vector>
 
-#include "simulator/base/photodiode.h"
+#include "simulator/base/pixel.h"
 #include "simulator/buses/analogue_bus.h"
 #include "simulator/buses/digital_bus.h"
 #include "simulator/registers/digital_register.h"
 #include "simulator/units/comparator.h"
 #include "simulator/units/squarer.h"
 
-class ProcessingElement : public Component {
+class ProcessingElement : public StatsOutputter {
    public:
     class builder;
-    Photodiode photodiode;
+    int rows_;
+    int cols_;
+    Pixel photodiode;
     std::vector<AnalogueRegister> analogue_registers;
     std::vector<DigitalRegister> digital_registers;
     Squarer squarer;
@@ -26,31 +28,42 @@ class ProcessingElement : public Component {
     AnalogueBus analogue_bus;
     DigitalBus local_read_bus;
     DigitalBus local_write_bus;
+    Config* config_;
 
-    ProcessingElement(int rows, int columns, int num_analogue, int num_digital,
-                      Source source, const std::string& path);
+    ProcessingElement(int rows, int cols, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config);
 #ifdef TRACK_STATISTICS
-    void print_stats(const CycleCounter& counter) override;
-    void write_stats(const CycleCounter& counter, json& j) override;
+    void update_cycles(int cycles);
+    cv::Mat get_transistor_count();
+    cv::Mat get_static_energy();
+    cv::Mat get_dynamic_energy();
+    void print_stats(const CycleCounter &counter) override;
 #endif
+
+
 };
 
 class ProcessingElement::builder {
    private:
     int rows_ = -1;
     int cols_ = -1;
+    int row_stride_ = 1;
+    int col_stride_ = 1;
     int num_analogue_ = -1;
     int num_digital_ = -1;
     Source source_;
     std::string path_;
+    Config* config_;
 
    public:
     builder& with_rows(int rows);
     builder& with_cols(int cols);
+    builder& with_row_stride(int row_stride);
+    builder& with_col_stride(int col_stride);
     builder& with_analogue_registers(int num_analogue);
     builder& with_digital_registers(int num_digital);
     builder& with_input_source(Source source);
     builder& with_file_path(const std::string& path);
+    builder& with_config(Config& config);
     ProcessingElement build();
 };
 

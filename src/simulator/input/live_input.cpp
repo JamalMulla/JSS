@@ -48,7 +48,7 @@ void LiveInput::read(Register &reg) {
     cv::resize(cropFrame, cropFrame, *this->size);
     cropFrame.convertTo(temp, MAT_TYPE, 1, -128);
     cv::add(this->frame, temp, this->frame);
-    this->frame.copyTo(reg.value());
+    reg.write(this->frame);
     auto TIME_END = std::chrono::high_resolution_clock::now();
     long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(
                             TIME_END - TIME_START)

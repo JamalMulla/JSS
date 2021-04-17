@@ -9,18 +9,15 @@
 
 class AnalogueRegister : public Register {
    public:
-    AnalogueRegister(int rows, int columns);
-    AnalogueRegister(const Data& data);
+    AnalogueRegister(int rows, int cols, Config& config, int row_stride = 1, int col_stride = 1, MemoryType memory = MemoryType::S2I);
+    AnalogueRegister(int rows, int cols, int row_stride = 1, int col_stride = 1);
+    AnalogueRegister(const cv::Mat& data, int row_stride = 1, int col_stride = 1);
 
     AnalogueRegister& operator()(const std::string& name);
 
-    Data read() override;
-    void write(Data data) override;
-    void write(int data) override;
-
 #ifdef TRACK_STATISTICS
     void print_stats(const CycleCounter& counter) override;
-    void write_stats(const CycleCounter& counter, json& j) override;
+//    void write_stats(const CycleCounter& counter, json& j) override;
 #endif
 };
 

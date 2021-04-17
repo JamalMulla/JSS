@@ -20,10 +20,10 @@ class CycleCounter {
     CycleCounter& operator--();                 // Prefix
     const CycleCounter operator--(int cycles);  // Postfix
 
-    unsigned long long get_cycles() const;
+    [[nodiscard]] unsigned long long get_cycles() const;
 
-    double to_seconds(long clock_rate) const;
-    long to_cycles(double seconds, long clock_rate) const;
+    [[nodiscard]] double to_seconds(long clock_rate) const;
+    [[nodiscard]] long to_cycles(double seconds, long clock_rate) const;
 
     friend std::ostream& operator<<(std::ostream& os, const CycleCounter& cc);
 };

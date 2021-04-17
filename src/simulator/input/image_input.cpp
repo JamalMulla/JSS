@@ -48,7 +48,7 @@ void ImageInput::read(Register &reg) {
                             TIME_END - TIME_START)
                             .count();
     time_taken = time_in_nano * 1e-9;
-    this->frame.copyTo(reg.value());
+    reg.write(this->frame);
 }
 
 void ImageInput::reset() { this->frame.setTo(0); }
