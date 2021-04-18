@@ -57,7 +57,7 @@ int Dram3tCell::get_cycle_count() {
     return cycle_count_;
 }
 
-void Dram3tCell::update(double time) {
+void Dram3tCell::update_static(double time) {
     cv::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
 }
 

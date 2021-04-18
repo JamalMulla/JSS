@@ -16,7 +16,7 @@ class Component : public StatsOutputter {
    public:
 #ifdef TRACK_STATISTICS
     /* Update component with how much time has passed for operation. Used for updating static power. */
-    virtual void update(double time) = 0;
+    virtual void update_static(double time) = 0;
     /* Returns the total amount of static energy use */
     virtual cv::Mat& get_static_energy() = 0;
     /* Returns the total amount of dynamic energy use */

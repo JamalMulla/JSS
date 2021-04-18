@@ -30,6 +30,7 @@ class Array {
     ProcessingElement pe;
     CarryLookAheadAdder cla;
     void update_cycles(int cycles);
+    void update_static(); // Calculates static power using the number of cycles we've got to
 #ifdef TRACK_STATISTICS
     void print_stats();
     unsigned long long get_cycles();

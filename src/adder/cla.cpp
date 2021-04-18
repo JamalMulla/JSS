@@ -60,7 +60,7 @@ int CarryLookAheadAdder::get_cycle_count() {
     return cycle_count_;
 }
 
-void CarryLookAheadAdder::update(double time) {
+void CarryLookAheadAdder::update_static(double time) {
     cv::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
 }
 

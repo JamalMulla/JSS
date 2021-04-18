@@ -74,7 +74,7 @@ void Sram6tCell::write() {
     cv::add(this->array_dynamic_energy_, this->dynamic_write_power_ * time_, this->array_dynamic_energy_, internal_mask);
 }
 
-void Sram6tCell::update(double time) {
+void Sram6tCell::update_static(double time) {
     cv::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
 }
 

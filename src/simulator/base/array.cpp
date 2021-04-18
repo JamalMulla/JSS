@@ -6,21 +6,25 @@
 
 #include <utility>
 
-Array::Array(int rows, int columns, Config& config, ProcessingElement pe) :
-    rows_(rows), columns_(columns), config_(&config), pe(std::move(pe)), cla(rows, columns, 4, 4, 8, config) {}
-
 void Array::update_cycles(int cycles) {
 #ifdef TRACK_STATISTICS
     counter_ += cycles;
-    double time = (1.0 / config_->clock_rate) * cycles;
-    this->pe.update_cycles(cycles);
-    this->cla.update(time);
 #endif
 }
 
+Array::Array(int rows, int columns, Config& config, ProcessingElement pe) :
+    rows_(rows), columns_(columns), config_(&config), pe(std::move(pe)), cla(rows, columns, 4, 4, 8, config) {}
+
 #ifdef TRACK_STATISTICS
 
+void Array::update_static() {
+    double time = (1.0 / config_->clock_rate) * counter_.get_cycles();
+    this->pe.update_static(counter_.get_cycles());
+    this->cla.update_static(time);
+}
+
 void Array::print_stats() {
+
     std::cout << "=============================="
               << "\n";
     std::cout << "Results"

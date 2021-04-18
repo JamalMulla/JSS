@@ -34,7 +34,7 @@ public:
     explicit Dram3tCell(int rows, int cols, int row_stride, int col_stride, Config& config);
 
 #ifdef TRACK_STATISTICS
-    void update(double time) override;
+    void update_static(double time) override;
     int get_cycle_count() override;
     cv::Mat& get_static_energy() override;
     cv::Mat& get_dynamic_energy() override;

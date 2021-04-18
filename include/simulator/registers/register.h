@@ -42,7 +42,7 @@ class Register : public Component {
 
 #ifdef TRACK_STATISTICS
     // Can only be used if memory_ is defined
-    void update(double time) override;
+    void update_static(double time) override;
     void inc_read(const cv::_InputOutputArray& mask);
 
     void inc_read();

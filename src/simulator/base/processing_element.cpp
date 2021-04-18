@@ -20,16 +20,16 @@ ProcessingElement::ProcessingElement(int rows, int cols, int row_stride, int col
     }
 }
 #ifdef TRACK_STATISTICS
-void ProcessingElement::update_cycles(int cycles) {
+void ProcessingElement::update_static(ulong cycles) {
     double time = (1 / (double) config_->clock_rate) * cycles;
     for(DigitalRegister &digital_register: digital_registers) {
-        digital_register.update(time);
+        digital_register.update_static(time);
     }
 
     for(AnalogueRegister &analogue_register: analogue_registers) {
-        analogue_register.update(time);
+        analogue_register.update_static(time);
     }
-    photodiode.update(time);
+    photodiode.update_static(time);
 }
 
 cv::Mat ProcessingElement::get_transistor_count() {

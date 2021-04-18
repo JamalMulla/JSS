@@ -83,7 +83,7 @@ void Pixel::fun_internal_mask(int rows, int cols, int row_stride, int col_stride
         }
     }
 }
-void Pixel::update(double time) {
+void Pixel::update_static(double time) {
     cv::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
 }
 void Pixel::print_stats(const CycleCounter& counter) {

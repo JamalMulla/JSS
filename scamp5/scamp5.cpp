@@ -96,9 +96,9 @@ void SCAMP5::get_image(AREG *y) {
 void SCAMP5::get_image(AREG *y, AREG *h) {
     // y := full-range image, h := negative half-range image, and reset *PIX
     this->pe->photodiode.read(*PIX);
-//    this->array->update_cycles(420000); //todo
+//    this->array->update_static(420000); //todo
     this->array->update_cycles(100); //2000
-//    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
+//    this->array->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(h, PIX);
     this->rpix();
@@ -121,7 +121,7 @@ void SCAMP5::respix(AREG *y) {
     this->nop();
     this->pe->photodiode.read(*PIX);
     this->array->update_cycles(30000); //todo
-//    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
+//    this->array->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(y, NEWS);
 }
@@ -130,7 +130,7 @@ void SCAMP5::getpix(AREG *y, AREG *pix_res) {
     // y := half-range image, supplying the reset level of *PIX
     this->pe->photodiode.read(*PIX);
     this->array->update_cycles(30000); //todo
-//    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
+//    this->array->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(y, NEWS, pix_res);
 }
@@ -139,7 +139,7 @@ void SCAMP5::getpix(AREG *y, AREG *h, AREG *pix_res) {
     // y := full-range, h := half-range image, supplying the reset level of *PIX
     this->pe->photodiode.read(*PIX);
     this->array->update_cycles(30000); //todo
-//    this->array->update_cycles(this->pe->photodiode.get_cycle_count());
+//    this->array->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(h, PIX);
     this->bus(NEWS, PIX);
     this->bus(y, h, NEWS, pix_res);
@@ -1574,6 +1574,7 @@ void SCAMP5::scamp5_scan_boundingbox(DREG *dr, uint8_t *vec4v) {
 void SCAMP5::print_stats() {
     // TODO move
 #ifdef TRACK_STATISTICS
+    this->array->update_static(); //move
     this->array->print_stats();
 //    json j;
 //    j["Total number of cycles"] = counter->get_cycles();
@@ -1903,7 +1904,7 @@ void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
 //      }
 //    });
 //    this->array->cla.inc_add();
-//    this->array->update_cycles(8);
+//    this->array->update_static(8);
 //}
 
 

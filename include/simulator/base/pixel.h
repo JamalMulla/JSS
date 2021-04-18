@@ -39,7 +39,7 @@ class Pixel : public Component {
     cv::Mat& get_static_energy() override;
     cv::Mat& get_dynamic_energy() override;
     cv::Mat& get_transistor_count() override;
-    void update(double time) override;
+    void update_static(double time) override;
     int get_cycle_count() override;
     void print_stats(const CycleCounter& counter) override;
 //    void write_stats(const CycleCounter& counter, json& j) override;

@@ -26,9 +26,9 @@ Register::Register(int rows, int cols, int row_stride, int col_stride, int type)
 
 #ifdef TRACK_STATISTICS
 
-void Register::update(double time) {
+void Register::update_static(double time) {
     if (memory_) {
-        memory_->update(time);
+        memory_->update_static(time);
     }
 }
 
