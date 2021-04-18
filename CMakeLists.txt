@@ -18,7 +18,7 @@ string(
 add_compile_options("${_opts}")
 
 option(USE_RUNTIME_CHECKS "Check arguments and emit warnings" OFF)
-option(TRACK_STATISTICS "Tracks statistics such as register reads and energy use" OFF)
+option(TRACK_STATISTICS "Tracks statistics such as register reads and energy use" ON)
 if (USE_RUNTIME_CHECKS)
     message(STATUS "With runtime checks")
     add_definitions(-DUSE_RUNTIME_CHECKS)
@@ -87,5 +87,8 @@ target_include_directories(${SIM_LIB} PRIVATE ${OpenCV_INCLUDE_DIRS})
 # Tests
 #######
 enable_testing()
+include(CTest)
+include(Catch)
+catch_discover_tests(${SIM_LIB})
 add_subdirectory(scamp5)
 add_subdirectory(tests)

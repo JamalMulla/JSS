@@ -465,6 +465,10 @@ class SCAMP5 {
     void superpixel_add(DREG *dst, int bank, DREG *src1, DREG *src2);
     void superpixel_sub(DREG *dst, int bank, DREG *src1, DREG *src2);
 
+    // Histogramming
+    void histogram(AREG* src);
+
+
     // Simulator specific methods
     void print_stats();
 };

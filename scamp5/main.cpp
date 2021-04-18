@@ -34,12 +34,14 @@ int main() {
     UI ui;
     ui.start();
 
-    int frames = 500;
+    int frames = 1;
 
     int i = 0;
     while(i < frames) {
+        s.get_image(s.A, s.D);
         int e1 = cv::getTickCount();
-        superpixel(s);
+//        superpixel(s);
+        s.histogram(s.A);
         int e2 = cv::getTickCount();
 //        std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
         ui.display_reg(s.A);

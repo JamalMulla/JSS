@@ -1938,6 +1938,64 @@ void SCAMP5::superpixel_sub(DREG *dst, int bank, DREG* src1, DREG* src2) {
     MOV(&A, R11);
 }
 
+// Histogramming
+
+void SCAMP5::histogram(AREG* src) {
+    // Need a block size. There is a tradeoff between the number of arrays and the time it takes as you can only write 1 value at a time
+    this->array->dram.reset();
+    int blocksize = 8;
+    int block = 0;
+    cv::Mat& s = src->read();
+    for (int row = 0; row < rows_; row += blocksize) {
+        for (int col = 0; col < cols_; col += blocksize) {
+
+            for (int r = row; r < row + blocksize; r++) {
+                for (int c = col; c < col + blocksize; c++) {
+                    int m_row = s.at<int16_t>(r, c) + 128; // intensity is used as index
+                    // need to shift by 128 to get a 0-255 range
+                    int m_col = 0;
+
+                    int value = this->array->dram.read(block, m_row, m_col);
+                    this->array->dram.write(block, m_row, m_col, value+1);
+                }
+            }
+            block++;
+        }
+    }
+
+    // Combine all the dram cells into one by just adding up each of the dram arrays for each value
+    std::unordered_map<int, int> histogram;
+
+    for (int i = 0; i < 255; i++) {
+        // init to 0
+        histogram[i] = 0;
+    }
+
+    for (int i = 0; i < 255; i++) {
+        int combined = 0;
+        for (int b = 0; b < 1024; b++) { //todo parameterise properly
+            int i1 = this->array->dram.read(b, i, 0);
+            combined += i1;
+        }
+        
+        histogram[i] = combined;
+    }
+
+//    std::cout << "x = [";
+//    for (int i = 0; i < 256; i++) {
+//        std::cout << i << ",";
+//    }
+//    std::cout << "]" << std::endl;
+//
+//    std::cout << "y = [";
+//    for (int i = 0; i < 256; i++) {
+//        std::cout << histogram[i] << ",";
+//    }
+//    std::cout << "]" << std::endl;
+
+}
+
+
 // Builder
 
 SCAMP5::builder &SCAMP5::builder::with_rows(int rows) {
