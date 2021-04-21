@@ -4,12 +4,14 @@
 
 #include "simulator/input/video_input.h"
 
-#include "simulator/base/array.h"
+#include <simulator/base/plane_params.h>
+
+#include "opencv4/opencv2/videoio.hpp"
 
 VideoInput::VideoInput(int rows, int cols, const std::string &path) {
     this->rows_ = rows;
     this->cols_ = cols;
-    this->capture = std::make_unique<cv::VideoCapture>(path, cv::CAP_ANY);
+    this->capture = std::make_unique<cv::VideoCapture>(path);
     if(!this->capture->isOpened()) {
         std::cerr << "Could not open video: " << path << std::endl;
         exit(1);

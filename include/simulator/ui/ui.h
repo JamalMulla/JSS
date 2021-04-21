@@ -9,7 +9,6 @@
 #include <uWebSockets/App.h>
 #include <uWebSockets/WebSocket.h>
 
-#include <opencv2/core/mat.hpp>
 #include <set>
 #include <string>
 

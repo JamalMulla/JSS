@@ -7,15 +7,11 @@ found [here](https://personalpages.manchester.ac.uk/staff/jianing.chen/scamp5d_l
 
 Requirements:
 
+* C++
 * Cmake
 * Conan
-* OpenCV
 
-Works on both Linux and Windows as long as Conan and OpenCV is installed. OpenCV has to be properly installed on your
-system. Not handled by Conan due to weird linking issues.
-
-Composed of two parts: the simulation library and the architecture you're simulating. The existing CMakeLists.txt will
-build the library first and then the SCAMP-5 architecture.
+Composed of two parts: the simulation library and the architecture you're simulating. The existing CMakeLists.txt will build the library first and then the SCAMP-5 architecture.
 
 # Compile time options
 
@@ -30,15 +26,16 @@ Tracking statistics is expensive and will drastically slow down execution.
 | USE_RUNTIME_CHECKS  | Checks arguments at runtime and emits warnings. | OFF |
 | TRACK_STATISTICS | Tracks statistics such as register reads and energy use| OFF |
 
-# Build - release (debug)
+# Build - (release|debug)
+(remmeber to remove the brackets around the choice before running)
 
 * Clone repo
-* `mkdir cmake-build-release && cd cmake-build-release` (`mkdir cmake-build-debug && cd cmake-build-debug`)
-* `conan install .. -s build_type=Release` (`conan install .. -s build_type=Debug`)
-* `cmake -DCMAKE_BUILD_TYPE=release ..` (`cmake -DCMAKE_BUILD_TYPE=debug ..`)
-* `make`
-
-Or just use Clion.
+* `mkdir cmake-build-(release|debug) && cd cmake-build-(release|debug)`
+* `conan profile update settings.compiler.libcxx=libstdc++11 default`
+* `conan create ../conanfile.py -s build_type=(Release|Debug)`
+* `conan install ../conanfile.txt -s build_type=(Release|Debug)`
+* `cmake -DCMAKE_BUILD_TYPE=(release|debug) ..`
+* `make -j`
 
 # UI
 There is a browser based UI which can be used to display the outputs of the registers in realtime. Create a UI object and start it before the main loop like this:

@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_UTILITY_H
 #define SIMULATOR_UTILITY_H
 
-#include <opencv2/opencv.hpp>
+#include <opencv4/opencv2/opencv.hpp>
 #include <string>
 
 #include "simulator/registers/register.h"

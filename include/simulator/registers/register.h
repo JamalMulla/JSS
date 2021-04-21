@@ -5,19 +5,13 @@
 #ifndef SIMULATOR_REGISTER_H
 #define SIMULATOR_REGISTER_H
 
-#include <simulator/ui/ui.h>
-
-#include <opencv2/core/mat.hpp>
+#include <opencv4/opencv2/core/mat.hpp>
 
 #include "simulator/base/component.h"
 #include "simulator/metrics/cycle_counter.h"
 #include "simulator/memory/memory.h"
 
-class UI;
-
 class Register : public Component {
-   private:
-    UI* ui = nullptr;
 
     // TODO internal mask
    protected:
@@ -55,8 +49,6 @@ class Register : public Component {
     void print_stats(const CycleCounter& counter) override = 0;
 //    void write_stats(const CycleCounter& counter, json& j) override = 0;
 #endif
-
-    void set_ui_handler(UI* ui_ptr);
 
     cv::Mat& read();
     void write(cv::Mat& data);

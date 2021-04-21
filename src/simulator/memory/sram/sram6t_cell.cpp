@@ -4,7 +4,7 @@
 
 #include "simulator/memory/sram6t_cell.h"
 
-#include <opencv2/core.hpp>
+#include <opencv4/opencv2/core.hpp>
 
 #include "simulator/base/config.h"
 

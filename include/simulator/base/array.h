@@ -15,8 +15,6 @@
 #include "plane_params.h"
 #include "processing_element.h"
 
-#define MAT_TYPE CV_16S
-
 // TODO implement StatsOutputter
 class Array {
    private:

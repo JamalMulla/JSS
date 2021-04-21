@@ -6,7 +6,7 @@
 #define SIMULATOR_COMPONENT_H
 
 #include <nlohmann/json.hpp>
-#include <opencv2/core.hpp>
+#include <opencv4/opencv2/core.hpp>
 
 #include "simulator/metrics/stats_outputter.h"
 #include "simulator/metrics/cycle_counter.h"

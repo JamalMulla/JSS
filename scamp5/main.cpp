@@ -2,6 +2,7 @@
 // Created by Jamal on 20/02/2021.
 //
 
+#include <simulator/ui/ui.h>
 #include <simulator/util/utility.h>
 
 #include "scamp5.h"
@@ -34,15 +35,15 @@ int main() {
     UI ui;
     ui.start();
 
-    int frames = 1;
+    int frames = 1500;
 
     int i = 0;
     while(i < frames) {
-        s.get_image(s.A, s.D);
         int e1 = cv::getTickCount();
+        s.get_image(s.A, s.D);
 //        superpixel(s);
-        s.histogram(s.A);
         int e2 = cv::getTickCount();
+        s.histogram(s.A);
 //        std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
         ui.display_reg(s.A);
         ui.display_reg(s.B);

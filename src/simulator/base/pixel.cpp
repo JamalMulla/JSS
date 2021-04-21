@@ -8,7 +8,7 @@
 #include <simulator/input/live_input.h>
 #include <simulator/input/video_input.h>
 
-#include <opencv2/imgproc.hpp>
+#include <opencv4/opencv2/imgproc.hpp>
 
 Pixel::Pixel(int rows, int cols, int row_stride, int col_stride, Source src, const std::string& path, Config& config)
 #ifdef TRACK_STATISTICS

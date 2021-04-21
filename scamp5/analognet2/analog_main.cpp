@@ -111,7 +111,6 @@ int analog_main() {
     // Output label (index of max. in results)
     uint8_t max_index;
 
-    s.PIX->set_ui_handler(&ui);
     std::vector<Register*> regs;
     regs.push_back(s.PIX);
     regs.push_back(s.A);

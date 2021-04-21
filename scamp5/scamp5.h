@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_SCAMP5_H
 #define SIMULATOR_SCAMP5_H
 
-#include <opencv2/opencv.hpp>
+#include <opencv4/opencv2/opencv.hpp>
 
 #include "simulator/base/array.h"
 #include "simulator/base/processing_element.h"

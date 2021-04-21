@@ -7,6 +7,8 @@
 
 #include <functional>
 
+#define MAT_TYPE CV_16S
+
 enum Origin { BOTTOM_LEFT, BOTTOM_RIGHT, TOP_RIGHT, TOP_LEFT };
 
 struct PlaneParams {
