@@ -30,7 +30,7 @@ Dram3tCell::Dram3tCell(int rows, int cols, int row_stride, int col_stride, Confi
 
 
 double Dram3tCell::fun_static(const Config& config) {
-    return 2.17e-9;  // TODO find better numbers
+    return 2.17e-10;  // TODO find better numbers
 }
 
 double Dram3tCell::fun_dynamic_read(const Config& config) {

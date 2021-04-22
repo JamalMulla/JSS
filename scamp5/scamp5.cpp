@@ -1995,6 +1995,90 @@ void SCAMP5::histogram(AREG* src) {
 
 }
 
+void SCAMP5::hog(AREG *src) {
+    // normalise image into 0-1 range
+
+    scamp5_load_in(F, 127);
+    add(src, src, F);
+
+//    cv::Mat img;
+//    src->read().convertTo(img, CV_32F, 1/255.0);
+
+    // calculate gradients gx, gy using sobel
+    neg(B, A);
+    subx(C, A, south, B);
+    subx(D, A, north, B);
+    subx(B, B, west, A);
+    movx(A, B, east);
+    addx(C, C, D, east);
+    addx(A, B, A, north);
+    sub2x(B, A, south, south, A);
+    sub2x(A, C, west, west, C);
+    // A = gy
+    // B = gx
+
+    add(A, A, F);
+    add(B, B, F);
+
+    cv::Mat A_float;
+    cv::Mat B_float;
+    A->read().convertTo(A_float, CV_32F, 1/255.0);
+    B->read().convertTo(B_float, CV_32F, 1/255.0);
+
+    // calculate gradient magnitude and direction (in degrees)
+    cv::Mat m; //magnitudes
+    cv::Mat a; //angles
+    cv::cartToPolar(A_float, B_float, m, a, true);
+    this->array->update_cycles(350); // todo better number here for arctan
+    // todo also need to add power here that would come from carrying out this computation
+
+    // calculate Histogram of Gradients in 8×8 cells
+    int blocksize = 8;
+    int bucket_size = 20;
+    int num_buckets = 9;
+
+    int block = 0;
+    for (int row = 0; row < rows_; row += blocksize) {
+        for (int col = 0; col < cols_; col += blocksize) {
+
+            for (int r = row; r < row + blocksize; r++) {
+                for (int c = col; c < col + blocksize; c++) {
+                    float magnitude = m.at<float>(r, c);
+                    int angle = (int)a.at<float>(r, c) % 180; // unsigned only
+                    int m_col = 0;
+
+                    int b1 = floor((double) angle/bucket_size);
+                    int b2 = (b1 + 1) % num_buckets;
+
+                    double v2 = ceil(((double) (angle - (b1 * bucket_size))/bucket_size) * magnitude);
+                    double v1 = ceil(magnitude - v2);
+
+                    int value = this->array->dram.read(block, b1, m_col);
+                    this->array->dram.write(block, b1, m_col, value+v1);
+
+                    int value2 = this->array->dram.read(block, b2, m_col);
+                    this->array->dram.write(block, b2, m_col, value2+v2);
+                }
+            }
+            block++;
+        }
+    }
+
+    // output histograms for each block
+    for (int b = 0; b < block; b++) {
+        std::cout << "B:" << b;
+        for (int i = 0; i < 10; i++) { //todo parameterise properly
+            int i1 = this->array->dram.read(b, i, 0);
+            std::cout << ", Bin: " <<  i*20 << ", Count: " << i1 << " |";
+        }
+        std::cout << std::endl;
+    }
+
+
+    // 16×16 Block Normalization
+    // Calculate the HOG feature vector
+
+}
 
 // Builder
 

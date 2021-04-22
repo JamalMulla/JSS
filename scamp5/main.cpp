@@ -10,15 +10,16 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
 
-void sobel(SCAMP5& s);
+void vertical_sobel(SCAMP5& s);
+void horizontal_sobel(SCAMP5& s);
 void superpixel(SCAMP5& s);
 void multiple_sobel(SCAMP5& s);
 void gaussian5x5(SCAMP5& s);
 
 int main() {
     SCAMP5 s = SCAMP5::builder {}
-                   .with_rows(256)
-                   .with_cols(256)
+                   .with_rows(64)
+                   .with_cols(64)
                    .build();
     Bitorder bitorder = {
         {{1, 8, 0, 0},
@@ -35,7 +36,7 @@ int main() {
     UI ui;
     ui.start();
 
-    int frames = 1500;
+    int frames = 1;
 
     int i = 0;
     while(i < frames) {
@@ -43,7 +44,9 @@ int main() {
         s.get_image(s.A, s.D);
 //        superpixel(s);
         int e2 = cv::getTickCount();
-        s.histogram(s.A);
+        s.hog(s.A);
+//        multiple_sobel(s);
+//        s.histogram(s.A);
 //        std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
         ui.display_reg(s.A);
         ui.display_reg(s.B);
@@ -64,13 +67,32 @@ int main() {
     return 0;
 }
 
-inline void sobel(SCAMP5& s) {
+inline void vertical_sobel(SCAMP5& s) {
     s.get_image(s.A, s.D);
+//    s.movx(s.B, s.A, south);
+//    s.add(s.B, s.B, s.A);
+//    s.movx(s.A, s.B, north);
+//    s.addx(s.B, s.B, s.A, east);
+//    s.sub2x(s.A, s.B, west, west, s.B);
     s.movx(s.B, s.A, south);
-    s.add(s.B, s.B, s.A);
-    s.movx(s.A, s.B, north);
+    s.addx(s.A, s.B, s.A, north);
     s.addx(s.B, s.B, s.A, east);
     s.sub2x(s.A, s.B, west, west, s.B);
+}
+
+inline void horizontal_sobel(SCAMP5& s) {
+    s.get_image(s.A, s.D);
+//    s.movx(s.B, s.A, west);
+//    s.addx(s.A, s.B, s.A, east);
+//    s.addx(s.B, s.B, s.A, south);
+//    s.sub2x(s.A, s.B, north, north, s.B);
+    s.movx(s.B, s.A, south);
+    s.mov2x(s.D, s.A, west, north);
+    s.sub(s.C, s.A, s.B);
+    s.add(s.A, s.A, s.C);
+    s.movx(s.B, s.A, west);
+    s.sub2x(s.C, s.C, north, east, s.D);
+    s.add(s.A, s.B, s.A, s.C);
 }
 
 inline void superpixel(SCAMP5& s) {

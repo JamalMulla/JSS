@@ -51,7 +51,7 @@ int Dram::fun_transistor(const Config& config) {
     // 1t1c DRAM cells (for now). So rows * cols * word_length for just DRAM cell transistor counts
     // Some number for sense amplifiers
     // Some number for row/col decoders
-    return rows_ * cols_ * word_length_;
+    return (array_rows_ * array_cols_ * word_length_) * (rows_ / row_stride_ * (cols_ / col_stride_));
 }
 
 

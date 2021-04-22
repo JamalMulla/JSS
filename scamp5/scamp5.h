@@ -467,6 +467,7 @@ class SCAMP5 {
 
     // Histogramming
     void histogram(AREG* src);
+    void hog(AREG* src);
 
 
     // Simulator specific methods
