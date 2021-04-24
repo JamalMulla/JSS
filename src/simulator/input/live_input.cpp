@@ -6,15 +6,16 @@
 
 #include <simulator/base/array.h>
 
-#include <opencv2/imgproc.hpp>
-#include <opencv2/opencv.hpp>
+#include <chrono>
+#include <opencv4/opencv2/imgproc.hpp>
+#include <opencv4/opencv2/opencv.hpp>
 
 LiveInput::LiveInput() = default;
 
 LiveInput::LiveInput(int rows, int cols) {
     this->rows_ = rows;
     this->cols_ = cols;
-    this->capture = std::make_unique<cv::VideoCapture>(0, cv::CAP_ANY);
+    this->capture = std::make_unique<cv::VideoCapture>(0);
     if(!this->capture->isOpened()) {
         std::cerr << "Could not open camera" << std::endl;
         exit(1);

@@ -13,7 +13,10 @@ void Array::update_cycles(int cycles) {
 }
 
 Array::Array(int rows, int columns, Config& config, ProcessingElement pe) :
-    rows_(rows), columns_(columns), config_(&config), pe(std::move(pe)), cla(rows, columns, 4, 4, 8, config) {}
+    rows_(rows), columns_(columns),
+    config_(&config), pe(std::move(pe)),
+    cla(rows, columns, 4, 4, 8, config),
+    dram(rows, columns, 8, 8, 256, 1, 16, config) {}
 
 #ifdef TRACK_STATISTICS
 
@@ -42,7 +45,7 @@ void Array::print_stats() {
     double exec_time = ((double)counter_.get_cycles() / config_->clock_rate);
     std::cout << "Device execution time: " << exec_time << " s\n";
     std::cout << "FPS: " << 500/exec_time << " \n";
-    int transistor_count = cv::sum(this->pe.get_transistor_count())[0] + cv::sum(this->cla.get_transistor_count())[0];
+    int transistor_count = cv::sum(this->pe.get_transistor_count())[0] + cv::sum(this->cla.get_transistor_count())[0] + cv::sum(this->dram.get_transistor_count())[0];
     std::cout << "Array transistor count: " << transistor_count << "\n";
     std::cout << "Average transistor count per PE: " << transistor_count / (rows_ * columns_) << " \n";
     double static_power = (cv::sum(this->pe.get_static_energy())[0] + cv::sum(this->cla.get_static_energy())[0]) / exec_time;

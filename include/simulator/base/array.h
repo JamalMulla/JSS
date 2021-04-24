@@ -6,6 +6,7 @@
 #define SIMULATOR_ARRAY_H
 
 #include <simulator/adders/cla.h>
+#include <simulator/memory/dram_array.h>
 #include <simulator/metrics/stats_outputter.h>
 
 #include <functional>
@@ -13,8 +14,6 @@
 #include "component.h"
 #include "plane_params.h"
 #include "processing_element.h"
-
-#define MAT_TYPE CV_16S
 
 // TODO implement StatsOutputter
 class Array {
@@ -29,9 +28,11 @@ class Array {
 
     ProcessingElement pe;
     CarryLookAheadAdder cla;
+    Dram dram;
+
     void update_cycles(int cycles);
-    void update_static(); // Calculates static power using the number of cycles we've got to
 #ifdef TRACK_STATISTICS
+    void update_static(); // Calculates static power using the number of cycles we've got to
     void print_stats();
     unsigned long long get_cycles();
 #endif

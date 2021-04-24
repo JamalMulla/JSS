@@ -4,7 +4,7 @@
 
 #include "simulator/registers/register.h"
 
-#include <opencv2/core.hpp>
+#include <opencv4/opencv2/core.hpp>
 
 Register::Register(int rows, int cols, int row_stride, int col_stride, int type, Config &config, MemoryType memory_type) :
     rows_(rows),
@@ -133,5 +133,3 @@ void Register::inc_write() {
 void Register::change_memory_type(MemoryType memory_type) {
     this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, *config_);
 }
-
-void Register::set_ui_handler(UI *ui_ptr) { this->ui = ui_ptr; }

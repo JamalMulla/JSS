@@ -6,7 +6,7 @@
 #define SIMULATOR_TESTS_UTILITY_H
 
 #include <iostream>
-#include <opencv2/core.hpp>
+#include <opencv4/opencv2/core.hpp>
 
 namespace utility {
 bool mats_are_equal(const cv::Mat& mat1, const cv::Mat& mat2);

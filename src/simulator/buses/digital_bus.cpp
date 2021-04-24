@@ -4,7 +4,7 @@
 
 #include "simulator/buses/digital_bus.h"
 
-#include <opencv2/core.hpp>
+#include <opencv4/opencv2/core.hpp>
 #include <utility>
 
 #include "../../../tests/utility.h"

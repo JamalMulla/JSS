@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_LIVE_INPUT_H
 #define SIMULATOR_LIVE_INPUT_H
 
-#include <opencv2/videoio.hpp>
+#include <opencv4/opencv2/videoio.hpp>
 
 #include "input_source.h"
 

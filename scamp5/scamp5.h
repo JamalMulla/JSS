@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_SCAMP5_H
 #define SIMULATOR_SCAMP5_H
 
-#include <opencv2/opencv.hpp>
+#include <opencv4/opencv2/opencv.hpp>
 
 #include "simulator/base/array.h"
 #include "simulator/base/processing_element.h"
@@ -464,6 +464,12 @@ class SCAMP5 {
     void superpixel_shift_left(DREG *dst, int bank, DREG *src);
     void superpixel_add(DREG *dst, int bank, DREG *src1, DREG *src2);
     void superpixel_sub(DREG *dst, int bank, DREG *src1, DREG *src2);
+    void superpixel_movx(DREG* dst, DREG* src, news_t dir);
+
+    // Histogramming
+    void histogram(AREG* src);
+    void hog(AREG* src);
+
 
     // Simulator specific methods
     void print_stats();

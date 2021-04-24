@@ -4,7 +4,7 @@
 
 #include "simulator/memory/si_cell.h"
 
-#include <opencv2/core.hpp>
+#include <opencv4/opencv2/core.hpp>
 
 #include "simulator/base/config.h"
 
@@ -26,15 +26,15 @@ SiCell::SiCell(int rows, int cols, int row_stride, int col_stride, Config& confi
 
 #ifdef TRACK_STATISTICS
 double SiCell::fun_static(const Config& config) {
-    return 1.2991e-8;  // TODO find better numbers
+    return 1.2991e-12;  // TODO find better numbers
 }
 
 double SiCell::fun_dynamic_read(const Config& config) {
-    return 0.0001;
+    return 6.0e-6;
 }
 
 double SiCell::fun_dynamic_write(const Config& config) {
-    return 0.0001;
+    return 6.0e-6;
 }
 
 cv::Mat& SiCell::get_static_energy() {

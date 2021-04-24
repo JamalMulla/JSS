@@ -3,7 +3,7 @@
 //
 #include "simulator/adders/cla.h"
 
-#include <opencv2/core.hpp>
+#include <opencv4/opencv2/core.hpp>
 
 #include "../../tests/utility.h"
 
@@ -37,7 +37,7 @@ int CarryLookAheadAdder::fun_transistor(int bits, const Config& config) {
 
 double CarryLookAheadAdder::fun_static(int bits, const Config& config) {
     // Static power dissipation based off number of bits and config
-    return 2.0e-5 * ((bits / 4.0) + 0.5); // mostly linear scaling with number of bits but also some extra for overhead
+    return 2.0e-8 * ((bits / 4.0) + 0.5); // mostly linear scaling with number of bits but also some extra for overhead
 }
 
 double CarryLookAheadAdder::fun_dynamic(int bits, const Config& config) {
