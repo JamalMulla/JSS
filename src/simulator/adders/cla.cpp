@@ -5,12 +5,12 @@
 
 #include <opencv4/opencv2/core.hpp>
 
-#include "../../tests/utility.h"
+#include "../../../tests/utility.h"
 
 /*https://www.researchgate.net/publication/283818559_A_comparative_study_of_high_speed_CMOS_adders_using_Microwind_and_FPGA
  * */
 
-/*Bits refers to the number of bits in the two inputs and the output. So an 8-bit adder takes in two 8-bit values and outputs an 8-bit value*/
+/*Bits refers to the number of bits in the two inputs and the output. So an 8-bit adders takes in two 8-bit values and outputs an 8-bit value*/
 
 CarryLookAheadAdder::CarryLookAheadAdder(int rows, int cols, int row_stride, int col_stride, int bits, const Config& config) :
     rows_(rows),

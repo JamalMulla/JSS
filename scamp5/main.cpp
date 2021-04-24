@@ -2,6 +2,7 @@
 // Created by Jamal on 20/02/2021.
 //
 
+#include <simulator/external/instruction_parser.h>
 #include <simulator/ui/ui.h>
 #include <simulator/util/utility.h>
 
@@ -18,6 +19,7 @@ void multiple_sobel(SCAMP5& s);
 void gaussian3x3(SCAMP5& s);
 void gaussian5x5(SCAMP5& s);
 void motion_detect(SCAMP5& s);
+void rttr_test(SCAMP5& s);
 
 int main() {
     SCAMP5 s = SCAMP5::builder {}
@@ -49,7 +51,8 @@ int main() {
     int i = 0;
     while(i < frames) {
         int e1 = cv::getTickCount();
-        motion_detect(s);
+        rttr_test(s);
+//        motion_detect(s);
         int e2 = cv::getTickCount();
 //        multiple_sobel(s);
 //        s.histogram(s.A);
@@ -71,6 +74,49 @@ int main() {
     s.print_stats();
 
     return 0;
+}
+
+using namespace rttr;
+
+inline void rttr_test(SCAMP5& s) {
+
+    static bool has_parsed = false;
+    const std::string program = "/home/jm1417/Simulator/misc/sobel.txt";
+
+    type scamp = type::get_by_name("SCAMP5");
+    std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > parsed = InstructionParser::parse(scamp, rttr::instance(s), program);
+    has_parsed = true;
+
+
+    for(auto& instr: parsed) {
+        method& method = instr.first;
+        std::vector<rttr::variant>& args = instr.second;
+        switch(args.size()) {
+            case 0: method.invoke(s); break;
+            case 1: method.invoke(s, args[0]); break;
+            case 2: method.invoke(s, args[0], args[1]); break;
+            case 3: method.invoke(s, args[0], args[1], args[2]); break;
+            case 4: method.invoke(s, args[0], args[1], args[2], args[3]); break;
+            case 5: method.invoke(s, args[0], args[1], args[2], args[3], args[4]); break;
+            default: std::cerr << "Too many arguments in method " << method.get_name() << " invocation" << std::endl;
+        }
+    }
+
+
+//    type class_type = type::get_by_name("SCAMP5");
+//    property A = class_type.get_property("A");
+//    property B = class_type.get_property("B");
+//    property D = class_type.get_property("D");
+//    method get_image = class_type.get_method("get_image");
+//    method movx = class_type.get_method("movx");
+//    method addx = class_type.get_method("addx");
+//    method sub2x = class_type.get_method("sub2x");
+//
+//    get_image.invoke(s, A.get_value(s), D.get_value(s));
+//    movx.invoke(s, B.get_value(s), A.get_value(s), south);
+//    addx.invoke(s, A.get_value(s), B.get_value(s), A.get_value(s), north);
+//    addx.invoke(s, B.get_value(s), B.get_value(s), A.get_value(s), east);
+//    sub2x.invoke(s, A.get_value(s), B.get_value(s), west, west, B.get_value(s));
 }
 
 inline void vertical_sobel(SCAMP5& s) {

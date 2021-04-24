@@ -9,6 +9,7 @@
 
 #include "simulator/base/array.h"
 #include "simulator/base/processing_element.h"
+#include <rttr/registration>
 
 enum news_t { east = 1,
               west = 2,
@@ -473,7 +474,53 @@ class SCAMP5 {
 
     // Simulator specific methods
     void print_stats();
+
+    RTTR_ENABLE();
 };
+
+//RTTR_REGISTRATION {
+
+//}
+
+
+
+RTTR_REGISTRATION {
+    using namespace rttr;
+
+    registration::enumeration<news_t>("news_t") (
+        value("north", news_t::north),
+        value("east", news_t::east),
+        value("south", news_t::south),
+        value("west", news_t::west)
+    );
+
+    registration::class_<SCAMP5>("SCAMP5")
+        .constructor<int, int, Origin>()
+        .property("A", &SCAMP5::A)
+        .property("B", &SCAMP5::B)
+        .property("C", &SCAMP5::C)
+        .property("D", &SCAMP5::D)
+        .property("E", &SCAMP5::E)
+        .property("F", &SCAMP5::F)
+        .property("R0", &SCAMP5::R0)
+        .property("R1", &SCAMP5::R1)
+        .property("R2", &SCAMP5::R2)
+        .property("R3", &SCAMP5::R3)
+        .property("R4", &SCAMP5::R4)
+        .property("R5", &SCAMP5::R5)
+        .property("R6", &SCAMP5::R6)
+        .property("R7", &SCAMP5::R7)
+        .property("R8", &SCAMP5::R8)
+        .property("R9", &SCAMP5::R9)
+        .property("R10", &SCAMP5::R10)
+        .property("R11", &SCAMP5::R11)
+        .property("R12", &SCAMP5::R12)
+        .method("get_image", select_overload<void(AREG*, AREG*)>(&SCAMP5::get_image))
+        .method("movx", select_overload<void(AREG*, AREG*, news_t)>(&SCAMP5::movx))
+        .method("addx", select_overload<void(AREG*, AREG*, AREG*, news_t)>(&SCAMP5::addx))
+        .method("sub2x", select_overload<void(AREG*, AREG*, news_t, news_t, AREG*)>(&SCAMP5::sub2x))
+        .method("bus", select_overload<void(AREG*)>(&SCAMP5::bus));
+}
 
 class SCAMP5::builder {
    private:

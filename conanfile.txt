@@ -8,4 +8,7 @@ rttr/0.9.6
 [generators]
 cmake
 
+[options]
+rttr:with_rtti=True
+
 

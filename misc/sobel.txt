@@ -1,0 +1,5 @@
+get_image(A, D)
+movx(B, A, south)
+addx(A, B, A, north)
+addx(B, B, A, east)
+sub2x(A, B, west, west, B)
