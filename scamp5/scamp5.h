@@ -464,6 +464,7 @@ class SCAMP5 {
     void superpixel_shift_left(DREG *dst, int bank, DREG *src);
     void superpixel_add(DREG *dst, int bank, DREG *src1, DREG *src2);
     void superpixel_sub(DREG *dst, int bank, DREG *src1, DREG *src2);
+    void superpixel_movx(DREG* dst, DREG* src, news_t dir);
 
     // Histogramming
     void histogram(AREG* src);

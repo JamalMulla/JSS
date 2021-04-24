@@ -1845,97 +1845,142 @@ void SCAMP5::superpixel_shift_left(DREG *dst, int bank, DREG *src) {
     superpixel_shift(dst, bank, src, true);
 }
 
-void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
-    // Clobbers R11
-    DigitalRegister A = src1->read().clone();
-    DigitalRegister B = src2->read().clone();
-    DigitalRegister and_ = DigitalRegister(src1->read().rows, src1->read().cols);
-    DigitalRegister xor_ = DigitalRegister(src1->read().rows, src1->read().cols);
-
-    AND(&and_, &A, &B);
-
-    while(cv::sum(and_.read())[0] != 0) {
-        MOV(R11, &A); // Needed because XOR clobbers A
-        XOR(&xor_, &A, &B);
-        MOV(&A, R11);
-        AND(&and_, &A, &B);
-        superpixel_shift_left(&and_, bank, &and_);
-        A.write(xor_);
-        B.write(and_);
-        AND(&and_, &A, &B);
-    }
-    MOV(R11, &A);
-    XOR(dst, &A, &B);
-    MOV(&A, R11);
-}
-//
 //void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
-//    position_map locations;
-//    this->superpixel_positions_from_bitorder(locations);
+//    // Clobbers R11
+//    DigitalRegister A = src1->read().clone();
+//    DigitalRegister B = src2->read().clone();
+//    DigitalRegister and_ = DigitalRegister(src1->read().rows, src1->read().cols);
+//    DigitalRegister xor_ = DigitalRegister(src1->read().rows, src1->read().cols);
 //
-//    cv::Mat &d = dst->read();
-//    cv::Mat &s1 = src1->read();
-//    cv::Mat &s2 = src2->read();
-//    parallel_for_(cv::Range(0, rows_ * cols_), [&](const cv::Range &range) {
-//      for(int r = range.start; r < range.end; r++) {
-//          int row = r / cols_;
-//          int col = r % cols_;
+//    AND(&and_, &A, &B);
 //
-//          if(row % superpixel_size_ != 0) continue;  // Step size is superpixel_size_
-//          if(col % superpixel_size_ != 0) continue;
+//    while(cv::sum(and_.read())[0] != 0) {
+//        MOV(R11, &A); // Needed because XOR clobbers A
+//        XOR(&xor_, &A, &B);
+//        MOV(&A, R11);
+//        AND(&and_, &A, &B);
+//        superpixel_shift_left(&and_, bank, &and_);
+//        A.write(xor_);
+//        B.write(and_);
+//        AND(&and_, &A, &B);
+//    }
+//    MOV(R11, &A);
+//    XOR(dst, &A, &B);
+//    MOV(&A, R11);
+//}
 //
-//          // Read value from each superpixel
-//          int8_t value1 = 0;
-//          int8_t value2 = 0;
-//          for(int i = 0; i < bits_in_bank_; i++) {
-//              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
-//              int bit = s1.at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
-//              value1 |= bit << i;  // LSB to MSB
-//              int bit2 = s2.at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
-//              value2 |= bit2 << i;  // LSB to MSB
-//          }
+void SCAMP5::superpixel_add(DREG *dst, int bank, DREG* src1, DREG* src2) {
+    position_map locations;
+    this->superpixel_positions_from_bitorder(locations);
+
+    cv::Mat &d = dst->read();
+    cv::Mat &s1 = src1->read();
+    cv::Mat &s2 = src2->read();
+    parallel_for_(cv::Range(0, rows_ * cols_), [&](const cv::Range &range) {
+      for(int r = range.start; r < range.end; r++) {
+          int row = r / cols_;
+          int col = r % cols_;
+
+          if(row % superpixel_size_ != 0) continue;  // Step size is superpixel_size_
+          if(col % superpixel_size_ != 0) continue;
+
+          // Read value from each superpixel
+          int8_t value1 = 0;
+          int8_t value2 = 0;
+          for(int i = 0; i < bits_in_bank_; i++) {
+              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
+              int bit = s1.at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+              value1 |= bit << i;  // LSB to MSB
+              int bit2 = s2.at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+              value2 |= bit2 << i;  // LSB to MSB
+          }
+
+          int8_t sum = this->array->cla.add(value1, value2);  // Need to have another look at this. Is this correct?
+          for(int i = 0; i < bits_in_bank_; i++) {
+              int bit = (sum >> i) & 1;  // LSB to MSB
+              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
+              d.at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bit;
+          }
+      }
+    });
+    this->array->cla.inc_add();
+    this->array->update_cycles(1);
+}
+
+
+//void SCAMP5::superpixel_sub(DREG *dst, int bank, DREG* src1, DREG* src2) {
+//    // Clobbers R11
+//    DigitalRegister A = src1->read().clone();
+//    DigitalRegister B = src2->read().clone();
+//    DigitalRegister NOT_A = src1->read().clone();
+//    DigitalRegister and_ =
+//        DigitalRegister(src1->read().rows, src1->read().cols);
+//    DigitalRegister xor_ =
+//        DigitalRegister(src1->read().rows, src1->read().cols);
 //
-//          int8_t sum = this->array->cla.add(value1, value2);  // Need to have another look at this. Is this correct?
-//          for(int i = 0; i < bits_in_bank_; i++) {
-//              int bit = (sum >> i) & 1;  // LSB to MSB
-//              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
-//              d.at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bit;
-//          }
-//      }
-//    });
-//    this->array->cla.inc_add();
-//    this->array->update_static(8);
+//    NOT(&NOT_A, &A);
+//    AND(&and_, &NOT_A, &B);
+//
+//    while(cv::sum(and_.read())[0] != 0) {
+//        MOV(R11, &A); // Needed because XOR clobbers A
+//        XOR(&xor_, &A, &B);
+//        MOV(&A, R11);
+//        NOT(&NOT_A, &A);
+//        AND(&and_, &NOT_A, &B);
+//        superpixel_shift_left(&and_, bank, &and_);
+//        A.write(xor_);
+//        B.write(and_);
+//        NOT(&NOT_A, &A);
+//        AND(&and_, &NOT_A, &B);
+//    }
+//    MOV(R11, &A);
+//    XOR(dst, &A, &B);
+//    MOV(&A, R11);
 //}
 
-
 void SCAMP5::superpixel_sub(DREG *dst, int bank, DREG* src1, DREG* src2) {
-    // Clobbers R11
-    DigitalRegister A = src1->read().clone();
-    DigitalRegister B = src2->read().clone();
-    DigitalRegister NOT_A = src1->read().clone();
-    DigitalRegister and_ =
-        DigitalRegister(src1->read().rows, src1->read().cols);
-    DigitalRegister xor_ =
-        DigitalRegister(src1->read().rows, src1->read().cols);
+    position_map locations;
+    this->superpixel_positions_from_bitorder(locations);
 
-    NOT(&NOT_A, &A);
-    AND(&and_, &NOT_A, &B);
+    cv::Mat &d = dst->read();
+    cv::Mat &s1 = src1->read();
+    cv::Mat &s2 = src2->read();
+    parallel_for_(cv::Range(0, rows_ * cols_), [&](const cv::Range &range) {
+      for(int r = range.start; r < range.end; r++) {
+          int row = r / cols_;
+          int col = r % cols_;
 
-    while(cv::sum(and_.read())[0] != 0) {
-        MOV(R11, &A); // Needed because XOR clobbers A
-        XOR(&xor_, &A, &B);
-        MOV(&A, R11);
-        NOT(&NOT_A, &A);
-        AND(&and_, &NOT_A, &B);
-        superpixel_shift_left(&and_, bank, &and_);
-        A.write(xor_);
-        B.write(and_);
-        NOT(&NOT_A, &A);
-        AND(&and_, &NOT_A, &B);
+          if(row % superpixel_size_ != 0) continue;  // Step size is superpixel_size_
+          if(col % superpixel_size_ != 0) continue;
+
+          // Read value from each superpixel
+          int8_t value1 = 0;
+          int8_t value2 = 0;
+          for(int i = 0; i < bits_in_bank_; i++) {
+              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
+              int bit = s1.at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+              value1 |= bit << i;  // LSB to MSB
+              int bit2 = s2.at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+              value2 |= bit2 << i;  // LSB to MSB
+          }
+
+          int8_t sum = this->array->cla.add(-value1, value2);  // Need to have another look at this. Is this correct?
+          for(int i = 0; i < bits_in_bank_; i++) {
+              int bit = (sum >> i) & 1;  // LSB to MSB
+              cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
+              d.at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bit;
+          }
+      }
+    });
+    this->array->cla.inc_add();
+    this->array->update_cycles(1);
+}
+
+void SCAMP5::superpixel_movx(DREG *dst, DREG* src, news_t dir) {
+    for(int i = 0; i < superpixel_size_; ++i) {
+        DNEWS(dst, src, dir, 0);
+        src = dst;
     }
-    MOV(R11, &A);
-    XOR(dst, &A, &B);
-    MOV(&A, R11);
 }
 
 // Histogramming
@@ -1946,6 +1991,7 @@ void SCAMP5::histogram(AREG* src) {
     int blocksize = 8;
     int block = 0;
     cv::Mat& s = src->read();
+
     for (int row = 0; row < rows_; row += blocksize) {
         for (int col = 0; col < cols_; col += blocksize) {
 
@@ -1966,14 +2012,15 @@ void SCAMP5::histogram(AREG* src) {
     // Combine all the dram cells into one by just adding up each of the dram arrays for each value
     std::unordered_map<int, int> histogram;
 
-    for (int i = 0; i < 255; i++) {
+    for (int i = 0; i < block; i++) {
         // init to 0
         histogram[i] = 0;
     }
 
-    for (int i = 0; i < 255; i++) {
+    int cells = (rows_*cols_)/blocksize/blocksize; // number of dram arrays across array
+    for (int i = 0; i < block; i++) {
         int combined = 0;
-        for (int b = 0; b < 1024; b++) { //todo parameterise properly
+        for (int b = 0; b < cells; b++) { //todo parameterise properly
             int i1 = this->array->dram.read(b, i, 0);
             combined += i1;
         }
@@ -1981,44 +2028,39 @@ void SCAMP5::histogram(AREG* src) {
         histogram[i] = combined;
     }
 
-//    std::cout << "x = [";
-//    for (int i = 0; i < 256; i++) {
-//        std::cout << i << ",";
-//    }
-//    std::cout << "]" << std::endl;
-//
-//    std::cout << "y = [";
-//    for (int i = 0; i < 256; i++) {
-//        std::cout << histogram[i] << ",";
-//    }
-//    std::cout << "]" << std::endl;
+    std::cout << "x = [";
+    for (int i = 0; i < block; i++) {
+        std::cout << i << ",";
+    }
+    std::cout << "]" << std::endl;
+
+    std::cout << "y = [";
+    for (int i = 0; i < block; i++) {
+        std::cout << histogram[i] << ",";
+    }
+    std::cout << "]" << std::endl;
 
 }
 
 void SCAMP5::hog(AREG *src) {
-    // normalise image into 0-1 range
+    // Clobbers A, B
+    this->array->dram.reset(); //todo time and energy
 
     scamp5_load_in(F, 127);
     add(src, src, F);
 
-//    cv::Mat img;
-//    src->read().convertTo(img, CV_32F, 1/255.0);
-
     // calculate gradients gx, gy using sobel
-    neg(B, A);
-    subx(C, A, south, B);
-    subx(D, A, north, B);
-    subx(B, B, west, A);
-    movx(A, B, east);
-    addx(C, C, D, east);
-    addx(A, B, A, north);
-    sub2x(B, A, south, south, A);
-    sub2x(A, C, west, west, C);
+    neg(B, src);
+    subx(C, src, west, B);
+    subx(E, src, east, B);
+    subx(B, B, south, src);
+    movx(A, B, north);
+    addx(C, C, E, south);
+    addx(B, B, A, west);
+    sub2x(A, B, east, east, B);
+    sub2x(B, C, north, north, C);
     // A = gy
     // B = gx
-
-    add(A, A, F);
-    add(B, B, F);
 
     cv::Mat A_float;
     cv::Mat B_float;

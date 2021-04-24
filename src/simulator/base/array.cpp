@@ -16,7 +16,7 @@ Array::Array(int rows, int columns, Config& config, ProcessingElement pe) :
     rows_(rows), columns_(columns),
     config_(&config), pe(std::move(pe)),
     cla(rows, columns, 4, 4, 8, config),
-    dram(rows, columns, 8, 8, 9, 1, 16, config) {}
+    dram(rows, columns, 8, 8, 256, 1, 16, config) {}
 
 #ifdef TRACK_STATISTICS
 

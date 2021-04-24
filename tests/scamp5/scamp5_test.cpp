@@ -579,3 +579,41 @@ TEST_CASE("1 bank superpixel images can be subtracted") {
     REQUIRE(utility::mats_are_equal(out.read(), expected));
 }
 
+TEST_CASE("superpixel images can be moved") {
+    int rows = 4;
+    int cols = 4;
+
+    SCAMP5 s = SCAMP5::builder {}
+        .with_rows(rows)
+        .with_cols(cols)
+        .with_origin(Origin::BOTTOM_LEFT)
+        .build();
+
+    Bitorder bitorder = {
+        {
+            {1, 4, 0, 0},
+            {2, 3, 0, 0},
+            {0, 0, 0, 0},
+            {0, 0, 0, 0}
+        },
+    };
+
+    s.set_superpixel(bitorder, 2, 4);
+
+    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        0,0,1,0,
+        1,0,0,0,
+        1,0,1,0,
+        0,0,0,0);
+
+    DigitalRegister out(rows, cols);
+
+    s.superpixel_movx(&out, &A, north);
+    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        0,0,0,0,
+        0,0,0,0,
+        0,0,1,0,
+        1,0,0,0);
+    REQUIRE(utility::mats_are_equal(out.read(), expected));
+}
+
