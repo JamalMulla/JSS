@@ -1,0 +1,7 @@
+get_image(A, D);
+superpixel_adc(R5, 0, A);
+superpixel_movx(R6, R5, south);
+superpixel_movx(R7, R6, north);
+superpixel_movx(R7, R7, north);
+superpixel_sub(R5, 0, R7, R6);
+superpixel_dac(B, 0, R5);
