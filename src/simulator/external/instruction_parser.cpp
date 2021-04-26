@@ -4,6 +4,8 @@
 
 #include "simulator/external/instruction_parser.h"
 
+#include <rttr/enumeration.h>
+
 #include <algorithm>
 #include <any>
 #include <fstream>
@@ -11,16 +13,14 @@
 #include <sstream>
 #include <vector>
 
-#include <rttr/enumeration.h>
-
 // trim from start (in place)
-static inline void ltrim(std::string &s) {
+static inline void ltrim(std::string& s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-      return !std::isspace(ch);
-    }));
+                return !std::isspace(ch);
+            }));
 }
 
-rttr::variant InstructionParser::get_arg(const rttr::type& class_type, rttr::instance class_obj, std::vector<rttr::enumeration>& enums, const std::string& arg) {
+rttr::variant InstructionParser::get_arg(rttr::instance class_obj, std::vector<rttr::enumeration>& enums, const std::string& arg) {
     // Try to get/convert the argument. If nothing else works then will be treated as string
     // Tried in this order:
     // 1. Class property that has been registered
@@ -28,7 +28,7 @@ rttr::variant InstructionParser::get_arg(const rttr::type& class_type, rttr::ins
     // 3. Integer
     // 4. Float
     // 5. String
-
+    rttr::type class_type = class_obj.get_type();
     rttr::variant arg_val = class_type.get_property_value(arg, class_obj);
     if (arg_val.is_valid()) {
         return arg_val;
@@ -65,7 +65,7 @@ rttr::method InstructionParser::get_method(const rttr::type& class_type, std::ve
         // Go through and convert each argument to the proper type.
         // This is needed as auto casting is not done on method invocation
         size_t i = 0;
-        for (auto& p : instr_method.get_parameter_infos()) {
+        for (auto& p: instr_method.get_parameter_infos()) {
             if (i >= args.size()) {
                 break;
             }
@@ -80,14 +80,14 @@ rttr::method InstructionParser::get_method(const rttr::type& class_type, std::ve
     // Possible that the method exists but has default arguments which have not been passed
     // Need to search through for a method that is likely the right one
 
-    for (auto& m : class_type.get_methods()) {
+    for (auto& m: class_type.get_methods()) {
         if (m.get_name() == instr) {
             if (m.get_parameter_infos().size() > arg_types.size()) {
                 // at least as many arguments as has been given
                 // assume this is the correct one
                 // may not actually be the correct one which is a limitation.
                 size_t i = 0;
-                for (auto& p : m.get_parameter_infos()) {
+                for (auto& p: m.get_parameter_infos()) {
                     if (i >= args.size()) {
                         break;
                     }
@@ -105,16 +105,11 @@ rttr::method InstructionParser::get_method(const rttr::type& class_type, std::ve
     exit(EXIT_FAILURE);
 }
 
-std::vector<rttr::enumeration> InstructionParser::get_enums(std::vector<std::string>& type_names) {
+std::vector<rttr::enumeration> InstructionParser::get_enums() {
     std::vector<rttr::enumeration> enums;
 
-    for (auto& type_name : type_names) {
-        rttr::type type = rttr::type::get_by_name(type_name);
-        if (!type)
-        {
-            std::cerr << "No type for type name \"" << type_name << "\" found" << std::endl;
-            exit(EXIT_FAILURE);
-        }
+    const auto& types = rttr::type::get_types();
+    for (auto& type: types) {
         if (type.is_enumeration()) {
             enums.push_back(type.get_enumeration());
         }
@@ -123,19 +118,33 @@ std::vector<rttr::enumeration> InstructionParser::get_enums(std::vector<std::str
     return enums;
 }
 
-std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > InstructionParser::parse(const rttr::type& class_type, rttr::instance class_obj,  std::vector<std::string>& type_names, const std::string& program_file) {
+Instructions InstructionParser::parse(rttr::instance class_obj, int argc, char **argv) {
+
+    if (argc == 1) {
+        std::cerr << "[Error] No program file given" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    std::string program_file = argv[1];
+
     std::ifstream file(program_file);
-    if(!file.is_open()) {
+    if (!file.is_open()) {
         std::cerr << "Error opening file " << program_file << std::endl;
         exit(EXIT_FAILURE);
     }
+    std::cout << "Opened file " << program_file << std::endl;
 
-    std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > instructionArgs;
+    rttr::type class_type = class_obj.get_type();
+    if (!class_type.is_valid()) {
+        std::cerr << "Could not find class type \"" << class_type.get_name() << "\"" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    Instructions instructionArgs;
+    std::vector<rttr::enumeration> enums = get_enums();
 
     // read until you reach the end of the file
-
     std::string line;
-    while(std::getline(file, line)) {
+    while (std::getline(file, line)) {
         ltrim(line);
         if (line.empty() || line.rfind("//", 0) == 0) {
             continue;
@@ -158,20 +167,40 @@ std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > InstructionPa
 
         // read the args until end of line
         std::vector<rttr::variant> args;
-        std::vector<rttr::type> arg_types; // used for selecting the right overloaded method
+        std::vector<rttr::type> arg_types;  // used for selecting the right overloaded method
         std::string arg;
 
-        std::vector<rttr::enumeration> enums = get_enums(type_names);
-
-        while(arg_stream >> arg) {
-            rttr::variant arg_val = get_arg(class_type, class_obj, enums, arg);
+        while (arg_stream >> arg) {
+            rttr::variant arg_val = get_arg(class_obj, enums, arg);
             args.emplace_back(arg_val);
             arg_types.push_back(arg_val.get_type());
         }
 
         rttr::method instr_method = get_method(class_type, args, arg_types, instr);
-
         instructionArgs.emplace_back(instr_method, args);
     }
     return instructionArgs;
+}
+
+void InstructionParser::execute(Instructions parsed, rttr::instance instance) {
+    for (auto& instr: parsed) {
+        rttr::method& method = instr.first;
+        std::vector<rttr::variant>& args = instr.second;
+        rttr::variant res;
+        switch (args.size()) {
+            case 0: res = method.invoke(instance); break;
+            case 1: res = method.invoke(instance, args[0]); break;
+            case 2: res = method.invoke(instance, args[0], args[1]); break;
+            case 3: res = method.invoke(instance, args[0], args[1], args[2]); break;
+            case 4: res = method.invoke(instance, args[0], args[1], args[2], args[3]); break;
+            case 5: res = method.invoke(instance, args[0], args[1], args[2], args[3], args[4]); break;
+            case 6: res = method.invoke(instance, args[0], args[1], args[2], args[3], args[4], args[5]); break;
+            default: std::cerr << "Too many arguments in method " << method.get_name() << " invocation" << std::endl;
+        }
+        if (!res.is_valid()) {
+            std::cerr << "Could not execute method \"" << method.get_name() << "\""
+                      << " with " << args.size() << " arguments" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
 }
