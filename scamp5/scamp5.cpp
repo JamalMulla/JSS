@@ -6,6 +6,7 @@
 
 #include <simulator/memory/sram6t_cell.h>
 #include <simulator/util/utility.h>
+#include <rttr/registration>
 
 #include <filesystem>
 #include <fstream>
@@ -17,7 +18,7 @@
 SCAMP5::SCAMP5(int rows, int cols, Origin origin)
     : rows_(rows), cols_(cols), origin_(origin), config_(1e7) {
 
-    pe = std::make_unique<ProcessingElement>(
+    pe = std::make_shared<ProcessingElement>(
         ProcessingElement::builder {}
             .with_rows(rows)
             .with_cols(cols)
@@ -26,7 +27,7 @@ SCAMP5::SCAMP5(int rows, int cols, Origin origin)
             .with_input_source(Source::LIVE)
             .with_config(config_)
             .build());
-    array = std::make_unique<Array>(rows, cols, config_, *pe);
+    array = std::make_shared<Array>(rows, cols, config_, *pe);
     this->init();
 }
 
@@ -63,9 +64,9 @@ void SCAMP5::init() {
 
     FLAG->change_memory_type(MemoryType::SRAM6T);
 
-    intermediate_a = std::make_unique<AREG>(this->rows_, this->cols_);
-    intermediate_a2 = std::make_unique<AREG>(this->rows_, this->cols_);
-    intermediate_d = std::make_unique<DREG>(this->rows_, this->cols_);
+    intermediate_a = std::make_shared<AREG>(this->rows_, this->cols_);
+    intermediate_a2 = std::make_shared<AREG>(this->rows_, this->cols_);
+    intermediate_d = std::make_shared<DREG>(this->rows_, this->cols_);
 }
 
 void SCAMP5::set_superpixel(Bitorder bitorder, int superpixel_size, int bits_in_bank) {
@@ -1101,7 +1102,7 @@ uint32_t SCAMP5::scamp5_global_sum_16(AREG *areg, uint8_t *result16v) {
     // When result16v is a NULL pointer, the function will return sum of the
     // data. The result is not equal to the actual sum of all pixels of the AREG
     // in the area, but it is proportional to the actual sum. This function
-    // takes roughly 14 usec (on the scamp5 device) to execute.
+    // takes roughly 14 usec (on the scamp5 device) to execute_instructions.
     // TODO should not be exact
     uint32_t sum = 0;
     int buf_index = 0;
@@ -1127,7 +1128,7 @@ uint32_t SCAMP5::scamp5_global_sum_64(AREG *areg, uint8_t *result64v) {
     // get the AREG sum level with a better resolution
     // This function achieves similar functionally as the "global_sum_16"
     // version, but the grid used is 8x8. As a consequence, the result has
-    // higher resolution but it takes longer to execute (roughly 28 usec on the
+    // higher resolution but it takes longer to execute_instructions (roughly 28 usec on the
     // scamp5).
     uint32_t sum = 0;
     int buf_index = 0;
@@ -2141,4 +2142,197 @@ SCAMP5::builder &SCAMP5::builder::with_origin(Origin origin) {
 
 SCAMP5 SCAMP5::builder::build() const {
     return SCAMP5(this->rows_, this->cols_, this->origin_);
+}
+
+RTTR_REGISTRATION {
+    using namespace rttr;
+
+    registration::enumeration<news_t>("news_t") (
+        value("north", news_t::north),
+        value("east", news_t::east),
+        value("south", news_t::south),
+        value("west", news_t::west)
+    );
+
+    registration::class_<SCAMP5::builder>("SCAMP5_builder")
+        .method("with_rows", &SCAMP5::builder::with_rows)
+        .method("with_cols", &SCAMP5::builder::with_cols)
+        .method("with_origin", &SCAMP5::builder::with_origin)
+        .method("build", &SCAMP5::builder::build);
+
+    registration::class_<SCAMP5>("SCAMP5")
+        .property("A", &SCAMP5::A)
+        .property("B", &SCAMP5::B)
+        .property("C", &SCAMP5::C)
+        .property("D", &SCAMP5::D)
+        .property("E", &SCAMP5::E)
+        .property("F", &SCAMP5::F)
+        .property("FLAG", &SCAMP5::FLAG)
+        .property("RF", &SCAMP5::R0)
+        .property("RS", &SCAMP5::R1)
+        .property("RW", &SCAMP5::R2)
+        .property("RN", &SCAMP5::R3)
+        .property("RE", &SCAMP5::R4)
+        .property("S0", &SCAMP5::R5)
+        .property("S1", &SCAMP5::R6)
+        .property("S2", &SCAMP5::R7)
+        .property("S3", &SCAMP5::R8)
+        .property("S4", &SCAMP5::R9)
+        .property("S5", &SCAMP5::R10)
+        .property("S6", &SCAMP5::R11)
+        .property("RP", &SCAMP5::R12)
+        .property("R0", &SCAMP5::R0)
+        .property("R1", &SCAMP5::R1)
+        .property("R2", &SCAMP5::R2)
+        .property("R3", &SCAMP5::R3)
+        .property("R4", &SCAMP5::R4)
+        .property("R5", &SCAMP5::R5)
+        .property("R6", &SCAMP5::R6)
+        .property("R7", &SCAMP5::R7)
+        .property("R8", &SCAMP5::R8)
+        .property("R9", &SCAMP5::R9)
+        .property("R10", &SCAMP5::R10)
+        .property("R11", &SCAMP5::R11)
+        .property("R12", &SCAMP5::R12)
+        .method("nop", &SCAMP5::nop)
+        .method("rpix", &SCAMP5::rpix)
+        .method("get_image", select_overload<void(AREG*)> (&SCAMP5::get_image))
+        .method("get_image", select_overload<void(AREG*, AREG*)>(&SCAMP5::get_image))
+        .method("respix", select_overload<void()>(&SCAMP5::respix))
+        .method("respix", select_overload<void(AREG*)>(&SCAMP5::respix))
+        .method("getpix", select_overload<void(AREG*, AREG*)>(&SCAMP5::getpix))
+        .method("getpix", select_overload<void(AREG*, AREG*, AREG*)>(&SCAMP5::getpix))
+        .method("bus", select_overload<void(AREG*)>(&SCAMP5::bus))
+        .method("bus", select_overload<void(AREG*, AREG*)>(&SCAMP5::bus))
+        .method("bus", select_overload<void(AREG*, AREG*, AREG*)>(&SCAMP5::bus))
+        .method("bus", select_overload<void(AREG*, AREG*, AREG*, AREG*)>(&SCAMP5::bus))
+        .method("bus", select_overload<void(AREG*, AREG*, AREG*, AREG*, AREG*)>(&SCAMP5::bus))
+        .method("bus2", select_overload<void(AREG*, AREG*, AREG*)>(&SCAMP5::bus2))
+        .method("bus2", select_overload<void(AREG*, AREG*, AREG*, AREG*)>(&SCAMP5::bus2))
+        .method("bus3", select_overload<void(AREG*, AREG*, AREG*, AREG*)>(&SCAMP5::bus3))
+        .method("where", select_overload<void(AREG*)>(&SCAMP5::where))
+        .method("where", select_overload<void(AREG*, AREG*)>(&SCAMP5::where))
+        .method("where", select_overload<void(AREG*, AREG*, AREG*)>(&SCAMP5::where))
+        .method("all", &SCAMP5::all)
+        .method("mov", &SCAMP5::mov)
+        .method("res", select_overload<void(AREG*)>(&SCAMP5::res))
+        .method("res", select_overload<void(AREG*, AREG*)>(&SCAMP5::res))
+        .method("add", select_overload<void(AREG*, AREG*, AREG*)>(&SCAMP5::add))
+        .method("add", select_overload<void(AREG*, AREG*, AREG*, AREG*)>(&SCAMP5::add))
+        .method("sub", select_overload<void(AREG*, AREG*, AREG*)>(&SCAMP5::sub))
+        .method("neg", &SCAMP5::neg)
+        .method("abs", &SCAMP5::abs)
+        .method("div", select_overload<void(AREG*, AREG*, AREG*)>(&SCAMP5::div))
+        .method("div", select_overload<void(AREG*, AREG*, AREG*, AREG*)>(&SCAMP5::div))
+        .method("diva", select_overload<void(AREG*, AREG*, AREG*)>(&SCAMP5::diva))
+        .method("divq", select_overload<void(AREG*, AREG*)>(&SCAMP5::divq))
+        .method("movx", &SCAMP5::movx)
+        .method("mov2x", &SCAMP5::mov2x)
+        .method("addx", &SCAMP5::addx)
+        .method("add2x", &SCAMP5::add2x)
+        .method("subx", &SCAMP5::subx)
+        .method("sub2x", &SCAMP5::sub2x)
+        .method("blurset", &SCAMP5::blurset)
+        .method("blur", &SCAMP5::blur)
+        .method("blurh", &SCAMP5::blurh)
+        .method("blurv", &SCAMP5::blurv)
+        .method("gauss", &SCAMP5::gauss)(default_arguments(3))
+        .method("gaussh", &SCAMP5::gaussh)(default_arguments(3))
+        .method("gaussv", &SCAMP5::gaussv)(default_arguments(3))
+        .method("newsblur", &SCAMP5::newsblur)(default_arguments(1))
+        .method("newsblurh", &SCAMP5::newsblurh)(default_arguments(1))
+        .method("newsblurv", &SCAMP5::newsblurv)(default_arguments(1))
+        .method("OR", select_overload<void(DREG*, DREG*, DREG*)>(&SCAMP5::OR))
+        .method("OR", select_overload<void(DREG*, DREG*, DREG*, DREG*)>(&SCAMP5::OR))
+        .method("OR", select_overload<void(DREG*, DREG*, DREG*, DREG*, DREG*)>(&SCAMP5::OR))
+        .method("NOT", select_overload<void(DREG*, DREG*)>(&SCAMP5::NOT))
+        .method("NOR", select_overload<void(DREG*, DREG*, DREG*)>(&SCAMP5::NOR))
+        .method("NOR", select_overload<void(DREG*, DREG*, DREG*, DREG*)>(&SCAMP5::NOR))
+        .method("NOR", select_overload<void(DREG*, DREG*, DREG*, DREG*, DREG*)>(&SCAMP5::NOR))
+        .method("NOR", select_overload<void(DREG*)>(&SCAMP5::NOT))
+        .method("OR", select_overload<void(DREG*, DREG*)>(&SCAMP5::OR))
+        .method("NOR", select_overload<void(DREG*, DREG*)>(&SCAMP5::NOR))
+        .method("AND", &SCAMP5::AND)
+        .method("NAND", &SCAMP5::NAND)
+        .method("ANDX", &SCAMP5::ANDX)
+        .method("NANDX", &SCAMP5::NANDX)
+        .method("IMP", &SCAMP5::IMP)
+        .method("NIMP", &SCAMP5::NIMP)
+        .method("XOR", &SCAMP5::XOR)
+        .method("WHERE", select_overload<void(DREG*)>(&SCAMP5::WHERE))
+        .method("WHERE", select_overload<void(DREG*, DREG*)>(&SCAMP5::WHERE))
+        .method("WHERE", select_overload<void(DREG*, DREG*, DREG*)>(&SCAMP5::WHERE))
+        .method("ALL", &SCAMP5::ALL)
+        .method("SET", select_overload<void(DREG*)>(&SCAMP5::SET))
+        .method("SET", select_overload<void(DREG*, DREG*)>(&SCAMP5::SET))
+        .method("SET", select_overload<void(DREG*, DREG*, DREG*)>(&SCAMP5::SET))
+        .method("SET", select_overload<void(DREG*, DREG*, DREG*, DREG*)>(&SCAMP5::SET))
+        .method("CLR", select_overload<void(DREG*)>(&SCAMP5::CLR))
+        .method("CLR", select_overload<void(DREG*, DREG*)>(&SCAMP5::CLR))
+        .method("CLR", select_overload<void(DREG*, DREG*, DREG*)>(&SCAMP5::CLR))
+        .method("CLR", select_overload<void(DREG*, DREG*, DREG*, DREG*)>(&SCAMP5::CLR))
+        .method("MOV", &SCAMP5::MOV)
+        .method("MUX", &SCAMP5::MUX)
+        .method("CLR_IF", &SCAMP5::CLR_IF)
+        .method("REFRESH", &SCAMP5::REFRESH)
+        .method("DNEWS0", &SCAMP5::DNEWS0)
+        .method("DNEWS1", &SCAMP5::DNEWS1)
+        .method("DNEWS", &SCAMP5::DNEWS)
+        .method("PROP0", &SCAMP5::PROP0)
+        .method("PROP1", &SCAMP5::PROP1)
+        .method("scamp5_get_image", &SCAMP5::scamp5_get_image)(default_arguments(1))
+        .method("scamp5_in", &SCAMP5::scamp5_in)(default_arguments(nullptr))
+        .method("scamp5_load_in", select_overload<void(AREG*, int8_t, AREG*)>(&SCAMP5::scamp5_load_in))(default_arguments(nullptr))
+        .method("scamp5_load_in", select_overload<void(int8_t)>(&SCAMP5::scamp5_load_in))
+        .method("scamp5_load_dac", select_overload<void(AREG*, uint16_t, AREG*)>(&SCAMP5::scamp5_load_dac))(default_arguments(nullptr))
+        .method("scamp5_load_dac", select_overload<void(uint16_t)>(&SCAMP5::scamp5_load_dac))
+        .method("scamp5_shift", select_overload<void(AREG*, int, int)>(&SCAMP5::scamp5_shift))
+        .method("scamp5_diffuse", select_overload<void(AREG*, int, bool, bool, AREG*)>(&SCAMP5::scamp5_diffuse))(default_arguments(true, true, nullptr))
+        .method("scamp5_read_areg", &SCAMP5::scamp5_read_areg)
+        .method("scamp5_global_sum_16", &SCAMP5::scamp5_global_sum_16)(default_arguments(nullptr))
+        .method("scamp5_global_sum_64", &SCAMP5::scamp5_global_sum_64)(default_arguments(nullptr))
+        .method("scamp5_global_sum_fast", &SCAMP5::scamp5_global_sum_fast)
+        .method("scamp5_global_sum_sparse", &SCAMP5::scamp5_global_sum_sparse)(default_arguments((uint8_t)2, (uint8_t)2, (uint8_t)254, (uint8_t)254))
+        .method("scamp5_shift", select_overload<void(DREG*, int, int, int)>(&SCAMP5::scamp5_shift))(default_arguments(0))
+        .method("scamp5_global_or", &SCAMP5::scamp5_global_or)(default_arguments((uint8_t)0, (uint8_t)0, (uint8_t)255, (uint8_t)255))
+        .method("scamp5_global_count", &SCAMP5::scamp5_global_count)(default_arguments(0))
+        .method("scamp5_flood", &SCAMP5::scamp5_flood)(default_arguments(5, false))
+        .method("scamp5_load_point", &SCAMP5::scamp5_load_point)
+        .method("scamp5_load_rect", &SCAMP5::scamp5_load_rect)
+        .method("scamp5_load_pattern", &SCAMP5::scamp5_load_pattern)
+        .method("scamp5_select_point", &SCAMP5::scamp5_select_point)
+        .method("scamp5_select_rect", &SCAMP5::scamp5_select_rect)
+        .method("scamp5_select_pattern", &SCAMP5::scamp5_select_pattern)
+        .method("scamp5_select_col", &SCAMP5::scamp5_select_col)
+        .method("scamp5_select_row", &SCAMP5::scamp5_select_row)
+        .method("scamp5_select_colx", &SCAMP5::scamp5_select_colx)
+        .method("scamp5_select_rowx", &SCAMP5::scamp5_select_rowx)
+        .method("scamp5_draw_begin", &SCAMP5::scamp5_draw_begin)
+        .method("scamp5_draw_end", &SCAMP5::scamp5_draw_end)
+        .method("scamp5_draw_pixel", &SCAMP5::scamp5_draw_pixel)
+        .method("scamp5_draw_point", &SCAMP5::scamp5_draw_point)
+        .method("scamp5_draw_rect", &SCAMP5::scamp5_draw_rect)
+        .method("scamp5_draw_line", &SCAMP5::scamp5_draw_line)(default_arguments(false))
+        .method("scamp5_draw_circle", &SCAMP5::scamp5_draw_circle)(default_arguments(false))
+        .method("scamp5_draw_negate", &SCAMP5::scamp5_draw_negate)
+        .method("scamp5_scan_areg", &SCAMP5::scamp5_scan_areg)
+        .method("scamp5_scan_areg_8x8", &SCAMP5::scamp5_scan_areg_8x8)
+        .method("scamp5_scan_areg_mean_8x8", &SCAMP5::scamp5_scan_areg_mean_8x8)
+        .method("scamp5_scan_dreg", &SCAMP5::scamp5_scan_dreg)(default_arguments((uint8_t)0, (uint8_t)255))
+        .method("scamp5_scan_events", select_overload<void(DREG*, uint8_t*, uint16_t, uint8_t, uint8_t)>(&SCAMP5::scamp5_scan_events))(default_arguments((uint16_t)1000, (uint8_t)0, (uint8_t)0))
+        .method("scamp5_scan_events", select_overload<void(DREG*, uint8_t*, uint16_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t)>(&SCAMP5::scamp5_scan_events))
+        .method("scamp5_scan_boundingbox", &SCAMP5::scamp5_scan_boundingbox)
+        .method("superpixel_positions_from_bitorder", &SCAMP5::superpixel_positions_from_bitorder)
+        .method("superpixel_shift_patterns_from_bitorder", &SCAMP5::superpixel_shift_patterns_from_bitorder)
+        .method("superpixel_adc", &SCAMP5::superpixel_adc)
+        .method("superpixel_dac", &SCAMP5::superpixel_dac)
+        .method("superpixel_in", &SCAMP5::superpixel_in)
+        .method("superpixel_shift", &SCAMP5::superpixel_shift)
+        .method("superpixel_shift_right", &SCAMP5::superpixel_shift_right)
+        .method("superpixel_shift_left", &SCAMP5::superpixel_shift_left)
+        .method("superpixel_add", &SCAMP5::superpixel_add)
+        .method("superpixel_sub", &SCAMP5::superpixel_sub)
+        .method("superpixel_movx", &SCAMP5::superpixel_movx)
+        .method("histogram", &SCAMP5::histogram)
+        .method("hog", &SCAMP5::hog);
 }

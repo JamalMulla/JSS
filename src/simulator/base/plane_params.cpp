@@ -2,7 +2,20 @@
 // Created by jm1417 on 03/04/2021.
 //
 
-#include <simulator/base/plane_params.h>
+#include "simulator/base/plane_params.h"
+#include <rttr/registration>
+
+RTTR_REGISTRATION {
+    using namespace rttr;
+
+    registration::enumeration<Origin>("Origin") (
+        value("BOTTOM_LEFT", Origin::BOTTOM_LEFT),
+        value("BOTTOM_RIGHT", Origin::BOTTOM_RIGHT),
+        value("TOP_LEFT", Origin::TOP_LEFT),
+        value("TOP_RIGHT", Origin::TOP_RIGHT)
+    );
+
+};
 
 void get_fixed_params(PlaneParams& dst, Origin origin, int rb, int cb, int re,
                       int ce, int rs, int cs) {

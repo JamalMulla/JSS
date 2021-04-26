@@ -2,9 +2,10 @@
 // Created by jm1417 on 24/04/2021.
 //
 
-#include "simulator/external/instruction_parser.h"
+#include "simulator/external/parser.h"
 
 #include <rttr/enumeration.h>
+#include <rttr/type.h>
 
 #include <algorithm>
 #include <any>
@@ -13,6 +14,18 @@
 #include <sstream>
 #include <vector>
 
+#include "nlohmann/json.hpp"
+using json = nlohmann::json;
+
+static inline rttr::type& check_validity(const rttr::type& type, const std::string& name)
+{
+    if (!type.is_valid()) {
+        std::cerr << "Could not find \"" << name << "\"" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    return const_cast<rttr::type&>(type);
+}
+
 // trim from start (in place)
 static inline void ltrim(std::string& s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
@@ -20,7 +33,7 @@ static inline void ltrim(std::string& s) {
             }));
 }
 
-rttr::variant InstructionParser::get_arg(rttr::instance class_obj, std::vector<rttr::enumeration>& enums, const std::string& arg) {
+rttr::variant Parser::get_arg(rttr::instance class_obj, std::vector<rttr::enumeration>& enums, const std::string& arg) {
     // Try to get/convert the argument. If nothing else works then will be treated as string
     // Tried in this order:
     // 1. Class property that has been registered
@@ -57,7 +70,7 @@ rttr::variant InstructionParser::get_arg(rttr::instance class_obj, std::vector<r
     return rttr::variant(arg);
 }
 
-rttr::method InstructionParser::get_method(const rttr::type& class_type, std::vector<rttr::variant>& args, std::vector<rttr::type>& arg_types, const std::string& instr) {
+rttr::method Parser::get_method(const rttr::type& class_type, std::vector<rttr::variant>& args, std::vector<rttr::type>& arg_types, const std::string& instr) {
     // TODO remove redundancy
     rttr::method instr_method = class_type.get_method(instr, arg_types);
 
@@ -105,7 +118,7 @@ rttr::method InstructionParser::get_method(const rttr::type& class_type, std::ve
     exit(EXIT_FAILURE);
 }
 
-std::vector<rttr::enumeration> InstructionParser::get_enums() {
+std::vector<rttr::enumeration> Parser::get_enums() {
     std::vector<rttr::enumeration> enums;
 
     const auto& types = rttr::type::get_types();
@@ -118,8 +131,7 @@ std::vector<rttr::enumeration> InstructionParser::get_enums() {
     return enums;
 }
 
-Instructions InstructionParser::parse(rttr::instance class_obj, std::ifstream& program) {
-
+Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream& program) {
     rttr::type class_type = class_obj.get_type();
     if (!class_type.is_valid()) {
         std::cerr << "Could not find class type \"" << class_type.get_name() << "\"" << std::endl;
@@ -169,7 +181,7 @@ Instructions InstructionParser::parse(rttr::instance class_obj, std::ifstream& p
     return instructionArgs;
 }
 
-void InstructionParser::execute(Instructions parsed, rttr::instance instance) {
+void Parser::execute_instructions(Instructions parsed, rttr::instance instance) {
     for (auto& instr: parsed) {
         rttr::method& method = instr.first;
         std::vector<rttr::variant>& args = instr.second;
@@ -185,9 +197,73 @@ void InstructionParser::execute(Instructions parsed, rttr::instance instance) {
             default: std::cerr << "Too many arguments in method " << method.get_name() << " invocation" << std::endl;
         }
         if (!res.is_valid()) {
-            std::cerr << "Could not execute method \"" << method.get_name() << "\""
+            std::cerr << "Could not execute_instructions method \"" << method.get_name() << "\""
                       << " with " << args.size() << " arguments" << std::endl;
             exit(EXIT_FAILURE);
         }
     }
+}
+
+void Parser::parse_config(std::ifstream &config) {
+    json c = json::parse(config);
+    std::vector<rttr::enumeration> enums = get_enums(); // all registered enums
+
+    // Create architecture by using builder
+    std::string arch_name = c["architecture"];
+    check_validity(rttr::type::get_by_name(arch_name), arch_name);
+    rttr::type arch_builder_type = check_validity(rttr::type::get_by_name(arch_name + "_builder"), arch_name + "_builder");
+
+    rttr::variant arch_builder = arch_builder_type.create();
+    // If architecture properties are defined, find them and set them
+    json arch_props = c[arch_name];
+    if (arch_props.is_object()) {
+        for (auto& json_prop: arch_props.items()) {
+            rttr::method prop_method = arch_builder_type.get_method("with_" + json_prop.key());
+            if (!prop_method.is_valid()) {
+                std::cerr << "Could not find builder method for property \"" << json_prop.key() << "\"" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            rttr::variant val;
+            if (json_prop.value().is_string()) {
+                val = get_arg({}, enums, json_prop.value());
+            } else if (json_prop.value().is_boolean()) {
+                val = rttr::variant(json_prop.value().get<bool>());
+            } else if (json_prop.value().is_number_float()) {
+                val = rttr::variant(json_prop.value().get<float>());
+            } else if (json_prop.value().is_number_integer()) {
+                val = rttr::variant(json_prop.value().get<int>());
+            } else if (json_prop.value().is_number_unsigned()) {
+                val = rttr::variant(json_prop.value().get<uint>());
+            } else {
+                std::cerr << "Could not parse property \"" << json_prop.key() << "\" of type \"" << json_prop.value().type_name() << "\"" << std::endl;
+            }
+            bool converted = val.convert(prop_method.get_parameter_infos().begin()->get_type()); //only 1 parameter for each prop setter
+            if (!converted) {
+                std::cerr << "Could not convert property \"" << json_prop.key() << "\" to required type " << prop_method.get_parameter_infos().begin()->get_type().get_name() << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            prop_method.invoke(arch_builder, val);
+        }
+    }
+
+    // UI
+    bool ui_enabled = false;
+    if (c.contains("ui_enabled")) {
+        ui_enabled = c["ui_enabled"];
+    }
+
+    if (ui_enabled) {
+        std::vector<std::string> regs_to_display;
+        if (c.contains("ui_registers_to_display")) {
+            json regs = c["ui_registers_to_display"];
+            for (const std::string reg : regs) {
+                regs_to_display.push_back(reg);
+            }
+        }
+        std::cout << "Got " << regs_to_display.size() << " registers to display" << std::endl;
+    }
+
+
+    // Clean up
+
 }

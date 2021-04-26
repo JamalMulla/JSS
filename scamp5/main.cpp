@@ -2,8 +2,7 @@
 // Created by Jamal on 20/02/2021.
 //
 
-#include <simulator/external/instruction_parser.h>
-#include <simulator/external/config_parser.h>
+#include <simulator/external/parser.h>
 #include <simulator/ui/ui.h>
 #include <simulator/util/utility.h>
 
@@ -36,8 +35,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    ConfigParser::parse_config(config);
-
+    Parser::parse_config(config);
 
     SCAMP5 scamp = SCAMP5::builder {}
                    .with_rows(256)
@@ -59,7 +57,7 @@ int main(int argc, char **argv) {
          {4, 5, 12, 13}}};
     scamp.set_superpixel(bitorder, 4, 16);
 
-    Instructions instructions = InstructionParser::parse(scamp, program);
+    Instructions instructions = Parser::parse_instructions(scamp, program);
 
     UI ui;
     ui.start();
@@ -69,7 +67,7 @@ int main(int argc, char **argv) {
     int i = 0;
     while(i < frames) {
         int e1 = cv::getTickCount();
-        InstructionParser::execute(instructions, scamp);
+        Parser::execute_instructions(instructions, scamp);
         int e2 = cv::getTickCount();
         std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
         ui.display_reg(scamp.A);
