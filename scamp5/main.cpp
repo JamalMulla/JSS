@@ -79,7 +79,7 @@ using namespace rttr;
 
 inline void rttr_test(SCAMP5& s) {
 
-    const std::string program = "/home/jm1417/Simulator/scamp5/examples/multiple_sobel.txt";
+    const std::string program = "/home/jm1417/Simulator/scamp5/examples/motion.txt";
 
     type scamp = type::get_by_name("SCAMP5");
     std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > parsed = InstructionParser::parse(scamp, rttr::instance(s), program);

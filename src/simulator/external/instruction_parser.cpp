@@ -13,9 +13,19 @@
 
 #include <rttr/enumeration.h>
 
+// trim from start (in place)
+static inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+      return !std::isspace(ch);
+    }));
+}
+
+rttr::variant InstructionParser::get_arg(const std::string& s) {
+    return rttr::variant();
+}
+
 std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > InstructionParser::parse(const rttr::type& class_type, rttr::instance obj, const std::string& program_file) {
     std::ifstream file(program_file);
-
     if(!file.is_open()) {
         std::cerr << "Error opening file " << program_file << std::endl;
         exit(EXIT_FAILURE);
@@ -27,7 +37,8 @@ std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > InstructionPa
 
     std::string line;
     while(std::getline(file, line)) {
-        if (line.empty()) {
+        ltrim(line);
+        if (line.empty() || line.rfind("//", 0) == 0) {
             continue;
         }
         unsigned first = line.find('(');
@@ -67,7 +78,7 @@ std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > InstructionPa
             }
 
             if (!arg_val.is_valid()) {
-                std::cerr << "Argument " << arg << " is invalid" << std::endl;
+                std::cerr << "Argument \"" << arg << "\" is invalid" << std::endl;
             }
 
             args.emplace_back(arg_val);

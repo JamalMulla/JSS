@@ -12,6 +12,7 @@
 
 class InstructionParser {
    public:
+    static rttr::variant get_arg(const std::string& s);
     static std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > parse(const rttr::type& class_type, rttr::instance obj, const std::string& program_file);
 
 };
