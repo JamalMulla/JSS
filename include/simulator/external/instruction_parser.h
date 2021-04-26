@@ -12,8 +12,10 @@
 
 class InstructionParser {
    public:
-    static rttr::variant get_arg(const std::string& s);
-    static std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > parse(const rttr::type& class_type, rttr::instance obj, const std::string& program_file);
+    static rttr::variant get_arg(const rttr::type& class_type, rttr::instance class_obj, std::vector<rttr::enumeration>& enums, const std::string& arg);
+    static rttr::method get_method(const rttr::type& class_type, std::vector<rttr::variant>& args, std::vector<rttr::type>& arg_types, const std::string& instr);
+    static std::vector<rttr::enumeration> get_enums(std::vector<std::string>& type_names);
+    static std::vector<std::pair<rttr::method, std::vector<rttr::variant> > > parse(const rttr::type& class_type, rttr::instance class_obj, std::vector<std::string>& type_names, const std::string& program_file);
 
 };
 

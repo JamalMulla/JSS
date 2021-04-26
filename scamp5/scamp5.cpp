@@ -966,7 +966,7 @@ void SCAMP5::scamp5_get_image(AREG *yf, AREG *yh, int gain) {
     bus(yf, NEWS);
 }
 
-void SCAMP5::scamp5_in(AREG *areg, int8_t value, AREG *temp) {
+void SCAMP5::scamp5_in(AREG *areg, int16_t value, AREG *temp) {
     // load an analog value to the AREG with error&noise correction
     // TODO noise
     // TODO Pointer instead of reference. Need member as default somehow
