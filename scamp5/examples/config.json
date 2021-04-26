@@ -1,0 +1,10 @@
+{
+  "architecture": "SCAMP5",
+  "ui_enabled": true,
+  "ui_registers_to_display": ["A", "B", "C", "D", "E"],
+  "frames": 1000,
+  "SCAMP5": {
+    "rows": 256,
+    "cols": 256
+  }
+}

@@ -3,8 +3,11 @@
 //
 
 #include <simulator/external/instruction_parser.h>
+#include <simulator/external/config_parser.h>
 #include <simulator/ui/ui.h>
 #include <simulator/util/utility.h>
+
+#include <fstream>
 
 #include "scamp5.h"
 
@@ -12,6 +15,30 @@
 #pragma ide diagnostic ignored "EndlessLoop"
 
 int main(int argc, char **argv) {
+
+    if (argc < 3) {
+        std::cerr << "[Error] Must provide a config file and a program file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    // config first then program file
+    std::string config_path = argv[1];
+    std::string program_path = argv[2];
+
+    std::ifstream config(config_path);
+    if (!config.is_open()) {
+        std::cerr << "Error opening config file " << config_path << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::ifstream program(program_path);
+    if (!program.is_open()) {
+        std::cerr << "Error opening program file " << program_path << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    ConfigParser::parse_config(config);
+
+
     SCAMP5 scamp = SCAMP5::builder {}
                    .with_rows(256)
                    .with_cols(256)
@@ -32,13 +59,10 @@ int main(int argc, char **argv) {
          {4, 5, 12, 13}}};
     scamp.set_superpixel(bitorder, 4, 16);
 
+    Instructions instructions = InstructionParser::parse(scamp, program);
 
     UI ui;
     ui.start();
-
-    // One command which wraps up everything. pass it argc, argv, instance
-
-    Instructions instructions = InstructionParser::parse(scamp, argc, argv);
 
     int frames = 1000;
 
@@ -47,8 +71,6 @@ int main(int argc, char **argv) {
         int e1 = cv::getTickCount();
         InstructionParser::execute(instructions, scamp);
         int e2 = cv::getTickCount();
-//        multiple_sobel.txt(scamp);
-//        scamp.histogram(scamp.A);
         std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
         ui.display_reg(scamp.A);
         ui.display_reg(scamp.B);

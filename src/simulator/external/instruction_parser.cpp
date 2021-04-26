@@ -118,20 +118,7 @@ std::vector<rttr::enumeration> InstructionParser::get_enums() {
     return enums;
 }
 
-Instructions InstructionParser::parse(rttr::instance class_obj, int argc, char **argv) {
-
-    if (argc == 1) {
-        std::cerr << "[Error] No program file given" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    std::string program_file = argv[1];
-
-    std::ifstream file(program_file);
-    if (!file.is_open()) {
-        std::cerr << "Error opening file " << program_file << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    std::cout << "Opened file " << program_file << std::endl;
+Instructions InstructionParser::parse(rttr::instance class_obj, std::ifstream& program) {
 
     rttr::type class_type = class_obj.get_type();
     if (!class_type.is_valid()) {
@@ -144,7 +131,7 @@ Instructions InstructionParser::parse(rttr::instance class_obj, int argc, char *
 
     // read until you reach the end of the file
     std::string line;
-    while (std::getline(file, line)) {
+    while (std::getline(program, line)) {
         ltrim(line);
         if (line.empty() || line.rfind("//", 0) == 0) {
             continue;

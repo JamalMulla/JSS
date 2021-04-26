@@ -12,14 +12,13 @@
 #include <set>
 #include <string>
 
-struct UserData {
-    std::string username;
-};
+struct UserData {};
 
 class Register;
 
 class UI {
    private:
+    bool has_started = false;
     std::set<uWS::WebSocket<false, true> *> wss;
 
     /* Middleware to fill out content-type */
