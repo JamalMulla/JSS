@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 //         {2, 7, 10, 15},
 //         {3, 6, 11, 14},
 //         {4, 5, 12, 13}}};
-//    scamp.set_superpixel(bitorder, 4, 16);
+//    scamp.set_bitorder(bitorder, 4, 16);
 
     return 0;
 }

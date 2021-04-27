@@ -229,20 +229,28 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
                 exit(EXIT_FAILURE);
             }
             rttr::variant val;
-            if (json_prop.value().is_string()) {
-                val = get_arg({}, enums, json_prop.value());
-            } else if (json_prop.value().is_boolean()) {
-                val = rttr::variant(json_prop.value().get<bool>());
-            } else if (json_prop.value().is_number_float()) {
-                val = rttr::variant(json_prop.value().get<float>());
-            } else if (json_prop.value().is_number_integer()) {
-                val = rttr::variant(json_prop.value().get<int>());
-            } else if (json_prop.value().is_number_unsigned()) {
-                val = rttr::variant(json_prop.value().get<uint>());
+            rttr::method prop_converter = arch_builder_type.get_method(json_prop.key() + "_converter");
+            if (prop_converter.is_valid()) {
+                val = prop_converter.invoke(arch_builder, (json) json_prop.value());
             } else {
+                // No converter found
+                if (json_prop.value().is_string()) {
+                    val = get_arg({}, enums, json_prop.value());
+                } else if (json_prop.value().is_boolean()) {
+                    val = rttr::variant(json_prop.value().get<bool>());
+                } else if (json_prop.value().is_number_float()) {
+                    val = rttr::variant(json_prop.value().get<float>());
+                } else if (json_prop.value().is_number_integer()) {
+                    val = rttr::variant(json_prop.value().get<int>());
+                } else if (json_prop.value().is_number_unsigned()) {
+                    val = rttr::variant(json_prop.value().get<uint>());
+                }
+            }
+            if (!val.is_valid()) {
                 std::cerr << "Could not parse property \"" << json_prop.key() << "\" of type \"" << json_prop.value().type_name() << "\"" << std::endl;
                 exit(EXIT_FAILURE);
             }
+
             bool converted = val.convert(prop_method.get_parameter_infos().begin()->get_type()); //only 1 parameter for each prop setter
             if (!converted) {
                 std::cerr << "Could not convert property \"" << json_prop.key() << "\" to required type " << prop_method.get_parameter_infos().begin()->get_type().get_name() << std::endl;
@@ -294,7 +302,7 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
     rttr::method display_reg = ui.get_type().get_method(""); // needed because there is no default constructor
     if (ui_enabled) {
         ui = check_validity(rttr::type::get_by_name("UI"), "UI").create();
-        // TODO returns shared_ptr for some reason
+        // TODOreturns shared_ptr for some reason
         if (!ui.get_type().get_wrapped_type().invoke("start", ui, {}).is_valid()) {
             std::cerr << "Could not start UI" << std::endl;
         }

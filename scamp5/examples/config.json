@@ -1,10 +1,18 @@
 {
-  "architecture": "SCAMP5",
-  "ui_enabled": true,
-  "ui_registers_to_display": ["A", "B", "C", "D", "R5"],
-  "frames": 2000,
-  "SCAMP5": {
-    "rows": 64,
-    "cols": 64
-  }
+	"architecture": "SCAMP5",
+	"ui_enabled": true,
+	"ui_registers_to_display": ["A", "B", "C", "D", "R5", "R6", "R7"],
+	"frames": 2000,
+	"SCAMP5": {
+		"rows": 256,
+		"cols": 256,
+		"bitorder": [
+			[
+				[1, 8, 9,  16],
+				[2, 7, 10, 15],
+				[3, 6, 11, 14],
+				[4, 5, 12, 13]
+			]
+		]
+	}
 }

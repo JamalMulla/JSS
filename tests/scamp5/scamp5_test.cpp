@@ -213,7 +213,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
                 {2, 3}
             },
         };
-        s.set_superpixel(bitorder, 2, 4);
+        s.set_bitorder(bitorder);
 
         DigitalRegister RNORTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
         DigitalRegister REAST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
@@ -251,7 +251,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
             },
         };
 
-        s.set_superpixel(bitorder, 2, 4);
+        s.set_bitorder(bitorder);
 
         DigitalRegister RNORTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
         DigitalRegister REAST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
@@ -290,7 +290,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
             },
         };
 
-        s.set_superpixel(bitorder, 4, 16);
+        s.set_bitorder(bitorder);
 
 
         DigitalRegister RNORTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
@@ -331,7 +331,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
             },
         };
 
-        s.set_superpixel(bitorder, 4, 16);
+        s.set_bitorder(bitorder);
 
         DigitalRegister RNORTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
         DigitalRegister REAST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
@@ -372,7 +372,7 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
             },
         };
 
-        s.set_superpixel(bitorder, 4, 16);
+        s.set_bitorder(bitorder);
 
 
         DigitalRegister RNORTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
@@ -415,7 +415,7 @@ TEST_CASE("images can be converted to digital superpixel format") {
          {2, 3}},
     };
 
-    s.set_superpixel(bitorder, 2, 4);
+    s.set_bitorder(bitorder);
 
     s.superpixel_adc(&out, bank, &a);
 
@@ -445,7 +445,7 @@ TEST_CASE("1 bank superpixel images can be shifted") {
         },
     };
 
-    s.set_superpixel(bitorder, 4, 16);
+    s.set_bitorder(bitorder);
 
 
     DigitalRegister d = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 0, 0,
@@ -486,7 +486,7 @@ TEST_CASE("1 bank superpixel images can be added") {
         },
     };
 
-    s.set_superpixel(bitorder, 4, 16);
+    s.set_bitorder(bitorder);
 
     DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,1,0, 0,0,0,0, 1,0,1,0);
     DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,1,0, 0,1,0,0, 1,0,0,0);
@@ -521,7 +521,7 @@ TEST_CASE("2 bank superpixel images can be added") {
          {0, 0, 3, 6},
          {0, 0, 4, 5}}};
 
-    s.set_superpixel(bitorder, 4, 8);
+    s.set_bitorder(bitorder);
 
     DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
         0,0,0,0,
@@ -567,7 +567,7 @@ TEST_CASE("1 bank superpixel images can be subtracted") {
         },
     };
 
-    s.set_superpixel(bitorder, 4, 16);
+    s.set_bitorder(bitorder);
 
     DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0);
     DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,0,0);
@@ -598,7 +598,7 @@ TEST_CASE("superpixel images can be moved") {
         },
     };
 
-    s.set_superpixel(bitorder, 2, 4);
+    s.set_bitorder(bitorder);
 
     DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
         0,0,1,0,

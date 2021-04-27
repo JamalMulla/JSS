@@ -130,7 +130,7 @@ class SCAMP5 {
     DREG *RECT;
 
     SCAMP5(int rows, int cols, Origin origin);
-    void set_superpixel(Bitorder bitorder, int superpixel_size, int bits_in_bank);
+    void set_bitorder(Bitorder bitorder);
 
     // Misc
     void nop();
@@ -477,11 +477,14 @@ class SCAMP5::builder {
     int rows_ = 256;
     int cols_ = 256;
     Origin origin_ = Origin::TOP_LEFT;
+    Bitorder bitorder_;
 
    public:
+    rttr::variant bitorder_converter(json& j);
     builder &with_rows(int rows);
     builder &with_cols(int cols);
     builder &with_origin(Origin origin);
+    builder &with_bitorder(Bitorder bitorder);
 
     SCAMP5 build();
 };

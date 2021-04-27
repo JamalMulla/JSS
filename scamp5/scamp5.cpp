@@ -69,10 +69,20 @@ void SCAMP5::init() {
     intermediate_d = std::make_shared<DREG>(this->rows_, this->cols_);
 }
 
-void SCAMP5::set_superpixel(Bitorder bitorder, int superpixel_size, int bits_in_bank) {
+void SCAMP5::set_bitorder(Bitorder bitorder) {
     this->bitorder_ = std::move(bitorder);
-    this->superpixel_size_ = superpixel_size;
-    this->bits_in_bank_ = bits_in_bank;
+    this->superpixel_size_ = this->bitorder_.at(0).size();
+    std::vector<std::vector<int>> bank = this->bitorder_.at(0);
+    // bits_in_bank is number of non zeros in bank
+    this->bits_in_bank_ = 0;
+
+    for (int row = 0; row < superpixel_size_; ++row) {
+        for (int col = 0; col < superpixel_size_; ++col) {
+            if (bank[row][col] > 0) {
+                bits_in_bank_++;
+            }
+        }
+    }
 }
 
 void SCAMP5::nop() { this->array->update_cycles(1); }
@@ -1735,7 +1745,7 @@ void SCAMP5::superpixel_adc(DREG *dst, int bank, AREG *src) {
 
           int sum = cv::sum(sr(cv::Rect(col, row, superpixel_size_, superpixel_size_)))[0];
           sum /= (superpixel_size_ * superpixel_size_);  // <- this truncates values
-          int8_t s = sum;  // Need to have another look at this. Is this correct?
+          int8_t s = sum;  // TODO Need to have another look at this. Is this correct?
           for(int i = 0; i < bits_in_bank_; i++) {
               int bit = (s >> i) & 1;  // LSB to MSB
               cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
@@ -2124,10 +2134,22 @@ void SCAMP5::hog(AREG *src) {
 
     // 16×16 Block Normalization
     // Calculate the HOG feature vector
-
 }
 
 // Builder
+
+rttr::variant SCAMP5::builder::bitorder_converter(json& j) {
+    try {
+        auto b = j.get<Bitorder>();
+        return b;
+    } catch (json::type_error&) {
+        std::cerr << "[Warning] Could not parse bitorder. Must be a 3D array" << std::endl;
+    } catch (json::parse_error &) {
+        std::cerr << "[Warning] Could not parse bitorder. Must be a 3D array" << std::endl;
+    }
+
+    return rttr::variant();
+}
 
 SCAMP5::builder &SCAMP5::builder::with_rows(int rows) {
     this->rows_ = rows;
@@ -2144,8 +2166,17 @@ SCAMP5::builder &SCAMP5::builder::with_origin(Origin origin) {
     return *this;
 }
 
+SCAMP5::builder &SCAMP5::builder::with_bitorder(Bitorder bitorder) {
+    this->bitorder_ = std::move(bitorder);
+    return *this;
+}
+
 SCAMP5 SCAMP5::builder::build() {
-    return SCAMP5(this->rows_, this->cols_, this->origin_);
+    SCAMP5 scamp5 = SCAMP5(this->rows_, this->cols_, this->origin_);
+    if (!this->bitorder_.empty()) {
+        scamp5.set_bitorder(this->bitorder_);
+    }
+    return scamp5;
 }
 
 RTTR_REGISTRATION {
@@ -2160,9 +2191,11 @@ RTTR_REGISTRATION {
 
     registration::class_<SCAMP5::builder>("SCAMP5_builder")
         .constructor<>()
+        .method("bitorder_converter", &SCAMP5::builder::bitorder_converter)
         .method("with_rows", &SCAMP5::builder::with_rows)
         .method("with_cols", &SCAMP5::builder::with_cols)
         .method("with_origin", &SCAMP5::builder::with_origin)
+        .method("with_bitorder", &SCAMP5::builder::with_bitorder)
         .method("build", &SCAMP5::builder::build);
 
     registration::class_<SCAMP5>("SCAMP5")
