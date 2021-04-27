@@ -6,11 +6,12 @@
 #define SIMULATOR_DIGITAL_REGISTER_H
 
 #include <opencv4/opencv2/core/mat.hpp>
-
+#include <rttr/type>
 #include "register.h"
 #include "simulator/memory/dram3t_cell.h"
 
 class DigitalRegister : public Register {
+    RTTR_ENABLE(Register);
    public:
     DigitalRegister(int rows, int columns, Config& config, int row_stride = 1, int col_stride = 1, MemoryType memory_type = MemoryType::DRAM3T);
     DigitalRegister(int rows, int cols, int row_stride = 1, int col_stride = 1);

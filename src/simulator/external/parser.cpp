@@ -291,9 +291,27 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
     Instructions instructions = Parser::parse_instructions(arch, program);
 
     rttr::variant ui;
+    rttr::method display_reg = ui.get_type().get_method(""); // needed because there is no default constructor
     if (ui_enabled) {
-        ui = check_validity(rttr::type::get_by_name("UI"), "UI").create({});
-        ui.get_type().invoke("start", ui, {}); // todo add check
+        ui = check_validity(rttr::type::get_by_name("UI"), "UI").create();
+        // TODO returns shared_ptr for some reason
+        if (!ui.get_type().get_wrapped_type().invoke("start", ui, {}).is_valid()) {
+            std::cerr << "Could not start UI" << std::endl;
+        }
+        display_reg = ui.get_type().get_wrapped_type().get_method("display_reg");
+        if (!display_reg.is_valid()) {
+            std::cerr << "Could not get display_reg method" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        for (auto& reg : regs_to_display) {
+            if (!reg.convert(rttr::type::get<Register*>())) {
+                std::cerr << "Could not convert reg value to type Register*" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            if (!display_reg.invoke(ui, reg).is_valid()) {
+                std::cerr << "Could not display " << reg.get_type().get_name() << std::endl;
+            }
+        }
     }
 
     int i = 0;
@@ -305,8 +323,7 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
 
         if (ui_enabled) {
             for (auto& reg : regs_to_display) {
-                // todo add check
-                ui.get_type().invoke("display_reg", ui, {reg});
+                display_reg.invoke(ui, reg);
             }
         }
 

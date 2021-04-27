@@ -1598,6 +1598,10 @@ void SCAMP5::print_stats() {
 
 void SCAMP5::superpixel_positions_from_bitorder(position_map &locations) {
     // Locations holds a map from <bank, index> -> x,y coords
+    if (bitorder_.empty()) {
+        std::cerr << "[Error] Bitorder has not been defined" << std::endl;
+        exit(EXIT_FAILURE);
+    }
     int banks = bitorder_.size();
     int height = bitorder_[0].size();
     int width = bitorder_[0][0].size();

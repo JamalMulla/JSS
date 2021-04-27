@@ -11,8 +11,10 @@
 #include "simulator/metrics/cycle_counter.h"
 #include "simulator/memory/memory.h"
 
-class Register : public Component {
+#include <rttr/type>
 
+class Register : public Component {
+    RTTR_ENABLE();
     // TODO internal mask
    protected:
     int rows_;
