@@ -6,6 +6,7 @@
 
 #include <rttr/enumeration.h>
 #include <rttr/type.h>
+#include <simulator/ui/ui.h>
 
 #include <algorithm>
 #include <any>
@@ -134,7 +135,7 @@ std::vector<rttr::enumeration> Parser::get_enums() {
 Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream& program) {
     rttr::type class_type = class_obj.get_type();
     if (!class_type.is_valid()) {
-        std::cerr << "Could not find class type \"" << class_type.get_name() << "\"" << std::endl;
+        std::cerr << "Could not find class type"<< std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -204,7 +205,7 @@ void Parser::execute_instructions(Instructions parsed, rttr::instance instance) 
     }
 }
 
-void Parser::parse_config(std::ifstream &config) {
+void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
     json c = json::parse(config);
     std::vector<rttr::enumeration> enums = get_enums(); // all registered enums
 
@@ -214,6 +215,10 @@ void Parser::parse_config(std::ifstream &config) {
     rttr::type arch_builder_type = check_validity(rttr::type::get_by_name(arch_name + "_builder"), arch_name + "_builder");
 
     rttr::variant arch_builder = arch_builder_type.create();
+    if (!arch_builder.is_valid()) {
+        std::cerr << "Could not create instance of " << arch_name + "_builder" << std::endl;
+        exit(EXIT_FAILURE);
+    }
     // If architecture properties are defined, find them and set them
     json arch_props = c[arch_name];
     if (arch_props.is_object()) {
@@ -236,14 +241,24 @@ void Parser::parse_config(std::ifstream &config) {
                 val = rttr::variant(json_prop.value().get<uint>());
             } else {
                 std::cerr << "Could not parse property \"" << json_prop.key() << "\" of type \"" << json_prop.value().type_name() << "\"" << std::endl;
+                exit(EXIT_FAILURE);
             }
             bool converted = val.convert(prop_method.get_parameter_infos().begin()->get_type()); //only 1 parameter for each prop setter
             if (!converted) {
                 std::cerr << "Could not convert property \"" << json_prop.key() << "\" to required type " << prop_method.get_parameter_infos().begin()->get_type().get_name() << std::endl;
                 exit(EXIT_FAILURE);
             }
-            prop_method.invoke(arch_builder, val);
+            if (!prop_method.invoke(arch_builder, val).is_valid()) {
+                std::cerr << "Could not call method \"" << prop_method.get_name() << "\"" << std::endl;
+                exit(EXIT_FAILURE);
+            }
         }
+    }
+    // Call build method to get instance of architecture
+    rttr::variant arch = arch_builder_type.invoke("build", arch_builder, {});
+    if (!arch.is_valid()) {
+        std::cerr << "Could not build architecture \"" << arch_name << "\" using \"build()\" method" << std::endl;
+        exit(EXIT_FAILURE);
     }
 
     // UI
@@ -252,17 +267,56 @@ void Parser::parse_config(std::ifstream &config) {
         ui_enabled = c["ui_enabled"];
     }
 
+    std::vector<rttr::variant> regs_to_display;
     if (ui_enabled) {
-        std::vector<std::string> regs_to_display;
         if (c.contains("ui_registers_to_display")) {
             json regs = c["ui_registers_to_display"];
-            for (const std::string reg : regs) {
-                regs_to_display.push_back(reg);
+            for (const json& reg : regs) {
+                rttr::variant arg = get_arg(arch, enums, reg.get<std::string>());
+                if (!arg.is_valid()) {
+                    std::cerr << "Could not get register " << reg.get<std::string>() << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                regs_to_display.push_back(arg);
             }
         }
-        std::cout << "Got " << regs_to_display.size() << " registers to display" << std::endl;
     }
 
+    // Iterations
+    int frames = 1000;
+    if (c.contains("frames")) {
+        frames = c["frames"];
+    }
+
+    Instructions instructions = Parser::parse_instructions(arch, program);
+
+    rttr::variant ui;
+    if (ui_enabled) {
+        ui = check_validity(rttr::type::get_by_name("UI"), "UI").create({});
+        ui.get_type().invoke("start", ui, {}); // todo add check
+    }
+
+    int i = 0;
+    while(i < frames) {
+        int e1 = cv::getTickCount();
+        Parser::execute_instructions(instructions, arch);
+        int e2 = cv::getTickCount();
+        std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
+
+        if (ui_enabled) {
+            for (auto& reg : regs_to_display) {
+                // todo add check
+                ui.get_type().invoke("display_reg", ui, {reg});
+            }
+        }
+
+        if (i % 50 == 0) {
+            std::cout << "Frame: " << i << "/" << frames << std::endl;
+        }
+        i++;
+    }
+
+    // print stats?
 
     // Clean up
 

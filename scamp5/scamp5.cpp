@@ -2140,7 +2140,7 @@ SCAMP5::builder &SCAMP5::builder::with_origin(Origin origin) {
     return *this;
 }
 
-SCAMP5 SCAMP5::builder::build() const {
+SCAMP5 SCAMP5::builder::build() {
     return SCAMP5(this->rows_, this->cols_, this->origin_);
 }
 
@@ -2155,6 +2155,7 @@ RTTR_REGISTRATION {
     );
 
     registration::class_<SCAMP5::builder>("SCAMP5_builder")
+        .constructor<>()
         .method("with_rows", &SCAMP5::builder::with_rows)
         .method("with_cols", &SCAMP5::builder::with_cols)
         .method("with_origin", &SCAMP5::builder::with_origin)

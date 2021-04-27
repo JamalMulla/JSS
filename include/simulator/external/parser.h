@@ -19,7 +19,7 @@ namespace Parser {
     std::vector<rttr::enumeration> get_enums();
     Instructions parse_instructions(rttr::instance class_obj, std::ifstream& program);
     void execute_instructions(Instructions parsed, rttr::instance instance);
-    void parse_config(std::ifstream& config);
+    void parse_config(std::ifstream& config, std::ifstream& program);
 };
 
 #endif  //SIMULATOR_PARSER_H

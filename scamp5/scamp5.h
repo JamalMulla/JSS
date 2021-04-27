@@ -483,7 +483,7 @@ class SCAMP5::builder {
     builder &with_cols(int cols);
     builder &with_origin(Origin origin);
 
-    [[nodiscard]] SCAMP5 build() const;
+    SCAMP5 build();
 };
 
 

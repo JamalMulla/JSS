@@ -5,7 +5,7 @@
 #include "simulator/ui/ui.h"
 
 #include <uWebSockets/App.h>
-
+#include <rttr/registration>
 #include <filesystem>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -115,3 +115,12 @@ void UI::display_reg(Register *reg) {
     j["data"] = out;
     send_string(j.dump(0));
 }
+
+RTTR_REGISTRATION {
+    using namespace rttr;
+
+    registration::class_<UI>("UI")
+        .constructor<>()
+        .method("display_reg", &UI::display_reg)
+        .method("start", &UI::start);
+};
