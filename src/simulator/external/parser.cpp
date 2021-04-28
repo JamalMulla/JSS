@@ -115,7 +115,12 @@ rttr::method Parser::get_method(const rttr::type& class_type, std::vector<rttr::
         }
     }
 
-    std::cerr << "Method \"" << instr << "\" not found. It may not have been registered." << std::endl;
+//    std::string types;
+//    for (auto& t : arg_types) {
+//        types += t.get_name().to_string() = ", ";
+//    }
+
+    std::cerr << "Method \"" << instr << "\" not found with given argument types. It may not have been registered or you may have passed arguments with incorrect types" << std::endl;
     exit(EXIT_FAILURE);
 }
 

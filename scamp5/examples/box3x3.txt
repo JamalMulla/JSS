@@ -1,0 +1,14 @@
+// 3x3 box filter
+get_image(A, D)
+diva(A, B, C);
+diva(A, B, C);
+diva(A, B, C);
+diva(A, B, C);
+diva(A, B, C);
+diva(A, B, C);
+movx(B, A, south);
+movx(C, A, north);
+add(A, B, A, C);
+movx(B, A, west);
+movx(C, A, east);
+add(A, B, A, C);

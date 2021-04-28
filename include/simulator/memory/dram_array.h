@@ -22,6 +22,7 @@ class Dram : public Component {
     int array_rows_; // rows of each dram array
     int array_cols_; // cols of each dram array
     int word_length_;
+#ifdef TRACK_STATISTICS
     int cycle_count_ = 1;
     int transistor_count_;
     double static_power_;  // in Watts
@@ -30,15 +31,11 @@ class Dram : public Component {
     cv::Mat array_transistor_count_;
     cv::Mat array_static_energy_;
     cv::Mat array_dynamic_energy_;
+#endif
     // 3 dimensional array of memory cells
     // First dimension is the actual array in the whole plane of arrays
     // Word addressable. Word is 8 bits by default. Can be changed
     cv::Mat data;
-
-    void fun_internal_mask();
-    int fun_transistor(const Config& config);
-    double fun_static(const Config& config);
-    double fun_dynamic(const Config& config);
 
    public:
     Dram(int rows, int cols, int row_stride, int col_stride, int array_rows, int array_cols, int word_length, const Config& config);
@@ -47,6 +44,10 @@ class Dram : public Component {
     void reset();
 
 #ifdef TRACK_STATISTICS
+    void fun_internal_mask();
+    int fun_transistor(const Config& config);
+    double fun_static(const Config& config);
+    double fun_dynamic(const Config& config);
     void update_static(double time) override;
     int get_cycle_count() override;
     cv::Mat& get_static_energy() override;

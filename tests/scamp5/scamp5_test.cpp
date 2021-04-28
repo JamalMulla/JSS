@@ -488,15 +488,25 @@ TEST_CASE("1 bank superpixel images can be added") {
 
     s.set_bitorder(bitorder);
 
-    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,1,0, 0,0,0,0, 1,0,1,0);
-    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,1,0, 0,1,0,0, 1,0,0,0);
+    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        0,0,0,0,
+        0,0,1,0,
+        0,0,0,0,
+        1,0,1,0);
+    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        0,1,0,0,
+        0,0,1,0,
+        0,1,0,0,
+        1,0,0,0);
 
     DigitalRegister out(rows, cols);
 
     s.superpixel_add(&out, bank, &A, &B);
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,0,0, 0,1,1,0, 0,1,1,0);
-    std::cout << out.read() << std::endl;
-    std::cout << expected << std::endl;
+    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        0,1,0,0,
+        0,0,0,0,
+        0,1,1,0,
+        0,1,1,0);
     REQUIRE(utility::mats_are_equal(out.read(), expected));
 }
 
@@ -538,12 +548,10 @@ TEST_CASE("2 bank superpixel images can be added") {
 
     s.superpixel_add(&out, bank, &A, &B);
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
-        1,1,0,0,
+        0,1,0,0,
         0,0,0,0,
         0,1,0,0,
-        1,0,0,0);
-    std::cout << out.read() << std::endl;
-    std::cout << expected << std::endl;
+        0,1,0,0);
     REQUIRE(utility::mats_are_equal(out.read(), expected));
 }
 
@@ -569,13 +577,25 @@ TEST_CASE("1 bank superpixel images can be subtracted") {
 
     s.set_bitorder(bitorder);
 
-    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0);
-    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,0,0);
+    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        0,0,1,0,
+        0,0,0,0,
+        0,0,1,0,
+        0,0,0,0);
+    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        0,0,0,0,
+        0,0,1,0,
+        0,0,0,0,
+        0,0,0,0);
 
     DigitalRegister out(rows, cols);
 
     s.superpixel_sub(&out, bank, &A, &B);
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,1,0, 0,0,0,0, 0,0,0,0);
+    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
+        0,0,1,0,
+        0,0,1,0,
+        0,0,0,0,
+        0,0,0,0);
     REQUIRE(utility::mats_are_equal(out.read(), expected));
 }
 
@@ -591,10 +611,8 @@ TEST_CASE("superpixel images can be moved") {
 
     Bitorder bitorder = {
         {
-            {1, 4, 0, 0},
-            {2, 3, 0, 0},
-            {0, 0, 0, 0},
-            {0, 0, 0, 0}
+            {1, 4},
+            {2, 3}
         },
     };
 
@@ -614,6 +632,7 @@ TEST_CASE("superpixel images can be moved") {
         0,0,0,0,
         0,0,1,0,
         1,0,0,0);
+
     REQUIRE(utility::mats_are_equal(out.read(), expected));
 }
 

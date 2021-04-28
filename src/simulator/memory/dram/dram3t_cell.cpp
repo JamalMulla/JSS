@@ -27,8 +27,6 @@ Dram3tCell::Dram3tCell(int rows, int cols, int row_stride, int col_stride, Confi
 {}
 
 #ifdef TRACK_STATISTICS
-
-
 double Dram3tCell::fun_static(const Config& config) {
     return 2.17e-10;  // TODO find better numbers
 }
