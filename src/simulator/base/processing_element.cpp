@@ -8,7 +8,7 @@ ProcessingElement::ProcessingElement(int rows, int cols, int row_stride, int col
     rows_(rows),
     cols_(cols),
     photodiode(Pixel(rows, cols, row_stride, col_stride, source, path, config)),
-    config_(&config)
+    config_(config)
 
 {
     // TODO need to be able to pass in some way of creating the underlying memory
@@ -21,7 +21,7 @@ ProcessingElement::ProcessingElement(int rows, int cols, int row_stride, int col
 }
 #ifdef TRACK_STATISTICS
 void ProcessingElement::update_static(ulong cycles) {
-    double time = (1 / (double) config_->clock_rate) * cycles;
+    double time = (1 / (double) config_.clock_rate) * cycles;
     for(DigitalRegister &digital_register: digital_registers) {
         digital_register.update_static(time);
     }
@@ -150,7 +150,7 @@ ProcessingElement::builder &ProcessingElement::builder::with_file_path(
 }
 
 ProcessingElement::builder &ProcessingElement::builder::with_config(Config &config) {
-    this->config_ = &config;
+    this->config_ = config;
     return *this;
 }
 
@@ -162,5 +162,5 @@ ProcessingElement ProcessingElement::builder::build() {
                   << std::endl;
     }
 #endif
-    return ProcessingElement(rows_, cols_, row_stride_, col_stride_, num_analogue_, num_digital_, source_, path_, *config_);
+    return ProcessingElement(rows_, cols_, row_stride_, col_stride_, num_analogue_, num_digital_, source_, path_, config_);
 }

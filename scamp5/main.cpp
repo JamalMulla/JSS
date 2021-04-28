@@ -3,14 +3,7 @@
 //
 
 #include <simulator/external/parser.h>
-#include <simulator/ui/ui.h>
-
 #include <fstream>
-
-#include "scamp5.h"
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
 
 int main(int argc, char **argv) {
 
@@ -35,30 +28,5 @@ int main(int argc, char **argv) {
     }
 
     Parser::parse_config(config, program);
-
-//    SCAMP5 scamp = SCAMP5::builder {}
-//                   .with_rows(256)
-//                   .with_cols(256)
-//                   .build();
-//
-//    Bitorder bitorder = {
-//        {{1, 8, 0, 0},
-//         {2, 7, 0, 0},
-//         {3, 6, 0, 0},
-//         {4, 5, 0, 0}},
-//        {{0, 0, 1, 8},
-//         {0, 0, 2, 7},
-//         {0, 0, 3, 6},
-//         {0, 0, 4, 5}}};
-//    Bitorder bitorder = {
-//        {{1, 8, 9, 16},
-//         {2, 7, 10, 15},
-//         {3, 6, 11, 14},
-//         {4, 5, 12, 13}}};
-//    scamp.set_bitorder(bitorder, 4, 16);
-
     return 0;
 }
-
-
-#pragma clang diagnostic pop

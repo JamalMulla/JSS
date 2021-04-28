@@ -28,7 +28,7 @@ class ProcessingElement : public StatsOutputter {
     AnalogueBus analogue_bus;
     DigitalBus local_read_bus;
     DigitalBus local_write_bus;
-    Config* config_;
+    Config config_;
 
     ProcessingElement(int rows, int cols, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config);
 #ifdef TRACK_STATISTICS
@@ -52,7 +52,7 @@ class ProcessingElement::builder {
     int num_digital_ = -1;
     Source source_;
     std::string path_;
-    Config* config_;
+    Config config_;
 
    public:
     builder& with_rows(int rows);

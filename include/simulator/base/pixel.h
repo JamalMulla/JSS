@@ -25,7 +25,7 @@ class Pixel : public Component {
     cv::Mat array_static_energy_;
     cv::Mat array_dynamic_energy_;
     cv::Mat internal_mask;
-    Config* config_;
+    Config config_;
 
     void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
 #endif

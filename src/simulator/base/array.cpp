@@ -14,14 +14,14 @@ void Array::update_cycles(int cycles) {
 
 Array::Array(int rows, int columns, Config& config, ProcessingElement pe) :
     rows_(rows), columns_(columns),
-    config_(&config), pe(std::move(pe)),
+    config_(config), pe(std::move(pe)),
     cla(rows, columns, 4, 4, 8, config),
     dram(rows, columns, 8, 8, 256, 1, 16, config) {}
 
 #ifdef TRACK_STATISTICS
 
 void Array::update_static() {
-    double time = (1.0 / config_->clock_rate) * counter_.get_cycles();
+    double time = (1.0 / config_.clock_rate) * counter_.get_cycles();
     this->pe.update_static(counter_.get_cycles());
     this->cla.update_static(time);
 }
@@ -34,18 +34,21 @@ void Array::print_stats() {
               << "\n";
     std::cout << "=============================="
               << "\n";
-    std::cout << "Clock rate: " << config_->clock_rate << " Hz\n";
-    std::cout << "Process node: " << config_->process_node << " nm\n";
-    std::cout << "Voltage: " << config_->voltage << " V\n";
-    std::cout << "Temperature: " << config_->temperature << " C\n";
+    std::cout << "Clock rate: " << config_.clock_rate << " Hz\n";
+    std::cout << "Process node: " << config_.process_node << " nm\n";
+    std::cout << "Voltage: " << config_.voltage << " V\n";
+    std::cout << "Temperature: " << config_.temperature << " C\n";
     std::cout << "=============================="
               << "\n";
 
     std::cout << "Cycle count: " << counter_.get_cycles() << "\n";
-    double exec_time = ((double)counter_.get_cycles() / config_->clock_rate);
+    double exec_time = ((double)counter_.get_cycles() / config_.clock_rate);
     std::cout << "Device execution time: " << exec_time << " s\n";
     std::cout << "FPS: " << 500/exec_time << " \n";
-    int transistor_count = cv::sum(this->pe.get_transistor_count())[0] + cv::sum(this->cla.get_transistor_count())[0] + cv::sum(this->dram.get_transistor_count())[0];
+    int pe_tc = cv::sum(this->pe.get_transistor_count())[0];
+    int cla_tc =  cv::sum(this->cla.get_transistor_count())[0];
+    int dram_tc = cv::sum(this->dram.get_transistor_count())[0];
+    int transistor_count =  pe_tc + cla_tc + dram_tc;
     std::cout << "Array transistor count: " << transistor_count << "\n";
     std::cout << "Average transistor count per PE: " << transistor_count / (rows_ * columns_) << " \n";
     double static_power = (cv::sum(this->pe.get_static_energy())[0] + cv::sum(this->cla.get_static_energy())[0]) / exec_time;

@@ -18,7 +18,7 @@ class Sram6tCell : public Memory {
     double static_power_;  // in Watts
     double dynamic_read_power_;  // in Watts for a read
     double dynamic_write_power_;  // in Watts for a read
-    Config* config_;
+    Config config_;
     double time_; // Time in seconds it takes for read/write
     cv::Mat array_transistor_count_;
     cv::Mat array_static_energy_;

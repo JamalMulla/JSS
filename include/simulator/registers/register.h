@@ -21,7 +21,7 @@ class Register : public Component {
     int cols_;
     int row_stride_;
     int col_stride_;
-    Config* config_;
+    Config config_;
     std::shared_ptr<Memory> memory_;
     cv::Mat value_;
 

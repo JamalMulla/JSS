@@ -20,7 +20,7 @@ class Array {
    private:
     int rows_;
     int columns_;
-    Config* config_;
+    Config config_;
     CycleCounter counter_;
 
    public:

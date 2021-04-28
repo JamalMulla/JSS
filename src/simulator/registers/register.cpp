@@ -11,7 +11,7 @@ Register::Register(int rows, int cols, int row_stride, int col_stride, int type,
     cols_(cols),
     row_stride_(row_stride),
     col_stride_(col_stride),
-    config_(&config),
+    config_(config),
     value_(rows, cols, type, cv::Scalar(0)) {
     this->memory_ = Memory::construct(memory_type, rows, cols, row_stride, col_stride, config);
 }
@@ -131,5 +131,5 @@ void Register::inc_write() {
 #endif
 
 void Register::change_memory_type(MemoryType memory_type) {
-    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, *config_);
+    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, config_);
 }

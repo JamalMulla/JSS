@@ -346,8 +346,15 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
         i++;
     }
 
-    // print stats?
+    // Stats
+    if (c["with_stats"] && c["with_stats"] == true) {
+        if (!arch.get_type().invoke("print_stats", arch, {}).is_valid()) {
+            std::cerr << "Could not print stats for run. Has a \"print_stats\" method been registered?" << std::endl;
+        }
+    }
 
-    // Clean up
+    // Clean up and call destructors.
+    arch_builder_type.destroy(arch_builder);
+    arch.get_type().destroy(arch);
 
 }

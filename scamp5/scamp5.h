@@ -70,8 +70,7 @@ class SCAMP5 {
     //            },
     //        };
 
-    // Make sure you also change the bit size and superpixel size in scamp5.cpp superpixel methods
-    // if the bitorder is changed here
+
 
     // 2 bank 8-bit boustrophedonic
 //    std::vector<std::vector<std::vector<int>>> bitorder = {
@@ -83,8 +82,6 @@ class SCAMP5 {
 //         {0, 0, 2, 7},
 //         {0, 0, 3, 6},
 //         {0, 0, 4, 5}}};
-//    int superpixel_size = 4;
-//    int bits_in_bank = 8;
 
     void init();
 
