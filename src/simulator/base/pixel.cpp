@@ -61,11 +61,11 @@ double Pixel::last_frame_time() {
 
 #ifdef TRACK_STATISTICS
 
-cv::Mat& Pixel::get_static_energy() {
+cv::Mat Pixel::get_static_energy() {
     return array_static_energy_;
 }
 
-cv::Mat& Pixel::get_dynamic_energy() {
+cv::Mat Pixel::get_dynamic_energy() {
     return array_dynamic_energy_;
 }
 
@@ -73,7 +73,7 @@ int Pixel::get_cycle_count() {
     return cycle_count_;
 }
 
-cv::Mat& Pixel::get_transistor_count() {
+cv::Mat Pixel::get_transistor_count() {
     return array_transistor_count_;
 }
 void Pixel::fun_internal_mask(int rows, int cols, int row_stride, int col_stride) {

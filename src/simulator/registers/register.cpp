@@ -32,15 +32,15 @@ void Register::update_static(double time) {
     }
 }
 
-cv::Mat &Register::get_static_energy() {
+cv::Mat Register::get_static_energy() {
     return memory_->get_static_energy();
 }
 
-cv::Mat &Register::get_dynamic_energy() {
+cv::Mat Register::get_dynamic_energy() {
     return memory_->get_dynamic_energy();
 }
 
-cv::Mat &Register::get_transistor_count() {
+cv::Mat Register::get_transistor_count() {
     return memory_->get_transistor_count();
 }
 

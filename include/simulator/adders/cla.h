@@ -36,9 +36,9 @@ class CarryLookAheadAdder : public Component {
 #ifdef TRACK_STATISTICS
     void update_static(double time) override;
     int get_cycle_count() override;
-    cv::Mat& get_static_energy() override;
-    cv::Mat& get_dynamic_energy() override;
-    cv::Mat& get_transistor_count() override;
+    cv::Mat get_static_energy() override;
+    cv::Mat get_dynamic_energy() override;
+    cv::Mat get_transistor_count() override;
     void print_stats(const CycleCounter &counter) override;
     void inc_add();
 #endif

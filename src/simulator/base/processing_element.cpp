@@ -20,8 +20,7 @@ ProcessingElement::ProcessingElement(int rows, int cols, int row_stride, int col
     }
 }
 #ifdef TRACK_STATISTICS
-void ProcessingElement::update_static(ulong cycles) {
-    double time = (1 / (double) config_.clock_rate) * cycles;
+void ProcessingElement::update_static(double time) {
     for(DigitalRegister &digital_register: digital_registers) {
         digital_register.update_static(time);
     }
@@ -74,6 +73,10 @@ void ProcessingElement::print_stats(const CycleCounter &counter) {
     for(auto &digital: digital_registers) { digital.print_stats(counter); }
     photodiode.print_stats(counter);
     std::cout << "====================" << "\n";
+}
+
+int ProcessingElement::get_cycle_count() {
+    return 0;
 }
 
 //void ProcessingElement::print_stats(const CycleCounter &counter) {

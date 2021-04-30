@@ -39,15 +39,15 @@ double Dram3tCell::fun_dynamic_write(const Config& config) {
     return 2.4934605e-6;
 }
 
-cv::Mat& Dram3tCell::get_static_energy() {
+cv::Mat Dram3tCell::get_static_energy() {
     return array_static_energy_;
 }
 
-cv::Mat& Dram3tCell::get_dynamic_energy() {
+cv::Mat Dram3tCell::get_dynamic_energy() {
     return array_dynamic_energy_;
 }
 
-cv::Mat& Dram3tCell::get_transistor_count() {
+cv::Mat Dram3tCell::get_transistor_count() {
     return array_transistor_count_;
 }
 

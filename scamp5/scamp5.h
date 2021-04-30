@@ -19,7 +19,6 @@ enum news_t { east = 1,
 
 typedef AnalogueRegister AREG;
 typedef DigitalRegister DREG;
-typedef std::vector<std::vector<std::vector<int>>> Bitorder;
 
 #define RS R1
 #define RW R2
@@ -36,7 +35,7 @@ typedef std::vector<std::vector<std::vector<int>>> Bitorder;
 #define RF R0
 
 class SCAMP5 {
-   private:
+   protected:
     std::shared_ptr<ProcessingElement> pe;
     std::shared_ptr<Array> array;
     std::shared_ptr<AREG> intermediate_a;
@@ -47,41 +46,6 @@ class SCAMP5 {
     int cols_;
     Origin origin_;
     Config config_;
-    Bitorder bitorder_;
-    int superpixel_size_;
-    int bits_in_bank_;
-
-    //     boustrophedonic bitorder
-    //        std::vector<std::vector<std::vector<int>>> bitorder = {
-    //            {
-    //                {1, 8, 9, 16},
-    //                {2, 7, 10, 15},
-    //                {3, 6, 11, 14},
-    //                {4, 5, 12, 13}
-    //            },
-    //        };
-    // Spiral bitorder
-    //        std::vector<std::vector<std::vector<int>>> bitorder = {
-    //            {
-    //                {4, 3, 2, 1},
-    //                {5, 14, 13, 12},
-    //                {6, 15, 16, 11},
-    //                {7, 8, 9, 10}
-    //            },
-    //        };
-
-
-
-    // 2 bank 8-bit boustrophedonic
-//    std::vector<std::vector<std::vector<int>>> bitorder = {
-//        {{1, 8, 0, 0},
-//         {2, 7, 0, 0},
-//         {3, 6, 0, 0},
-//         {4, 5, 0, 0}},
-//        {{0, 0, 1, 8},
-//         {0, 0, 2, 7},
-//         {0, 0, 3, 6},
-//         {0, 0, 4, 5}}};
 
     void init();
 
@@ -127,7 +91,6 @@ class SCAMP5 {
     DREG *RECT;
 
     SCAMP5(int rows, int cols, Origin origin);
-    void set_bitorder(Bitorder bitorder);
 
     // Misc
     void nop();
@@ -425,44 +388,6 @@ class SCAMP5 {
 //
 //    void scamp5_get_io_agent();
 
-    // Superpixel methods
-
-    struct pair_hash {
-        template<class T1, class T2>
-        std::size_t operator()(const std::pair<T1, T2>& p) const {
-            auto lhs = p.first;
-            auto rhs = p.second;
-            lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
-            return lhs;
-        }
-    };
-
-    using bank_index = std::pair<int, int>;
-    using position_map = std::unordered_map<bank_index, cv::Point, pair_hash>;
-
-    void superpixel_positions_from_bitorder(position_map &locations);
-    void superpixel_shift_patterns_from_bitorder(int bank, DREG *RNORTH,
-                                                 DREG *RSOUTH, DREG *REAST, DREG *RWEST,
-                                                 bool shift_left);
-    void superpixel_shift_block(DREG *dst, DREG *src,
-                                DREG *RNORTH,
-                                DREG *RSOUTH, DREG *REAST,
-                                DREG *RWEST);
-    void superpixel_adc(DREG *dst, int bank, AREG *src);
-    void superpixel_dac(AREG *dst, int bank, DREG *src);
-    void superpixel_in(DREG *dst, int bank, int value);
-    void superpixel_shift(DREG* dst, int bank, DREG* src, int shift_left);
-    void superpixel_shift_right(DREG *dst, int bank, DREG *src);
-    void superpixel_shift_left(DREG *dst, int bank, DREG *src);
-    void superpixel_add(DREG *dst, int bank, DREG *src1, DREG *src2);
-    void superpixel_sub(DREG *dst, int bank, DREG *src1, DREG *src2);
-    void superpixel_movx(DREG* dst, DREG* src, news_t dir);
-
-    // Histogramming
-    void histogram(AREG* src);
-    void hog(AREG* src);
-
-
     // Simulator specific methods
     void print_stats();
     RTTR_ENABLE();
@@ -474,14 +399,11 @@ class SCAMP5::builder {
     int rows_ = 256;
     int cols_ = 256;
     Origin origin_ = Origin::TOP_LEFT;
-    Bitorder bitorder_;
 
    public:
-    rttr::variant bitorder_converter(json& j);
     builder &with_rows(int rows);
     builder &with_cols(int cols);
     builder &with_origin(Origin origin);
-    builder &with_bitorder(Bitorder bitorder);
 
     SCAMP5 build();
 };

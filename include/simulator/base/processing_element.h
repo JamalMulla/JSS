@@ -15,7 +15,7 @@
 #include "simulator/units/comparator.h"
 #include "simulator/units/squarer.h"
 
-class ProcessingElement : public StatsOutputter {
+class ProcessingElement : public Component {
    public:
     class builder;
     int rows_;
@@ -32,10 +32,11 @@ class ProcessingElement : public StatsOutputter {
 
     ProcessingElement(int rows, int cols, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config);
 #ifdef TRACK_STATISTICS
-    void update_static(ulong cycles);
-    cv::Mat get_transistor_count();
-    cv::Mat get_static_energy();
-    cv::Mat get_dynamic_energy();
+    void update_static(double time) override;
+    cv::Mat get_transistor_count() override;
+    cv::Mat get_static_energy() override;
+    cv::Mat get_dynamic_energy() override;
+    int get_cycle_count() override;
     void print_stats(const CycleCounter &counter) override;
 #endif
 

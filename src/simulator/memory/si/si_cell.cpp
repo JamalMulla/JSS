@@ -37,15 +37,15 @@ double SiCell::fun_dynamic_write(const Config& config) {
     return 6.0e-6;
 }
 
-cv::Mat& SiCell::get_static_energy() {
+cv::Mat SiCell::get_static_energy() {
     return array_static_energy_;
 }
 
-cv::Mat& SiCell::get_dynamic_energy() {
+cv::Mat SiCell::get_dynamic_energy() {
     return array_dynamic_energy_;
 }
 
-cv::Mat& SiCell::get_transistor_count() {
+cv::Mat SiCell::get_transistor_count() {
     return array_transistor_count_;
 }
 

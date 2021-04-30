@@ -44,9 +44,9 @@ class Register : public Component {
     void inc_read();
     void inc_write(const cv::_InputOutputArray& mask);
     void inc_write();
-    cv::Mat& get_static_energy() override;
-    cv::Mat& get_dynamic_energy() override;
-    cv::Mat& get_transistor_count() override;
+    cv::Mat get_static_energy() override;
+    cv::Mat get_dynamic_energy() override;
+    cv::Mat get_transistor_count() override;
     int get_cycle_count() override;
     void print_stats(const CycleCounter& counter) override = 0;
 //    void write_stats(const CycleCounter& counter, json& j) override = 0;

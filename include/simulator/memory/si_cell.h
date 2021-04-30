@@ -32,9 +32,9 @@ class SiCell : public Memory {
 #ifdef TRACK_STATISTICS
     void update_static(double time) override;
     int get_cycle_count() override;
-    cv::Mat& get_static_energy() override;
-    cv::Mat& get_dynamic_energy() override;
-    cv::Mat& get_transistor_count() override;
+    cv::Mat get_static_energy() override;
+    cv::Mat get_dynamic_energy() override;
+    cv::Mat get_transistor_count() override;
     void read(const cv::_InputOutputArray& mask) override;
     void read() override;
     void write(const cv::_InputOutputArray& mask) override;

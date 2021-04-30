@@ -86,17 +86,16 @@ int Dram::get_cycle_count() {
 }
 
 
-cv::Mat& Dram::get_static_energy() {
+cv::Mat Dram::get_static_energy() {
     return array_static_energy_;
 }
 
-
-cv::Mat& Dram::get_dynamic_energy() {
+cv::Mat Dram::get_dynamic_energy() {
     return array_dynamic_energy_;
 }
 
 
-cv::Mat& Dram::get_transistor_count() {
+cv::Mat Dram::get_transistor_count() {
     return array_transistor_count_;
 }
 

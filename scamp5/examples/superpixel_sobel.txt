@@ -12,17 +12,23 @@ superpixel_adc(R5, 0, A);
 NOT(R6, R5)
 superpixel_movx(R9, R5, south)
 superpixel_sub(R7, 0, R9, R6)
+
 superpixel_movx(R9, R5, north)
 superpixel_sub(R8, 0, R9, R6)
+
 superpixel_movx(R9, R6, west)
 superpixel_sub(R6, 0, R9, R5)
+
 superpixel_movx(R5, R6, east)
+
 superpixel_movx(R9, R6, north)
 superpixel_movx(R10, R5, north)
 superpixel_add(R6, 0, R9, R10)
+
 superpixel_movx(R9, R7, east)
 superpixel_movx(R10, R8, east)
 superpixel_add(R7, 0, R9, R10)
+
 superpixel_movx(R9, R7, west)
 superpixel_movx(R9, R9, west)
 superpixel_sub(R5, 0, R9, R7)
@@ -33,10 +39,10 @@ superpixel_dac(A, 0, R5);
 superpixel_dac(B, 0, R7);
 
 
-// A = R5
-// B = R7
-// C = R6
-// D = R8
+
+
+
+
 
 // subx = y := x0_dir - x1
 // subx(R7, R5, south, R6); =

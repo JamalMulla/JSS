@@ -25,10 +25,11 @@ class Array {
 
    public:
     Array(int rows, int columns, Config& config, ProcessingElement pe);
+    std::vector<Component> layers;
 
     ProcessingElement pe;
-    CarryLookAheadAdder cla;
-    Dram dram;
+//    CarryLookAheadAdder cla;
+//    Dram dram;
 
     void update_cycles(int cycles);
 #ifdef TRACK_STATISTICS
