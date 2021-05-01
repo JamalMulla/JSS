@@ -4,7 +4,7 @@
 
 #include "simulator/registers/analogue_register.h"
 
-#include "simulator/base/array.h"
+#include "simulator/base/architecture.h"
 #include "simulator/memory/si_cell.h"
 
 AnalogueRegister::AnalogueRegister(int rows, int cols, Config &config, int row_stride, int col_stride, MemoryType memory) :

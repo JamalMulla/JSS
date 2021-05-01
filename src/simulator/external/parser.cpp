@@ -46,6 +46,7 @@ rttr::variant Parser::get_arg(rttr::instance class_obj, std::vector<rttr::enumer
     // 4. Float
     // 5. String
     rttr::type class_type = class_obj.get_type();
+
     rttr::variant arg_val = class_type.get_property_value(arg, class_obj);
     if (arg_val.is_valid()) {
         return arg_val;

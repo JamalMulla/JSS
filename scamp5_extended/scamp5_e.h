@@ -24,6 +24,7 @@ using Bitorder = std::vector<std::vector<std::vector<int>>>;
 /*Extended SCAMP5*/
 
 class SCAMP5E : public SCAMP5 {
+   RTTR_ENABLE(SCAMP5);
    private:
     Bitorder bitorder_;
     int superpixel_size_;
@@ -57,7 +58,6 @@ class SCAMP5E : public SCAMP5 {
     // Histogramming
     void histogram(AREG *src);
     void hog(AREG *src);
-    RTTR_ENABLE();
 };
 
 class SCAMP5E::builder {

@@ -7,7 +7,7 @@
 
 SCAMP5E::SCAMP5E(int rows, int cols, Origin origin) :
     SCAMP5(rows, cols, origin) {
-    std::shared_ptr<Dram> dram = std::static_pointer_cast<Dram>(this->array->get_component("dram"));
+    std::shared_ptr<Dram> dram = this->array->get_component<Dram>("dram");
     if (dram == nullptr) {
         std::cerr << "[Error] Could not get DRAM component. Has it been configured and added to the arhcitecture?" << std::endl;
         exit(EXIT_FAILURE);
@@ -621,8 +621,6 @@ RTTR_REGISTRATION {
         .method("build", &SCAMP5E::builder::build);
 
     registration::class_<SCAMP5E>("SCAMP5E")
-        .property("A", &SCAMP5E::A)
-        .property("D", &SCAMP5E::D)
         .method("superpixel_positions_from_bitorder", &SCAMP5E::superpixel_positions_from_bitorder)
         .method("superpixel_shift_patterns_from_bitorder", &SCAMP5E::superpixel_shift_patterns_from_bitorder)
         .method("superpixel_adc", &SCAMP5E::superpixel_adc)

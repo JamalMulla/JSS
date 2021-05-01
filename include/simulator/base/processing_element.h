@@ -31,6 +31,10 @@ class ProcessingElement : public Component {
     Config config_;
 
     ProcessingElement(int rows, int cols, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config);
+
+    std::shared_ptr<AnalogueRegister> get_analogue_register(const std::string& name);
+    std::shared_ptr<DigitalRegister> get_digital_register(const std::string& name);
+
 #ifdef TRACK_STATISTICS
     void update_static(double time) override;
     cv::Mat get_transistor_count() override;

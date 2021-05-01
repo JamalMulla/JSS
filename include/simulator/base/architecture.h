@@ -2,8 +2,8 @@
 // Created by jm1417 on 28/01/2021.
 //
 
-#ifndef SIMULATOR_ARRAY_H
-#define SIMULATOR_ARRAY_H
+#ifndef SIMULATOR_ARCHITECTURE_H
+#define SIMULATOR_ARCHITECTURE_H
 
 #include <simulator/adders/cla.h>
 #include <simulator/memory/dram_array.h>
@@ -16,24 +16,22 @@
 #include "processing_element.h"
 
 // TODO implement StatsOutputter
-class Array {
+class Architecture {
    private:
-    int rows_;
-    int columns_;
-    Config config_;
     CycleCounter counter_;
+    Config config_;
 
    public:
-    std::unordered_map<std::string, std::shared_ptr<Component>> layers;
-    Array(int rows, int columns, Config& config, ProcessingElement pe);
+    std::unordered_map<std::string, std::shared_ptr<Component>> components;
+
     std::shared_ptr<Component> get_component(const std::string& name);
+
+    template<class type>
+    std::shared_ptr<type> get_component(const std::string& name) {
+        return components[name];
+    }
+
     void add_component(const std::string& name, std::shared_ptr<Component> component);
-
-
-
-    ProcessingElement pe;
-//    CarryLookAheadAdder cla;
-//    Dram dram;
 
     void update_cycles(int cycles);
 #ifdef TRACK_STATISTICS
@@ -43,4 +41,4 @@ class Array {
 #endif
 };
 
-#endif  // SIMULATOR_ARRAY_H
+#endif  // SIMULATOR_ARCHITECTURE_H

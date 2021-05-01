@@ -102,7 +102,7 @@ int analog_main() {
     uint8_t input_count;
     // Number of consecutively empty input frames
     int empty_input_frames = 0;
-    // Flattened output of the convolution layers
+    // Flattened output of the convolution components
     int conv_outputs[36];
     // First fully connected layer output
     int fc1_result[50];
