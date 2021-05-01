@@ -7,6 +7,12 @@
 
 SCAMP5E::SCAMP5E(int rows, int cols, Origin origin) :
     SCAMP5(rows, cols, origin) {
+    std::shared_ptr<Dram> dram = std::static_pointer_cast<Dram>(this->array->get_component("dram"));
+    if (dram == nullptr) {
+        std::cerr << "[Error] Could not get DRAM component. Has it been configured and added to the arhcitecture?" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    dram_ = dram;
 }
 
 // Superpixel methods
@@ -427,7 +433,7 @@ void SCAMP5E::superpixel_movx(DREG *dst, DREG* src, news_t dir) {
 
 void SCAMP5E::histogram(AREG* src) {
     // Need a block size. There is a tradeoff between the number of arrays and the time it takes as you can only write 1 value at a time
-    this->array->dram.reset();
+    this->dram_.reset();
     int blocksize = 8;
     int block = 0;
     cv::Mat& s = src->read();
@@ -441,8 +447,8 @@ void SCAMP5E::histogram(AREG* src) {
                     // need to shift by 128 to get a 0-255 range
                     int m_col = 0;
 
-                    int value = this->array->dram.read(block, m_row, m_col);
-                    this->array->dram.write(block, m_row, m_col, value+1);
+                    int value = this->dram_->read(block, m_row, m_col);
+                    this->dram_->write(block, m_row, m_col, value+1);
                 }
             }
             block++;
@@ -461,7 +467,7 @@ void SCAMP5E::histogram(AREG* src) {
     for (int i = 0; i < block; i++) {
         int combined = 0;
         for (int b = 0; b < cells; b++) { //todo parameterise properly
-            int i1 = this->array->dram.read(b, i, 0);
+            int i1 = this->dram_->read(b, i, 0);
             combined += i1;
         }
 
@@ -484,7 +490,7 @@ void SCAMP5E::histogram(AREG* src) {
 
 void SCAMP5E::hog(AREG *src) {
     // Clobbers A, B
-    this->array->dram.reset(); //todo time and energy
+    this->dram_.reset(); //todo time and energy
 
     scamp5_load_in(F, 127);
     add(src, src, F);
@@ -535,11 +541,11 @@ void SCAMP5E::hog(AREG *src) {
                     double v2 = ceil(((double) (angle - (b1 * bucket_size))/bucket_size) * magnitude);
                     double v1 = ceil(magnitude - v2);
 
-                    int value = this->array->dram.read(block, b1, m_col);
-                    this->array->dram.write(block, b1, m_col, value+v1);
+                    int value = this->dram_->read(block, b1, m_col);
+                    this->dram_->write(block, b1, m_col, value+v1);
 
-                    int value2 = this->array->dram.read(block, b2, m_col);
-                    this->array->dram.write(block, b2, m_col, value2+v2);
+                    int value2 = this->dram_->read(block, b2, m_col);
+                    this->dram_->write(block, b2, m_col, value2+v2);
                 }
             }
             block++;
@@ -550,7 +556,7 @@ void SCAMP5E::hog(AREG *src) {
     for (int b = 0; b < block; b++) {
         std::cout << "B:" << b;
         for (int i = 0; i < 10; i++) { //todo parameterise properly
-            int i1 = this->array->dram.read(b, i, 0);
+            int i1 = this->dram_->read(b, i, 0);
             std::cout << ", Bin: " <<  i*20 << ", Count: " << i1 << " |";
         }
         std::cout << std::endl;
@@ -615,6 +621,8 @@ RTTR_REGISTRATION {
         .method("build", &SCAMP5E::builder::build);
 
     registration::class_<SCAMP5E>("SCAMP5E")
+        .property("A", &SCAMP5E::A)
+        .property("D", &SCAMP5E::D)
         .method("superpixel_positions_from_bitorder", &SCAMP5E::superpixel_positions_from_bitorder)
         .method("superpixel_shift_patterns_from_bitorder", &SCAMP5E::superpixel_shift_patterns_from_bitorder)
         .method("superpixel_adc", &SCAMP5E::superpixel_adc)

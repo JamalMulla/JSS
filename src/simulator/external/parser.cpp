@@ -18,13 +18,16 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 
-static inline rttr::type& check_validity(const rttr::type& type, const std::string& name)
+static inline const rttr::type& check_validity(const rttr::type& type, const std::string& name)
 {
     if (!type.is_valid()) {
         std::cerr << "Could not find \"" << name << "\"" << std::endl;
+        for (auto& t : rttr::type::get_types()) {
+            std::cout << t.get_name() << std::endl;
+        }
         exit(EXIT_FAILURE);
     }
-    return const_cast<rttr::type&>(type);
+    return type;
 }
 
 // trim from start (in place)

@@ -24,8 +24,12 @@ class Array {
     CycleCounter counter_;
 
    public:
+    std::unordered_map<std::string, std::shared_ptr<Component>> layers;
     Array(int rows, int columns, Config& config, ProcessingElement pe);
-    std::vector<Component> layers;
+    std::shared_ptr<Component> get_component(const std::string& name);
+    void add_component(const std::string& name, std::shared_ptr<Component> component);
+
+
 
     ProcessingElement pe;
 //    CarryLookAheadAdder cla;

@@ -28,6 +28,7 @@ class SCAMP5E : public SCAMP5 {
     Bitorder bitorder_;
     int superpixel_size_;
     int bits_in_bank_;
+    std::shared_ptr<Dram> dram_;
 
    public:
     class builder;
@@ -56,10 +57,12 @@ class SCAMP5E : public SCAMP5 {
     // Histogramming
     void histogram(AREG *src);
     void hog(AREG *src);
+    RTTR_ENABLE();
 };
 
 class SCAMP5E::builder {
-   RTTR_ENABLE();
+    RTTR_ENABLE();
+
    private:
     int rows_ = 256;
     int cols_ = 256;
@@ -67,7 +70,7 @@ class SCAMP5E::builder {
     Bitorder bitorder_;
 
    public:
-    rttr::variant bitorder_converter(json& j);
+    rttr::variant bitorder_converter(json &j);
     builder &with_rows(int rows);
     builder &with_cols(int cols);
     builder &with_origin(Origin origin);

@@ -13,6 +13,14 @@ Array::Array(int rows, int columns, Config& config, ProcessingElement pe) :
 //    dram(rows, columns, 8, 8, 256, 1, 16, config)
 {}
 
+std::shared_ptr<Component> Array::get_component(const std::string& name) {
+    return layers[name];
+}
+
+void Array::add_component(const std::string& name, std::shared_ptr<Component> component) {
+    layers[name] = std::move(component);
+}
+
 void Array::update_cycles(int cycles) {
 #ifdef TRACK_STATISTICS
     counter_ += cycles;

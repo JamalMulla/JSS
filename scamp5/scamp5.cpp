@@ -9,11 +9,8 @@
 #include <rttr/registration>
 
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <ostream>
-#include <utility>
-
 
 SCAMP5::SCAMP5(int rows, int cols, Origin origin)
     : rows_(rows), cols_(cols), origin_(origin), config_(1e7) {
@@ -28,6 +25,7 @@ SCAMP5::SCAMP5(int rows, int cols, Origin origin)
             .with_config(config_)
             .build());
     array = std::make_shared<Array>(rows, cols, config_, *pe);
+    array->add_component("dram", std::make_shared<Dram>(rows, cols, 8, 8, 256, 1, 16, config_));
     this->init();
 }
 
