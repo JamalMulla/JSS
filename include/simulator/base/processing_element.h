@@ -21,8 +21,8 @@ class ProcessingElement : public Component {
     int rows_;
     int cols_;
     Pixel photodiode;
-    std::vector<AnalogueRegister> analogue_registers;
-    std::vector<DigitalRegister> digital_registers;
+    std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers;
+    std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers;
     Squarer squarer;
     Comparator comparator;
     AnalogueBus analogue_bus;
@@ -30,8 +30,10 @@ class ProcessingElement : public Component {
     DigitalBus local_write_bus;
     Config config_;
 
-    ProcessingElement(int rows, int cols, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config);
+    ProcessingElement(int rows, int cols, int row_stride, int col_stride, Source source, const std::string &path, Config &config);
 
+    void add_analogue_register(const std::string& name, std::shared_ptr<AnalogueRegister> reg);
+    void add_digital_register(const std::string& name, std::shared_ptr<DigitalRegister> reg);
     std::shared_ptr<AnalogueRegister> get_analogue_register(const std::string& name);
     std::shared_ptr<DigitalRegister> get_digital_register(const std::string& name);
 

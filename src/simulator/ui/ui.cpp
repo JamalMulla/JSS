@@ -97,7 +97,7 @@ void UI::send_string(const std::string &data) const {
     for (auto &ws: wss) { ws->send(data, uWS::OpCode::TEXT); }
 }
 
-void UI::display_reg(Register *reg) {
+void UI::display_reg(std::shared_ptr<Register> reg) {
     if (!this->has_started) {
         std::cerr << "UI hasn't been started. Call start() first" << std::endl;
         return;

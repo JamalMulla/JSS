@@ -38,26 +38,26 @@ class SCAMP5E : public SCAMP5 {
     void set_bitorder(Bitorder bitorder);
 
     void superpixel_positions_from_bitorder(position_map &locations);
-    void superpixel_shift_patterns_from_bitorder(int bank, DREG *RNORTH,
-                                                 DREG *RSOUTH, DREG *REAST, DREG *RWEST,
+    void superpixel_shift_patterns_from_bitorder(int bank, const std::shared_ptr<DREG>&RNORTH,
+                                                 const std::shared_ptr<DREG>&RSOUTH, std::shared_ptr<DREG>REAST, std::shared_ptr<DREG>RWEST,
                                                  bool shift_left);
-    void superpixel_shift_block(DREG *dst, DREG *src,
-                                DREG *RNORTH,
-                                DREG *RSOUTH, DREG *REAST,
-                                DREG *RWEST);
-    void superpixel_adc(DREG *dst, int bank, AREG *src);
-    void superpixel_dac(AREG *dst, int bank, DREG *src);
-    void superpixel_in(DREG *dst, int bank, int value);
-    void superpixel_shift(DREG *dst, int bank, DREG *src, int shift_left);
-    void superpixel_shift_right(DREG *dst, int bank, DREG *src);
-    void superpixel_shift_left(DREG *dst, int bank, DREG *src);
-    void superpixel_add(DREG *dst, int bank, DREG *src1, DREG *src2);
-    void superpixel_sub(DREG *dst, int bank, DREG *src1, DREG *src2);
-    void superpixel_movx(DREG *dst, DREG *src, news_t dir);
+    void superpixel_shift_block(const std::shared_ptr<DREG>&dst, const std::shared_ptr<DREG>&src,
+                                const std::shared_ptr<DREG>&RNORTH,
+                                const std::shared_ptr<DREG>&RSOUTH, std::shared_ptr<DREG>REAST,
+                                std::shared_ptr<DREG>RWEST);
+    void superpixel_adc(const std::shared_ptr<DREG>&dst, int bank, AREG *src);
+    void superpixel_dac(AREG *dst, int bank, const std::shared_ptr<DREG>&src);
+    void superpixel_in(const std::shared_ptr<DREG>&dst, int bank, int value);
+    void superpixel_shift(const std::shared_ptr<DREG>&dst, int bank, const std::shared_ptr<DREG>&src, int shift_left);
+    void superpixel_shift_right(const std::shared_ptr<DREG>&dst, int bank, const std::shared_ptr<DREG>&src);
+    void superpixel_shift_left(const std::shared_ptr<DREG>&dst, int bank, const std::shared_ptr<DREG>&src);
+    void superpixel_add(const std::shared_ptr<DREG>&dst, int bank, const std::shared_ptr<DREG>&src1, const std::shared_ptr<DREG>&src2);
+    void superpixel_sub(const std::shared_ptr<DREG>&dst, int bank, const std::shared_ptr<DREG>&src1, const std::shared_ptr<DREG>&src2);
+    void superpixel_movx(const std::shared_ptr<DREG>&dst, std::shared_ptr<DREG>src, news_t dir);
 
     // Histogramming
-    void histogram(AREG *src);
-    void hog(AREG *src);
+    void histogram(const std::shared_ptr<AREG>& src);
+    void hog(const std::shared_ptr<AREG>& src);
 };
 
 class SCAMP5E::builder {

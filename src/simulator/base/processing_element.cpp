@@ -4,52 +4,58 @@
 
 #include "simulator/base/processing_element.h"
 
-ProcessingElement::ProcessingElement(int rows, int cols, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config) :
+ProcessingElement::ProcessingElement(int rows, int cols, int row_stride, int col_stride, Source source, const std::string &path, Config &config) :
     rows_(rows),
     cols_(cols),
     photodiode(Pixel(rows, cols, row_stride, col_stride, source, path, config)),
     config_(config)
 
 {
-    // TODO need to be able to pass in some way of creating the underlying memory
-    for(int i = 0; i < num_analogue; i++) {
-        analogue_registers.emplace_back(rows, cols, config);
-    }
-    for(int i = 0; i < num_digital; i++) {
-        digital_registers.emplace_back(rows, cols, config);
-    }
+//    // TODO need to be able to pass in some way of creating the underlying memory
+//
+//    for(int i = 0; i < num_analogue; i++) {
+//        analogue_registers.emplace_back(rows, cols, config);
+//    }
+//    for(int i = 0; i < num_digital; i++) {
+//        digital_registers.emplace_back(rows, cols, config);
+//    }
 }
 #ifdef TRACK_STATISTICS
 void ProcessingElement::update_static(double time) {
-    for(DigitalRegister &digital_register: digital_registers) {
-        digital_register.update_static(time);
+
+    for (auto& [_, a] : analogue_registers) {
+        a->update_static(time);
     }
 
-    for(AnalogueRegister &analogue_register: analogue_registers) {
-        analogue_register.update_static(time);
+    for (auto& [_, d] : digital_registers) {
+        d->update_static(time);
     }
+
     photodiode.update_static(time);
 }
 
 cv::Mat ProcessingElement::get_transistor_count() {
     cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_32S);
-    for(auto &analogue: analogue_registers) {
-        out += analogue.get_transistor_count();
+
+    for (auto& [_, a] : analogue_registers) {
+        out += a->get_transistor_count();
     }
-    for(auto &digital: digital_registers) {
-        out += digital.get_transistor_count();
+
+    for (auto& [_, d] : digital_registers) {
+        out += d->get_transistor_count();
     }
+
     out += photodiode.get_transistor_count();
     return out;
 }
 
 cv::Mat ProcessingElement::get_static_energy() {
     cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_64F);
-    for(auto &analogue: analogue_registers) {
-        out += analogue.get_static_energy();
+    for (auto& [_, a] : analogue_registers) {
+        out += a->get_static_energy();
     }
-    for(auto &digital: digital_registers) {
-        out += digital.get_static_energy();
+    for (auto& [_, d] : digital_registers) {
+        out += d->get_static_energy();
     }
     out += photodiode.get_static_energy();
     return out;
@@ -57,11 +63,11 @@ cv::Mat ProcessingElement::get_static_energy() {
 
 cv::Mat ProcessingElement::get_dynamic_energy() {
     cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_64F);
-    for(auto &analogue: analogue_registers) {
-        out += analogue.get_dynamic_energy();
+    for (auto& [_, a] : analogue_registers) {
+        out += a->get_dynamic_energy();
     }
-    for(auto &digital: digital_registers) {
-        out += digital.get_dynamic_energy();
+    for (auto& [_, d] : digital_registers) {
+        out += d->get_dynamic_energy();
     }
     out += photodiode.get_dynamic_energy();
     return out;
@@ -69,14 +75,34 @@ cv::Mat ProcessingElement::get_dynamic_energy() {
 
 void ProcessingElement::print_stats(const CycleCounter &counter) {
     std::cout << "====================" << "\n";
-    for(auto &analogue: analogue_registers) { analogue.print_stats(counter); }
-    for(auto &digital: digital_registers) { digital.print_stats(counter); }
+    for (auto& [_, a] : analogue_registers) {
+        a->print_stats(counter);
+    }
+    for (auto& [_, d] : digital_registers) {
+        d->print_stats(counter);
+    }
     photodiode.print_stats(counter);
     std::cout << "====================" << "\n";
 }
 
 int ProcessingElement::get_cycle_count() {
     return 0;
+}
+
+void ProcessingElement::add_analogue_register(const std::string &name, std::shared_ptr<AnalogueRegister> reg) {
+    analogue_registers[name] = reg;
+}
+
+void ProcessingElement::add_digital_register(const std::string &name, std::shared_ptr<DigitalRegister> reg) {
+    digital_registers[name] = reg;
+}
+
+std::shared_ptr<AnalogueRegister> ProcessingElement::get_analogue_register(const std::string &name) {
+    return analogue_registers[name];
+}
+
+std::shared_ptr<DigitalRegister> ProcessingElement::get_digital_register(const std::string &name) {
+    return digital_registers[name];
 }
 
 //void ProcessingElement::print_stats(const CycleCounter &counter) {
@@ -165,5 +191,5 @@ ProcessingElement ProcessingElement::builder::build() {
                   << std::endl;
     }
 #endif
-    return ProcessingElement(rows_, cols_, row_stride_, col_stride_, num_analogue_, num_digital_, source_, path_, config_);
+    return ProcessingElement(rows_, cols_, row_stride_, col_stride_, source_, path_, config_);
 }

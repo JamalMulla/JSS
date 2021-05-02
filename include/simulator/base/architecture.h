@@ -24,11 +24,9 @@ class Architecture {
    public:
     std::unordered_map<std::string, std::shared_ptr<Component>> components;
 
-    std::shared_ptr<Component> get_component(const std::string& name);
-
     template<class type>
     std::shared_ptr<type> get_component(const std::string& name) {
-        return components[name];
+        return std::dynamic_pointer_cast<type>(components[name]);
     }
 
     void add_component(const std::string& name, std::shared_ptr<Component> component);
@@ -39,6 +37,7 @@ class Architecture {
     void print_stats();
     unsigned long long get_cycles();
 #endif
+    std::shared_ptr<Component> get_component(const std::string& name);
 };
 
 #endif  // SIMULATOR_ARCHITECTURE_H

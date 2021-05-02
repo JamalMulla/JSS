@@ -19,11 +19,23 @@ enum news_t { east = 1,
 
 typedef AnalogueRegister AREG;
 typedef DigitalRegister DREG;
+#define RS R1
+#define RW R2
+#define RN R3
+#define RE R4
+#define S0 R5
+#define S1 R6
+#define S2 R7
+#define S3 R8
+#define S4 R9
+#define S5 R10
+#define S6 R11
+#define RP R12
+#define RF R0
 
-class SCAMP5 : Architecture {
-   protected:
+class SCAMP5 : public Architecture {
+   public:
     std::shared_ptr<ProcessingElement> pe;
-    std::shared_ptr<Architecture> array;
     std::shared_ptr<AREG> intermediate_a;
     std::shared_ptr<AREG> intermediate_a2;
     std::shared_ptr<DREG> intermediate_d;
@@ -52,14 +64,27 @@ class SCAMP5 : Architecture {
     std::shared_ptr<AREG> PIX;
     std::shared_ptr<AREG> IN;
     std::shared_ptr<AREG> NEWS;
+    std::shared_ptr<AREG> A;
+    std::shared_ptr<AREG> B;
+    std::shared_ptr<AREG> C;
+    std::shared_ptr<AREG> D;
+    std::shared_ptr<AREG> E;
+    std::shared_ptr<AREG> F;
 
+    std::shared_ptr<DREG> FLAG;
+    std::shared_ptr<DREG> RF;
     std::shared_ptr<DREG> RS;
     std::shared_ptr<DREG> RW;
     std::shared_ptr<DREG> RN;
     std::shared_ptr<DREG> RE;
+    std::shared_ptr<DREG> S0;
+    std::shared_ptr<DREG> S1;
+    std::shared_ptr<DREG> S2;
+    std::shared_ptr<DREG> S3;
+    std::shared_ptr<DREG> S4;
+    std::shared_ptr<DREG> S5;
+    std::shared_ptr<DREG> S6;
     std::shared_ptr<DREG> RP;
-    std::shared_ptr<DREG> RF;
-    std::shared_ptr<DREG> FLAG;
     std::shared_ptr<DREG> SELECT;
     std::shared_ptr<DREG> RECT;
 
@@ -256,17 +281,22 @@ class SCAMP5 : Architecture {
     void scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value);
     void scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value, std::shared_ptr<AREG>& temp);
 
-    void scamp5_load_in(const std::shared_ptr<AREG>& areg, int8_t value, const std::shared_ptr<AREG> temp = nullptr);
+    void scamp5_load_in(const std::shared_ptr<AREG>& areg, int8_t value, std::shared_ptr<AREG>& temp);
+    void scamp5_load_in(const std::shared_ptr<AREG>& areg, int8_t value);
 
     void scamp5_load_in(int8_t value);
 
-    void scamp5_load_dac(const std::shared_ptr<AREG>& areg, uint16_t value, const std::shared_ptr<AREG>& temp = nullptr);
+    void scamp5_load_dac(const std::shared_ptr<AREG>& areg, uint16_t value, std::shared_ptr<AREG>& temp);
+    void scamp5_load_dac(const std::shared_ptr<AREG>& areg, uint16_t value);
 
     void scamp5_load_dac(uint16_t value);
 
     void scamp5_shift(const std::shared_ptr<AREG>& areg, int h, int v);
 
-    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations, bool vertical = true, bool horizontal = true, const std::shared_ptr<AREG>& t0 = nullptr);
+    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations);
+    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations, bool vertical);
+    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations, bool vertical, bool horizontal);
+    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations, bool vertical, bool horizontal, std::shared_ptr<AREG>& t0);
 
     uint8_t scamp5_read_areg(const std::shared_ptr<AREG>& areg, uint8_t r, uint8_t c);
 
@@ -342,26 +372,6 @@ class SCAMP5 : Architecture {
     void scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *buffer, uint16_t max_num, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs, uint8_t cs);
 
     void scamp5_scan_boundingbox(const std::shared_ptr<DREG>& dr, uint8_t *vec4v);
-    //    void scamp5_output_image(AREG& areg, vs_handle display);
-    //    void scamp5_output_image (DREG& dreg, vs_handle display);
-    //    void scamp5_output_areg (AREG& areg, vs_handle display, int s=1, int
-    //    r0=0, int c0=0); void scamp5_output_events (DREG& dreg, vs_handle
-    //    display, uint16_t max_num=1000, uint8_t h_dir=0, uint8_t v_dir=0);
-    //    void scamp5_output_boundingbox (DREG& dr, vs_handle display, uint8_t
-    //    *result=NULL); void scamp5_display_boundingbox (vs_handle display,
-    //    const uint8_t *vec4v, size_t count); void scamp5_display_events
-    //    (vs_handle display, const uint8_t *vec2v, size_t count); void
-    //    scamp5_display_image(vs_handle display, const uint8_t *buffer, uint8_t
-    //    w, uint8_t h); void scamp5_display_image_patch(vs_handle display,
-    //    const uint8_t *buffer, uint8_t w, uint8_t h, uint8_t r0, uint8_t c0);
-    //    void scamp5_output_bitstack_begin(vs_handle display, int n_bits);
-    //    void scamp5_output_bitstack_bit(DREG& dreg);
-    //    void scamp5_output_bitstack_end();
-
-    //    Other Functions
-//    void scamp5_bind_io_agent();
-//
-//    void scamp5_get_io_agent();
 
     // Simulator specific methods
     void print_stats();
@@ -379,6 +389,7 @@ class SCAMP5::builder {
     builder &with_rows(int rows);
     builder &with_cols(int cols);
     builder &with_origin(Origin origin);
+    builder &with_components(std::vector<Component> components);
     builder &with_analogue_registers();
 
     SCAMP5 build();

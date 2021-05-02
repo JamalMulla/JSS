@@ -15,14 +15,10 @@
 #include <sstream>
 #include <vector>
 
-#include "nlohmann/json.hpp"
-using json = nlohmann::json;
-
-static inline const rttr::type& check_validity(const rttr::type& type, const std::string& name)
-{
+static inline const rttr::type& check_validity(const rttr::type& type, const std::string& name) {
     if (!type.is_valid()) {
         std::cerr << "Could not find \"" << name << "\"" << std::endl;
-        for (auto& t : rttr::type::get_types()) {
+        for (auto& t: rttr::type::get_types()) {
             std::cout << t.get_name() << std::endl;
         }
         exit(EXIT_FAILURE);
@@ -119,10 +115,10 @@ rttr::method Parser::get_method(const rttr::type& class_type, std::vector<rttr::
         }
     }
 
-//    std::string types;
-//    for (auto& t : arg_types) {
-//        types += t.get_name().to_string() = ", ";
-//    }
+    //    std::string types;
+    //    for (auto& t : arg_types) {
+    //        types += t.get_name().to_string() = ", ";
+    //    }
 
     std::cerr << "Method \"" << instr << "\" not found with given argument types. It may not have been registered or you may have passed arguments with incorrect types" << std::endl;
     exit(EXIT_FAILURE);
@@ -144,7 +140,7 @@ std::vector<rttr::enumeration> Parser::get_enums() {
 Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream& program) {
     rttr::type class_type = class_obj.get_type();
     if (!class_type.is_valid()) {
-        std::cerr << "Could not find class type"<< std::endl;
+        std::cerr << "Could not find class type" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -169,7 +165,6 @@ Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream&
         std::replace(line.begin(), line.end(), '(', ' ');
         std::replace(line.begin(), line.end(), ')', ' ');
 
-        // read the node number
         std::stringstream ss(line);
         std::string instr;
         ss >> instr;
@@ -191,10 +186,8 @@ Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream&
     return instructionArgs;
 }
 
-void Parser::execute_instructions(Instructions parsed, rttr::instance instance) {
-    for (auto& instr: parsed) {
-        rttr::method& method = instr.first;
-        std::vector<rttr::variant>& args = instr.second;
+void Parser::execute_instructions(const Instructions& parsed, rttr::instance instance) {
+    for (auto& [method, args]: parsed) {
         rttr::variant res;
         switch (args.size()) {
             case 0: res = method.invoke(instance); break;
@@ -214,12 +207,7 @@ void Parser::execute_instructions(Instructions parsed, rttr::instance instance) 
     }
 }
 
-void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
-    json c = json::parse(config);
-    std::vector<rttr::enumeration> enums = get_enums(); // all registered enums
-
-    // Create architecture by using builder
-    std::string arch_name = c["architecture"];
+rttr::variant Parser::create_instance(const std::string& arch_name, json arch_props, std::vector<rttr::enumeration> enums) {
     check_validity(rttr::type::get_by_name(arch_name), arch_name);
     rttr::type arch_builder_type = check_validity(rttr::type::get_by_name(arch_name + "_builder"), arch_name + "_builder");
 
@@ -229,7 +217,7 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
         exit(EXIT_FAILURE);
     }
     // If architecture properties are defined, find them and set them
-    json arch_props = c[arch_name];
+
     if (arch_props.is_object()) {
         for (auto& json_prop: arch_props.items()) {
             rttr::method prop_method = arch_builder_type.get_method("with_" + json_prop.key());
@@ -240,7 +228,7 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
             rttr::variant val;
             rttr::method prop_converter = arch_builder_type.get_method(json_prop.key() + "_converter");
             if (prop_converter.is_valid()) {
-                val = prop_converter.invoke(arch_builder, (json) json_prop.value());
+                val = prop_converter.invoke(arch_builder, (json)json_prop.value());
             } else {
                 // No converter found
                 if (json_prop.value().is_string()) {
@@ -260,7 +248,7 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
                 exit(EXIT_FAILURE);
             }
 
-            bool converted = val.convert(prop_method.get_parameter_infos().begin()->get_type()); //only 1 parameter for each prop setter
+            bool converted = val.convert(prop_method.get_parameter_infos().begin()->get_type());  //only 1 parameter for each prop setter
             if (!converted) {
                 std::cerr << "Could not convert property \"" << json_prop.key() << "\" to required type " << prop_method.get_parameter_infos().begin()->get_type().get_name() << std::endl;
                 exit(EXIT_FAILURE);
@@ -277,6 +265,17 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
         std::cerr << "Could not build architecture \"" << arch_name << "\" using \"build()\" method" << std::endl;
         exit(EXIT_FAILURE);
     }
+    return arch;
+}
+
+void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
+    json c = json::parse(config);
+    std::vector<rttr::enumeration> enums = get_enums();  // all registered enums
+
+    // Create architecture by using builder
+    std::string arch_name = c["architecture"];
+    json arch_props = c[arch_name];
+    rttr::variant arch = create_instance(arch_name, arch_props, enums);
 
     // UI
     bool ui_enabled = false;
@@ -288,7 +287,7 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
     if (ui_enabled) {
         if (c.contains("ui_registers_to_display")) {
             json regs = c["ui_registers_to_display"];
-            for (const json& reg : regs) {
+            for (const json& reg: regs) {
                 rttr::variant arg = get_arg(arch, enums, reg.get<std::string>());
                 if (!arg.is_valid()) {
                     std::cerr << "Could not get register " << reg.get<std::string>() << std::endl;
@@ -308,7 +307,7 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
     Instructions instructions = Parser::parse_instructions(arch, program);
 
     rttr::variant ui;
-    rttr::method display_reg = ui.get_type().get_method(""); // needed because there is no default constructor
+    rttr::method display_reg = ui.get_type().get_method("");  // needed because there is no default constructor
     if (ui_enabled) {
         ui = check_validity(rttr::type::get_by_name("UI"), "UI").create();
         // TODOreturns shared_ptr for some reason
@@ -320,7 +319,7 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
             std::cerr << "Could not get display_reg method" << std::endl;
             exit(EXIT_FAILURE);
         }
-        for (auto& reg : regs_to_display) {
+        for (auto& reg: regs_to_display) {
             if (!reg.convert(rttr::type::get<Register*>())) {
                 std::cerr << "Could not convert reg value to type Register*" << std::endl;
                 exit(EXIT_FAILURE);
@@ -332,14 +331,14 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
     }
 
     int i = 0;
-    while(i < frames) {
+    while (i < frames) {
         int e1 = cv::getTickCount();
         Parser::execute_instructions(instructions, arch);
         int e2 = cv::getTickCount();
         std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
 
         if (ui_enabled) {
-            for (auto& reg : regs_to_display) {
+            for (auto& reg: regs_to_display) {
                 display_reg.invoke(ui, reg);
             }
         }
@@ -358,7 +357,6 @@ void Parser::parse_config(std::ifstream &config, std::ifstream& program) {
     }
 
     // Clean up and call destructors.
-    arch_builder_type.destroy(arch_builder);
+//    arch_builder_type.destroy(arch_builder);
     arch.get_type().destroy(arch);
-
 }

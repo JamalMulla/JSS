@@ -55,15 +55,29 @@ void Architecture::print_stats() {
     double exec_time = ((double)counter_.get_cycles() / config_.clock_rate);
     std::cout << "Device execution time: " << exec_time << " s\n";
 //    std::cout << "FPS: " << 500/exec_time << " \n";
-    int pe_tc = cv::sum(this->pe.get_transistor_count())[0];
-//    int cla_tc =  cv::sum(this->cla.get_transistor_count())[0];
-//    int dram_tc = cv::sum(this->dram.get_transistor_count())[0];
-    int transistor_count =  pe_tc + 0 + 0;
+
+    long transistor_count = 0;
+    for (auto& [_, component] : components) {
+        transistor_count += cv::sum(component->get_transistor_count())[0];
+    }
     std::cout << "Architecture transistor count: " << transistor_count << "\n";
-    std::cout << "Average transistor count per PE: " << transistor_count / (rows_ * columns_) << " \n";
-    double static_power = (cv::sum(this->pe.get_static_energy())[0]) / exec_time;
+//    std::cout << "Average transistor count per PE: " << transistor_count / (rows_ * columns_) << " \n";
+
+    double static_energy = 0.0;
+    for (auto& [_, component] : components) {
+        static_energy += cv::sum(component->get_static_energy())[0];
+    }
+    double static_power = static_energy/exec_time;
+
+    double dynamic_energy = 0.0;
+    for (auto& [_, component] : components) {
+        dynamic_energy += cv::sum(component->get_dynamic_energy())[0];
+    }
+    double dynamic_power = dynamic_energy/exec_time;
+
+    std::cout << "Architecture static energy: " << static_energy << " J\n";
     std::cout << "Architecture static power: " << static_power << " W\n";
-    double dynamic_power = (cv::sum(this->pe.get_dynamic_energy())[0]) / exec_time;
+    std::cout << "Architecture dynamic energy: " << dynamic_energy << " J\n";
     std::cout << "Architecture dynamic power: " << dynamic_power << " W\n";
     std::cout << "Architecture total power: " << static_power + dynamic_power << " W\n";
 
