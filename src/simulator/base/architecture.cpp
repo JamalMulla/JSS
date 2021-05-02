@@ -14,11 +14,15 @@
 //{}
 
 std::shared_ptr<Component> Architecture::get_component(const std::string& name) {
-    return components[name];
+    return components_[name];
 }
 
 void Architecture::add_component(const std::string& name, std::shared_ptr<Component> component) {
-    components[name] = std::move(component);
+    components_[name] = std::move(component);
+}
+
+void Architecture::add_components(std::unordered_map<std::string, std::shared_ptr<Component>> components) {
+    components_.merge(components);
 }
 
 void Architecture::update_cycles(int cycles) {
@@ -30,8 +34,8 @@ void Architecture::update_cycles(int cycles) {
 #ifdef TRACK_STATISTICS
 
 void Architecture::update_static() {
-    double time = (1.0 / config_.clock_rate) * counter_.get_cycles();
-    for (auto& [_, component] : components) {
+    double time = (1.0 / config_.clock_rate_) * counter_.get_cycles();
+    for (auto& [_, component] : components_) {
         component->update_static(time);
     }
 }
@@ -44,33 +48,33 @@ void Architecture::print_stats() {
               << "\n";
     std::cout << "=============================="
               << "\n";
-    std::cout << "Clock rate: " << config_.clock_rate << " Hz\n";
-    std::cout << "Process node: " << config_.process_node << " nm\n";
-    std::cout << "Voltage: " << config_.voltage << " V\n";
-    std::cout << "Temperature: " << config_.temperature << " C\n";
+    std::cout << "Clock rate: " << config_.clock_rate_ << " Hz\n";
+    std::cout << "Process node: " << config_.process_node_ << " nm\n";
+    std::cout << "Voltage: " << config_.voltage_ << " V\n";
+    std::cout << "Temperature: " << config_.temperature_ << " C\n";
     std::cout << "=============================="
               << "\n";
 
     std::cout << "Cycle count: " << counter_.get_cycles() << "\n";
-    double exec_time = ((double)counter_.get_cycles() / config_.clock_rate);
+    double exec_time = ((double)counter_.get_cycles() / config_.clock_rate_);
     std::cout << "Device execution time: " << exec_time << " s\n";
 //    std::cout << "FPS: " << 500/exec_time << " \n";
 
     long transistor_count = 0;
-    for (auto& [_, component] : components) {
+    for (auto& [_, component] : components_) {
         transistor_count += cv::sum(component->get_transistor_count())[0];
     }
     std::cout << "Architecture transistor count: " << transistor_count << "\n";
 //    std::cout << "Average transistor count per PE: " << transistor_count / (rows_ * columns_) << " \n";
 
     double static_energy = 0.0;
-    for (auto& [_, component] : components) {
+    for (auto& [_, component] : components_) {
         static_energy += cv::sum(component->get_static_energy())[0];
     }
     double static_power = static_energy/exec_time;
 
     double dynamic_energy = 0.0;
-    for (auto& [_, component] : components) {
+    for (auto& [_, component] : components_) {
         dynamic_energy += cv::sum(component->get_dynamic_energy())[0];
     }
     double dynamic_power = dynamic_energy/exec_time;

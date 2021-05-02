@@ -16,7 +16,7 @@ Sram6tCell::Sram6tCell(int rows, int cols, int row_stride, int col_stride, Confi
     dynamic_read_power_(fun_dynamic_read(config)),
     dynamic_write_power_(fun_dynamic_write(config)),
     config_(config),
-    time_(this->cycle_count_ * (1.0/config_.clock_rate)),
+    time_(this->cycle_count_ * (1.0/config_.clock_rate_)),
     array_transistor_count_(rows, cols, CV_32S, cv::Scalar(transistor_count_)),
     array_static_energy_(rows, cols, CV_64F, cv::Scalar(0)),
     array_dynamic_energy_(rows, cols, CV_64F, cv::Scalar(0)),

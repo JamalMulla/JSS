@@ -22,14 +22,15 @@ class Architecture {
     Config config_;
 
    public:
-    std::unordered_map<std::string, std::shared_ptr<Component>> components;
+    std::unordered_map<std::string, std::shared_ptr<Component> > components_;
 
     template<class type>
     std::shared_ptr<type> get_component(const std::string& name) {
-        return std::dynamic_pointer_cast<type>(components[name]);
+        return std::dynamic_pointer_cast<type>(components_[name]);
     }
 
     void add_component(const std::string& name, std::shared_ptr<Component> component);
+    void add_components(std::unordered_map<std::string, std::shared_ptr<Component> > components);
 
     void update_cycles(int cycles);
 #ifdef TRACK_STATISTICS

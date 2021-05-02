@@ -8,7 +8,7 @@
 #include "cycle_counter.h"
 #include "nlohmann/json.hpp"
 
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 
 /*Interface for outputting of metrics*/
 class StatsOutputter {

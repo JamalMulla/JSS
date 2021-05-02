@@ -13,7 +13,7 @@
 #include <vector>
 
 using Instructions = std::vector<std::pair<rttr::method, std::vector<rttr::variant> > >;
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 
 namespace Parser {
     rttr::variant get_arg(rttr::instance class_obj, std::vector<rttr::enumeration>& enums, const std::string& arg);

@@ -50,7 +50,7 @@ void Pixel::read(Register& reg) {
     input_source->read(reg);
     double seconds = this->input_source->last_frame_time();
 #ifdef TRACK_STATISTICS
-    cycle_count_ = seconds * this->config_.clock_rate;
+    cycle_count_ = seconds * this->config_.clock_rate_;
     cv::add(this->array_dynamic_energy_, this->dynamic_power_, this->array_dynamic_energy_, this->internal_mask);
 #endif
 }

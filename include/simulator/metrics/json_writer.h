@@ -7,7 +7,7 @@
 
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 class JsonWriter {
    public:
     json j;

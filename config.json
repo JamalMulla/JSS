@@ -1,5 +1,5 @@
 {
-	"architecture": "SCAMP5E",
+	"architecture": "SCAMP5",
     "frames": 5000,
 	"with_stats": true,
 	"ui": {
@@ -7,35 +7,31 @@
         "registers_to_display" : ["A", "B", "C", "D", "R5", "R6", "R7"],
         "port" : 3000
     },
-	"SCAMP5E": {
+	"SCAMP5": {
 		"rows": 256,
 		"cols": 256,
 		"config": {
             "clock_rate" : 1e7
 		},
 		"components" : [
-			{"pe" : {
+            {
                 "component" : "ProcessingElement",
-				"analogue_registers" : ["A", "B", "C", "D", "E", "F"],
-				"digital_registers" : ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", {"R12" : {"mask" :  "R0"}}],
-				"input_source" : "LIVE"
-			}},
-			{"dram" : {
+                "name" : "pe",
+                "rows" : 256,
+                "cols" : 256,
+                "analogue_registers" : ["A", "B", "C", "D", "E", "F"],
+                "digital_registers" : ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", {"R12" : {"mask" :  "R0"}}],
+                "input_source" : "LIVE"
+			},
+			{
                 "component": "Dram",
+                "name" : "dram",
                 "row_stride": 8,
                 "col_stride": 8,
                 "array_rows" : 256,
                 "array_cols" : 1,
                 "word_length" : 16
-			}}
-		],
-		"bitorder": [
-			[
-				[1, 8, 9,  16],
-				[2, 7, 10, 15],
-				[3, 6, 11, 14],
-				[4, 5, 12, 13]
-			]
+			}
 		]
 	}
 }

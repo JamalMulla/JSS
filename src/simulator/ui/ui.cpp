@@ -19,7 +19,7 @@
 #include "simulator/ui/file_watcher.h"
 #include "simulator/util/utility.h"
 
-using json = nlohmann::json;
+using json = nlohmann::ordered_json;
 
 std::string file_path(const char *path) {
     std::string path_s = path;

@@ -11,6 +11,8 @@
 #include <filesystem>
 #include <iostream>
 #include <ostream>
+#include <utility>
+#include "simulator/external/parser.h"
 
 SCAMP5::SCAMP5() {
 
@@ -1575,7 +1577,7 @@ void SCAMP5::print_stats() {
     this->print_stats();
 //    json j;
 //    j["Total number of cycles"] = counter->get_cycles();
-//    j["Equivalent in seconds"] = counter->to_seconds(config_.clock_rate);
+//    j["Equivalent in seconds"] = counter->to_seconds(config_.clock_rate_);
 //
 //    // this.print_stats(counter);
 //    this->write_stats(*counter, j);
@@ -1592,6 +1594,28 @@ void SCAMP5::print_stats() {
 }
 
 // Builder
+
+rttr::variant SCAMP5::builder::components_converter(json& j) {
+    std::unordered_map<std::string, rttr::variant> components;
+    std::vector<rttr::enumeration> enums = Parser::get_enums();
+    try {
+        for (auto& [key, value] : j.items()) {
+            std::string name = value["name"];
+            std::string component = value["component"];
+            rttr::variant instance = Parser::create_instance(component, value, enums);
+            components[name] = instance;
+        }
+        return rttr::variant(components);
+    } catch (json::type_error&) {
+        std::cerr << "[Warning] Could not parse component. Must be an array" << std::endl;
+    } catch (json::parse_error&) {
+        std::cerr << "[Warning] Could not parse bitorder. Must be an array" << std::endl;
+    }
+
+    return rttr::variant();
+}
+
+
 SCAMP5::builder &SCAMP5::builder::with_rows(int rows) {
     this->rows_ = rows;
     return *this;
@@ -1607,12 +1631,21 @@ SCAMP5::builder &SCAMP5::builder::with_origin(Origin origin) {
     return *this;
 }
 
-SCAMP5::builder &SCAMP5::builder::with_components(std::vector<Component> components) {
+SCAMP5::builder& SCAMP5::builder::with_config(Config config) {
+    this->config_ = config;
+    return *this;
+}
 
+SCAMP5::builder &SCAMP5::builder::with_components(std::unordered_map<std::string, std::shared_ptr<Component> > components) {
+    this->components_ = std::move(components);
 }
 
 SCAMP5 SCAMP5::builder::build() {
     SCAMP5 scamp5 = SCAMP5();
+    scamp5.rows_ = this->rows_;
+    scamp5.cols_ = this->cols_;
+    scamp5.config_ = this->config_;
+    scamp5.add_components(components_);
     return scamp5;
 }
 
@@ -1628,12 +1661,15 @@ RTTR_REGISTRATION {
 
     registration::class_<SCAMP5::builder>("SCAMP5_builder")
         .constructor<>()
+        .method("components_converter", &SCAMP5::builder::components_converter)
         .method("with_rows", &SCAMP5::builder::with_rows)
         .method("with_cols", &SCAMP5::builder::with_cols)
         .method("with_origin", &SCAMP5::builder::with_origin)
+        .method("with_config", &SCAMP5::builder::with_config)
+        .method("with_components", &SCAMP5::builder::with_components)
         .method("build", &SCAMP5::builder::build);
 
-        registration::class_<SCAMP5>("SCAMP5")
+    registration::class_<SCAMP5>("SCAMP5")
         .method("nop", &SCAMP5::nop)
         .method("rpix", &SCAMP5::rpix)
         .method("get_image", select_overload<void(const std::shared_ptr<AREG>&)> (&SCAMP5::get_image))

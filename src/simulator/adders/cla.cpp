@@ -21,7 +21,7 @@ CarryLookAheadAdder::CarryLookAheadAdder(int rows, int cols, int row_stride, int
     transistor_count_(fun_transistor(bits, config)),
     static_power_(fun_static(bits, config)),
     dynamic_power_(fun_dynamic(bits, config)),
-    time_(this->cycle_count_ * (1.0 / config.clock_rate)),
+    time_(this->cycle_count_ * (1.0 / config.clock_rate_)),
     internal_mask(rows, cols, CV_8U, cv::Scalar(0)),
     array_transistor_count_(rows, cols, CV_32S, cv::Scalar(0)),
     array_static_energy_(rows, cols, CV_64F, cv::Scalar(0)),

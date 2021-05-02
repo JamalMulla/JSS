@@ -55,10 +55,10 @@ class SCAMP5 : public Architecture {
     // Analogue registers
     //    // TODO make these 4 usable? How should they be handled if they are
     //    used in some instruction? AREG& XE =
-    //    array.pe.analogue_registers[9]("XE"); AREG& XW =
-    //    array.pe.analogue_registers[10]("XW"); AREG& XN =
-    //    array.pe.analogue_registers[11]("XN"); AREG& XS =
-    //    array.pe.analogue_registers[12]("XS");
+    //    array.pe.analogue_registers_[9]("XE"); AREG& XW =
+    //    array.pe.analogue_registers_[10]("XW"); AREG& XN =
+    //    array.pe.analogue_registers_[11]("XN"); AREG& XS =
+    //    array.pe.analogue_registers_[12]("XS");
 
     // Digital registers
     std::shared_ptr<AREG> PIX;
@@ -384,12 +384,16 @@ class SCAMP5::builder {
     int rows_ = 256;
     int cols_ = 256;
     Origin origin_ = Origin::TOP_LEFT;
+    Config config_;
+    std::unordered_map<std::string, std::shared_ptr<Component> > components_;
 
    public:
+    rttr::variant components_converter(json& j);
     builder &with_rows(int rows);
     builder &with_cols(int cols);
     builder &with_origin(Origin origin);
-    builder &with_components(std::vector<Component> components);
+    builder &with_config(Config config);
+    builder &with_components(std::unordered_map<std::string, std::shared_ptr<Component> > components);
     builder &with_analogue_registers();
 
     SCAMP5 build();

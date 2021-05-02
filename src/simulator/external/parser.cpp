@@ -18,9 +18,6 @@
 static inline const rttr::type& check_validity(const rttr::type& type, const std::string& name) {
     if (!type.is_valid()) {
         std::cerr << "Could not find \"" << name << "\"" << std::endl;
-        for (auto& t: rttr::type::get_types()) {
-            std::cout << t.get_name() << std::endl;
-        }
         exit(EXIT_FAILURE);
     }
     return type;
@@ -220,9 +217,12 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
 
     if (arch_props.is_object()) {
         for (auto& json_prop: arch_props.items()) {
+            // Skip name as it is not a property of the object
+            if (json_prop.key() == "name") { continue; }
+
             rttr::method prop_method = arch_builder_type.get_method("with_" + json_prop.key());
             if (!prop_method.is_valid()) {
-                std::cerr << "Could not find builder method for property \"" << json_prop.key() << "\"" << std::endl;
+                std::cerr << "Could not find builder method for property \"" << json_prop.key() << "\" of object " << arch_name << std::endl;
                 exit(EXIT_FAILURE);
             }
             rttr::variant val;

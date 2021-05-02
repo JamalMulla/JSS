@@ -21,8 +21,8 @@ class ProcessingElement : public Component {
     int rows_;
     int cols_;
     Pixel photodiode;
-    std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers;
-    std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers;
+    std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers_;
+    std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers_;
     Squarer squarer;
     Comparator comparator;
     AnalogueBus analogue_bus;
@@ -55,19 +55,23 @@ class ProcessingElement::builder {
     int cols_ = -1;
     int row_stride_ = 1;
     int col_stride_ = 1;
-    int num_analogue_ = -1;
-    int num_digital_ = -1;
+    std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers_;
+    std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers_;
     Source source_;
     std::string path_;
     Config config_;
 
+
    public:
+
+    rttr::variant analogue_registers_converter(json& j);
+    rttr::variant digital_registers_converter(json& j);
     builder& with_rows(int rows);
     builder& with_cols(int cols);
     builder& with_row_stride(int row_stride);
     builder& with_col_stride(int col_stride);
-    builder& with_analogue_registers(int num_analogue);
-    builder& with_digital_registers(int num_digital);
+    builder& with_analogue_registers(std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers);
+    builder& with_digital_registers(std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers);
     builder& with_input_source(Source source);
     builder& with_file_path(const std::string& path);
     builder& with_config(Config& config);
