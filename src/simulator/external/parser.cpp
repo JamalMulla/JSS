@@ -380,7 +380,7 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 
     // Stats
     if (c["with_stats"] && c["with_stats"] == true) {
-        if (!arch.get_type().invoke("print_stats", arch, {}).is_valid()) {
+        if (!arch.extract_wrapped_value().get_type().invoke("print_stats", arch, {}).is_valid()) {
             std::cerr << "Could not print stats for run. Has a \"print_stats\" method been registered?" << std::endl;
         }
     }

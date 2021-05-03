@@ -34,7 +34,7 @@ void Architecture::update_cycles(int cycles) {
 #ifdef TRACK_STATISTICS
 
 void Architecture::update_static() {
-    double time = (1.0 / config_.get_clock_rate()) * counter_.get_cycles();
+    double time = (1.0 / config_->get_clock_rate()) * counter_.get_cycles();
     for (auto& [_, component] : components_) {
         component->update_static(time);
     }
@@ -48,15 +48,15 @@ void Architecture::print_stats() {
               << "\n";
     std::cout << "=============================="
               << "\n";
-    std::cout << "Clock rate: " << config_.get_clock_rate() << " Hz\n";
-    std::cout << "Process node: " << config_.get_process_node() << " nm\n";
-    std::cout << "Voltage: " << config_.get_voltage() << " V\n";
-    std::cout << "Temperature: " << config_.get_temperature() << " C\n";
+    std::cout << "Clock rate: " << config_->get_clock_rate() << " Hz\n";
+    std::cout << "Process node: " << config_->get_process_node() << " nm\n";
+    std::cout << "Voltage: " << config_->get_voltage() << " V\n";
+    std::cout << "Temperature: " << config_->get_temperature() << " C\n";
     std::cout << "=============================="
               << "\n";
 
     std::cout << "Cycle count: " << counter_.get_cycles() << "\n";
-    double exec_time = ((double)counter_.get_cycles() / config_.get_clock_rate());
+    double exec_time = ((double)counter_.get_cycles() / config_->get_clock_rate());
     std::cout << "Device execution time: " << exec_time << " s\n";
 //    std::cout << "FPS: " << 500/exec_time << " \n";
 

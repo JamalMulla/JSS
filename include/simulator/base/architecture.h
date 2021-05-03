@@ -19,7 +19,9 @@
 class Architecture {
    private:
     CycleCounter counter_;
-    Config config_;
+
+   protected:
+    std::shared_ptr<Config> config_;
 
    public:
     std::unordered_map<std::string, std::shared_ptr<Component> > components_;

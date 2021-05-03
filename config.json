@@ -1,9 +1,9 @@
 {
 	"architecture": "SCAMP5",
-    "frames": 5000,
+    "frames": 50,
 	"with_stats": true,
 	"ui_enabled": true,
-    "ui_registers_to_display" : ["A", "B", "C", "D", "R5", "R6", "R7"],
+    "ui_registers_to_display" : ["A", "B", "C", "D", "E", "R5", "R6", "R7"],
 	"SCAMP5": {
 		"rows": 256,
 		"cols": 256,

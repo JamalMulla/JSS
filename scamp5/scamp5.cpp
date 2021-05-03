@@ -20,7 +20,27 @@ void SCAMP5::init() {
     PIX = pe->get_analogue_register("PIX");
     IN = pe->get_analogue_register("IN");
     NEWS = pe->get_analogue_register("NEWS");
+    A = pe->get_analogue_register("A");
+    B = pe->get_analogue_register("B");
+    C = pe->get_analogue_register("C");
+    D = pe->get_analogue_register("D");
+    E = pe->get_analogue_register("E");
+    F = pe->get_analogue_register("F");
+
     FLAG = pe->get_digital_register("FLAG");
+    RF = pe->get_digital_register("R0");
+    RS = pe->get_digital_register("R1");
+    RW = pe->get_digital_register("R2");
+    RN = pe->get_digital_register("R3");
+    RE = pe->get_digital_register("R4");
+    S0 = pe->get_digital_register("R5");
+    S1 = pe->get_digital_register("R6");
+    S2 = pe->get_digital_register("R7");
+    S3 = pe->get_digital_register("R8");
+    S4 = pe->get_digital_register("R9");
+    S5 = pe->get_digital_register("R10");
+    S6 = pe->get_digital_register("R11");
+    RP = pe->get_digital_register("R12");
     SELECT = pe->get_digital_register("SELECT");
     RECT = pe->get_digital_register("RECT");
 
@@ -45,7 +65,6 @@ void SCAMP5::rpix() {
 void SCAMP5::get_image(const std::shared_ptr<AREG>& y) {
     // y := half-range image, and reset *PIX
     this->pe->get_pixel()->read(*PIX);
-    this->update_cycles(10000);
     this->bus(NEWS, PIX);
     this->rpix();
     this->rpix();
@@ -56,9 +75,6 @@ void SCAMP5::get_image(const std::shared_ptr<AREG>& y) {
 void SCAMP5::get_image(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& h) {
     // y := full-range image, h := negative half-range image, and reset *PIX
     this->pe->get_pixel()->read(*PIX);
-//    this->update_static(420000); //todo
-    this->update_cycles(100); //2000
-//    this->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(h, PIX);
     this->rpix();
@@ -80,8 +96,6 @@ void SCAMP5::respix(const std::shared_ptr<AREG>& y) {
     this->rpix();
     this->nop();
     this->pe->get_pixel()->read(*PIX);
-    this->update_cycles(30000); //todo
-//    this->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(y, NEWS);
 }
@@ -89,8 +103,6 @@ void SCAMP5::respix(const std::shared_ptr<AREG>& y) {
 void SCAMP5::getpix(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& pix_res) {
     // y := half-range image, supplying the reset level of *PIX
     this->pe->get_pixel()->read(*PIX);
-    this->update_cycles(30000); //todo
-//    this->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
     this->bus(y, NEWS, pix_res);
 }
@@ -98,8 +110,6 @@ void SCAMP5::getpix(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>&
 void SCAMP5::getpix(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& h, const std::shared_ptr<AREG>& pix_res) {
     // y := full-range, h := half-range image, supplying the reset level of *PIX
     this->pe->get_pixel()->read(*PIX);
-    this->update_cycles(30000); //todo
-//    this->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(h, PIX);
     this->bus(NEWS, PIX);
     this->bus(y, h, NEWS, pix_res);
@@ -1555,11 +1565,12 @@ void SCAMP5::scamp5_scan_boundingbox(const std::shared_ptr<DREG>& dr, uint8_t *v
 
 // Simulator specific
 
+//todo remove
 void SCAMP5::print_stats() {
     // TODO move
 #ifdef TRACK_STATISTICS
     this->update_static(); //move
-    this->print_stats();
+    Architecture::print_stats();
 //    json j;
 //    j["Total number of cycles"] = counter->get_cycles();
 //    j["Equivalent in seconds"] = counter->to_seconds(config_.clock_rate_);

@@ -40,7 +40,6 @@ class SCAMP5 : public Architecture {
     int row_stride_ = 1;
     int col_stride_ = 1;
     Origin origin_;
-    std::shared_ptr<Config> config_;
 
    public:
     std::shared_ptr<ProcessingElement> pe;
