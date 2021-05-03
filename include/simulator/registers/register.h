@@ -20,8 +20,8 @@ class Register : public Component {
    protected:
     int rows_;
     int cols_;
-    int row_stride_;
-    int col_stride_;
+    int row_stride_ = 1;
+    int col_stride_ = 1;
     std::shared_ptr<Config> config_;
     std::shared_ptr<Memory> memory_;
 

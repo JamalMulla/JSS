@@ -14,8 +14,8 @@ class CarryLookAheadAdder : public Component {
    private:
     int rows_;
     int cols_;
-    int row_stride_;
-    int col_stride_;
+    int row_stride_ = 1;
+    int col_stride_ = 1;
     int cycle_count_;
     int transistor_count_;
     double static_power_;  // in Watts

@@ -14,22 +14,6 @@
 #include <utility>
 #include "simulator/external/parser.h"
 
-SCAMP5::SCAMP5() {
-
-//    pe = std::make_shared<ProcessingElement>(
-//        ProcessingElement::builder {}
-//            .with_rows(rows)
-//            .with_cols(cols)
-//            .with_analogue_registers(ANALOGUE_REGISTERS)
-//            .with_digital_registers(DIGITAL_REGISTERS)
-//            .with_input_source(Source::LIVE)
-//            .with_config(config_)
-//            .build());
-//    array = std::make_shared<Architecture>(rows, cols, config_, *pe);
-//    array->add_component("dram", std::make_shared<Dram>(rows, cols, 8, 8, 256, 1, 16, config_));
-//    this->init();
-}
-
 void SCAMP5::init() {
     // Registers used often in instructions
     PIX = this->get_component<ProcessingElement>("pe")->get_analogue_register("PIX");
@@ -1595,26 +1579,26 @@ void SCAMP5::print_stats() {
 
 // todo move into base class
 rttr::variant SCAMP5::components_converter(json& j) {
-    std::unordered_map<std::string, rttr::variant> components;
+    std::unordered_map<std::string, std::shared_ptr<Component>> components;
     try {
         for (auto& [_, value] : j.items()) {
             std::string name = value["name"];
             std::string component = value["component"];
-            rttr::variant instance = Parser::create_instance(component, value);
+            std::shared_ptr<Component> instance = Parser::get_instance().create_instance(component, value).get_value<std::shared_ptr<Component>>();
             components[name] = instance;
         }
         return rttr::variant(components);
     } catch (json::type_error&) {
-        std::cerr << "[Warning] Could not parse component. Must be an array" << std::endl;
+        std::cerr << "[Warning] Could not parse component" << std::endl;
     } catch (json::parse_error&) {
-        std::cerr << "[Warning] Could not parse component. Must be an array" << std::endl;
+        std::cerr << "[Warning] Could not parse component" << std::endl;
     }
 
     return rttr::variant();
 }
 
 rttr::variant SCAMP5::config_converter(json& j) {
-    return Parser::create_instance("Config", j);
+    return Parser::get_instance().create_instance("Config", j);
 }
 
 void SCAMP5::set_rows(int rows) {
@@ -1623,6 +1607,14 @@ void SCAMP5::set_rows(int rows) {
 
 void SCAMP5::set_cols(int cols) {
     this->cols_ = cols;
+}
+
+void SCAMP5::set_row_stride(int row_stride) {
+    this->row_stride_ = row_stride;
+}
+
+void SCAMP5::set_col_stride(int col_stride) {
+    this->col_stride_ = col_stride;
 }
 
 void SCAMP5::set_origin(Origin origin) {
@@ -1654,6 +1646,8 @@ RTTR_REGISTRATION {
         .method("components_converter", &SCAMP5::components_converter)
         .method("set_rows", &SCAMP5::set_rows)
         .method("set_cols", &SCAMP5::set_cols)
+        .method("set_row_stride", &SCAMP5::set_row_stride)
+        .method("set_col_stride", &SCAMP5::set_col_stride)
         .method("set_origin", &SCAMP5::set_origin)
         .method("set_config", &SCAMP5::set_config)
         .method("set_components", &SCAMP5::set_components)

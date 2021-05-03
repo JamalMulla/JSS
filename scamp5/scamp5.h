@@ -37,6 +37,8 @@ class SCAMP5 : public Architecture {
    protected:
     int rows_;
     int cols_;
+    int row_stride_ = 1;
+    int col_stride_ = 1;
     Origin origin_;
     std::shared_ptr<Config> config_;
 
@@ -47,11 +49,14 @@ class SCAMP5 : public Architecture {
     std::shared_ptr<DREG> intermediate_d;
     std::shared_ptr<DREG> scratch = nullptr;
 
+    SCAMP5() = default;
     void init();
     rttr::variant components_converter(json& j);
     rttr::variant config_converter(json& j);
     void set_rows(int rows);
     void set_cols(int cols);
+    void set_row_stride(int row_stride);
+    void set_col_stride(int col_stride);
     void set_origin(Origin origin);
     void set_config(std::shared_ptr<Config> config);
     void set_components(std::unordered_map<std::string, std::shared_ptr<Component> > components);
@@ -91,8 +96,6 @@ class SCAMP5 : public Architecture {
     std::shared_ptr<DREG> RP;
     std::shared_ptr<DREG> SELECT;
     std::shared_ptr<DREG> RECT;
-
-    SCAMP5();
 
     // Misc
     void nop();

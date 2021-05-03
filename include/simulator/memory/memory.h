@@ -19,8 +19,8 @@ class Memory : public Component {
    protected:
     int rows_;
     int cols_;
-    int row_stride_;
-    int col_stride_;
+    int row_stride_ = 1;
+    int col_stride_ = 1;
     cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
 
     void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);

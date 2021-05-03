@@ -16,6 +16,10 @@
 #include <utility>
 #include <vector>
 
+Parser::Parser() {
+    enums_ = get_enums();
+}
+
 static inline const rttr::type& check_validity(const rttr::type& type, const std::string& name) {
     if (!type.is_valid()) {
         std::cerr << "Could not find \"" << name << "\"" << std::endl;
@@ -31,7 +35,7 @@ static inline void ltrim(std::string& s) {
             }));
 }
 
-rttr::variant Parser::get_arg(rttr::instance class_obj, std::vector<rttr::enumeration>& enums, const std::string& arg) {
+rttr::variant Parser::get_arg(rttr::instance class_obj, const std::string& arg) {
     // Try to get/convert the argument. If nothing else works then will be treated as string
     // Tried in this order:
     // 1. Class property that has been registered
@@ -46,7 +50,7 @@ rttr::variant Parser::get_arg(rttr::instance class_obj, std::vector<rttr::enumer
         return arg_val;
     }
 
-    for (rttr::enumeration& e: enums) {
+    for (rttr::enumeration& e: enums_) {
         arg_val = e.name_to_value(arg);
         if (arg_val.is_valid()) {
             return arg_val;
@@ -173,7 +177,7 @@ Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream&
         std::string arg;
 
         while (arg_stream >> arg) {
-            rttr::variant arg_val = get_arg(class_obj, enums, arg);
+            rttr::variant arg_val = get_arg(class_obj, arg);
             args.emplace_back(arg_val);
             arg_types.push_back(arg_val.get_type());
         }
@@ -205,61 +209,89 @@ void Parser::execute_instructions(const Instructions& parsed, rttr::instance ins
     }
 }
 
-rttr::variant Parser::create_instance(const std::string& arch_name, json arch_props, std::vector<rttr::enumeration> enums) {
+void Parser::set_property(const rttr::type& arch_type, const rttr::variant& arch, const std::string& name, rttr::variant value) {
+    rttr::method prop_method = arch_type.get_method("set_" + name);
+    if (!prop_method.is_valid()) {
+        std::cerr << "Could not find setter for property \"" << name << "\" of object " << arch_type.get_name() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    bool converted = value.convert(prop_method.get_parameter_infos().begin()->get_type());  //only 1 parameter for each prop setter
+    if (!converted) {
+        std::cerr << "Could not convert property \"" << name << "\" of type " << value.get_type().get_name() << " to required type " << prop_method.get_parameter_infos().begin()->get_type().get_name() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    if (!prop_method.invoke(arch, value).is_valid()) {
+        std::cerr << "Could not call method \"" << prop_method.get_name() << "\"" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+rttr::variant Parser::create_instance(const std::string& arch_name, json arch_props) {
     rttr::type arch_type = check_validity(rttr::type::get_by_name(arch_name), arch_name);
 
+    std::cout << "Creating instance of " << arch_name << std::endl;
     // Create instance of arch type
+
     rttr::variant arch = arch_type.create();
     if (!arch.is_valid()) {
         std::cerr << "Could not create architecture \"" << arch_name << "\" using viable constructor" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    // If architecture properties are defined, find them and set them
-    if (arch_props.is_object()) {
-        for (auto& json_prop: arch_props.items()) {
-            // Skip name as it is not a property of the object
-            if (json_prop.key() == "name") { continue; }
-
-            rttr::method prop_method = arch_type.get_method("set_" + json_prop.key());
-            if (!prop_method.is_valid()) {
-                std::cerr << "Could not find setter for property \"" << json_prop.key() << "\" of object " << arch_name << std::endl;
+    // check if there are any properties to inherit.
+    // If there are then find them from the store
+    std::vector<std::string> to_inherit;
+    if (arch_props.contains("_inherit")) {
+        for (auto& [_, name] : arch_props["_inherit"].items()) {
+            auto val = cache.find(name);
+            if (val == cache.end()) {
+                // not found in cache
+                std::cerr << "Could not inherit property " << name << " as it does not exist in the cache" << std::endl;
                 exit(EXIT_FAILURE);
             }
+            set_property(arch_type, arch, name, val->second);
+        }
+    }
+
+    // If architecture properties are defined, they are used as constructor arguments
+    // matching constructor must exist
+    if (arch_props.is_object()) {
+        for (auto& [key, value]: arch_props.items()) {
+            // Skip keywords todo improve
+            if (key == "_inherit") { continue; }
+            if (key == "name") { continue; }
+            if (key == "component") { continue; }
+
             rttr::variant val;
-            rttr::method prop_converter = arch_type.get_method(json_prop.key() + "_converter");
+            rttr::method prop_converter = arch_type.get_method(key + "_converter");
             if (prop_converter.is_valid()) {
-                std::cout << "Found converter for property \"" << json_prop.key() << "\"" << std::endl;
-                val = prop_converter.invoke(arch, (json)json_prop.value());
+                std::cout << "Found converter for property \"" << key << "\"" << std::endl;
+                val = prop_converter.invoke(arch, (json) value);
             } else {
                 // No converter found
-                if (json_prop.value().is_string()) {
-                    val = get_arg({}, enums, json_prop.value());
-                } else if (json_prop.value().is_boolean()) {
-                    val = rttr::argument(json_prop.value().get<bool>());
-                } else if (json_prop.value().is_number_float()) {
-                    val = rttr::variant(json_prop.value().get<float>());
-                } else if (json_prop.value().is_number_integer()) {
-                    val = rttr::variant(json_prop.value().get<int>());
-                } else if (json_prop.value().is_number_unsigned()) {
-                    val = rttr::variant(json_prop.value().get<uint>());
+                if (value.is_string()) {
+                    val = get_arg({}, value);
+                } else if (value.is_boolean()) {
+                    val = rttr::argument(value.get<bool>());
+                } else if (value.is_number_float()) {
+                    val = rttr::variant(value.get<float>());
+                } else if (value.is_number_integer()) {
+                    val = rttr::variant(value.get<int>());
+                } else if (value.is_number_unsigned()) {
+                    val = rttr::variant(value.get<uint>());
                 }
             }
             if (!val.is_valid()) {
-                std::cerr << "Could not parse property \"" << json_prop.key() << "\" of type \"" << json_prop.value().type_name() << "\"" << std::endl;
+                std::cerr << "Could not parse property \"" << key << "\" of type \"" << value.type_name() << "\"" << std::endl;
                 exit(EXIT_FAILURE);
             }
 
-            bool converted = val.convert(prop_method.get_parameter_infos().begin()->get_type());  //only 1 parameter for each prop setter
-            if (!converted) {
-                std::cerr << "Could not convert property \"" << json_prop.key() << "\" to required type " << prop_method.get_parameter_infos().begin()->get_type().get_name() << std::endl;
-                exit(EXIT_FAILURE);
-            }
+            // add to cache
+            cache[key] = val;
 
-            if (!prop_method.invoke(arch, val).is_valid()) {
-                std::cerr << "Could not call method \"" << prop_method.get_name() << "\"" << std::endl;
-                exit(EXIT_FAILURE);
-            }
+            set_property(arch_type, arch, key, val);
         }
     }
 
@@ -272,11 +304,6 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
     return arch;
 }
 
-rttr::variant Parser::create_instance(const std::string& arch_name, json arch_props) {
-    std::vector<rttr::enumeration> enums = Parser::get_enums();
-    return create_instance(arch_name, std::move(arch_props), enums);
-}
-
 void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     json c = json::parse(config);
     std::vector<rttr::enumeration> enums = get_enums();  // all registered enums
@@ -284,7 +311,7 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     // Create architecture by using builder
     std::string arch_name = c["architecture"];
     json arch_props = c[arch_name];
-    rttr::variant arch = create_instance(arch_name, arch_props, enums);
+    rttr::variant arch = create_instance(arch_name, arch_props);
 
     // UI
     bool ui_enabled = false;
@@ -297,7 +324,7 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
         if (c.contains("ui_registers_to_display")) {
             json regs = c["ui_registers_to_display"];
             for (const json& reg: regs) {
-                rttr::variant arg = get_arg(arch, enums, reg.get<std::string>());
+                rttr::variant arg = get_arg(arch, reg.get<std::string>());
                 if (!arg.is_valid()) {
                     std::cerr << "Could not get register " << reg.get<std::string>() << std::endl;
                     exit(EXIT_FAILURE);

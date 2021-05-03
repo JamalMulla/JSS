@@ -25,13 +25,13 @@ class Pixel : public Component {
     cv::Mat array_static_energy_;
     cv::Mat array_dynamic_energy_;
     cv::Mat internal_mask;
-    Config config_;
+    std::shared_ptr<Config> config_;
 
     void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
 #endif
 
    public:
-    Pixel(int rows, int cols, int row_stride, int col_stride, Source src, const std::string& path, Config& config);
+    Pixel(int rows, int cols, int row_stride, int col_stride, Source src, const std::string& path, std::shared_ptr<Config> config);
     void reset();
     void read(Register& reg);
     double last_frame_time();

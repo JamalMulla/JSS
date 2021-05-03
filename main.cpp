@@ -27,6 +27,6 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    Parser::parse_config(config, program);
+    Parser::get_instance().parse_config(config, program);
     return 0;
 }

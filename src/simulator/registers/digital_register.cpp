@@ -5,6 +5,7 @@
 #include "simulator/registers/digital_register.h"
 
 #include <iostream>
+#include <utility>
 
 DigitalRegister::DigitalRegister(int rows, int columns, std::shared_ptr<Config> config, int row_stride, int col_stride, MemoryType memory_type) :
     Register(rows, columns, row_stride, col_stride, CV_8U, config, memory_type) {
@@ -30,6 +31,10 @@ DigitalRegister &DigitalRegister::operator()(const std::string &name) {
     return *this;
 }
 
+void DigitalRegister::set_mask(std::shared_ptr<DigitalRegister> mask) {
+    this->mask_ = std::move(mask);
+}
+
 void DigitalRegister::set() { this->write(1); }
 
 void DigitalRegister::clear() { this->write(0); }
@@ -38,6 +43,7 @@ void DigitalRegister::clear() { this->write(0); }
 void DigitalRegister::print_stats(const CycleCounter &counter) {
 
 }
+
 //void DigitalRegister::print_stats(const CycleCounter &counter) {
 //    // power x time = energy
 //    // energy / time = power

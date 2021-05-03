@@ -17,11 +17,12 @@ class Dram : public Component {
    private:
     int rows_; // rows of the whole plane
     int cols_; // cols of the whole plane
-    int row_stride_;
-    int col_stride_;
+    int row_stride_ = 1;
+    int col_stride_ = 1;
     int array_rows_; // rows of each dram array
     int array_cols_; // cols of each dram array
     int word_length_;
+    std::shared_ptr<Config> config_;
 #ifdef TRACK_STATISTICS
     int cycle_count_ = 1;
     int transistor_count_;
@@ -38,16 +39,31 @@ class Dram : public Component {
     cv::Mat data;
 
    public:
-    Dram(int rows, int cols, int row_stride, int col_stride, int array_rows, int array_cols, int word_length, const Config& config);
+    Dram() = default;
+    void init();
+
+    void set_rows(int rows);
+    void set_cols(int cols);
+    void set_row_stride(int row_stride);
+    void set_col_stride(int col_stride);
+    void set_array_rows(int array_rows);
+    void set_array_cols(int array_cols);
+    void set_word_length(int word_length);
+    void set_config(const std::shared_ptr<Config>& config);
+
+//    Dram(int rows, int cols, int row_stride, int col_stride, int array_rows, int array_cols, int word_length, const std::shared_ptr<Config>& config);
+
+
+
     int read(int array, int row, int col);
     void write(int array, int row, int col, int value);
     void reset();
 
 #ifdef TRACK_STATISTICS
     void fun_internal_mask();
-    int fun_transistor(const Config& config);
-    double fun_static(const Config& config);
-    double fun_dynamic(const Config& config);
+    int fun_transistor(const std::shared_ptr<Config>& config);
+    double fun_static(const std::shared_ptr<Config>& config);
+    double fun_dynamic(const std::shared_ptr<Config>& config);
     void update_static(double time) override;
     int get_cycle_count() override;
     cv::Mat get_static_energy() override;

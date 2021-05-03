@@ -10,19 +10,23 @@
 	"SCAMP5": {
 		"rows": 256,
 		"cols": 256,
+		"row_stride" : 1,
+		"col_stride" : 1,
 		"origin" : "TOP_RIGHT",
 		"config": {
             "clock_rate" : 1e7
 		},
 		"components" : [
             {
+                "_inherit" : ["config", "rows", "cols", "row_stride", "col_stride"],
                 "component" : "ProcessingElement",
                 "name" : "pe",
-                "rows" : 256,
-                "cols" : 256,
-                "analogue_registers" : ["A", "B", "C", "D", "E", "F"],
-                "digital_registers" : ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", {"R12" : {"mask" :  "R0"}}],
-                "input_source" : "LIVE"
+                "analogue_registers" : ["PIX", "IN", "NEWS", "A", "B", "C", "D", "E", "F"],
+                "digital_registers" : ["FLAG", "SELECT", "RECT", "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", {"name" : "R12", "mask" :  "R0"}],
+                "pixel" : {
+                    "input_source" : "LIVE"
+                }
+                
 			},
 			{
                 "component": "Dram",

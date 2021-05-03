@@ -19,8 +19,8 @@ class ProcessingElement : public Component {
    protected:
     int rows_;
     int cols_;
-    int row_stride_;
-    int col_stride_;
+    int row_stride_ = 1;
+    int col_stride_ = 1;
     std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers_;
     std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers_;
     std::shared_ptr<Pixel> pixel_;
@@ -31,12 +31,22 @@ class ProcessingElement : public Component {
     Comparator comparator;
     AnalogueBus analogue_bus;
     DigitalBus local_read_bus;
-    DigitalBus local_write_bus;
+    [[maybe_unused]] DigitalBus local_write_bus;
 
-    ProcessingElement(int rows, int cols, int row_stride, int col_stride, std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers, std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers, std::shared_ptr<Pixel> pixel, std::shared_ptr<Config> config);
+    ProcessingElement() = default;
+
+    void set_rows(int rows);
+    void set_cols(int cols);
+    void set_row_stride(int row_stride);
+    void set_col_stride(int col_stride);
+    void set_analogue_registers(std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers);
+    void set_digital_registers(std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers);
+    void set_pixel(std::shared_ptr<Pixel> pixel);
+    void set_config(std::shared_ptr<Config> config);
 
     rttr::variant analogue_registers_converter(json& j);
     rttr::variant digital_registers_converter(json& j);
+    rttr::variant pixel_converter(json& j);
 
     void add_analogue_register(const std::string& name, std::shared_ptr<AnalogueRegister> reg);
     void add_digital_register(const std::string& name, std::shared_ptr<DigitalRegister> reg);
