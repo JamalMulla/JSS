@@ -13,7 +13,7 @@
 class DigitalRegister : public Register {
     RTTR_ENABLE(Register);
    public:
-    DigitalRegister(int rows, int columns, Config& config, int row_stride = 1, int col_stride = 1, MemoryType memory_type = MemoryType::DRAM3T);
+    DigitalRegister(int rows, int columns, std::shared_ptr<Config> config, int row_stride = 1, int col_stride = 1, MemoryType memory_type = MemoryType::DRAM3T);
     DigitalRegister(int rows, int cols, int row_stride = 1, int col_stride = 1);
     DigitalRegister(const cv::Mat& data, int row_stride = 1, int col_stride = 1);
 

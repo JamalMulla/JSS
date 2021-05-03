@@ -22,6 +22,7 @@ namespace Parser {
     Instructions parse_instructions(rttr::instance class_obj, std::ifstream& program);
     void execute_instructions(const Instructions& parsed, rttr::instance instance);
     rttr::variant create_instance(const std::string& arch_name, json arch_props, std::vector<rttr::enumeration> enums);
+    rttr::variant create_instance(const std::string& arch_name, json arch_props);
     void parse_config(std::ifstream& config, std::ifstream& program);
 };
 

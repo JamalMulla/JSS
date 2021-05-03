@@ -25,14 +25,14 @@ class CarryLookAheadAdder : public Component {
     cv::Mat array_transistor_count_;
     cv::Mat array_static_energy_;
     cv::Mat array_dynamic_energy_;
-    int fun_transistor(int bits, const Config& config);
-    double fun_static(int bits, const Config& config);
-    double fun_dynamic(int bits, const Config& config);
+    int fun_transistor(int bits, Config& config);
+    double fun_static(int bits, Config& config);
+    double fun_dynamic(int bits, Config& config);
     void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
     cv::Mat scratch;
 
    public:
-    CarryLookAheadAdder(int rows, int cols, int row_stride, int col_stride, int bits, const Config& config);
+    CarryLookAheadAdder(int rows, int cols, int row_stride, int col_stride, int bits, Config& config);
 #ifdef TRACK_STATISTICS
     void update_static(double time) override;
     int get_cycle_count() override;

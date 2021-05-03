@@ -32,7 +32,7 @@ class Memory : public Component {
     virtual void write(const cv::_InputOutputArray &mask) = 0;
     virtual void write() = 0;
 #endif
-    static std::shared_ptr<Memory> construct(MemoryType memory_type, int rows, int cols, int row_stride, int col_stride, Config& config);
+    static std::shared_ptr<Memory> construct(MemoryType memory_type, int rows, int cols, int row_stride, int col_stride, const std::shared_ptr<Config>& config);
 };
 
 

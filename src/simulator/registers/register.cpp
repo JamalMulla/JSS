@@ -6,7 +6,7 @@
 
 #include <opencv4/opencv2/core.hpp>
 
-Register::Register(int rows, int cols, int row_stride, int col_stride, int type, Config &config, MemoryType memory_type) :
+Register::Register(int rows, int cols, int row_stride, int col_stride, int type, const std::shared_ptr<Config>& config, MemoryType memory_type) :
     rows_(rows),
     cols_(cols),
     row_stride_(row_stride),
@@ -22,7 +22,6 @@ Register::Register(int rows, int cols, int row_stride, int col_stride, int type)
     row_stride_(row_stride),
     col_stride_(col_stride),
     value_(rows, cols, type, cv::Scalar(0)) {}
-
 
 #ifdef TRACK_STATISTICS
 

@@ -27,6 +27,22 @@ void Config::set_temperature(int temperature) {
     this->temperature_ = temperature;
 }
 
+long Config::get_clock_rate() {
+    return this->clock_rate_;
+}
+
+int Config::get_process_node() {
+    return this->process_node_;
+}
+
+long Config::get_voltage() {
+    return this->voltage_;
+}
+
+long Config::get_temperature() {
+    return this->temperature_;
+}
+
 RTTR_REGISTRATION {
     using namespace rttr;
 

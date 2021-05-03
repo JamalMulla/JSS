@@ -13,6 +13,7 @@
 
 #include <rttr/type>
 
+// TODO need to be able to pass in some way of creating the underlying memory of registers. add as param
 class Register : public Component {
     RTTR_ENABLE();
     // TODO internal mask
@@ -21,8 +22,10 @@ class Register : public Component {
     int cols_;
     int row_stride_;
     int col_stride_;
-    Config config_;
+    std::shared_ptr<Config> config_;
     std::shared_ptr<Memory> memory_;
+
+   private:
     cv::Mat value_;
 
    public:
@@ -30,7 +33,7 @@ class Register : public Component {
     int min_val = 0;
     int max_val = 0;
 
-    Register(int rows, int columns, int row_stride, int col_stride, int type, Config& config, MemoryType memoryType);
+    Register(int rows, int columns, int row_stride, int col_stride, int type, const std::shared_ptr<Config>& config, MemoryType memoryType);
 
     Register(int rows, int columns, int row_stride, int col_stride, int type);
 

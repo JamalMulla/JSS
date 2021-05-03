@@ -15,6 +15,11 @@ struct Config {
    public:
     explicit Config(long clock_rate = 1e6, int process_node = 180, double voltage = 1.8, int temperature = 20);
 
+    long get_clock_rate();
+    int get_process_node();
+    long get_voltage();
+    long get_temperature();
+
     void set_clock_rate(long clock_rate);
     void set_process_node(int process_node);
     void set_voltage(double voltage);

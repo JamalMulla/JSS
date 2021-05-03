@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 static inline const rttr::type& check_validity(const rttr::type& type, const std::string& name) {
@@ -205,36 +206,37 @@ void Parser::execute_instructions(const Instructions& parsed, rttr::instance ins
 }
 
 rttr::variant Parser::create_instance(const std::string& arch_name, json arch_props, std::vector<rttr::enumeration> enums) {
-    check_validity(rttr::type::get_by_name(arch_name), arch_name);
-    rttr::type arch_builder_type = check_validity(rttr::type::get_by_name(arch_name + "_builder"), arch_name + "_builder");
+    rttr::type arch_type = check_validity(rttr::type::get_by_name(arch_name), arch_name);
 
-    rttr::variant arch_builder = arch_builder_type.create();
-    if (!arch_builder.is_valid()) {
-        std::cerr << "Could not create instance of " << arch_name + "_builder" << std::endl;
+    // Create instance of arch type
+    rttr::variant arch = arch_type.create();
+    if (!arch.is_valid()) {
+        std::cerr << "Could not create architecture \"" << arch_name << "\" using viable constructor" << std::endl;
         exit(EXIT_FAILURE);
     }
-    // If architecture properties are defined, find them and set them
 
+    // If architecture properties are defined, find them and set them
     if (arch_props.is_object()) {
         for (auto& json_prop: arch_props.items()) {
             // Skip name as it is not a property of the object
             if (json_prop.key() == "name") { continue; }
 
-            rttr::method prop_method = arch_builder_type.get_method("with_" + json_prop.key());
+            rttr::method prop_method = arch_type.get_method("set_" + json_prop.key());
             if (!prop_method.is_valid()) {
-                std::cerr << "Could not find builder method for property \"" << json_prop.key() << "\" of object " << arch_name << std::endl;
+                std::cerr << "Could not find setter for property \"" << json_prop.key() << "\" of object " << arch_name << std::endl;
                 exit(EXIT_FAILURE);
             }
             rttr::variant val;
-            rttr::method prop_converter = arch_builder_type.get_method(json_prop.key() + "_converter");
+            rttr::method prop_converter = arch_type.get_method(json_prop.key() + "_converter");
             if (prop_converter.is_valid()) {
-                val = prop_converter.invoke(arch_builder, (json)json_prop.value());
+                std::cout << "Found converter for property \"" << json_prop.key() << "\"" << std::endl;
+                val = prop_converter.invoke(arch, (json)json_prop.value());
             } else {
                 // No converter found
                 if (json_prop.value().is_string()) {
                     val = get_arg({}, enums, json_prop.value());
                 } else if (json_prop.value().is_boolean()) {
-                    val = rttr::variant(json_prop.value().get<bool>());
+                    val = rttr::argument(json_prop.value().get<bool>());
                 } else if (json_prop.value().is_number_float()) {
                     val = rttr::variant(json_prop.value().get<float>());
                 } else if (json_prop.value().is_number_integer()) {
@@ -253,19 +255,26 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
                 std::cerr << "Could not convert property \"" << json_prop.key() << "\" to required type " << prop_method.get_parameter_infos().begin()->get_type().get_name() << std::endl;
                 exit(EXIT_FAILURE);
             }
-            if (!prop_method.invoke(arch_builder, val).is_valid()) {
+
+            if (!prop_method.invoke(arch, val).is_valid()) {
                 std::cerr << "Could not call method \"" << prop_method.get_name() << "\"" << std::endl;
                 exit(EXIT_FAILURE);
             }
         }
     }
-    // Call build method to get instance of architecture
-    rttr::variant arch = arch_builder_type.invoke("build", arch_builder, {});
-    if (!arch.is_valid()) {
-        std::cerr << "Could not build architecture \"" << arch_name << "\" using \"build()\" method" << std::endl;
-        exit(EXIT_FAILURE);
+
+    // if an init() method exists then call it
+    rttr::method init = arch_type.get_method("init");
+    if (init.is_valid()) {
+        init.invoke(arch);
     }
+
     return arch;
+}
+
+rttr::variant Parser::create_instance(const std::string& arch_name, json arch_props) {
+    std::vector<rttr::enumeration> enums = Parser::get_enums();
+    return create_instance(arch_name, std::move(arch_props), enums);
 }
 
 void Parser::parse_config(std::ifstream& config, std::ifstream& program) {

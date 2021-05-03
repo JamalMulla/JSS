@@ -18,7 +18,7 @@ Memory::Memory(int rows, int cols, int row_stride, int col_stride) :
     this->fun_internal_mask(rows, cols, row_stride, col_stride);
 }
 
-std::shared_ptr<Memory> Memory::construct(MemoryType memory_type, int rows, int cols, int row_stride, int col_stride, Config& config) {
+std::shared_ptr<Memory> Memory::construct(MemoryType memory_type, int rows, int cols, int row_stride, int col_stride, const std::shared_ptr<Config>& config) {
     switch(memory_type) {
         case DRAM3T: {
             return std::make_shared<Dram3tCell>(rows, cols, row_stride, col_stride, config);

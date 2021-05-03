@@ -27,7 +27,7 @@ SCAMP5::SCAMP5() {
 //            .build());
 //    array = std::make_shared<Architecture>(rows, cols, config_, *pe);
 //    array->add_component("dram", std::make_shared<Dram>(rows, cols, 8, 8, 256, 1, 16, config_));
-    this->init();
+//    this->init();
 }
 
 void SCAMP5::init() {
@@ -53,13 +53,13 @@ void SCAMP5::nop() { this->update_cycles(1); }
 
 void SCAMP5::rpix() {
     // reset *PIX
-    this->pe->photodiode.reset();
+    this->pe->get_pixel().reset();
     this->update_cycles(1);
 }
 
 void SCAMP5::get_image(const std::shared_ptr<AREG>& y) {
     // y := half-range image, and reset *PIX
-    this->pe->photodiode.read(*PIX);
+    this->pe->get_pixel()->read(*PIX);
     this->update_cycles(10000);
     this->bus(NEWS, PIX);
     this->rpix();
@@ -70,7 +70,7 @@ void SCAMP5::get_image(const std::shared_ptr<AREG>& y) {
 
 void SCAMP5::get_image(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& h) {
     // y := full-range image, h := negative half-range image, and reset *PIX
-    this->pe->photodiode.read(*PIX);
+    this->pe->get_pixel()->read(*PIX);
 //    this->update_static(420000); //todo
     this->update_cycles(100); //2000
 //    this->update_static(this->pe->photodiode.get_cycle_count());
@@ -94,7 +94,7 @@ void SCAMP5::respix(const std::shared_ptr<AREG>& y) {
     this->rpix();
     this->rpix();
     this->nop();
-    this->pe->photodiode.read(*PIX);
+    this->pe->get_pixel()->read(*PIX);
     this->update_cycles(30000); //todo
 //    this->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
@@ -103,7 +103,7 @@ void SCAMP5::respix(const std::shared_ptr<AREG>& y) {
 
 void SCAMP5::getpix(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& pix_res) {
     // y := half-range image, supplying the reset level of *PIX
-    this->pe->photodiode.read(*PIX);
+    this->pe->get_pixel()->read(*PIX);
     this->update_cycles(30000); //todo
 //    this->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(NEWS, PIX);
@@ -112,7 +112,7 @@ void SCAMP5::getpix(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>&
 
 void SCAMP5::getpix(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& h, const std::shared_ptr<AREG>& pix_res) {
     // y := full-range, h := half-range image, supplying the reset level of *PIX
-    this->pe->photodiode.read(*PIX);
+    this->pe->get_pixel()->read(*PIX);
     this->update_cycles(30000); //todo
 //    this->update_static(this->pe->photodiode.get_cycle_count());
     this->bus(h, PIX);
@@ -925,10 +925,10 @@ void SCAMP5::scamp5_get_image(const std::shared_ptr<AREG>& yf, const std::shared
     }
 #endif
     all();
-    this->pe->photodiode.read(*PIX);
+    this->pe->get_pixel()->read(*PIX);
     bus(NEWS, PIX);
     rpix();
-    this->pe->photodiode.read(*PIX);
+    this->pe->get_pixel()->read(*PIX);
     bus(yf, NEWS, PIX);
     bus(NEWS, yf);
 
@@ -945,7 +945,7 @@ void SCAMP5::scamp5_get_image(const std::shared_ptr<AREG>& yf, const std::shared
     bus(yh, NEWS);
     bus(yf, NEWS);
     rpix();
-    this->pe->photodiode.read(*PIX);
+    this->pe->get_pixel()->read(*PIX);
     bus(NEWS, yh, yf, PIX);
     bus(yf, NEWS);
 }
@@ -1593,60 +1593,48 @@ void SCAMP5::print_stats() {
 #endif
 }
 
-// Builder
-
-rttr::variant SCAMP5::builder::components_converter(json& j) {
+// todo move into base class
+rttr::variant SCAMP5::components_converter(json& j) {
     std::unordered_map<std::string, rttr::variant> components;
-    std::vector<rttr::enumeration> enums = Parser::get_enums();
     try {
-        for (auto& [key, value] : j.items()) {
+        for (auto& [_, value] : j.items()) {
             std::string name = value["name"];
             std::string component = value["component"];
-            rttr::variant instance = Parser::create_instance(component, value, enums);
+            rttr::variant instance = Parser::create_instance(component, value);
             components[name] = instance;
         }
         return rttr::variant(components);
     } catch (json::type_error&) {
         std::cerr << "[Warning] Could not parse component. Must be an array" << std::endl;
     } catch (json::parse_error&) {
-        std::cerr << "[Warning] Could not parse bitorder. Must be an array" << std::endl;
+        std::cerr << "[Warning] Could not parse component. Must be an array" << std::endl;
     }
 
     return rttr::variant();
 }
 
+rttr::variant SCAMP5::config_converter(json& j) {
+    return Parser::create_instance("Config", j);
+}
 
-SCAMP5::builder &SCAMP5::builder::with_rows(int rows) {
+void SCAMP5::set_rows(int rows) {
     this->rows_ = rows;
-    return *this;
 }
 
-SCAMP5::builder &SCAMP5::builder::with_cols(int cols) {
+void SCAMP5::set_cols(int cols) {
     this->cols_ = cols;
-    return *this;
 }
 
-SCAMP5::builder &SCAMP5::builder::with_origin(Origin origin) {
+void SCAMP5::set_origin(Origin origin) {
     this->origin_ = origin;
-    return *this;
 }
 
-SCAMP5::builder& SCAMP5::builder::with_config(Config config) {
-    this->config_ = config;
-    return *this;
+void SCAMP5::set_config(std::shared_ptr<Config> config) {
+    this->config_ = std::move(config);
 }
 
-SCAMP5::builder &SCAMP5::builder::with_components(std::unordered_map<std::string, std::shared_ptr<Component> > components) {
+void SCAMP5::set_components(std::unordered_map<std::string, std::shared_ptr<Component> > components) {
     this->components_ = std::move(components);
-}
-
-SCAMP5 SCAMP5::builder::build() {
-    SCAMP5 scamp5 = SCAMP5();
-    scamp5.rows_ = this->rows_;
-    scamp5.cols_ = this->cols_;
-    scamp5.config_ = this->config_;
-    scamp5.add_components(components_);
-    return scamp5;
 }
 
 RTTR_REGISTRATION {
@@ -1659,17 +1647,16 @@ RTTR_REGISTRATION {
         value("west", news_t::west)
     );
 
-    registration::class_<SCAMP5::builder>("SCAMP5_builder")
-        .constructor<>()
-        .method("components_converter", &SCAMP5::builder::components_converter)
-        .method("with_rows", &SCAMP5::builder::with_rows)
-        .method("with_cols", &SCAMP5::builder::with_cols)
-        .method("with_origin", &SCAMP5::builder::with_origin)
-        .method("with_config", &SCAMP5::builder::with_config)
-        .method("with_components", &SCAMP5::builder::with_components)
-        .method("build", &SCAMP5::builder::build);
-
     registration::class_<SCAMP5>("SCAMP5")
+        .constructor()
+        .method("init", &SCAMP5::init)
+        .method("config_converter", &SCAMP5::config_converter)
+        .method("components_converter", &SCAMP5::components_converter)
+        .method("set_rows", &SCAMP5::set_rows)
+        .method("set_cols", &SCAMP5::set_cols)
+        .method("set_origin", &SCAMP5::set_origin)
+        .method("set_config", &SCAMP5::set_config)
+        .method("set_components", &SCAMP5::set_components)
         .method("nop", &SCAMP5::nop)
         .method("rpix", &SCAMP5::rpix)
         .method("get_image", select_overload<void(const std::shared_ptr<AREG>&)> (&SCAMP5::get_image))

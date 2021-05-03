@@ -16,26 +16,33 @@
 #include "simulator/units/squarer.h"
 
 class ProcessingElement : public Component {
-   public:
-    class builder;
+   protected:
     int rows_;
     int cols_;
-    Pixel photodiode;
+    int row_stride_;
+    int col_stride_;
     std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers_;
     std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers_;
+    std::shared_ptr<Pixel> pixel_;
+    std::shared_ptr<Config> config_;
+
+   public:
     Squarer squarer;
     Comparator comparator;
     AnalogueBus analogue_bus;
     DigitalBus local_read_bus;
     DigitalBus local_write_bus;
-    Config config_;
 
-    ProcessingElement(int rows, int cols, int row_stride, int col_stride, Source source, const std::string &path, Config &config);
+    ProcessingElement(int rows, int cols, int row_stride, int col_stride, std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers, std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers, std::shared_ptr<Pixel> pixel, std::shared_ptr<Config> config);
+
+    rttr::variant analogue_registers_converter(json& j);
+    rttr::variant digital_registers_converter(json& j);
 
     void add_analogue_register(const std::string& name, std::shared_ptr<AnalogueRegister> reg);
     void add_digital_register(const std::string& name, std::shared_ptr<DigitalRegister> reg);
     std::shared_ptr<AnalogueRegister> get_analogue_register(const std::string& name);
     std::shared_ptr<DigitalRegister> get_digital_register(const std::string& name);
+    std::shared_ptr<Pixel> get_pixel();
 
 #ifdef TRACK_STATISTICS
     void update_static(double time) override;
@@ -46,36 +53,7 @@ class ProcessingElement : public Component {
     void print_stats(const CycleCounter &counter) override;
 #endif
 
-
 };
 
-class ProcessingElement::builder {
-   private:
-    int rows_ = -1;
-    int cols_ = -1;
-    int row_stride_ = 1;
-    int col_stride_ = 1;
-    std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers_;
-    std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers_;
-    Source source_;
-    std::string path_;
-    Config config_;
-
-
-   public:
-
-    rttr::variant analogue_registers_converter(json& j);
-    rttr::variant digital_registers_converter(json& j);
-    builder& with_rows(int rows);
-    builder& with_cols(int cols);
-    builder& with_row_stride(int row_stride);
-    builder& with_col_stride(int col_stride);
-    builder& with_analogue_registers(std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers);
-    builder& with_digital_registers(std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers);
-    builder& with_input_source(Source source);
-    builder& with_file_path(const std::string& path);
-    builder& with_config(Config& config);
-    ProcessingElement build();
-};
 
 #endif  // SIMULATOR_PROCESSING_ELEMENT_H

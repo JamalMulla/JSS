@@ -10,6 +10,7 @@
 	"SCAMP5": {
 		"rows": 256,
 		"cols": 256,
+		"origin" : "TOP_RIGHT",
 		"config": {
             "clock_rate" : 1e7
 		},

@@ -34,23 +34,27 @@ typedef DigitalRegister DREG;
 #define RF R0
 
 class SCAMP5 : public Architecture {
+   protected:
+    int rows_;
+    int cols_;
+    Origin origin_;
+    std::shared_ptr<Config> config_;
+
    public:
     std::shared_ptr<ProcessingElement> pe;
     std::shared_ptr<AREG> intermediate_a;
     std::shared_ptr<AREG> intermediate_a2;
     std::shared_ptr<DREG> intermediate_d;
     std::shared_ptr<DREG> scratch = nullptr;
-    int rows_;
-    int cols_;
-    Origin origin_;
-    Config config_;
 
     void init();
-
-   public:
-    class builder;
-
-    std::unordered_map<std::string, std::shared_ptr<Register> > registers;
+    rttr::variant components_converter(json& j);
+    rttr::variant config_converter(json& j);
+    void set_rows(int rows);
+    void set_cols(int cols);
+    void set_origin(Origin origin);
+    void set_config(std::shared_ptr<Config> config);
+    void set_components(std::unordered_map<std::string, std::shared_ptr<Component> > components);
 
     // Analogue registers
     //    // TODO make these 4 usable? How should they be handled if they are
@@ -300,9 +304,9 @@ class SCAMP5 : public Architecture {
 
     uint8_t scamp5_read_areg(const std::shared_ptr<AREG>& areg, uint8_t r, uint8_t c);
 
-    uint32_t scamp5_global_sum_16(const std::shared_ptr<AREG>& areg, uint8_t *result16v = nullptr);
+    uint32_t scamp5_global_sum_16(const std::shared_ptr<AREG>& areg, uint8_t* result16v = nullptr);
 
-    uint32_t scamp5_global_sum_64(const std::shared_ptr<AREG>& areg, uint8_t *result64v = nullptr);
+    uint32_t scamp5_global_sum_64(const std::shared_ptr<AREG>& areg, uint8_t* result64v = nullptr);
 
     uint8_t scamp5_global_sum_fast(const std::shared_ptr<AREG>& areg);
 
@@ -358,46 +362,45 @@ class SCAMP5 : public Architecture {
     void scamp5_draw_negate();
 
     //    Image Readout
-    void scamp5_scan_areg(const std::shared_ptr<AREG>& areg, uint8_t *buffer, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs, uint8_t cs);
+    void scamp5_scan_areg(const std::shared_ptr<AREG>& areg, uint8_t* buffer, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs, uint8_t cs);
 
-    void scamp5_scan_areg_8x8(const std::shared_ptr<AREG>& areg, uint8_t *result8x8);
+    void scamp5_scan_areg_8x8(const std::shared_ptr<AREG>& areg, uint8_t* result8x8);
 
-    void scamp5_scan_areg_mean_8x8(const std::shared_ptr<AREG>& areg, uint8_t *result8x8);
+    void scamp5_scan_areg_mean_8x8(const std::shared_ptr<AREG>& areg, uint8_t* result8x8);
 
-    void scamp5_scan_dreg(const std::shared_ptr<DREG>& dreg, uint8_t *mem, uint8_t r0 = 0,
+    void scamp5_scan_dreg(const std::shared_ptr<DREG>& dreg, uint8_t* mem, uint8_t r0 = 0,
                           uint8_t r1 = 255);
 
-    void scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *mem, uint16_t max_num = 1000, uint8_t h_dir = 0, uint8_t v_dir = 0);
+    void scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t* mem, uint16_t max_num = 1000, uint8_t h_dir = 0, uint8_t v_dir = 0);
 
-    void scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *buffer, uint16_t max_num, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs, uint8_t cs);
+    void scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t* buffer, uint16_t max_num, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs, uint8_t cs);
 
-    void scamp5_scan_boundingbox(const std::shared_ptr<DREG>& dr, uint8_t *vec4v);
+    void scamp5_scan_boundingbox(const std::shared_ptr<DREG>& dr, uint8_t* vec4v);
 
     // Simulator specific methods
     void print_stats();
     RTTR_ENABLE();
 };
 
-class SCAMP5::builder {
-   RTTR_ENABLE();
-   private:
-    int rows_ = 256;
-    int cols_ = 256;
-    Origin origin_ = Origin::TOP_LEFT;
-    Config config_;
-    std::unordered_map<std::string, std::shared_ptr<Component> > components_;
-
-   public:
-    rttr::variant components_converter(json& j);
-    builder &with_rows(int rows);
-    builder &with_cols(int cols);
-    builder &with_origin(Origin origin);
-    builder &with_config(Config config);
-    builder &with_components(std::unordered_map<std::string, std::shared_ptr<Component> > components);
-    builder &with_analogue_registers();
-
-    SCAMP5 build();
-};
-
+//class SCAMP5::builder {
+//    RTTR_ENABLE();
+//
+//   private:
+//    int rows_ = 256;
+//    int cols_ = 256;
+//    Origin origin_ = Origin::TOP_LEFT;
+//    Config config_;
+//    std::unordered_map<std::string, std::shared_ptr<Component>> components_;
+//
+//   public:
+//    builder& with_rows(int rows);
+//    builder& with_cols(int cols);
+//    builder& with_origin(Origin origin);
+//    builder& with_config(Config config);
+//    builder& with_components(std::unordered_map<std::string, std::shared_ptr<Component>> components);
+//    builder& with_analogue_registers();
+//
+//    SCAMP5 build();
+//};
 
 #endif  // SIMULATOR_SCAMP5_H

@@ -54,7 +54,7 @@ void SCAMP5E::superpixel_positions_from_bitorder(position_map& locations) {
     }
 }
 
-void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, std::shared_ptr<DREG> REAST, std::shared_ptr<DREG> RWEST, bool shift_left) {
+void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, const std::shared_ptr<DREG>& REAST, std::shared_ptr<DREG> RWEST, bool shift_left) {
     size_t rows = bitorder_[0].size();
     size_t cols = bitorder_[0][0].size();
     DigitalRegister R_NORTH(rows, cols);
@@ -133,7 +133,7 @@ void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::share
     }
 }
 
-void SCAMP5E::superpixel_shift_block(const std::shared_ptr<DREG>& dst, const std::shared_ptr<DREG>& src, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, std::shared_ptr<DREG> REAST, std::shared_ptr<DREG> RWEST) {
+void SCAMP5E::superpixel_shift_block(const std::shared_ptr<DREG>& dst, const std::shared_ptr<DREG>& src, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, std::shared_ptr<DREG> REAST, const std::shared_ptr<DREG>& RWEST) {
     int rows = src->read().rows;
     int cols = src->read().cols;
     DigitalRegister east = DigitalRegister(rows, cols);
@@ -160,7 +160,7 @@ void SCAMP5E::superpixel_shift_block(const std::shared_ptr<DREG>& dst, const std
     OR(dst, east_ptr, north_ptr, south_ptr, west_ptr);
 }
 
-void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, AREG* src) {
+void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, std::shared_ptr<AREG> src) {
     // Converts an analogue image to a digital superpixel format
     // Values will always be put in bank 0
     position_map locations;
@@ -188,7 +188,7 @@ void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, AREG* s
     });
 }
 
-void SCAMP5E::superpixel_dac(AREG* dst, int bank, const std::shared_ptr<DREG>& src) {
+void SCAMP5E::superpixel_dac(std::shared_ptr<AREG> dst, int bank, const std::shared_ptr<DREG>& src) {
     position_map locations;
     this->superpixel_positions_from_bitorder(locations);
     // Converts digital superpixel format image to an analogue image
