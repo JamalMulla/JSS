@@ -41,18 +41,19 @@ void ProcessingElement::set_config(std::shared_ptr<Config> config) {
     this->config_ = std::move(config);
 }
 
-rttr::variant ProcessingElement::analogue_registers_converter(json& j) {
+rttr::variant ProcessingElement::analogue_registers_converter(json& j, std::unordered_map<std::string, rttr::variant>& cache) {
     std::unordered_map<std::string, std::shared_ptr<AnalogueRegister> > analogue_registers;
 
     for (auto& [_, value]: j.items()) {
         std::shared_ptr<AnalogueRegister> reg = std::make_shared<AnalogueRegister>(rows_, cols_, config_);
         reg->name_ = value;
         analogue_registers[value] = reg;
+        cache[value] = reg;
     }
     return rttr::variant(analogue_registers);
 }
 
-rttr::variant ProcessingElement::digital_registers_converter(json& j) {
+rttr::variant ProcessingElement::digital_registers_converter(json& j, std::unordered_map<std::string, rttr::variant>& cache) {
     std::unordered_map<std::string, std::shared_ptr<DigitalRegister> > digital_registers;
 
     for (auto& [_, value]: j.items()) {
@@ -66,6 +67,7 @@ rttr::variant ProcessingElement::digital_registers_converter(json& j) {
             reg->name_ = value;
         }
         digital_registers[reg->name_] = reg;
+        cache[reg->name_] = reg;
     }
     return rttr::variant(digital_registers);
 }

@@ -14,14 +14,14 @@
 #include <vector>
 
 using Instructions = std::vector<std::pair<rttr::method, std::vector<rttr::variant> > >;
+using ParserCache = std::unordered_map<std::string, rttr::variant>;
 using json = nlohmann::ordered_json;
 
 class Parser {
    private:
     Parser();
     std::vector<rttr::enumeration> enums_;
-    std::unordered_map<std::string, rttr::variant> cache;
-
+    ParserCache cache;
 
    public:
     static Parser& get_instance(){

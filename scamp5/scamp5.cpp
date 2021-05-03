@@ -16,12 +16,13 @@
 
 void SCAMP5::init() {
     // Registers used often in instructions
-    PIX = this->get_component<ProcessingElement>("pe")->get_analogue_register("PIX");
-    IN = this->get_component<ProcessingElement>("pe")->get_analogue_register("IN");
-    NEWS = this->get_component<ProcessingElement>("pe")->get_analogue_register("NEWS");
-    FLAG = this->get_component<ProcessingElement>("pe")->get_digital_register("FLAG");
-    SELECT = this->get_component<ProcessingElement>("pe")->get_digital_register("SELECT");
-    RECT = this->get_component<ProcessingElement>("pe")->get_digital_register("RECT");
+    pe = this->get_component<ProcessingElement>("pe");
+    PIX = pe->get_analogue_register("PIX");
+    IN = pe->get_analogue_register("IN");
+    NEWS = pe->get_analogue_register("NEWS");
+    FLAG = pe->get_digital_register("FLAG");
+    SELECT = pe->get_digital_register("SELECT");
+    RECT = pe->get_digital_register("RECT");
 
     // Initially all PEs are active
     FLAG->write(1);

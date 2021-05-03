@@ -10,6 +10,8 @@
 
 AnalogueRegister::AnalogueRegister(int rows, int cols, const std::shared_ptr<Config>& config, int row_stride, int col_stride, MemoryType memory) :
     Register(rows, cols, row_stride, col_stride, MAT_TYPE, config, memory) {
+    this->min_val = -128;
+    this->max_val = 127;
 }
 
 AnalogueRegister::AnalogueRegister(int rows, int cols, int row_stride, int col_stride) :

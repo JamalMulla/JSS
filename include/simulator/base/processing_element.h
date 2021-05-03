@@ -5,6 +5,8 @@
 #ifndef SIMULATOR_PROCESSING_ELEMENT_H
 #define SIMULATOR_PROCESSING_ELEMENT_H
 
+#include <simulator/external/parser.h>
+
 #include <iostream>
 #include <vector>
 
@@ -44,8 +46,8 @@ class ProcessingElement : public Component {
     void set_pixel(std::shared_ptr<Pixel> pixel);
     void set_config(std::shared_ptr<Config> config);
 
-    rttr::variant analogue_registers_converter(json& j);
-    rttr::variant digital_registers_converter(json& j);
+    rttr::variant analogue_registers_converter(json& j, std::unordered_map<std::string, rttr::variant>& cache);
+    rttr::variant digital_registers_converter(json& j, std::unordered_map<std::string, rttr::variant>& cache);
     rttr::variant pixel_converter(json& j);
 
     void add_analogue_register(const std::string& name, std::shared_ptr<AnalogueRegister> reg);

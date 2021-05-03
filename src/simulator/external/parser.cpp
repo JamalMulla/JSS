@@ -6,12 +6,14 @@
 
 #include <rttr/enumeration.h>
 #include <rttr/type.h>
+#include <simulator/registers/analogue_register.h>
 #include <simulator/ui/ui.h>
 
 #include <algorithm>
 #include <any>
 #include <fstream>
 #include <iostream>
+#include <rttr/registration>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -40,12 +42,14 @@ rttr::variant Parser::get_arg(rttr::instance class_obj, const std::string& arg) 
     // Tried in this order:
     // 1. Class property that has been registered
     // 2. Enum value of one of the given enum types
-    // 3. Integer
-    // 4. Float
-    // 5. String
+    // 3. Cache
+    // 4. Integer
+    // 5. Float
+    // 6. String
     rttr::type class_type = class_obj.get_type();
 
     rttr::variant arg_val = class_type.get_property_value(arg, class_obj);
+
     if (arg_val.is_valid()) {
         return arg_val;
     }
@@ -55,6 +59,11 @@ rttr::variant Parser::get_arg(rttr::instance class_obj, const std::string& arg) 
         if (arg_val.is_valid()) {
             return arg_val;
         }
+    }
+
+    if (cache.find(arg) != cache.end()) {
+        // found in cache
+        return cache[arg];
     }
 
     char* p = nullptr;
@@ -98,7 +107,7 @@ rttr::method Parser::get_method(const rttr::type& class_type, std::vector<rttr::
 
     for (auto& m: class_type.get_methods()) {
         if (m.get_name() == instr) {
-            if (m.get_parameter_infos().size() > arg_types.size()) {
+            if (m.get_parameter_infos().size() >= arg_types.size()) {
                 // at least as many arguments as has been given
                 // assume this is the correct one
                 // may not actually be the correct one which is a limitation.
@@ -140,7 +149,7 @@ std::vector<rttr::enumeration> Parser::get_enums() {
 }
 
 Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream& program) {
-    rttr::type class_type = class_obj.get_type();
+    rttr::type class_type = class_obj.get_wrapped_instance().get_type(); // assuming arch will be shared_ptr<Class>
     if (!class_type.is_valid()) {
         std::cerr << "Could not find class type" << std::endl;
         exit(EXIT_FAILURE);
@@ -202,7 +211,7 @@ void Parser::execute_instructions(const Instructions& parsed, rttr::instance ins
             default: std::cerr << "Too many arguments in method " << method.get_name() << " invocation" << std::endl;
         }
         if (!res.is_valid()) {
-            std::cerr << "Could not execute_instructions method \"" << method.get_name() << "\""
+            std::cerr << "Could not execute method \"" << method.get_name() << "\""
                       << " with " << args.size() << " arguments" << std::endl;
             exit(EXIT_FAILURE);
         }
@@ -229,13 +238,12 @@ void Parser::set_property(const rttr::type& arch_type, const rttr::variant& arch
 }
 
 rttr::variant Parser::create_instance(const std::string& arch_name, json arch_props) {
-    rttr::type arch_type = check_validity(rttr::type::get_by_name(arch_name), arch_name);
+    rttr::type class_type = check_validity(rttr::type::get_by_name(arch_name), arch_name);
 
     std::cout << "Creating instance of " << arch_name << std::endl;
-    // Create instance of arch type
-
-    rttr::variant arch = arch_type.create();
-    if (!arch.is_valid()) {
+    // Create instance of class_obj type
+    rttr::variant class_obj = class_type.create();
+    if (!class_obj.is_valid()) {
         std::cerr << "Could not create architecture \"" << arch_name << "\" using viable constructor" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -251,7 +259,7 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
                 std::cerr << "Could not inherit property " << name << " as it does not exist in the cache" << std::endl;
                 exit(EXIT_FAILURE);
             }
-            set_property(arch_type, arch, name, val->second);
+            set_property(class_type, class_obj, name, val->second);
         }
     }
 
@@ -265,10 +273,17 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
             if (key == "component") { continue; }
 
             rttr::variant val;
-            rttr::method prop_converter = arch_type.get_method(key + "_converter");
+            rttr::method prop_converter = class_type.get_method(key + "_converter");
             if (prop_converter.is_valid()) {
                 std::cout << "Found converter for property \"" << key << "\"" << std::endl;
-                val = prop_converter.invoke(arch, (json) value);
+                if (prop_converter.get_parameter_infos().size() == 1) {
+                    val = prop_converter.invoke(class_obj, (json) value);
+                } else if (prop_converter.get_parameter_infos().size() == 2) {
+                    val = prop_converter.invoke(class_obj, (json) value, cache);
+                } else {
+                    std::cerr << "Invalid number of arguments in converter for property \"" << key << "\". Expected 1 or 2 but got " << prop_converter.get_parameter_infos().size() << std::endl;
+                    exit(EXIT_FAILURE);
+                }
             } else {
                 // No converter found
                 if (value.is_string()) {
@@ -291,17 +306,17 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
             // add to cache
             cache[key] = val;
 
-            set_property(arch_type, arch, key, val);
+            set_property(class_type, class_obj, key, val);
         }
     }
 
     // if an init() method exists then call it
-    rttr::method init = arch_type.get_method("init");
+    rttr::method init = class_type.get_method("init");
     if (init.is_valid()) {
-        init.invoke(arch);
+        init.invoke(class_obj);
     }
 
-    return arch;
+    return class_obj;
 }
 
 void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
@@ -319,7 +334,8 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
         ui_enabled = c["ui_enabled"];
     }
 
-    std::vector<rttr::variant> regs_to_display;
+    std::vector<std::shared_ptr<Register>> regs_to_display;
+    UI ui;
     if (ui_enabled) {
         if (c.contains("ui_registers_to_display")) {
             json regs = c["ui_registers_to_display"];
@@ -329,41 +345,18 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
                     std::cerr << "Could not get register " << reg.get<std::string>() << std::endl;
                     exit(EXIT_FAILURE);
                 }
-                regs_to_display.push_back(arg);
+                regs_to_display.push_back(arg.get_value<std::shared_ptr<Register> >());
             }
         }
+        ui.start();
     }
+
+    Instructions instructions = Parser::parse_instructions(arch, program);
 
     // Iterations
     int frames = 1000;
     if (c.contains("frames")) {
         frames = c["frames"];
-    }
-
-    Instructions instructions = Parser::parse_instructions(arch, program);
-
-    rttr::variant ui;
-    rttr::method display_reg = ui.get_type().get_method("");  // needed because there is no default constructor
-    if (ui_enabled) {
-        ui = check_validity(rttr::type::get_by_name("UI"), "UI").create();
-        // TODOreturns shared_ptr for some reason
-        if (!ui.get_type().get_wrapped_type().invoke("start", ui, {}).is_valid()) {
-            std::cerr << "Could not start UI" << std::endl;
-        }
-        display_reg = ui.get_type().get_wrapped_type().get_method("display_reg");
-        if (!display_reg.is_valid()) {
-            std::cerr << "Could not get display_reg method" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-        for (auto& reg: regs_to_display) {
-            if (!reg.convert(rttr::type::get<Register*>())) {
-                std::cerr << "Could not convert reg value to type Register*" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            if (!display_reg.invoke(ui, reg).is_valid()) {
-                std::cerr << "Could not display " << reg.get_type().get_name() << std::endl;
-            }
-        }
     }
 
     int i = 0;
@@ -375,7 +368,7 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 
         if (ui_enabled) {
             for (auto& reg: regs_to_display) {
-                display_reg.invoke(ui, reg);
+                ui.display_reg(reg);
             }
         }
 
