@@ -69,11 +69,9 @@ TEST_CASE("SCAMP5 Analogue Instructions") {
     int cols = 4;
     SCAMP5 s = setup();
 
-
     std::shared_ptr<AnalogueRegister> s1 = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 5,2,-1,-10, 10,20,30,40, -10,-10,-10,10, 99,10,100,126));
     std::shared_ptr<AnalogueRegister> s2 = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 1,2,3,4, -1,-2,-3,-4, 100,99,98,97, 50,51,69,18));
     std::shared_ptr<AnalogueRegister> out = std::make_shared<AnalogueRegister>(rows, cols);
-
 
     SECTION("sub") {
         cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 4, 0, -4, -14, 11, 22, 33, 44, -110, -109, -108,-87, 49, -41, 31, 108);

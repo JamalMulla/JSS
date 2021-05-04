@@ -58,7 +58,7 @@ void SCAMP5::nop() { this->update_cycles(1); }
 
 void SCAMP5::rpix() {
     // reset *PIX
-    this->pe->get_pixel().reset();
+    this->pe->get_pixel()->reset();
     this->update_cycles(1);
 }
 
