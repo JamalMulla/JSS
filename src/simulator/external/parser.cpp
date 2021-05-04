@@ -269,8 +269,8 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
         for (auto& [key, value]: arch_props.items()) {
             // Skip keywords todo improve
             if (key == "_inherit") { continue; }
-            if (key == "name") { continue; }
-            if (key == "component") { continue; }
+            if (key == "_name") { continue; }
+            if (key == "_component") { continue; }
 
             rttr::variant val;
             rttr::method prop_converter = class_type.get_method(key + "_converter");
@@ -353,18 +353,30 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 
     Instructions instructions = Parser::parse_instructions(arch, program);
 
+    // timing
+    bool frame_time = true;
+    if (c.contains("frame_time")) {
+        frame_time = c["frame_time"].get<bool>();
+    }
+
     // Iterations
     int frames = 1000;
     if (c.contains("frames")) {
         frames = c["frames"];
     }
 
+
+    bool loop = frames < 0;
+
     int i = 0;
-    while (i < frames) {
+    while (loop || i < frames) {
         int e1 = cv::getTickCount();
         Parser::execute_instructions(instructions, arch);
-        int e2 = cv::getTickCount();
-        std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
+
+        if (frame_time) {
+            int e2 = cv::getTickCount();
+            std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
+        }
 
         if (ui_enabled) {
             for (auto& reg: regs_to_display) {
@@ -372,10 +384,17 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
             }
         }
 
-        if (i % 50 == 0) {
-            std::cout << "Frame: " << i << "/" << frames << std::endl;
+        if (!loop) {
+            if (i % 50 == 0) {
+                std::cout << "Frame: " << i << "/" << frames << std::endl;
+            }
+        } else {
+            if (i % 100 == 0) {
+                std::cout << "Frame: " << i << std::endl;
+            }
         }
         i++;
+
     }
 
     // Stats

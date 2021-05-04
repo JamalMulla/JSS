@@ -1594,8 +1594,8 @@ rttr::variant SCAMP5::components_converter(json& j) {
     std::unordered_map<std::string, std::shared_ptr<Component>> components;
     try {
         for (auto& [_, value] : j.items()) {
-            std::string name = value["name"];
-            std::string component = value["component"];
+            std::string name = value["_name"];
+            std::string component = value["_component"];
             std::shared_ptr<Component> instance = Parser::get_instance().create_instance(component, value).get_value<std::shared_ptr<Component>>();
             components[name] = instance;
         }
