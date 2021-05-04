@@ -64,7 +64,57 @@ SCAMP5 setup() {
     return s;
 }
 
-TEST_CASE("SCAMP5 Instructions") {
+TEST_CASE("SCAMP5 Analogue Instructions") {
+    int rows = 4;
+    int cols = 4;
+    SCAMP5 s = setup();
+
+
+    std::shared_ptr<AnalogueRegister> s1 = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 5,2,-1,-10, 10,20,30,40, -10,-10,-10,10, 99,10,100,126));
+    std::shared_ptr<AnalogueRegister> s2 = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 1,2,3,4, -1,-2,-3,-4, 100,99,98,97, 50,51,69,18));
+    std::shared_ptr<AnalogueRegister> out = std::make_shared<AnalogueRegister>(rows, cols);
+
+
+    SECTION("sub") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 4, 0, -4, -14, 11, 22, 33, 44, -110, -109, -108,-87, 49, -41, 31, 108);
+        s.sub(out, s1, s2);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
+
+    SECTION("mov") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 5,2,-1,-10, 10,20,30,40, -10,-10,-10,10, 99,10,100,126);
+        s.mov(out, s1);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
+
+    SECTION("abs") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 5,2,1,10, 10,20,30,40, 10,10,10,10, 99,10,100,126);
+        s.abs(out, s1);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
+
+    SECTION("where") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,0,0, 1,1,1,1, 0,0,0,1, 1,1,1,1);
+        s.where(s1);
+        REQUIRE(utility::mats_are_equal(s.FLAG->read(), expected));
+    }
+
+    SECTION("all") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1);
+        s.all();
+        REQUIRE(utility::mats_are_equal(s.FLAG->read(), expected));
+    }
+
+    SECTION("scamp5_in") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15);
+        s.scamp5_in(out, 15);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
+
+
+}
+
+TEST_CASE("SCAMP5 Digital Instructions") {
     int rows = 4;
     int cols = 4;
     SCAMP5 s = setup();
@@ -85,7 +135,11 @@ TEST_CASE("SCAMP5 Instructions") {
         REQUIRE(utility::mats_are_equal(out->read(), expected));
     }
 
-
+    SECTION("MOV") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,0,0, 0,0,0,0, 0,1,1,0, 1,0,1,0);
+        s.MOV(out, s1);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
 }
 
 

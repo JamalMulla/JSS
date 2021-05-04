@@ -17,7 +17,7 @@ void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       DigitalRegister &FLAG) {
     // a = -a0 + error
     cv::bitwise_not(a0.read(), a.read(), FLAG.read());
-    a.write(a.read() + 1);
+    cv::add(a.read(), 1, a.read(), FLAG.read()); //todo counts
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
@@ -25,7 +25,7 @@ void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
     // a = -(a0 + a1) + error
     cv::add(a0.read(), a1.read(), scratch, FLAG.read());
     cv::bitwise_not(scratch, a.read(), FLAG.read());
-    a.write(a.read() + 1);
+    cv::add(a.read(), 1, a.read(), FLAG.read());
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
@@ -35,7 +35,7 @@ void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
     cv::add(a0.read(), a1.read(), scratch, FLAG.read());
     cv::add(scratch, a2.read(), scratch, FLAG.read());
     cv::bitwise_not(scratch, a.read(), FLAG.read());
-    a.write(a.read() + 1);
+    cv::add(a.read(), 1, a.read(), FLAG.read());
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
@@ -46,7 +46,7 @@ void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
     cv::add(scratch, a2.read(), scratch, FLAG.read());
     cv::add(scratch, a3.read(), scratch, FLAG.read());
     cv::bitwise_not(scratch, a.read(), FLAG.read());
-    a.write(a.read() + 1);
+    cv::add(a.read(), 1, a.read(), FLAG.read());
 }
 
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
@@ -61,7 +61,7 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
     // a,b = -0.5*a0 + error + noise
     cv::multiply(a0.read(), 0.5, scratch);
     cv::bitwise_not(scratch, scratch, FLAG.read());
-    scratch = scratch + 1;
+    cv::add(scratch, 1, scratch, FLAG.read());
     a.write(scratch, FLAG.read());
     b.write(scratch, FLAG.read());
 }
@@ -73,7 +73,7 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
     cv::add(a0.read(), a1.read(), scratch, FLAG.read());
     cv::multiply(scratch, 0.5, scratch);
     cv::bitwise_not(scratch, scratch, FLAG.read());
-    scratch = scratch + 1;
+    cv::add(scratch, 1, scratch, FLAG.read());
     a.write(scratch, FLAG.read());
     b.write(scratch, FLAG.read());
 }
@@ -84,7 +84,7 @@ void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b,
     // a,b,c = -0.33*a0 + error + noise
     cv::multiply(0.333, a0.read(), scratch);
     cv::bitwise_not(scratch, scratch, FLAG.read());
-    scratch = scratch + 1;
+    cv::add(scratch, 1, scratch, FLAG.read());
     a.write(scratch, FLAG.read());
     b.write(scratch, FLAG.read());
     c.write(scratch, FLAG.read());
