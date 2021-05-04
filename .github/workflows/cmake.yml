@@ -32,7 +32,10 @@ jobs:
     - name: Dependencies
       working-directory: ${{github.workspace}}/build
       run: |
-        sudo apt install libgtk2.0-dev
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
+        sudo apt-get update
+        sudo apt-get install g++-10
+        sudo apt-get install libgtk2.0-dev
         python -m pip install --upgrade pip
         pip install conan
         conan profile new default --detect
@@ -54,7 +57,7 @@ jobs:
       working-directory: ${{github.workspace}}/build
       shell: bash
       # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run: cmake --build . --config $BUILD_TYPE
+      run: cmake --build . --config $BUILD_TYPE -- -j
 
     - name: Test
       working-directory: ${{github.workspace}}/build

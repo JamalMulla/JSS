@@ -62,7 +62,7 @@ class OpenCVConan(ConanFile):
     }
 
     default_options = 'opencv_core=True', \
-        'fPIC=True', \
+        'fPIC=False', \
         'parallel=tbb', \
         'contrib=False', \
         'contrib_freetype=False', \
@@ -90,17 +90,17 @@ class OpenCVConan(ConanFile):
         'gui=None', \
         'opencl=False', \
         'vtk=False', \
-        'shared=True', \
+        'shared=False', \
         'parallel=tbb', \
         'with_jpeg=libjpeg', \
         'with_png=True', \
-        'with_tiff=True', \
+        'with_tiff=False', \
         'with_jpeg2000=jasper', \
-        'with_openexr=True', \
-        'with_eigen=True', \
+        'with_openexr=False', \
+        'with_eigen=False', \
         'with_webp=True', \
         'with_gtk=True', \
-        'with_quirc=True', \
+        'with_quirc=False', \
         'with_cuda=False', \
         'with_cublas=False'
 
