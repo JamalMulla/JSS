@@ -8,15 +8,15 @@
 
 #include "simulator/base/config.h"
 
-SiCell::SiCell(int rows, int cols, int row_stride, int col_stride, Config& config) :
+SiCell::SiCell(int rows, int cols, int row_stride, int col_stride, const std::shared_ptr<Config>& config) :
     Memory(rows, cols, row_stride, col_stride)
 #ifdef TRACK_STATISTICS
     ,
     static_power_(fun_static(config)),
     dynamic_read_power_(fun_dynamic_read(config)),
     dynamic_write_power_(fun_dynamic_write(config)),
-    config_(&config),
-    time_(this->cycle_count_ * (1.0/config_->clock_rate)),
+    config_(config),
+    time_(this->cycle_count_ * (1.0/config_->get_clock_rate())),
     array_transistor_count_(rows, cols, CV_32S, cv::Scalar(transistor_count_)),
     array_static_energy_(rows, cols, CV_64F, cv::Scalar(0)),
     array_dynamic_energy_(rows, cols, CV_64F, cv::Scalar(0)),
@@ -25,27 +25,27 @@ SiCell::SiCell(int rows, int cols, int row_stride, int col_stride, Config& confi
 {}
 
 #ifdef TRACK_STATISTICS
-double SiCell::fun_static(const Config& config) {
+double SiCell::fun_static(const std::shared_ptr<Config>& config) {
     return 1.2991e-12;  // TODO find better numbers
 }
 
-double SiCell::fun_dynamic_read(const Config& config) {
+double SiCell::fun_dynamic_read(const std::shared_ptr<Config>& config) {
     return 6.0e-6;
 }
 
-double SiCell::fun_dynamic_write(const Config& config) {
+double SiCell::fun_dynamic_write(const std::shared_ptr<Config>& config) {
     return 6.0e-6;
 }
 
-cv::Mat& SiCell::get_static_energy() {
+cv::Mat SiCell::get_static_energy() {
     return array_static_energy_;
 }
 
-cv::Mat& SiCell::get_dynamic_energy() {
+cv::Mat SiCell::get_dynamic_energy() {
     return array_dynamic_energy_;
 }
 
-cv::Mat& SiCell::get_transistor_count() {
+cv::Mat SiCell::get_transistor_count() {
     return array_transistor_count_;
 }
 

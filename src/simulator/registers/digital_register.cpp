@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-DigitalRegister::DigitalRegister(int rows, int columns, Config& config, int row_stride, int col_stride, MemoryType memory_type) :
+DigitalRegister::DigitalRegister(int rows, int columns, const std::shared_ptr<Config>& config, int row_stride, int col_stride, MemoryType memory_type) :
     Register(rows, columns, row_stride, col_stride, CV_8U, config, memory_type) {
     this->min_val = 0;
     this->max_val = 1;
@@ -30,6 +30,14 @@ DigitalRegister &DigitalRegister::operator()(const std::string &name) {
     return *this;
 }
 
+void DigitalRegister::set_mask(const std::shared_ptr<DigitalRegister>& mask) {
+    this->mask_ = std::make_shared<cv::Mat>(mask->read());
+}
+
+cv::Mat& DigitalRegister::get_mask() {
+    return *mask_;
+}
+
 void DigitalRegister::set() { this->write(1); }
 
 void DigitalRegister::clear() { this->write(0); }
@@ -38,6 +46,7 @@ void DigitalRegister::clear() { this->write(0); }
 void DigitalRegister::print_stats(const CycleCounter &counter) {
 
 }
+
 //void DigitalRegister::print_stats(const CycleCounter &counter) {
 //    // power x time = energy
 //    // energy / time = power

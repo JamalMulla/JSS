@@ -4,7 +4,7 @@
 
 #include "simulator/input/live_input.h"
 
-#include <simulator/base/array.h>
+#include <simulator/base/architecture.h>
 
 #include <chrono>
 #include <opencv4/opencv2/imgproc.hpp>

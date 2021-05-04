@@ -103,7 +103,6 @@ class DigitalBus {
 
     // Higher level functions
 
-
 };
 
 #endif  // SIMULATOR_DIGITAL_BUS_H

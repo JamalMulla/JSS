@@ -6,12 +6,24 @@
 #define SIMULATOR_CONFIG_H
 
 struct Config {
+   private:
+    long clock_rate_; // in Hz
+    int process_node_; // in nm
+    double voltage_;
+    int temperature_; // in degrees celsius
 
+   public:
     explicit Config(long clock_rate = 1e6, int process_node = 180, double voltage = 1.8, int temperature = 20);
-    long clock_rate; // in Hz
-    int process_node; // in nm
-    double voltage;
-    int temperature; // in degrees celsius
+
+    long get_clock_rate();
+    int get_process_node();
+    double get_voltage();
+    long get_temperature();
+
+    void set_clock_rate(long clock_rate);
+    void set_process_node(int process_node);
+    void set_voltage(double voltage);
+    void set_temperature(int temperature);
 };
 
 #endif  //SIMULATOR_CONFIG_H

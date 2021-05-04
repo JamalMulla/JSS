@@ -1,0 +1,65 @@
+// horizontal sobel
+// get_image(A, D);
+// superpixel_adc(R5, 0, A);
+// superpixel_movx(R6, R5, south);
+// superpixel_movx(R7, R5, north);
+// superpixel_sub(R5, 0, R7, R6);
+// superpixel_dac(B, 0, R5);
+
+// multiple sobel
+get_image(A, D);
+superpixel_adc(R5, 0, A);
+NOT(R6, R5)
+superpixel_movx(R9, R5, south)
+superpixel_sub(R7, 0, R9, R6)
+
+superpixel_movx(R9, R5, north)
+superpixel_sub(R8, 0, R9, R6)
+
+superpixel_movx(R9, R6, west)
+superpixel_sub(R6, 0, R9, R5)
+
+superpixel_movx(R5, R6, east)
+
+superpixel_movx(R9, R6, north)
+superpixel_movx(R10, R5, north)
+superpixel_add(R6, 0, R9, R10)
+
+superpixel_movx(R9, R7, east)
+superpixel_movx(R10, R8, east)
+superpixel_add(R7, 0, R9, R10)
+
+superpixel_movx(R9, R7, west)
+superpixel_movx(R9, R9, west)
+superpixel_sub(R5, 0, R9, R7)
+superpixel_movx(R9, R6, south)
+superpixel_movx(R9, R9, south)
+superpixel_sub(R7, 0, R9, R6)
+superpixel_dac(A, 0, R5);
+superpixel_dac(B, 0, R7);
+
+
+
+
+
+
+
+// subx = y := x0_dir - x1
+// subx(R7, R5, south, R6); =
+// superpixel_movx(R9, R5, south)
+// superpixel_sub(R7, 0, R9, R6)
+
+// addx = y := x0_dir + x1_dir
+// addx(C, C, A, north) =
+// superpixel_movx(R9, R6, north)
+// superpixel_movx(R10, R5, north)
+// superpixel_add(R6, 0, R9, R10)
+
+// sub2x(A, B, west, west, B) = // y := x0_dir_dir2 - x1
+// superpixel_movx(R9, B, west)
+// superpixel_movx(R9, R9, west)
+// superpixel_sub(R7, 0, R9, R6)
+
+
+
+

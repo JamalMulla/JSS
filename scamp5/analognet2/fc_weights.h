@@ -7,6 +7,7 @@
 
 #ifndef FC_WEIGHTS_H_
 #define FC_WEIGHTS_H_
+#include <iosfwd>
 
 // Re-trained fully connected weight values
 inline void fc_1(int in[36], int out[50]) {

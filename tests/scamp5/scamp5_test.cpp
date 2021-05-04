@@ -9,60 +9,191 @@
 #include "../../tests/utility.h"
 #include "simulator/util/utility.h"
 
-TEST_CASE("AND is working correctly") {
+SCAMP5 setup() {
     int rows = 4;
     int cols = 4;
-    SCAMP5 s = SCAMP5::builder {}
-        .with_rows(rows)
-        .with_cols(cols)
-        .with_origin(Origin::TOP_RIGHT)
-        .build();
-    DigitalRegister out(rows, cols);
 
-    DigitalRegister s1 = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,0,0, 0,0,0,0, 0,1,1,0, 1,0,1,0);
-    DigitalRegister s2 = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 1,1,0,0, 0,1,1,0, 1,0,1,0);
+    std::shared_ptr<Config> config = std::make_shared<Config>(1e7);
+    std::shared_ptr<Pixel> pixel = std::make_shared<Pixel>(rows, cols, 1, 1, LIVE, "", config);
 
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,1,1,0, 1,0,1,0);
+    std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers;
+    analogue_registers["PIX"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["IN"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["NEWS"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["A"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["B"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["C"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["D"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["E"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["F"] = std::make_shared<AnalogueRegister>(rows, cols, config);
 
-    s.AND(&out, &s1, &s2);
-    REQUIRE(utility::mats_are_equal(out.read(), expected));
+    std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers;
+    digital_registers["FLAG"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["SELECT"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["RECT"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R0"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R1"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R2"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R3"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R4"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R5"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R6"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R7"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R8"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R9"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R10"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R11"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R12"] = std::make_shared<DigitalRegister>(rows, cols, config);
+
+
+    std::shared_ptr<ProcessingElement> pe = std::make_shared<ProcessingElement>();
+    pe->set_rows(rows);
+    pe->set_cols(cols);
+    pe->set_config(config);
+    pe->set_pixel(pixel);
+    pe->set_analogue_registers(analogue_registers);
+    pe->set_digital_registers(digital_registers);
+
+    SCAMP5 s = SCAMP5();
+    s.set_rows(rows);
+    s.set_cols(cols);
+    s.set_origin(Origin::TOP_RIGHT);
+    s.add_component("pe", pe);
+    s.init();
+
+    return s;
 }
 
-TEST_CASE("XOR is working correctly") {
+TEST_CASE("SCAMP5 Analogue Instructions") {
     int rows = 4;
     int cols = 4;
-    SCAMP5 s = SCAMP5::builder {}
-        .with_rows(rows)
-        .with_cols(cols)
-        .with_origin(Origin::TOP_RIGHT)
-        .build();
-    DigitalRegister out(rows, cols);
+    SCAMP5 s = setup();
 
-    DigitalRegister s1 = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,0,0, 0,0,0,0, 0,1,1,0, 1,0,1,0);
-    DigitalRegister s2 = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 1,1,0,0, 0,1,1,0, 1,0,1,0);
+    std::shared_ptr<AnalogueRegister> s1 = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 5,2,-1,-10, 10,20,30,40, -10,-10,-10,10, 99,10,100,126));
+    std::shared_ptr<AnalogueRegister> s2 = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 1,2,3,4, -1,-2,-3,-4, 100,99,98,97, 50,51,69,18));
+    std::shared_ptr<AnalogueRegister> out = std::make_shared<AnalogueRegister>(rows, cols);
 
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,0,0, 1,1,0,0, 0,0,0,0, 0,0,0,0);
+    SECTION("sub") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 4, 0, -4, -14, 11, 22, 33, 44, -110, -109, -108,-87, 49, -41, 31, 108);
+        s.sub(out, s1, s2);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
 
-    s.XOR(&out, &s1, &s2);
-    REQUIRE(utility::mats_are_equal(out.read(), expected));
+    SECTION("mov") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 5,2,-1,-10, 10,20,30,40, -10,-10,-10,10, 99,10,100,126);
+        s.mov(out, s1);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
+
+    SECTION("abs") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 5,2,1,10, 10,20,30,40, 10,10,10,10, 99,10,100,126);
+        s.abs(out, s1);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
+
+    SECTION("where") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,0,0, 1,1,1,1, 0,0,0,1, 1,1,1,1);
+        s.where(s1);
+        REQUIRE(utility::mats_are_equal(s.FLAG->read(), expected));
+    }
+
+    SECTION("all") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1);
+        s.all();
+        REQUIRE(utility::mats_are_equal(s.FLAG->read(), expected));
+    }
+
+    SECTION("scamp5_in") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15);
+        s.scamp5_in(out, 15);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
+
+
 }
+
+TEST_CASE("SCAMP5 Digital Instructions") {
+    int rows = 4;
+    int cols = 4;
+    SCAMP5 s = setup();
+
+    std::shared_ptr<DigitalRegister> s1 = std::make_shared<DigitalRegister>((cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,0,0, 0,0,0,0, 0,1,1,0, 1,0,1,0));
+    std::shared_ptr<DigitalRegister> s2 = std::make_shared<DigitalRegister>((cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 1,1,0,0, 0,1,1,0, 1,0,1,0));
+    std::shared_ptr<DigitalRegister> out = std::make_shared<DigitalRegister>(rows, cols);
+
+    SECTION("AND") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,1,1,0, 1,0,1,0);
+        s.AND(out, s1, s2);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
+
+    SECTION("XOR") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,0,0, 1,1,0,0, 0,0,0,0, 0,0,0,0);
+        s.XOR(out, s1, s2);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
+
+    SECTION("MOV") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,0,0, 0,0,0,0, 0,1,1,0, 1,0,1,0);
+        s.MOV(out, s1);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
+    }
+}
+
+TEST_CASE("digital write masks are working correctly") {
+    int rows = 4;
+    int cols = 4;
+    SCAMP5 s = setup();
+    s.R12->set_mask(s.R0);
+    cv::Mat mask = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,1,1, 0,0,0,0, 0,0,0,0, 1,1,1,1);
+    s.R0->write(mask);
+
+    std::shared_ptr<DigitalRegister> src1 = std::make_shared<DigitalRegister>((cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 0,1,1,1, 0,1,1,0, 1,0,1,0));
+    std::shared_ptr<DigitalRegister> src2 = std::make_shared<DigitalRegister>((cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,1, 1,1,0,0, 0,0,0,1, 1,1,0,0));
+
+    SECTION("OR") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,1, 0,0,0,0, 0,0,0,0, 1,1,1,0);
+
+        s.OR(s.R12, src1, src2);
+        REQUIRE(utility::mats_are_equal(s.R12->read(), expected));
+    }
+
+    SECTION("NOT") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,1, 0,0,0,0, 0,0,0,0, 0,1,0,1);
+
+        s.NOT(s.R12, src1);
+        REQUIRE(utility::mats_are_equal(s.R12->read(), expected));
+    }
+
+    SECTION("NOR") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1);
+
+        s.NOR(s.R12, src1, src2);
+        REQUIRE(utility::mats_are_equal(s.R12->read(), expected));
+    }
+
+    SECTION("MOV") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 0,0,0,0, 0,0,0,0, 1,0,1,0);
+
+        s.MOV(s.R12, src1);
+        REQUIRE(utility::mats_are_equal(s.R12->read(), expected));
+    }
+
+}
+
 
 TEST_CASE("neighbour functions are working correctly") {
     int rows = 4;
     int cols = 4;
-    SCAMP5 s = SCAMP5::builder {}
-        .with_rows(rows)
-        .with_cols(cols)
-        .with_origin(Origin::TOP_RIGHT)
-        .build();
+    SCAMP5 s = setup();
 
-    AnalogueRegister out(rows, cols);
+    std::shared_ptr<AnalogueRegister> out = std::make_shared<AnalogueRegister>(rows, cols);
 
-    AnalogueRegister src = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
+    std::shared_ptr<AnalogueRegister> src = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
         29,10,20,-10,
         111,4,5,6,
         0,1,1,1,
-        10,19,99,-90);
+        10,19,99,-90));
 
 
     SECTION("movx") {
@@ -72,8 +203,8 @@ TEST_CASE("neighbour functions are working correctly") {
             10,19,99,-90,
             0,0,0,0);
 
-        s.movx(&out, &src, north);
-        REQUIRE(utility::mats_are_equal(out.read(), expected));
+        s.movx(out, src, north);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
     }
 
     SECTION("mov2x") {
@@ -83,16 +214,16 @@ TEST_CASE("neighbour functions are working correctly") {
             0,10,19,99,
             0,0,0,0);
 
-        s.mov2x(&out, &src, north, east);
-        REQUIRE(utility::mats_are_equal(out.read(), expected));
+        s.mov2x(out, src, north, east);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
     }
 
     SECTION("addx") {
-        AnalogueRegister src2 = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
+        std::shared_ptr<AnalogueRegister> src2 = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
             18,28,-18,18,
             11,11,22,19,
             9,-1,-11,-1,
-            10,-19,9,90);
+            10,-19,9,90));
 
         cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
             0,0,0,0,
@@ -100,16 +231,16 @@ TEST_CASE("neighbour functions are working correctly") {
             122,15,27,25,
             9,0,-10,0);
 
-        s.addx(&out, &src, &src2, south);
-        REQUIRE(utility::mats_are_equal(out.read(), expected));
+        s.addx(out, src, src2, south);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
     }
 
     SECTION("add2x") {
-        AnalogueRegister src2 = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
+        std::shared_ptr<AnalogueRegister> src2 = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
             18,28,-18,18,
             11,11,22,19,
             9,-1,-11,-1,
-            10,-19,9,90);
+            10,-19,9,90));
 
         cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
             15,27,25,0,
@@ -117,16 +248,16 @@ TEST_CASE("neighbour functions are working correctly") {
             0,108,0,0,
             0,0,0,0);
 
-        s.add2x(&out, &src, &src2, west, north);
-        REQUIRE(utility::mats_are_equal(out.read(), expected));
+        s.add2x(out, src, src2, west, north);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
     }
 
     SECTION("subx") {
-        AnalogueRegister src2 = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
+        std::shared_ptr<AnalogueRegister> src2 = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
             18,28,-18,18,
             11,11,22,19,
             9,-1,-11,-1,
-            10,-19,9,90);
+            10,-19,9,90));
 
         cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
             -18, -28, 18, -18,
@@ -135,16 +266,16 @@ TEST_CASE("neighbour functions are working correctly") {
             -10, 20, -8, -89);
 
 
-        s.subx(&out, &src, south, &src2);
-        REQUIRE(utility::mats_are_equal(out.read(), expected));
+        s.subx(out, src, south, src2);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
     }
 
     SECTION("sub2x") {
-        AnalogueRegister src2 = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
+        std::shared_ptr<AnalogueRegister> src2 = std::make_shared<AnalogueRegister>((cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
             18,28,-18,18,
             11,11,22,19,
             9,-1,-11,-1,
-            10,-19,9,90);
+            10,-19,9,90));
 
         cv::Mat expected = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) <<
             -14, -23, 24, -18,
@@ -152,8 +283,8 @@ TEST_CASE("neighbour functions are working correctly") {
             10, 100, -79, 1,
             -10, 19, -9, -90);
 
-        s.sub2x(&out, &src, west, north, &src2);
-        REQUIRE(utility::mats_are_equal(out.read(), expected));
+        s.sub2x(out, src, west, north, src2);
+        REQUIRE(utility::mats_are_equal(out->read(), expected));
     }
 
 }
@@ -163,15 +294,12 @@ TEST_CASE("neighbour functions are working correctly") {
 TEST_CASE("DNEWS0 is working correctly") {
     int rows = 4;
     int cols = 4;
-    SCAMP5 s = SCAMP5::builder {}
-                   .with_rows(rows)
-                   .with_cols(cols)
-                   .with_origin(Origin::TOP_RIGHT)
-                   .build();
-    DigitalRegister out(rows, cols);
+    SCAMP5 s = setup();
 
-    DigitalRegister d = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 0, 0,
-                                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0);
+    std::shared_ptr<DigitalRegister> out = std::make_shared<DigitalRegister>(rows, cols);
+
+    std::shared_ptr<DigitalRegister> d = std::make_shared<DigitalRegister>((cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0));
 
     // These control movement of values in each direction
     cv::Mat R_NORTH = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 1, 0, 1, 0,
@@ -187,433 +315,6 @@ TEST_CASE("DNEWS0 is working correctly") {
     cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1,
                                  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
 
-    s.DNEWS0(&out, &d);
-    REQUIRE(utility::mats_are_equal(out.read(), expected));
+    s.DNEWS0(out, d);
+    REQUIRE(utility::mats_are_equal(out->read(), expected));
 }
-
-
-// Superpixel
-
-TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and different origins") {
-
-    SECTION("4 bit boustrophedonic shift left pattern with BOTTOM_LEFT origin") {
-        int rows = 2;
-        int cols = 2;
-        int bank = 0;
-
-        SCAMP5 s = SCAMP5::builder {}
-            .with_rows(rows)
-            .with_cols(cols)
-            .with_origin(Origin::BOTTOM_LEFT)
-            .build();
-
-        std::vector<std::vector<std::vector<int>>> bitorder = {
-            {
-                {1, 4},
-                {2, 3}
-            },
-        };
-        s.set_superpixel(bitorder, 2, 4);
-
-        DigitalRegister RNORTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister REAST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister RSOUTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister RWEST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-
-        s.superpixel_shift_patterns_from_bitorder(bank, &RNORTH, &RSOUTH, &REAST, &RWEST,
-                                                    true);
-        cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0);
-        cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0);
-        cv::Mat expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0);
-        cv::Mat expected_w = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,1);
-
-        REQUIRE(utility::mats_are_equal(RNORTH.read(), expected_n));
-        REQUIRE(utility::mats_are_equal(REAST.read(), expected_e));
-        REQUIRE(utility::mats_are_equal(RSOUTH.read(), expected_s));
-        REQUIRE(utility::mats_are_equal(RWEST.read(), expected_w));
-    }
-
-    SECTION("4 bit boustrophedonic shift left pattern with TOP_RIGHT origin") {
-        int rows = 2;
-        int cols = 2;
-        int bank = 0;
-
-        SCAMP5 s = SCAMP5::builder {}
-            .with_rows(rows)
-            .with_cols(cols)
-            .with_origin(Origin::TOP_RIGHT)
-            .build();
-
-        std::vector<std::vector<std::vector<int>>> bitorder = {
-            {
-                {1, 4},
-                {2, 3}
-            },
-        };
-
-        s.set_superpixel(bitorder, 2, 4);
-
-        DigitalRegister RNORTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister REAST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister RSOUTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister RWEST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-
-        s.superpixel_shift_patterns_from_bitorder(bank, &RNORTH, &RSOUTH, &REAST, &RWEST, true);
-        cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0);
-        cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,1);
-        cv::Mat expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0);
-        cv::Mat expected_w = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0);
-
-        REQUIRE(utility::mats_are_equal(RNORTH.read(), expected_n));
-        REQUIRE(utility::mats_are_equal(REAST.read(), expected_e));
-        REQUIRE(utility::mats_are_equal(RSOUTH.read(), expected_s));
-        REQUIRE(utility::mats_are_equal(RWEST.read(), expected_w));
-    }
-
-    SECTION("16 bit boustrophedonic shift left pattern with TOP_RIGHT origin") {
-        int rows = 4;
-        int cols = 4;
-        int bank = 0;
-
-        SCAMP5 s = SCAMP5::builder {}
-            .with_rows(rows)
-            .with_cols(cols)
-            .with_origin(Origin::TOP_RIGHT)
-            .build();
-
-        std::vector<std::vector<std::vector<int>>> bitorder = {
-            {
-                {1, 8, 9, 16},
-                {2, 7, 10, 15},
-                {3, 6, 11, 14},
-                {4, 5, 12, 13}
-            },
-        };
-
-        s.set_superpixel(bitorder, 4, 16);
-
-
-        DigitalRegister RNORTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister REAST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister RSOUTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister RWEST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-
-        s.superpixel_shift_patterns_from_bitorder(bank, &RNORTH, &RSOUTH, &REAST, &RWEST,
-                                                    true);
-        cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,1, 0,1,0,1, 0,1,0,1, 0,0,0,0);
-        cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,0,0, 0,0,0,0, 0,1,0,1);
-        cv::Mat expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 1,0,1,0, 1,0,1,0, 1,0,1,0);
-        cv::Mat expected_w = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0);
-
-        REQUIRE(utility::mats_are_equal(RNORTH.read(), expected_n));
-        REQUIRE(utility::mats_are_equal(REAST.read(), expected_e));
-        REQUIRE(utility::mats_are_equal(RSOUTH.read(), expected_s));
-        REQUIRE(utility::mats_are_equal(RWEST.read(), expected_w));
-    }
-
-    SECTION("16 bit boustrophedonic shift right pattern with TOP_RIGHT origin") {
-        int rows = 4;
-        int cols = 4;
-        int bank = 0;
-
-        SCAMP5 s = SCAMP5::builder {}
-            .with_rows(rows)
-            .with_cols(cols)
-            .with_origin(Origin::TOP_RIGHT)
-            .build();
-
-        std::vector<std::vector<std::vector<int>>> bitorder = {
-            {
-                {1, 8, 9, 16},
-                {2, 7, 10, 15},
-                {3, 6, 11, 14},
-                {4, 5, 12, 13}
-            },
-        };
-
-        s.set_superpixel(bitorder, 4, 16);
-
-        DigitalRegister RNORTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister REAST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister RSOUTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister RWEST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-
-        s.superpixel_shift_patterns_from_bitorder(bank, &RNORTH, &RSOUTH, &REAST,
-                                                    &RWEST, false);
-        cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 1,0,1,0, 1,0,1,0, 0,0,0,0);
-        cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0);
-        cv::Mat expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,1,0,1, 0,1,0,1, 0,1,0,1);
-        cv::Mat expected_w = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,0,0, 0,0,0,0, 1,0,1,0);
-
-        REQUIRE(utility::mats_are_equal(RNORTH.read(), expected_n));
-        REQUIRE(utility::mats_are_equal(REAST.read(), expected_e));
-        REQUIRE(utility::mats_are_equal(RSOUTH.read(), expected_s));
-        REQUIRE(utility::mats_are_equal(RWEST.read(), expected_w));
-    }
-
-    SECTION("16 bit spiral shift left pattern with TOP_RIGHT origin") {
-        int rows = 4;
-        int cols = 4;
-        int bank = 0;
-
-        SCAMP5 s = SCAMP5::builder {}
-            .with_rows(rows)
-            .with_cols(cols)
-            .with_origin(Origin::TOP_RIGHT)
-            .build();
-
-        // TODO double check
-        Bitorder bitorder = {
-            {
-                {4, 3, 2, 1},
-                {5, 14, 13, 12},
-                {6, 15, 16, 11},
-                {7, 8, 9, 10}
-            },
-        };
-
-        s.set_superpixel(bitorder, 4, 16);
-
-
-        DigitalRegister RNORTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister REAST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister RSOUTH = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-        DigitalRegister RWEST = (cv::Mat) cv::Mat::zeros(cv::Size(cols,rows), CV_8U);
-
-        s.superpixel_shift_patterns_from_bitorder(bank, &RNORTH, &RSOUTH, &REAST,
-                                                  &RWEST, true);
-        cv::Mat expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,1, 0,0,0,1, 0,0,0,0);
-        cv::Mat expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,1,1);
-        cv::Mat expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 1,0,0,0, 1,1,0,0, 1,0,0,0);
-        cv::Mat expected_w = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,1,0, 0,1,1,0, 0,0,0,0, 0,0,0,0);
-
-        REQUIRE(utility::mats_are_equal(RNORTH.read(), expected_n));
-        REQUIRE(utility::mats_are_equal(REAST.read(), expected_e));
-        REQUIRE(utility::mats_are_equal(RSOUTH.read(), expected_s));
-        REQUIRE(utility::mats_are_equal(RWEST.read(), expected_w));
-    }
-
-}
-
-TEST_CASE("images can be converted to digital superpixel format") {
-    int rows = 4;
-    int cols = 4;
-    int bank = 0;
-
-    SCAMP5 s = SCAMP5::builder {}
-        .with_rows(rows)
-        .with_cols(cols)
-        .with_origin(Origin::TOP_RIGHT)
-        .build();
-
-    AnalogueRegister a = (cv::Mat)(cv::Mat_<int16_t>(rows, cols) << 3, 4, 1, 0,
-        3, 3, 15, 15, 1, 10, 8, 7, 13, 11, 6, 15);
-    DigitalRegister out(rows, cols);
-
-    Bitorder bitorder = {
-        {{1, 4},
-         {2, 3}},
-    };
-
-    s.set_superpixel(bitorder, 2, 4);
-
-    s.superpixel_adc(&out, bank, &a);
-
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 1, 0, 1,
-        0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0);
-
-    REQUIRE(utility::mats_are_equal(out.read(), expected));
-}
-
-TEST_CASE("1 bank superpixel images can be shifted") {
-    int rows = 4;
-    int cols = 4;
-    int bank = 0;
-
-    SCAMP5 s = SCAMP5::builder {}
-        .with_rows(rows)
-        .with_cols(cols)
-        .with_origin(Origin::TOP_RIGHT)
-        .build();
-
-    Bitorder bitorder = {
-        {
-            {1, 8, 9, 16},
-            {2, 7, 10, 15},
-            {3, 6, 11, 14},
-            {4, 5, 12, 13}
-        },
-    };
-
-    s.set_superpixel(bitorder, 4, 16);
-
-
-    DigitalRegister d = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1, 0, 0, 0,
-        0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0);
-    DigitalRegister out(rows, cols);
-
-    SECTION("shift right") {
-        s.superpixel_shift_left(&out, bank, &d);
-        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
-        REQUIRE(utility::mats_are_equal(out.read(), expected));
-    }
-
-    SECTION("shift left") {
-        s.superpixel_shift_right(&out, bank, &d);
-        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,0,0);
-        REQUIRE(utility::mats_are_equal(out.read(), expected));
-    }
-}
-
-TEST_CASE("1 bank superpixel images can be added") {
-    int rows = 4;
-    int cols = 4;
-    int bank = 0;
-
-    SCAMP5 s = SCAMP5::builder {}
-        .with_rows(rows)
-        .with_cols(cols)
-        .with_origin(Origin::TOP_RIGHT)
-        .build();
-
-    Bitorder bitorder = {
-        {
-            {1, 8, 9, 16},
-            {2, 7, 10, 15},
-            {3, 6, 11, 14},
-            {4, 5, 12, 13}
-        },
-    };
-
-    s.set_superpixel(bitorder, 4, 16);
-
-    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,1,0, 0,0,0,0, 1,0,1,0);
-    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,1,0, 0,1,0,0, 1,0,0,0);
-
-    DigitalRegister out(rows, cols);
-
-    s.superpixel_add(&out, bank, &A, &B);
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,0,0, 0,1,1,0, 0,1,1,0);
-    std::cout << out.read() << std::endl;
-    std::cout << expected << std::endl;
-    REQUIRE(utility::mats_are_equal(out.read(), expected));
-}
-
-TEST_CASE("2 bank superpixel images can be added") {
-    int rows = 4;
-    int cols = 4;
-    int bank = 0;
-
-    SCAMP5 s = SCAMP5::builder {}
-        .with_rows(rows)
-        .with_cols(cols)
-        .with_origin(Origin::TOP_RIGHT)
-        .build();
-
-    Bitorder bitorder = {
-        {{1, 8, 0, 0},
-         {2, 7, 0, 0},
-         {3, 6, 0, 0},
-         {4, 5, 0, 0}},
-        {{0, 0, 1, 8},
-         {0, 0, 2, 7},
-         {0, 0, 3, 6},
-         {0, 0, 4, 5}}};
-
-    s.set_superpixel(bitorder, 4, 8);
-
-    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
-        0,0,0,0,
-        0,0,1,0,
-        0,0,0,0,
-        1,0,1,0);
-    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
-        0,1,0,0,
-        0,0,0,0,
-        0,1,0,0,
-        1,0,0,0);
-
-    DigitalRegister out(rows, cols);
-
-    s.superpixel_add(&out, bank, &A, &B);
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
-        1,1,0,0,
-        0,0,0,0,
-        0,1,0,0,
-        1,0,0,0);
-    std::cout << out.read() << std::endl;
-    std::cout << expected << std::endl;
-    REQUIRE(utility::mats_are_equal(out.read(), expected));
-}
-
-TEST_CASE("1 bank superpixel images can be subtracted") {
-    int rows = 4;
-    int cols = 4;
-    int bank = 0;
-
-    SCAMP5 s = SCAMP5::builder {}
-        .with_rows(rows)
-        .with_cols(cols)
-        .with_origin(Origin::TOP_RIGHT)
-        .build();
-
-    Bitorder bitorder = {
-        {
-            {1, 8, 9, 16},
-            {2, 7, 10, 15},
-            {3, 6, 11, 14},
-            {4, 5, 12, 13}
-        },
-    };
-
-    s.set_superpixel(bitorder, 4, 16);
-
-    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0);
-    DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,0,0);
-
-    DigitalRegister out(rows, cols);
-
-    s.superpixel_sub(&out, bank, &A, &B);
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,0, 0,0,1,0, 0,0,0,0, 0,0,0,0);
-    REQUIRE(utility::mats_are_equal(out.read(), expected));
-}
-
-TEST_CASE("superpixel images can be moved") {
-    int rows = 4;
-    int cols = 4;
-
-    SCAMP5 s = SCAMP5::builder {}
-        .with_rows(rows)
-        .with_cols(cols)
-        .with_origin(Origin::BOTTOM_LEFT)
-        .build();
-
-    Bitorder bitorder = {
-        {
-            {1, 4, 0, 0},
-            {2, 3, 0, 0},
-            {0, 0, 0, 0},
-            {0, 0, 0, 0}
-        },
-    };
-
-    s.set_superpixel(bitorder, 2, 4);
-
-    DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
-        0,0,1,0,
-        1,0,0,0,
-        1,0,1,0,
-        0,0,0,0);
-
-    DigitalRegister out(rows, cols);
-
-    s.superpixel_movx(&out, &A, north);
-    cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) <<
-        0,0,0,0,
-        0,0,0,0,
-        0,0,1,0,
-        1,0,0,0);
-    REQUIRE(utility::mats_are_equal(out.read(), expected));
-}
-

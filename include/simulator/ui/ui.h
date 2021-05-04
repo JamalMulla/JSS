@@ -12,14 +12,13 @@
 #include <set>
 #include <string>
 
-struct UserData {
-    std::string username;
-};
+struct UserData {};
 
 class Register;
 
 class UI {
    private:
+    bool has_started = false;
     std::set<uWS::WebSocket<false, true> *> wss;
 
     /* Middleware to fill out content-type */
@@ -52,7 +51,7 @@ class UI {
    public:
     void start();
     void send_string(const std::string &data) const;
-    void display_reg(Register *reg);
+    void display_reg(const std::shared_ptr<Register>& reg);
 };
 
 #endif  // SIMULATOR_UI_H

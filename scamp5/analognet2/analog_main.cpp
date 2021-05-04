@@ -81,12 +81,12 @@ inline void relu(int vec[SIZE]) {
     }
 }
 
-void update(UI& ui, const std::vector<Register*>& reg) {
+void update(UI& ui, const std::vector<std::shared_ptr<Register>>& reg) {
     for(auto& r: reg) { ui.display_reg(r); }
 }
 
 int analog_main() {
-    SCAMP5 s = SCAMP5::builder{}.build();
+    SCAMP5 s = SCAMP5();
     UI ui;
     ui.start();
 
@@ -102,7 +102,7 @@ int analog_main() {
     uint8_t input_count;
     // Number of consecutively empty input frames
     int empty_input_frames = 0;
-    // Flattened output of the convolution layers
+    // Flattened output of the convolution components
     int conv_outputs[36];
     // First fully connected layer output
     int fc1_result[50];
@@ -111,7 +111,7 @@ int analog_main() {
     // Output label (index of max. in results)
     uint8_t max_index;
 
-    std::vector<Register*> regs;
+    std::vector<std::shared_ptr<Register>> regs;
     regs.push_back(s.PIX);
     regs.push_back(s.A);
     regs.push_back(s.B);

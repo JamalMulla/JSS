@@ -4,81 +4,207 @@
 
 #include "simulator/base/processing_element.h"
 
-ProcessingElement::ProcessingElement(int rows, int cols, int row_stride, int col_stride, int num_analogue, int num_digital, Source source, const std::string &path, Config &config) :
-    rows_(rows),
-    cols_(cols),
-    photodiode(Pixel(rows, cols, row_stride, col_stride, source, path, config)),
-    config_(&config)
+#include <rttr/registration>
+#include <utility>
 
-{
-    // TODO need to be able to pass in some way of creating the underlying memory
-    for(int i = 0; i < num_analogue; i++) {
-        analogue_registers.emplace_back(rows, cols, config);
-    }
-    for(int i = 0; i < num_digital; i++) {
-        digital_registers.emplace_back(rows, cols, config);
-    }
+#include "simulator/external/parser.h"
+
+void ProcessingElement::set_rows(int rows) {
+    this->rows_ = rows;
 }
-#ifdef TRACK_STATISTICS
-void ProcessingElement::update_static(ulong cycles) {
-    double time = (1 / (double) config_->clock_rate) * cycles;
-    for(DigitalRegister &digital_register: digital_registers) {
-        digital_register.update_static(time);
+
+void ProcessingElement::set_cols(int cols) {
+    this->cols_ = cols;
+}
+
+void ProcessingElement::set_row_stride(int row_stride) {
+    this->row_stride_ = row_stride;
+}
+
+void ProcessingElement::set_col_stride(int col_stride) {
+    this->col_stride_ = col_stride;
+}
+
+void ProcessingElement::set_analogue_registers(std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers) {
+    this->analogue_registers_ = std::move(analogue_registers);
+}
+
+void ProcessingElement::set_digital_registers(std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers) {
+    this->digital_registers_ = std::move(digital_registers);
+}
+
+void ProcessingElement::set_pixel(std::shared_ptr<Pixel> pixel) {
+    this->pixel_ = std::move(pixel);
+}
+
+void ProcessingElement::set_config(std::shared_ptr<Config> config) {
+    this->config_ = std::move(config);
+}
+
+rttr::variant ProcessingElement::analogue_registers_converter(json& j, std::unordered_map<std::string, rttr::variant>& cache) {
+    for (auto& [_, value]: j.items()) {
+        std::shared_ptr<AnalogueRegister> reg = std::make_shared<AnalogueRegister>(rows_, cols_, config_);
+        reg->name_ = value;
+        analogue_registers_[value] = reg;
+        cache[value] = reg;
+    }
+    return rttr::variant(analogue_registers_);
+}
+
+rttr::variant ProcessingElement::digital_registers_converter(json& j, std::unordered_map<std::string, rttr::variant>& cache) {
+
+    for (auto& [_, value]: j.items()) {
+        std::shared_ptr<DigitalRegister> reg = std::make_shared<DigitalRegister>(rows_, cols_, config_);
+        // register has a mask
+        if (value.is_object()) {
+            if (!value.contains("name")) {
+                std::cerr << "No name field in register object " << value.dump(2) << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            if (!value.contains("mask")) {
+                std::cerr << "No mask field in register object " << value.dump(2) << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            reg->name_ = value["name"];
+            std::shared_ptr<DigitalRegister> mask = get_digital_register(value["mask"]);
+            if (!mask) {
+                std::cerr << "Could not get mask register " << value["mask"] << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            reg->set_mask(mask);
+        } else {
+            reg->name_ = value;
+        }
+        digital_registers_[reg->name_] = reg;
+        cache[reg->name_] = reg;
+    }
+    return rttr::variant(digital_registers_);
+}
+
+rttr::variant ProcessingElement::pixel_converter(json& j) {
+    Source source = Source::LIVE;
+    std::string path;
+
+    if (j.contains("input_source")) {
+        std::string src = j["input_source"];
+        if (src == "LIVE") { }
+        else if (src == "VIDEO") {
+            source = Source::VIDEO;
+            if (!j.contains("path")) {
+                std::cerr << "Path not specified for VIDEO read. Add a \"path\" field." << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            path = j["path"];
+        } else if (src == "IMAGE") {
+            source = Source::IMAGE;
+            if (!j.contains("path")) {
+                std::cerr << "Path not specified for IMAGE read. Add a \"path\" field." << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            path = j["path"];
+        } else {
+            std::cout << "Unknown input. Assuming LIVE input" << std::endl;
+        }
     }
 
-    for(AnalogueRegister &analogue_register: analogue_registers) {
-        analogue_register.update_static(time);
+    return rttr::variant(std::make_shared<Pixel>(rows_, cols_, row_stride_, col_stride_, source, path, config_));
+}
+
+
+void ProcessingElement::add_analogue_register(const std::string& name, std::shared_ptr<AnalogueRegister> reg) {
+    analogue_registers_[name] = std::move(reg);
+}
+
+void ProcessingElement::add_digital_register(const std::string& name, std::shared_ptr<DigitalRegister> reg) {
+    digital_registers_[name] = std::move(reg);
+}
+
+std::shared_ptr<AnalogueRegister> ProcessingElement::get_analogue_register(const std::string& name) {
+    return analogue_registers_[name];
+}
+
+std::shared_ptr<DigitalRegister> ProcessingElement::get_digital_register(const std::string& name) {
+    return digital_registers_[name];
+}
+
+std::shared_ptr<Pixel> ProcessingElement::get_pixel() {
+    return pixel_;
+}
+
+#ifdef TRACK_STATISTICS
+void ProcessingElement::update_static(double time) {
+    for (auto& [_, a]: analogue_registers_) {
+        a->update_static(time);
     }
-    photodiode.update_static(time);
+
+    for (auto& [_, d]: digital_registers_) {
+        d->update_static(time);
+    }
+
+    pixel_->update_static(time);
 }
 
 cv::Mat ProcessingElement::get_transistor_count() {
     cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_32S);
-    for(auto &analogue: analogue_registers) {
-        out += analogue.get_transistor_count();
+
+    for (auto& [_, a]: analogue_registers_) {
+        out += a->get_transistor_count();
     }
-    for(auto &digital: digital_registers) {
-        out += digital.get_transistor_count();
+
+    for (auto& [_, d]: digital_registers_) {
+        out += d->get_transistor_count();
     }
-    out += photodiode.get_transistor_count();
+
+    out += pixel_->get_transistor_count();
     return out;
 }
 
 cv::Mat ProcessingElement::get_static_energy() {
     cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_64F);
-    for(auto &analogue: analogue_registers) {
-        out += analogue.get_static_energy();
+    for (auto& [_, a]: analogue_registers_) {
+        out += a->get_static_energy();
     }
-    for(auto &digital: digital_registers) {
-        out += digital.get_static_energy();
+    for (auto& [_, d]: digital_registers_) {
+        out += d->get_static_energy();
     }
-    out += photodiode.get_static_energy();
+    out += pixel_->get_static_energy();
     return out;
 }
 
 cv::Mat ProcessingElement::get_dynamic_energy() {
     cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_64F);
-    for(auto &analogue: analogue_registers) {
-        out += analogue.get_dynamic_energy();
+    for (auto& [_, a]: analogue_registers_) {
+        out += a->get_dynamic_energy();
     }
-    for(auto &digital: digital_registers) {
-        out += digital.get_dynamic_energy();
+    for (auto& [_, d]: digital_registers_) {
+        out += d->get_dynamic_energy();
     }
-    out += photodiode.get_dynamic_energy();
+    out += pixel_->get_dynamic_energy();
     return out;
 }
 
-void ProcessingElement::print_stats(const CycleCounter &counter) {
-    std::cout << "====================" << "\n";
-    for(auto &analogue: analogue_registers) { analogue.print_stats(counter); }
-    for(auto &digital: digital_registers) { digital.print_stats(counter); }
-    photodiode.print_stats(counter);
-    std::cout << "====================" << "\n";
+void ProcessingElement::print_stats(const CycleCounter& counter) {
+    std::cout << "===================="
+              << "\n";
+    for (auto& [_, a]: analogue_registers_) {
+        a->print_stats(counter);
+    }
+    for (auto& [_, d]: digital_registers_) {
+        d->print_stats(counter);
+    }
+    pixel_->print_stats(counter);
+    std::cout << "===================="
+              << "\n";
 }
 
+int ProcessingElement::get_cycle_count() {
+    return 0;
+}
+
+
 //void ProcessingElement::print_stats(const CycleCounter &counter) {
-//    for(auto &analogue: analogue_registers) { analogue.print_stats(counter); }
-//    for(auto &digital: digital_registers) { digital.print_stats(counter); }
+//    for(auto &analogue: analogue_registers_) { analogue.print_stats(counter); }
+//    for(auto &digital: digital_registers_) { digital.print_stats(counter); }
 //}
 //
 //void ProcessingElement::write_stats(const CycleCounter &counter, json &j) {
@@ -87,11 +213,11 @@ void ProcessingElement::print_stats(const CycleCounter &counter) {
 //    double runtime = counter.to_seconds(stats::CLOCK_RATE);
 //    auto analogues = json::array();
 //    auto digitals = json::array();
-//    for(auto &analogue: analogue_registers) {
+//    for(auto &analogue: analogue_registers_) {
 //        analogue.write_stats(counter, analogues);
 //        total_analogue += analogue.get_total_energy();
 //    }
-//    for(auto &digital: digital_registers) {
+//    for(auto &digital: digital_registers_) {
 //        digital.write_stats(counter, digitals);
 //        total_digital += digital.get_total_energy();
 //    }
@@ -105,62 +231,20 @@ void ProcessingElement::print_stats(const CycleCounter &counter) {
 //}
 #endif
 
-ProcessingElement::builder &ProcessingElement::builder::with_rows(int rows) {
-    this->rows_ = rows;
-    return *this;
-}
+RTTR_REGISTRATION {
+    using namespace rttr;
 
-ProcessingElement::builder &ProcessingElement::builder::with_cols(int cols) {
-    this->cols_ = cols;
-    return *this;
-}
-
-ProcessingElement::builder &ProcessingElement::builder::with_row_stride(int row_stride) {
-    this->row_stride_ = row_stride;
-    return *this;
-}
-
-ProcessingElement::builder &ProcessingElement::builder::with_col_stride(int col_stride) {
-    this->col_stride_ = col_stride;
-    return *this;
-}
-
-ProcessingElement::builder &ProcessingElement::builder::with_analogue_registers(
-    int num_analogue) {
-    this->num_analogue_ = num_analogue;
-    return *this;
-}
-
-ProcessingElement::builder &ProcessingElement::builder::with_digital_registers(
-    int num_digital) {
-    this->num_digital_ = num_digital;
-    return *this;
-}
-
-ProcessingElement::builder &ProcessingElement::builder::with_input_source(
-    Source source) {
-    this->source_ = source;
-    return *this;
-}
-
-ProcessingElement::builder &ProcessingElement::builder::with_file_path(
-    const std::string &path) {
-    this->path_ = path;
-    return *this;
-}
-
-ProcessingElement::builder &ProcessingElement::builder::with_config(Config &config) {
-    this->config_ = &config;
-    return *this;
-}
-
-ProcessingElement ProcessingElement::builder::build() {
-#ifdef USE_RUNTIME_CHECKS
-    if(rows_ < 0 || cols_ < 0 || row_stride_ < 0 || col_stride < 0 || num_analogue_ < 0 || num_digital_ < 0) {
-        std::cerr << "ProcessingElement cannot be created as all necessary "
-                     "parameters have not been set"
-                  << std::endl;
-    }
-#endif
-    return ProcessingElement(rows_, cols_, row_stride_, col_stride_, num_analogue_, num_digital_, source_, path_, *config_);
-}
+    registration::class_<ProcessingElement>("ProcessingElement")
+        .constructor()
+        .method("analogue_registers_converter", &ProcessingElement::analogue_registers_converter)
+        .method("digital_registers_converter", &ProcessingElement::digital_registers_converter)
+        .method("pixel_converter", &ProcessingElement::pixel_converter)
+        .method("set_rows", &ProcessingElement::set_rows)
+        .method("set_cols", &ProcessingElement::set_cols)
+        .method("set_row_stride", &ProcessingElement::set_row_stride)
+        .method("set_col_stride", &ProcessingElement::set_col_stride)
+        .method("set_analogue_registers", &ProcessingElement::set_analogue_registers)
+        .method("set_digital_registers", &ProcessingElement::set_digital_registers)
+        .method("set_pixel", &ProcessingElement::set_pixel)
+        .method("set_config", &ProcessingElement::set_config);
+};

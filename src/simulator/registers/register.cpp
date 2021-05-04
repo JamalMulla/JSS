@@ -6,12 +6,12 @@
 
 #include <opencv4/opencv2/core.hpp>
 
-Register::Register(int rows, int cols, int row_stride, int col_stride, int type, Config &config, MemoryType memory_type) :
+Register::Register(int rows, int cols, int row_stride, int col_stride, int type, const std::shared_ptr<Config>& config, MemoryType memory_type) :
     rows_(rows),
     cols_(cols),
     row_stride_(row_stride),
     col_stride_(col_stride),
-    config_(&config),
+    config_(config),
     value_(rows, cols, type, cv::Scalar(0)) {
     this->memory_ = Memory::construct(memory_type, rows, cols, row_stride, col_stride, config);
 }
@@ -23,7 +23,6 @@ Register::Register(int rows, int cols, int row_stride, int col_stride, int type)
     col_stride_(col_stride),
     value_(rows, cols, type, cv::Scalar(0)) {}
 
-
 #ifdef TRACK_STATISTICS
 
 void Register::update_static(double time) {
@@ -32,15 +31,15 @@ void Register::update_static(double time) {
     }
 }
 
-cv::Mat &Register::get_static_energy() {
+cv::Mat Register::get_static_energy() {
     return memory_->get_static_energy();
 }
 
-cv::Mat &Register::get_dynamic_energy() {
+cv::Mat Register::get_dynamic_energy() {
     return memory_->get_dynamic_energy();
 }
 
-cv::Mat &Register::get_transistor_count() {
+cv::Mat Register::get_transistor_count() {
     return memory_->get_transistor_count();
 }
 
@@ -107,7 +106,12 @@ void Register::write(int data, Register &mask) {
 #ifdef TRACK_STATISTICS
 void Register::inc_read(const cv::_InputOutputArray &mask) {
     if (memory_) {
-        this->memory_->read(mask);
+        // mask can be noArray() which will cause an issue if we try to use it
+        if (mask.empty()) {
+            this->memory_->read();
+        } else {
+            this->memory_->read(mask);
+        }
     }
 }
 
@@ -119,7 +123,12 @@ void Register::inc_read() {
 
 void Register::inc_write(const cv::_InputOutputArray &mask) {
     if (memory_) {
-        this->memory_->write(mask);
+        // mask can be noArray() which will cause an issue if we try to use it
+        if (mask.empty()) {
+            this->memory_->write();
+        } else {
+            this->memory_->write(mask);
+        }
     }
 }
 
@@ -131,5 +140,5 @@ void Register::inc_write() {
 #endif
 
 void Register::change_memory_type(MemoryType memory_type) {
-    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, *config_);
+    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, config_);
 }

@@ -1,0 +1,13 @@
+get_image(A, D);
+divq(C, A);
+divq(A, C);
+divq(C, A);
+divq(A, C);
+movx(C, A, south);
+add(A, C, A);
+movx(C, A, north);
+add(A, A, C);
+movx(C, A, west);
+add(A, C, A);
+movx(C, A, east);
+add(A, A, C);

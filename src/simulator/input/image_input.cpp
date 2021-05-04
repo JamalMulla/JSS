@@ -4,7 +4,7 @@
 
 #include "simulator/input/image_input.h"
 
-#include <simulator/base/array.h>
+#include <simulator/base/architecture.h>
 #include <simulator/util/utility.h>
 
 #include <cmath>

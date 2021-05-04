@@ -11,7 +11,7 @@
 #include <thread>
 #include <unordered_map>
 
-// Monitor "path_to_watch" for changes and in case of a change execute the user
+// Monitor "path_to_watch" for changes and in case of a change execute_instructions the user
 // supplied "action" function
 void FileWatcher::start(
     const std::function<void(std::string, FileStatus)> &action) {

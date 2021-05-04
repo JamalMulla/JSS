@@ -11,16 +11,21 @@
 #include "simulator/metrics/cycle_counter.h"
 #include "simulator/memory/memory.h"
 
-class Register : public Component {
+#include <rttr/type>
 
+// TODO need to be able to pass in some way of creating the underlying memory of registers. add as param
+class Register : public Component {
+    RTTR_ENABLE();
     // TODO internal mask
    protected:
     int rows_;
     int cols_;
-    int row_stride_;
-    int col_stride_;
-    Config* config_;
+    int row_stride_ = 1;
+    int col_stride_ = 1;
+    std::shared_ptr<Config> config_;
     std::shared_ptr<Memory> memory_;
+
+   private:
     cv::Mat value_;
 
    public:
@@ -28,7 +33,7 @@ class Register : public Component {
     int min_val = 0;
     int max_val = 0;
 
-    Register(int rows, int columns, int row_stride, int col_stride, int type, Config& config, MemoryType memoryType);
+    Register(int rows, int columns, int row_stride, int col_stride, int type, const std::shared_ptr<Config>& config, MemoryType memoryType);
 
     Register(int rows, int columns, int row_stride, int col_stride, int type);
 
@@ -42,9 +47,9 @@ class Register : public Component {
     void inc_read();
     void inc_write(const cv::_InputOutputArray& mask);
     void inc_write();
-    cv::Mat& get_static_energy() override;
-    cv::Mat& get_dynamic_energy() override;
-    cv::Mat& get_transistor_count() override;
+    cv::Mat get_static_energy() override;
+    cv::Mat get_dynamic_energy() override;
+    cv::Mat get_transistor_count() override;
     int get_cycle_count() override;
     void print_stats(const CycleCounter& counter) override = 0;
 //    void write_stats(const CycleCounter& counter, json& j) override = 0;

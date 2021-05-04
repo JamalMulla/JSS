@@ -38,7 +38,7 @@ jobs:
         conan profile new default --detect
         conan profile update settings.compiler.libcxx=libstdc++11 default
         conan create ../conanfile.py -s build_type=$BUILD_TYPE
-        conan install ../conanfile.txt -s build_type=$BUILD_TYPE
+        conan install ../conanfile.txt -s build_type=$BUILD_TYPE --build missing
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
