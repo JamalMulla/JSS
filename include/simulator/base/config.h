@@ -17,7 +17,7 @@ struct Config {
 
     long get_clock_rate();
     int get_process_node();
-    long get_voltage();
+    double get_voltage();
     long get_temperature();
 
     void set_clock_rate(long clock_rate);

@@ -1,6 +1,6 @@
 {
 	"architecture": "SCAMP5",
-    "frames": 50,
+    "frames": 500,
 	"with_stats": true,
 	"ui_enabled": true,
     "ui_registers_to_display" : ["A", "B", "C", "D", "E", "R5", "R6", "R7"],
@@ -26,6 +26,7 @@
                 
 			},
 			{
+                "_inherit" : ["config", "rows", "cols"],
                 "component": "Dram",
                 "name" : "dram",
                 "row_stride": 8,

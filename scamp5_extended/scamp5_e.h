@@ -32,8 +32,10 @@ class SCAMP5E : public SCAMP5 {
     std::shared_ptr<Dram> dram_;
 
    public:
-    class builder;
-    SCAMP5E(int rows, int cols, Origin origin);
+    SCAMP5E() = default;
+    void init();
+    rttr::variant bitorder_converter(json &j);
+
     // Superpixel methods
     void set_bitorder(Bitorder bitorder);
 
@@ -60,23 +62,5 @@ class SCAMP5E : public SCAMP5 {
     void hog(const std::shared_ptr<AREG>& src);
 };
 
-class SCAMP5E::builder {
-    RTTR_ENABLE();
-
-   private:
-    int rows_ = 256;
-    int cols_ = 256;
-    Origin origin_ = Origin::TOP_LEFT;
-    Bitorder bitorder_;
-
-   public:
-    rttr::variant bitorder_converter(json &j);
-    builder &with_rows(int rows);
-    builder &with_cols(int cols);
-    builder &with_origin(Origin origin);
-    builder &with_bitorder(Bitorder bitorder);
-
-    SCAMP5E build();
-};
 
 #endif  //SIMULATOR_SCAMP5_E_H

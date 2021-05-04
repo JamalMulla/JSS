@@ -35,7 +35,7 @@ int Config::get_process_node() {
     return this->process_node_;
 }
 
-long Config::get_voltage() {
+double Config::get_voltage() {
     return this->voltage_;
 }
 

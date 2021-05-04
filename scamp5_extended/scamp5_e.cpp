@@ -6,7 +6,8 @@
 
 #include <rttr/registration>
 
-SCAMP5E::SCAMP5E(int rows, int cols, Origin origin) {
+void SCAMP5E::init() {
+    SCAMP5::init();
     std::shared_ptr<Dram> dram = this->get_component<Dram>("dram");
     if (dram == nullptr) {
         std::cerr << "[Error] Could not get DRAM component. Has it been configured and added to the arhcitecture?" << std::endl;
@@ -569,7 +570,7 @@ void SCAMP5E::hog(const std::shared_ptr<AREG>& src) {
     // Calculate the HOG feature vector
 }
 
-rttr::variant SCAMP5E::builder::bitorder_converter(json& j) {
+rttr::variant SCAMP5E::bitorder_converter(json& j) {
     try {
         auto b = j.get<Bitorder>();
         return b;
@@ -582,47 +583,12 @@ rttr::variant SCAMP5E::builder::bitorder_converter(json& j) {
     return rttr::variant();
 }
 
-SCAMP5E::builder& SCAMP5E::builder::with_rows(int rows) {
-    this->rows_ = rows;
-    return *this;
-}
-
-SCAMP5E::builder& SCAMP5E::builder::with_cols(int cols) {
-    this->cols_ = cols;
-    return *this;
-}
-
-SCAMP5E::builder& SCAMP5E::builder::with_origin(Origin origin) {
-    this->origin_ = origin;
-    return *this;
-}
-
-SCAMP5E::builder& SCAMP5E::builder::with_bitorder(Bitorder bitorder) {
-    this->bitorder_ = std::move(bitorder);
-    return *this;
-}
-
-SCAMP5E SCAMP5E::builder::build() {
-    SCAMP5E scamp5 = SCAMP5E(this->rows_, this->cols_, this->origin_);
-    if (!this->bitorder_.empty()) {
-        scamp5.set_bitorder(this->bitorder_);
-    }
-    return scamp5;
-}
-
 RTTR_REGISTRATION {
     using namespace rttr;
 
-    registration::class_<SCAMP5E::builder>("SCAMP5E_builder")
-        .constructor<>()
-        .method("bitorder_converter", &SCAMP5E::builder::bitorder_converter)
-        .method("with_rows", &SCAMP5E::builder::with_rows)
-        .method("with_cols", &SCAMP5E::builder::with_cols)
-        .method("with_origin", &SCAMP5E::builder::with_origin)
-        .method("with_bitorder", &SCAMP5E::builder::with_bitorder)
-        .method("build", &SCAMP5E::builder::build);
-
     registration::class_<SCAMP5E>("SCAMP5E")
+        .constructor()
+        .method("init", &SCAMP5E::init)
         .method("superpixel_positions_from_bitorder", &SCAMP5E::superpixel_positions_from_bitorder)
         .method("superpixel_shift_patterns_from_bitorder", &SCAMP5E::superpixel_shift_patterns_from_bitorder)
         .method("superpixel_adc", &SCAMP5E::superpixel_adc)
