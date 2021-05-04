@@ -3,7 +3,7 @@
     "frames": 500,
 	"with_stats": true,
 	"ui_enabled": true,
-    "ui_registers_to_display" : ["A", "B", "C", "D", "E", "R5", "R6", "R7"],
+    "ui_registers_to_display" : ["A", "B", "C", "D", "E", "R5", "R6", "R7", "R12"],
 	"SCAMP5": {
 		"rows": 256,
 		"cols": 256,
@@ -23,7 +23,6 @@
                 "pixel" : {
                     "input_source" : "LIVE"
                 }
-                
 			},
 			{
                 "_inherit" : ["config", "rows", "cols"],

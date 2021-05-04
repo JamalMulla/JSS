@@ -10,7 +10,8 @@
 #include "../../include/simulator/util/utility.h"
 #include "../utility.h"
 
-TEST_CASE("two images can be xor'd") {
+
+TEST_CASE("bus operations") {
     int rows = 4;
     int cols = 4;
     DigitalBus bus;
@@ -18,9 +19,24 @@ TEST_CASE("two images can be xor'd") {
     DigitalRegister A = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,1,0, 1,1,0,0, 1,1,0,0, 0,0,1,1);
     DigitalRegister B = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,0,0, 0,1,1,0, 1,0,0,1, 1,0,1,0);
 
-    bus.XOR(A, A, B);
-    DigitalRegister expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 1,0,1,0, 0,1,0,1, 1,0,0,1);
-    REQUIRE(utility::mats_are_equal(A.read(), expected.read()));
+    SECTION("NOT") {
+        bus.NOT(A);
+        DigitalRegister expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,0,1, 0,0,1,1, 0,0,1,1, 1,1,0,0);
+        REQUIRE(utility::mats_are_equal(A.read(), expected.read()));
+    }
+
+    SECTION("XOR") {
+        bus.XOR(A, A, B);
+        DigitalRegister expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 1,0,1,0, 0,1,0,1, 1,0,0,1);
+        REQUIRE(utility::mats_are_equal(A.read(), expected.read()));
+    }
+
+    SECTION("NOR") {
+        bus.NOR(A, A, B);
+        DigitalRegister expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,0,1, 0,0,0,1, 0,0,1,0, 0,1,0,0);
+        REQUIRE(utility::mats_are_equal(A.read(), expected.read()));
+    }
+
 }
 
 TEST_CASE("digital image can be inverted") {

@@ -40,6 +40,7 @@ class Dram : public Component {
 
    public:
     Dram() = default;
+
     void init();
 
     void set_rows(int rows);
@@ -50,10 +51,6 @@ class Dram : public Component {
     void set_array_cols(int array_cols);
     void set_word_length(int word_length);
     void set_config(const std::shared_ptr<Config>& config);
-
-//    Dram(int rows, int cols, int row_stride, int col_stride, int array_rows, int array_cols, int word_length, const std::shared_ptr<Config>& config);
-
-
 
     int read(int array, int row, int col);
     void write(int array, int row, int col, int value);

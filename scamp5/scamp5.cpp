@@ -622,19 +622,19 @@ void SCAMP5::NOT(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0
 }
 
 void SCAMP5::NOR(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
-    // d := NOR(d0 OR d1)
+    // d := NOT(d0 OR d1)
     this->pe->local_read_bus.NOR(*d, *d0, *d1);
     this->update_cycles(5);  // 2 reads, 2 op, 1 write
 }
 
 void SCAMP5::NOR(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
-    // d := NOR(d0 OR d1 OR d2)
+    // d := NOT(d0 OR d1 OR d2)
     this->pe->local_read_bus.NOR(*d, *d0, *d1, *d2);
     this->update_cycles(6);  // 3 reads, 2 op, 1 write
 }
 
 void SCAMP5::NOR(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
-    // d := NOTRd0 OR d1 OR d2 OR d3)
+    // d := NOT(d0 OR d1 OR d2 OR d3)
     this->pe->local_read_bus.NOR(*d, *d0, *d1, *d2, *d3);
     this->update_cycles(7); // 4 reads, 2 op, 1 write
 }
@@ -714,87 +714,87 @@ void SCAMP5::XOR(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>& R
 
 void SCAMP5::WHERE(const std::shared_ptr<DREG>& d) {
     // FLAG := d.
-    this->FLAG->write(d->read());
+    this->FLAG->write(d->read(), FLAG->get_mask());
     this->update_cycles(2);  // 1 read, 1 write
 }
 
 void SCAMP5::WHERE(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
     // FLAG := d0 OR d1.
     this->OR(intermediate_d, d0, d1);
-    this->FLAG->write(intermediate_d->read());
+    this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::WHERE(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
     // FLAG := d0 OR d1 OR d2.
     this->OR(intermediate_d, d0, d1, d2);
-    this->FLAG->write(intermediate_d->read());
+    this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::ALL() {
     // FLAG := 1, same as all.
-    this->FLAG->set();
+    this->FLAG->write(1, FLAG->get_mask());
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0) {
     // d0 := 1
-    d0->set();
+    d0->write(1, d0->get_mask());
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
     // d0, d1 := 1
-    d0->set();
-    d1->set();
+    d0->write(1, d0->get_mask());
+    d1->write(1, d1->get_mask());
     this->update_cycles(2);  // 2 writes
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
     // 	d0, d1, d2 := 1
-    d0->set();
-    d1->set();
-    d2->set();
+    d0->write(1, d0->get_mask());
+    d1->write(1, d1->get_mask());
+    d2->write(1, d2->get_mask());
     this->update_cycles(3);  // 3 writes
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
     // d0, d1, d2, d3 := 1
-    d0->set();
-    d1->set();
-    d2->set();
-    d3->set();
+    d0->write(1, d0->get_mask());
+    d1->write(1, d1->get_mask());
+    d2->write(1, d2->get_mask());
+    d3->write(1, d3->get_mask());
     this->update_cycles(4);  // 4 writes
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0) {
     // d0 := 0
-    d0->clear();
+    d0->write(0, d0->get_mask());
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
     // d0, d1 := 0
-    d0->clear();
-    d1->clear();
+    d0->write(0, d0->get_mask());
+    d1->write(0, d1->get_mask());
     this->update_cycles(2);  // 2 writes
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
     // d0, d1, d2 := 0
-    d0->clear();
-    d1->clear();
-    d2->clear();
+    d0->write(0, d0->get_mask());
+    d1->write(0, d1->get_mask());
+    d2->write(0, d2->get_mask());
     this->update_cycles(3);  // 3 writes
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
     // 	d0, d1, d2, d3 := 0
-    d0->clear();
-    d1->clear();
-    d2->clear();
-    d3->clear();
+    d0->write(0, d0->get_mask());
+    d1->write(0, d1->get_mask());
+    d2->write(0, d2->get_mask());
+    d3->write(0, d3->get_mask());
     this->update_cycles(4);  // 4 writes
 }
 

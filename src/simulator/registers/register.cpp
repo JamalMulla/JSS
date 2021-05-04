@@ -106,7 +106,12 @@ void Register::write(int data, Register &mask) {
 #ifdef TRACK_STATISTICS
 void Register::inc_read(const cv::_InputOutputArray &mask) {
     if (memory_) {
-        this->memory_->read(mask);
+        // mask can be noArray() which will cause an issue if we try to use it
+        if (mask.empty()) {
+            this->memory_->read();
+        } else {
+            this->memory_->read(mask);
+        }
     }
 }
 
@@ -118,7 +123,12 @@ void Register::inc_read() {
 
 void Register::inc_write(const cv::_InputOutputArray &mask) {
     if (memory_) {
-        this->memory_->write(mask);
+        // mask can be noArray() which will cause an issue if we try to use it
+        if (mask.empty()) {
+            this->memory_->write();
+        } else {
+            this->memory_->write(mask);
+        }
     }
 }
 

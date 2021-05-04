@@ -140,6 +140,47 @@ TEST_CASE("SCAMP5 Digital Instructions") {
     }
 }
 
+TEST_CASE("digital write masks are working correctly") {
+    int rows = 4;
+    int cols = 4;
+    SCAMP5 s = setup();
+    s.R12->set_mask(s.R0);
+    cv::Mat mask = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,1,1,1, 0,0,0,0, 0,0,0,0, 1,1,1,1);
+    s.R0->write(mask);
+
+    std::shared_ptr<DigitalRegister> src1 = std::make_shared<DigitalRegister>((cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 0,1,1,1, 0,1,1,0, 1,0,1,0));
+    std::shared_ptr<DigitalRegister> src2 = std::make_shared<DigitalRegister>((cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,0,1,1, 1,1,0,0, 0,0,0,1, 1,1,0,0));
+
+    SECTION("OR") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,1, 0,0,0,0, 0,0,0,0, 1,1,1,0);
+
+        s.OR(s.R12, src1, src2);
+        REQUIRE(utility::mats_are_equal(s.R12->read(), expected));
+    }
+
+    SECTION("NOT") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,1, 0,0,0,0, 0,0,0,0, 0,1,0,1);
+
+        s.NOT(s.R12, src1);
+        REQUIRE(utility::mats_are_equal(s.R12->read(), expected));
+    }
+
+    SECTION("NOR") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0,1,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1);
+
+        s.NOR(s.R12, src1, src2);
+        REQUIRE(utility::mats_are_equal(s.R12->read(), expected));
+    }
+
+    SECTION("MOV") {
+        cv::Mat expected = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 1,0,1,0, 0,0,0,0, 0,0,0,0, 1,0,1,0);
+
+        s.MOV(s.R12, src1);
+        REQUIRE(utility::mats_are_equal(s.R12->read(), expected));
+    }
+
+}
+
 
 TEST_CASE("neighbour functions are working correctly") {
     int rows = 4;

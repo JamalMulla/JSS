@@ -42,34 +42,43 @@ void ProcessingElement::set_config(std::shared_ptr<Config> config) {
 }
 
 rttr::variant ProcessingElement::analogue_registers_converter(json& j, std::unordered_map<std::string, rttr::variant>& cache) {
-    std::unordered_map<std::string, std::shared_ptr<AnalogueRegister> > analogue_registers;
-
     for (auto& [_, value]: j.items()) {
         std::shared_ptr<AnalogueRegister> reg = std::make_shared<AnalogueRegister>(rows_, cols_, config_);
         reg->name_ = value;
-        analogue_registers[value] = reg;
+        analogue_registers_[value] = reg;
         cache[value] = reg;
     }
-    return rttr::variant(analogue_registers);
+    return rttr::variant(analogue_registers_);
 }
 
 rttr::variant ProcessingElement::digital_registers_converter(json& j, std::unordered_map<std::string, rttr::variant>& cache) {
-    std::unordered_map<std::string, std::shared_ptr<DigitalRegister> > digital_registers;
 
     for (auto& [_, value]: j.items()) {
         std::shared_ptr<DigitalRegister> reg = std::make_shared<DigitalRegister>(rows_, cols_, config_);
         // register has a mask
         if (value.is_object()) {
+            if (!value.contains("name")) {
+                std::cerr << "No name field in register object " << value.dump(2) << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            if (!value.contains("mask")) {
+                std::cerr << "No mask field in register object " << value.dump(2) << std::endl;
+                exit(EXIT_FAILURE);
+            }
             reg->name_ = value["name"];
-            std::shared_ptr<DigitalRegister> mask = get_digital_register(value["name"]);
+            std::shared_ptr<DigitalRegister> mask = get_digital_register(value["mask"]);
+            if (!mask) {
+                std::cerr << "Could not get mask register " << value["mask"] << std::endl;
+                exit(EXIT_FAILURE);
+            }
             reg->set_mask(mask);
         } else {
             reg->name_ = value;
         }
-        digital_registers[reg->name_] = reg;
+        digital_registers_[reg->name_] = reg;
         cache[reg->name_] = reg;
     }
-    return rttr::variant(digital_registers);
+    return rttr::variant(digital_registers_);
 }
 
 rttr::variant ProcessingElement::pixel_converter(json& j) {
@@ -99,6 +108,27 @@ rttr::variant ProcessingElement::pixel_converter(json& j) {
     }
 
     return rttr::variant(std::make_shared<Pixel>(rows_, cols_, row_stride_, col_stride_, source, path, config_));
+}
+
+
+void ProcessingElement::add_analogue_register(const std::string& name, std::shared_ptr<AnalogueRegister> reg) {
+    analogue_registers_[name] = std::move(reg);
+}
+
+void ProcessingElement::add_digital_register(const std::string& name, std::shared_ptr<DigitalRegister> reg) {
+    digital_registers_[name] = std::move(reg);
+}
+
+std::shared_ptr<AnalogueRegister> ProcessingElement::get_analogue_register(const std::string& name) {
+    return analogue_registers_[name];
+}
+
+std::shared_ptr<DigitalRegister> ProcessingElement::get_digital_register(const std::string& name) {
+    return digital_registers_[name];
+}
+
+std::shared_ptr<Pixel> ProcessingElement::get_pixel() {
+    return pixel_;
 }
 
 #ifdef TRACK_STATISTICS
@@ -171,25 +201,6 @@ int ProcessingElement::get_cycle_count() {
     return 0;
 }
 
-void ProcessingElement::add_analogue_register(const std::string& name, std::shared_ptr<AnalogueRegister> reg) {
-    analogue_registers_[name] = std::move(reg);
-}
-
-void ProcessingElement::add_digital_register(const std::string& name, std::shared_ptr<DigitalRegister> reg) {
-    digital_registers_[name] = std::move(reg);
-}
-
-std::shared_ptr<AnalogueRegister> ProcessingElement::get_analogue_register(const std::string& name) {
-    return analogue_registers_[name];
-}
-
-std::shared_ptr<DigitalRegister> ProcessingElement::get_digital_register(const std::string& name) {
-    return digital_registers_[name];
-}
-
-std::shared_ptr<Pixel> ProcessingElement::get_pixel() {
-    return pixel_;
-}
 
 //void ProcessingElement::print_stats(const CycleCounter &counter) {
 //    for(auto &analogue: analogue_registers_) { analogue.print_stats(counter); }

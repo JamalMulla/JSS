@@ -5,7 +5,6 @@
 #include "simulator/registers/digital_register.h"
 
 #include <iostream>
-#include <utility>
 
 DigitalRegister::DigitalRegister(int rows, int columns, const std::shared_ptr<Config>& config, int row_stride, int col_stride, MemoryType memory_type) :
     Register(rows, columns, row_stride, col_stride, CV_8U, config, memory_type) {
@@ -31,8 +30,12 @@ DigitalRegister &DigitalRegister::operator()(const std::string &name) {
     return *this;
 }
 
-void DigitalRegister::set_mask(std::shared_ptr<DigitalRegister> mask) {
-    this->mask_ = std::move(mask);
+void DigitalRegister::set_mask(const std::shared_ptr<DigitalRegister>& mask) {
+    this->mask_ = std::make_shared<cv::Mat>(mask->read());
+}
+
+cv::Mat& DigitalRegister::get_mask() {
+    return *mask_;
 }
 
 void DigitalRegister::set() { this->write(1); }

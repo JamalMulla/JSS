@@ -5,19 +5,15 @@
 #include "simulator/buses/digital_bus.h"
 
 #include <opencv4/opencv2/core.hpp>
-#include <utility>
-
-#include "../../../tests/utility.h"
-#include "simulator/registers/analogue_register.h"
 
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
                     DigitalRegister &d1) {
     // d := d0 OR d1
     // TODO this still isn't enough because the write to d is missed
     // TODO Wrapper around all the opencv functions?
-    cv::bitwise_or(d0.read(), d1.read(), d.read());
+    cv::bitwise_or(d0.read(), d1.read(), d.read(), d.get_mask());
 #ifdef TRACK_STATISTICS
-    d.inc_write();
+    d.inc_write(d.get_mask());
     d0.inc_read();
     d1.inc_read();
 #endif
@@ -27,9 +23,9 @@ void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
                     DigitalRegister &d1, DigitalRegister &d2) {
     // d := d0 OR d1 OR d2
     cv::bitwise_or(d0.read(), d1.read(), d0.read());
-    cv::bitwise_or(d0.read(), d2.read(), d.read());
+    cv::bitwise_or(d0.read(), d2.read(), d.read(), d.get_mask());
 #ifdef TRACK_STATISTICS
-    d.inc_write();
+    d.inc_write(d.get_mask());
     d0.inc_read();
     d1.inc_read();
     d2.inc_read();
@@ -42,9 +38,9 @@ void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
     // d := d0 OR d1 OR d2 OR d3
     cv::bitwise_or(d0.read(), d1.read(), d0.read());
     cv::bitwise_or(d0.read(), d2.read(), d0.read());
-    cv::bitwise_or(d0.read(), d3.read(), d.read());
+    cv::bitwise_or(d0.read(), d3.read(), d.read(), d.get_mask());
 #ifdef TRACK_STATISTICS
-    d.inc_write();
+    d.inc_write(d.get_mask());
     d0.inc_read();
     d1.inc_read();
     d2.inc_read();
@@ -54,9 +50,9 @@ void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
 
 void DigitalBus::NOT(DigitalRegister &d, DigitalRegister &d0) {
     // d := NOT d0
-    cv::bitwise_xor(d0.read(), 1, d.read());
+    cv::bitwise_xor(d0.read(), 1, d.read(), d.get_mask());
 #ifdef TRACK_STATISTICS
-    d.inc_write();
+    d.inc_write(d.get_mask());
     d0.inc_write();
 #endif
 }
@@ -67,7 +63,7 @@ void DigitalBus::NOR(DigitalRegister &d, DigitalRegister &d0,
     DigitalBus::OR(d, d0, d1);
     DigitalBus::NOT(d);
 #ifdef TRACK_STATISTICS
-    d.inc_write();
+    d.inc_write(d.get_mask());
     d0.inc_read();
     d1.inc_read();
 #endif
@@ -79,7 +75,7 @@ void DigitalBus::NOR(DigitalRegister &d, DigitalRegister &d0,
     DigitalBus::OR(d, d0, d1, d2);
     DigitalBus::NOT(d);
 #ifdef TRACK_STATISTICS
-    d.inc_write();
+    d.inc_write(d.get_mask());
     d0.inc_read();
     d1.inc_read();
     d2.inc_read();
@@ -93,7 +89,7 @@ void DigitalBus::NOR(DigitalRegister &d, DigitalRegister &d0,
     DigitalBus::OR(d, d0, d1, d2, d3);
     DigitalBus::NOT(d);
 #ifdef TRACK_STATISTICS
-    d.inc_write();
+    d.inc_write(d.get_mask());
     d0.inc_read();
     d1.inc_read();
     d2.inc_read();
@@ -103,9 +99,9 @@ void DigitalBus::NOR(DigitalRegister &d, DigitalRegister &d0,
 
 void DigitalBus::NOT(DigitalRegister &Rl) {
     // Rl := NOT Rl
-    cv::bitwise_xor(Rl.read(), 1, Rl.read());
+    cv::bitwise_xor(Rl.read(), 1, Rl.read(), Rl.get_mask());
 #ifdef TRACK_STATISTICS
-    Rl.inc_write();
+    Rl.inc_write(Rl.get_mask());
     Rl.inc_read();
 #endif
 }
@@ -114,7 +110,7 @@ void DigitalBus::OR(DigitalRegister &Rl, DigitalRegister &Rx) {
     // Rl := Rl OR Rx
     DigitalBus::OR(Rl, Rl, Rx);
 #ifdef TRACK_STATISTICS
-    Rl.inc_write();
+    Rl.inc_write(Rl.get_mask());
     Rl.inc_read();
     Rx.inc_read();
 #endif
@@ -124,7 +120,7 @@ void DigitalBus::NOR(DigitalRegister &Rl, DigitalRegister &Rx) {
     // Rl := Rl NOR Rx
     DigitalBus::NOR(Rl, Rl, Rx);
 #ifdef TRACK_STATISTICS
-    Rl.inc_write();
+    Rl.inc_write(Rl.get_mask());
     Rl.inc_read();
     Rx.inc_read();
 #endif
@@ -133,9 +129,9 @@ void DigitalBus::NOR(DigitalRegister &Rl, DigitalRegister &Rx) {
 void DigitalBus::AND(DigitalRegister &Ra, DigitalRegister &Rx,
                      DigitalRegister &Ry) {
     // Ra := Rx AND Ry
-    cv::bitwise_and(Rx.read(), Ry.read(), Ra.read());
+    cv::bitwise_and(Rx.read(), Ry.read(), Ra.read(), Ra.get_mask());
 #ifdef TRACK_STATISTICS
-    Ra.inc_write();
+    Ra.inc_write(Ra.get_mask());
     Rx.inc_read();
     Ry.inc_read();
 #endif
@@ -147,7 +143,7 @@ void DigitalBus::NAND(DigitalRegister &Ra, DigitalRegister &Rx,
     DigitalBus::AND(Ra, Rx, Ry);
     DigitalBus::NOT(Ra);
 #ifdef TRACK_STATISTICS
-    Ra.inc_write();
+    Ra.inc_write(Ra.get_mask());
     Rx.inc_read();
     Ry.inc_read();
 #endif
@@ -166,7 +162,7 @@ void DigitalBus::IMP(DigitalRegister &Rl, DigitalRegister &Rx,
     DigitalBus::NOT(intermediate, Ry);
     DigitalBus::OR(Rl, Rx, intermediate);
 #ifdef TRACK_STATISTICS
-    Rl.inc_write();
+    Rl.inc_write(Rl.get_mask());
     Rx.inc_read();
     Ry.inc_read();
 #endif
@@ -179,7 +175,7 @@ void DigitalBus::NIMP(DigitalRegister &Rl, DigitalRegister &Rx,
     DigitalBus::NOT(intermediate);
     DigitalBus::NOR(Rl, Rx, intermediate);
 #ifdef TRACK_STATISTICS
-    Rl.inc_write();
+    Rl.inc_write(Rl.get_mask());
     Rx.inc_read();
     Ry.inc_read();
 #endif
@@ -188,7 +184,7 @@ void DigitalBus::NIMP(DigitalRegister &Rl, DigitalRegister &Rx,
 void DigitalBus::XOR(DigitalRegister &Rl, DigitalRegister &Rx,
                      DigitalRegister &Ry) {
     // Rl := Rx XOR Ry
-    cv::bitwise_xor(Rx.read(), Ry.read(), Rl.read());
+    cv::bitwise_xor(Rx.read(), Ry.read(), Rl.read(), Rl.get_mask());
 #ifdef TRACK_STATISTICS
     Rl.inc_write();
     Rx.inc_read();
@@ -198,9 +194,9 @@ void DigitalBus::XOR(DigitalRegister &Rl, DigitalRegister &Rx,
 
 void DigitalBus::MOV(DigitalRegister &d, DigitalRegister &d0) {
     // d := d0
-    cv::copyTo(d0.read(), d.read(), cv::noArray());
+    cv::copyTo(d0.read(), d.read(), d.get_mask());
 #ifdef TRACK_STATISTICS
-    d.inc_write();
+    d.inc_write(d.get_mask());
     d0.inc_read();
 #endif
 }
@@ -217,7 +213,7 @@ void DigitalBus::MUX(DigitalRegister &Rl, DigitalRegister &Rx,
     DigitalBus::OR(Rl, intermediate, intermediate2);
 #ifdef TRACK_STATISTICS
     // TODO fix reads
-    Rl.inc_write();
+    Rl.inc_write(Rl.get_mask());
     Rx.inc_read();
     Ry.inc_read();
     Rz.inc_read();
@@ -231,12 +227,12 @@ void DigitalBus::CLR_IF(DigitalRegister &Rl, DigitalRegister &Rx) {
     DigitalBus::NOR(Rl, intermediate, Rx);
 #ifdef TRACK_STATISTICS
     // TODO fix reads
-    Rl.inc_write();
+    Rl.inc_write(Rl.get_mask());
     Rx.inc_read();
 #endif
 }
 
-// Masked
+// Masked by an external mask
 
 void DigitalBus::OR_MASKED(DigitalRegister &d, DigitalRegister &d0,
                            DigitalRegister &d1, DigitalRegister &FLAG) {
@@ -384,12 +380,12 @@ void DigitalBus::get_up(DigitalRegister &dst, DigitalRegister &src, int offset,
         cv::Rect(0, 0, src.read().cols, src.read().rows - offset);
     auto write_chunk =
         cv::Rect(0, offset, src.read().cols, src.read().rows - offset);
-    src.read()(read_chunk).copyTo(dst.read()(write_chunk));
+    src.read()(read_chunk).copyTo(dst.read()(write_chunk), dst.get_mask());
     auto fill = cv::Rect(0, 0, src.read().cols, offset);
-    dst.read()(fill).setTo(cv::Scalar(boundary_fill));
+    dst.read()(fill).setTo(cv::Scalar(boundary_fill), dst.get_mask());
 #ifdef TRACK_STATISTICS
+    dst.inc_write(dst.get_mask());
     src.inc_read();
-    dst.inc_write();
 #endif
 }
 
@@ -403,10 +399,10 @@ void DigitalBus::get_right(DigitalRegister &dst, DigitalRegister &src,
     src.read()(read_chunk).copyTo(dst.read()(write_chunk));
     auto fill =
         cv::Rect(src.read().cols - offset, 0, offset, src.read().rows);
-    dst.read()(fill).setTo(cv::Scalar(boundary_fill));
+    dst.read()(fill).setTo(cv::Scalar(boundary_fill), dst.get_mask());
 #ifdef TRACK_STATISTICS
+    dst.inc_write(dst.get_mask());
     src.inc_read();
-    dst.inc_write();
 #endif
 }
 
@@ -417,12 +413,12 @@ void DigitalBus::get_left(DigitalRegister &dst, DigitalRegister &src,
         cv::Rect(0, 0, src.read().cols - offset, src.read().rows);
     auto write_chunk =
         cv::Rect(offset, 0, src.read().cols - offset, src.read().rows);
-    src.read()(read_chunk).copyTo(dst.read()(write_chunk));
+    src.read()(read_chunk).copyTo(dst.read()(write_chunk), dst.get_mask());
     auto fill = cv::Rect(0, 0, offset, src.read().rows);
-    dst.read()(fill).setTo(cv::Scalar(boundary_fill));
+    dst.read()(fill).setTo(cv::Scalar(boundary_fill), dst.get_mask());
 #ifdef TRACK_STATISTICS
+    dst.inc_write(dst.get_mask());
     src.inc_read();
-    dst.inc_write();
 #endif
 }
 
@@ -433,13 +429,13 @@ void DigitalBus::get_down(DigitalRegister &dst, DigitalRegister &src,
         cv::Rect(0, offset, src.read().cols, src.read().rows - offset);
     auto write_chunk =
         cv::Rect(0, 0, src.read().cols, src.read().rows - offset);
-    src.read()(read_chunk).copyTo(dst.read()(write_chunk));
+    src.read()(read_chunk).copyTo(dst.read()(write_chunk), dst.get_mask());
     auto fill =
         cv::Rect(0, src.read().rows - offset, src.read().cols, offset);
-    dst.read()(fill).setTo(cv::Scalar(boundary_fill));
+    dst.read()(fill).setTo(cv::Scalar(boundary_fill), dst.get_mask());
 #ifdef TRACK_STATISTICS
+    dst.inc_write(dst.get_mask());
     src.inc_read();
-    dst.inc_write();
 #endif
 }
 

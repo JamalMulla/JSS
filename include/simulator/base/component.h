@@ -30,6 +30,7 @@ class Component : public StatsOutputter {
     void print_stats(const CycleCounter& counter) override = 0;
 //    virtual void write_stats(const CycleCounter& counter, json& j) = 0;
 #endif
+    virtual ~Component() = default;
 };
 
 #endif  // SIMULATOR_COMPONENT_H
