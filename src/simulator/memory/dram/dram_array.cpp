@@ -49,18 +49,19 @@ void Dram::set_config(const std::shared_ptr<Config>& config) {
     this->config_ = config;
 }
 
-int8_t Dram::read_byte(int array, int row, int start_col) {
+int Dram::read_byte(int array, int row, int start_col) {
     int8_t value = 0;
-    for (int i = 0; i < 8; ++i) {
-        value |= read_bit(array, row, start_col + i) << i;
+    for (int i = 0; i < 8; i++) {
+        bool b = read_bit(array, row, start_col + i);
+        value |= b << i;
     }
 
     return value;
 }
 
-void Dram::write_byte(int array, int row, int start_col, int8_t value) {
-    for (int i = 0; i < 8; ++i) {
-        write_bit(array, row, start_col + i, (value & (1 << i)) != 0);
+void Dram::write_byte(int array, int row, int start_col, int value) {
+    for (int i = 0; i < 8; i++) {
+        write_bit(array, row, start_col + i, value & (1 << i));
     }
 }
 
@@ -74,6 +75,13 @@ void Dram::write_bit(int array, int row, int col, bool value) {
     data.at<uint8_t>(array, row, col) = value;
 }
 
+void Dram::print_row(int array, int row) {
+    for (int col = 0; col < array_cols_; ++col) {
+        bool b = read_bit(array, row, col);
+        std::cout << (int) b;
+    }
+    std::cout << std::endl;
+}
 
 void Dram::reset() {
     data = 0;

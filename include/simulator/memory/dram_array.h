@@ -51,10 +51,12 @@ class Dram : public Component {
     void set_array_cols(int array_cols);
     void set_config(const std::shared_ptr<Config>& config);
 
-    int8_t read_byte(int array, int row, int start_col);
-    void write_byte(int array, int row, int start_col, int8_t value);
+    int read_byte(int array, int row, int start_col);
+    void write_byte(int array, int row, int start_col, int value);
     bool read_bit(int array, int row, int col);
     void write_bit(int array, int row, int col, bool value);
+
+    void print_row(int array, int row);
 
     void reset();
 

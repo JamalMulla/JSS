@@ -17,6 +17,7 @@
 
 // TODO implement StatsOutputter
 class Architecture {
+    RTTR_ENABLE();
    private:
     CycleCounter counter_;
 
