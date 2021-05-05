@@ -2,7 +2,7 @@
 // Created by jm1417 on 28/01/2021.
 //
 
-#include "simulator/base/processing_element.h"
+#include "simulator/pe/processing_element.h"
 
 #include <rttr/registration>
 #include <utility>

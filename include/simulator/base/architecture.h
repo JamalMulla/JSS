@@ -13,7 +13,7 @@
 
 #include "component.h"
 #include "plane_params.h"
-#include "processing_element.h"
+#include "simulator/pe/processing_element.h"
 
 // TODO implement StatsOutputter
 class Architecture {

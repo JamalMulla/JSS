@@ -19,6 +19,7 @@ class InputSource {
 
    public:
     virtual void read(Register& reg) = 0;
+    virtual cv::Mat read() = 0;
     virtual void reset() = 0;
     virtual double last_frame_time() = 0;
 

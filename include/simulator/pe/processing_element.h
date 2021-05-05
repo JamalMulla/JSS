@@ -33,7 +33,7 @@ class ProcessingElement : public Component {
     Comparator comparator;
     AnalogueBus analogue_bus;
     DigitalBus local_read_bus;
-    [[maybe_unused]] DigitalBus local_write_bus;
+    DigitalBus local_write_bus;
 
     ProcessingElement() = default;
 

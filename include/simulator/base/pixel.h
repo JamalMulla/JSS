@@ -34,6 +34,7 @@ class Pixel : public Component {
     Pixel(int rows, int cols, int row_stride, int col_stride, Source src, const std::string& path, std::shared_ptr<Config> config);
     void reset();
     void read(Register& reg);
+    cv::Mat read();
     double last_frame_time();
 #ifdef TRACK_STATISTICS
     cv::Mat get_static_energy() override;

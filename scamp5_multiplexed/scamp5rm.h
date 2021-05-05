@@ -1,9 +1,11 @@
 //
-// Created by jm1417 on 31/01/2021.
+// Created by jm1417 on 05/05/2021.
 //
 
-#ifndef SIMULATOR_SCAMP5_H
-#define SIMULATOR_SCAMP5_H
+#ifndef SIMULATOR_SCAMP5RM_H
+#define SIMULATOR_SCAMP5RM_H
+
+#include <simulator/alu/alu.h>
 
 #include <opencv4/opencv2/opencv.hpp>
 #include <rttr/type>
@@ -12,28 +14,15 @@
 #include "simulator/pe/processing_element.h"
 
 enum news_t { east = 1,
-              west = 2,
-              north = 4,
-              south = 8,
-              alldir = 15 };
+    west = 2,
+    north = 4,
+    south = 8,
+    alldir = 15 };
 
 typedef AnalogueRegister AREG;
 typedef DigitalRegister DREG;
-#define RS R1
-#define RW R2
-#define RN R3
-#define RE R4
-#define S0 R5
-#define S1 R6
-#define S2 R7
-#define S3 R8
-#define S4 R9
-#define S5 R10
-#define S6 R11
-#define RP R12
-#define RF R0
 
-class SCAMP5 : public Architecture {
+class SCAMP5RM : Architecture {
    protected:
     int rows_;
     int cols_;
@@ -43,12 +32,13 @@ class SCAMP5 : public Architecture {
 
    public:
     std::shared_ptr<ProcessingElement> pe;
+    std::shared_ptr<ALU> alu;
     std::shared_ptr<AREG> intermediate_a;
     std::shared_ptr<AREG> intermediate_a2;
     std::shared_ptr<DREG> intermediate_d;
     std::shared_ptr<DREG> scratch = nullptr;
 
-    SCAMP5() = default;
+    SCAMP5RM() = default;
     void init();
     rttr::variant components_converter(json& j);
     rttr::variant config_converter(json& j);
@@ -59,42 +49,6 @@ class SCAMP5 : public Architecture {
     void set_origin(Origin origin);
     void set_config(std::shared_ptr<Config> config);
     void set_components(std::unordered_map<std::string, std::shared_ptr<Component> > components);
-
-    // Analogue registers
-    //    // TODO make these 4 usable? How should they be handled if they are
-    //    used in some instruction? AREG& XE =
-    //    array.pe.analogue_registers_[9]("XE"); AREG& XW =
-    //    array.pe.analogue_registers_[10]("XW"); AREG& XN =
-    //    array.pe.analogue_registers_[11]("XN"); AREG& XS =
-    //    array.pe.analogue_registers_[12]("XS");
-
-    // Digital registers
-    std::shared_ptr<AREG> PIX;
-    std::shared_ptr<AREG> IN;
-    std::shared_ptr<AREG> NEWS;
-    std::shared_ptr<AREG> A;
-    std::shared_ptr<AREG> B;
-    std::shared_ptr<AREG> C;
-    std::shared_ptr<AREG> D;
-    std::shared_ptr<AREG> E;
-    std::shared_ptr<AREG> F;
-
-    std::shared_ptr<DREG> FLAG;
-    std::shared_ptr<DREG> RF;
-    std::shared_ptr<DREG> RS;
-    std::shared_ptr<DREG> RW;
-    std::shared_ptr<DREG> RN;
-    std::shared_ptr<DREG> RE;
-    std::shared_ptr<DREG> S0;
-    std::shared_ptr<DREG> S1;
-    std::shared_ptr<DREG> S2;
-    std::shared_ptr<DREG> S3;
-    std::shared_ptr<DREG> S4;
-    std::shared_ptr<DREG> S5;
-    std::shared_ptr<DREG> S6;
-    std::shared_ptr<DREG> RP;
-    std::shared_ptr<DREG> SELECT;
-    std::shared_ptr<DREG> RECT;
 
     // Misc
     void nop();
@@ -114,23 +68,23 @@ class SCAMP5 : public Architecture {
 
     void getpix(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& h, const std::shared_ptr<AREG>& pix_res);
 
-    void bus(const std::shared_ptr<AREG>& a);
-
-    void bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0);
-
-    void bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1);
-
-    void bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1, const std::shared_ptr<AREG>& a2);
-
-    void bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1, const std::shared_ptr<AREG>& a2, const std::shared_ptr<AREG>& a3);
-
-    void bus2(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b);
-
-    void bus2(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b, const std::shared_ptr<AREG>& a0);
-
-    void bus2(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1);
-
-    void bus3(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b, const std::shared_ptr<AREG>& c, const std::shared_ptr<AREG>& a0);
+//    void bus(const std::shared_ptr<AREG>& a);
+//
+//    void bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0);
+//
+//    void bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1);
+//
+//    void bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1, const std::shared_ptr<AREG>& a2);
+//
+//    void bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1, const std::shared_ptr<AREG>& a2, const std::shared_ptr<AREG>& a3);
+//
+//    void bus2(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b);
+//
+//    void bus2(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b, const std::shared_ptr<AREG>& a0);
+//
+//    void bus2(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1);
+//
+//    void bus3(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b, const std::shared_ptr<AREG>& c, const std::shared_ptr<AREG>& a0);
 
     void where(const std::shared_ptr<AREG>& a);
 
@@ -179,25 +133,25 @@ class SCAMP5 : public Architecture {
     void sub2x(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0, news_t dir, news_t dir2, const std::shared_ptr<AREG>& x1);
 
     // Asynchronized Blur
-    void blurset();
-
-    void blur(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0);
-
-    void blurh(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0);
-
-    void blurv(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0);
-
-    void gauss(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 3);
-
-    void gaussh(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 3);
-
-    void gaussv(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 3);
-
-    void newsblur(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 1);
-
-    void newsblurh(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 1);
-
-    void newsblurv(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 1);
+//    void blurset();
+//
+//    void blur(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0);
+//
+//    void blurh(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0);
+//
+//    void blurv(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0);
+//
+//    void gauss(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 3);
+//
+//    void gaussh(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 3);
+//
+//    void gaussv(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 3);
+//
+//    void newsblur(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 1);
+//
+//    void newsblurh(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 1);
+//
+//    void newsblurv(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x, int iterations = 1);
 
     // Digital Logic Operations
     void OR(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1);
@@ -299,10 +253,10 @@ class SCAMP5 : public Architecture {
 
     void scamp5_shift(const std::shared_ptr<AREG>& areg, int h, int v);
 
-    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations);
-    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations, bool vertical);
-    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations, bool vertical, bool horizontal);
-    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations, bool vertical, bool horizontal, std::shared_ptr<AREG>& t0);
+//    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations);
+//    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations, bool vertical);
+//    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations, bool vertical, bool horizontal);
+//    void scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations, bool vertical, bool horizontal, std::shared_ptr<AREG>& t0);
 
     uint8_t scamp5_read_areg(const std::shared_ptr<AREG>& areg, uint8_t r, uint8_t c);
 
@@ -384,5 +338,4 @@ class SCAMP5 : public Architecture {
     RTTR_ENABLE(Architecture);
 };
 
-
-#endif  // SIMULATOR_SCAMP5_H
+#endif  //SIMULATOR_SCAMP5RM_H

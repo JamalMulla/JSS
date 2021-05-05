@@ -47,10 +47,20 @@ Pixel::Pixel(int rows, int cols, int row_stride, int col_stride, Source src, con
 
 void Pixel::reset() { input_source->reset(); }
 
+cv::Mat Pixel::read() {
+    cv::Mat m = input_source->read();
+#ifdef TRACK_STATISTICS
+    double seconds = this->input_source->last_frame_time();
+    cycle_count_ = seconds * this->config_->get_clock_rate();
+    cv::add(this->array_dynamic_energy_, this->dynamic_power_, this->array_dynamic_energy_, this->internal_mask);
+#endif
+    return m;
+}
+
 void Pixel::read(Register& reg) {
     input_source->read(reg);
-    double seconds = this->input_source->last_frame_time();
 #ifdef TRACK_STATISTICS
+    double seconds = this->input_source->last_frame_time();
     cycle_count_ = seconds * this->config_->get_clock_rate();
     cv::add(this->array_dynamic_energy_, this->dynamic_power_, this->array_dynamic_energy_, this->internal_mask);
 #endif

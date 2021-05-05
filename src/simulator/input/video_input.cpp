@@ -21,11 +21,16 @@ VideoInput::VideoInput(int rows, int cols, const std::string &path) {
     this->frame.setTo(0);
 }
 
-void VideoInput::read(Register &reg) {
-    LiveInput::read(reg);
+cv::Mat VideoInput::read() {
+    LiveInput::read();
     frame_count++;
     if(frame_count == this->capture->get(cv::CAP_PROP_FRAME_COUNT)) {
         frame_count = 0;
         this->capture->set(cv::CAP_PROP_POS_FRAMES, 0);
     }
+    return this->frame;
+}
+
+void VideoInput::read(Register &reg) {
+    reg.write(this->read());
 }

@@ -24,7 +24,7 @@ class Dram : public Component {
     int word_length_;
     std::shared_ptr<Config> config_;
 #ifdef TRACK_STATISTICS
-    int cycle_count_ = 1;
+    int cycle_count_ = 2;
     int transistor_count_;
     double static_power_;  // in Watts
     double dynamic_power_;  // in Watts

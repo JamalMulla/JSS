@@ -1,9 +1,9 @@
 get_image(C,D);
-scamp5_in(E, 15)
+scamp5_in(G, 15)
 sub(D,C,F);	// D = C - F
 mov(F,C);	// F = C
 abs(B,D);	// B = |D|
-sub(A,B,E);	// A = B - E
+sub(A,B,G);	// A = B - E
 where(A);	// where A > 0
     MOV(R5, FLAG);
 all();
