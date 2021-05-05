@@ -20,8 +20,8 @@ class Dram : public Component {
     int row_stride_ = 1;
     int col_stride_ = 1;
     int array_rows_; // rows of each dram array
-    int array_cols_; // cols of each dram array
-    int word_length_;
+    int array_cols_; // cols of each dram array. Each column is 1 bit
+//    int word_length_;
     std::shared_ptr<Config> config_;
 #ifdef TRACK_STATISTICS
     int cycle_count_ = 2;
@@ -49,11 +49,13 @@ class Dram : public Component {
     void set_col_stride(int col_stride);
     void set_array_rows(int array_rows);
     void set_array_cols(int array_cols);
-    void set_word_length(int word_length);
     void set_config(const std::shared_ptr<Config>& config);
 
-    int read(int array, int row, int col);
-    void write(int array, int row, int col, int value);
+    int8_t read_byte(int array, int row, int start_col);
+    void write_byte(int array, int row, int start_col, int8_t value);
+    bool read_bit(int array, int row, int col);
+    void write_bit(int array, int row, int col, bool value);
+
     void reset();
 
 #ifdef TRACK_STATISTICS

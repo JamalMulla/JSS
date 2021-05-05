@@ -40,6 +40,8 @@ void SCAMP5RM::get_image(const std::shared_ptr<AREG>& y) {
     // y := half-range image, and reset *PIX
     cv::Mat image = this->pe->get_pixel()->read();
 
+    
+
     this->bus(NEWS, PIX);
     this->rpix();
     this->rpix();

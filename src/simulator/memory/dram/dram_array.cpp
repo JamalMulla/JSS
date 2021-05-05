@@ -18,7 +18,7 @@ void Dram::init() {
     this->fun_internal_mask();
 #endif
     int sizes[] = {((rows_ * cols_) / row_stride_) / col_stride_, array_rows_, array_cols_};
-    data = cv::Mat(3, sizes, CV_32S, cv::Scalar(0));
+    data = cv::Mat(3, sizes, CV_8U, cv::Scalar(0)); // only holds 1s and 0s
 }
 
 void Dram::set_rows(int rows) {
@@ -45,21 +45,35 @@ void Dram::set_array_cols(int array_cols) {
     this->array_cols_ = array_cols;
 }
 
-void Dram::set_word_length(int word_length) {
-    this->word_length_ = word_length;
-}
-
 void Dram::set_config(const std::shared_ptr<Config>& config) {
     this->config_ = config;
 }
 
-int Dram::read(int array, int row, int col) {
-    return data.at<int32_t>(array, row, col);
+int8_t Dram::read_byte(int array, int row, int start_col) {
+    int8_t value = 0;
+    for (int i = 0; i < 8; ++i) {
+        value |= read_bit(array, row, start_col + i) << i;
+    }
+
+    return value;
 }
 
-void Dram::write(int array, int row, int col, int value) {
-    data.at<int32_t>(array, row, col) = value;
+void Dram::write_byte(int array, int row, int start_col, int8_t value) {
+    for (int i = 0; i < 8; ++i) {
+        write_bit(array, row, start_col + i, (value & (1 << i)) != 0);
+    }
 }
+
+bool Dram::read_bit(int array, int row, int col) {
+    // todo dynamic energy costs
+    return data.at<uint8_t>(array, row, col);
+}
+
+void Dram::write_bit(int array, int row, int col, bool value) {
+    // todo dynamic energy costs
+    data.at<uint8_t>(array, row, col) = value;
+}
+
 
 void Dram::reset() {
     data = 0;
@@ -77,10 +91,10 @@ void Dram::fun_internal_mask() {
 }
 
 int Dram::fun_transistor(const std::shared_ptr<Config>& config) {
-    // 1t1c DRAM cells (for now). So rows * cols * word_length for just DRAM cell transistor counts
+    // 1t1c DRAM cells (for now). So rows * cols for just DRAM cell transistor counts
     // Some number for sense amplifiers
     // Some number for row/col decoders
-    return (array_rows_ * array_cols_ * word_length_);
+    return (array_rows_ * array_cols_);
 }
 
 double Dram::fun_static(const std::shared_ptr<Config>& config) {
@@ -121,6 +135,7 @@ cv::Mat Dram::get_transistor_count() {
 
 void Dram::print_stats(const CycleCounter& counter) {
 }
+
 #endif
 
 RTTR_REGISTRATION {
@@ -135,6 +150,5 @@ RTTR_REGISTRATION {
         .method("set_col_stride", &Dram::set_col_stride)
         .method("set_array_rows", &Dram::set_array_rows)
         .method("set_array_cols", &Dram::set_array_cols)
-        .method("set_word_length", &Dram::set_word_length)
         .method("set_config", &Dram::set_config);
 };
