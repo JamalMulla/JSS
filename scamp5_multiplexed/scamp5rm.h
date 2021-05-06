@@ -13,44 +13,45 @@
 #include "simulator/base/architecture.h"
 #include "simulator/pe/processing_element.h"
 
-
-#define PIX 0
-#define IN 8
-#define NEWS 16
-#define A 24
-#define B 32
-#define C 40
-#define D 48
-#define E 56
-#define F 64
-
-#define FLAG 72
-#define SELECT 73
-#define RECT 74
-#define R1 75
-#define R2 76
-#define R3 77
-#define R4 78
-#define R5 79
-#define R6 80
-#define R7 81
-#define R8 82
-#define R9 83
-#define R10 84
-#define R11 85
-#define R12 86
-#define R0 87
-
 enum news_t { east = 1,
     west = 2,
     north = 4,
     south = 8,
     alldir = 15 };
 
-typedef int AREG;
-typedef int DREG;
+enum AREG {
+    PIX = 0,
+    IN = 8,
+    NEWS = 16,
+    A = 24,
+    B = 32,
+    C = 40,
+    D = 48,
+    E = 56,
+    F = 64
+};
 
-class SCAMP5RM : Architecture {
+enum DREG {
+    FLAG = 72,
+    SELECT = 73,
+    RECT = 74,
+    R1 = 75,
+    R2 = 76,
+    R3 = 77,
+    R4 = 78,
+    R5 = 79,
+    R6 = 80,
+    R7 = 81,
+    R8 = 82,
+    R9 = 83,
+    R10 = 84,
+    R11 = 85,
+    R12 = 86,
+    R0 = 87
+};
+
+class SCAMP5RM : public Architecture {
+
    protected:
     int rows_;
     int cols_;
@@ -59,17 +60,14 @@ class SCAMP5RM : Architecture {
     Origin origin_;
 
    public:
+
     std::shared_ptr<ProcessingElement> pe;
     std::shared_ptr<ALU> alu;
     std::shared_ptr<Dram> dram;
-    std::shared_ptr<AREG> intermediate_a;
-    std::shared_ptr<AREG> intermediate_a2;
-    std::shared_ptr<DREG> intermediate_d;
-    std::shared_ptr<DREG> scratch = nullptr;
+    DREG scratch = R0;
 
     SCAMP5RM() = default;
     void init();
-    rttr::variant components_converter(json& j);
     rttr::variant config_converter(json& j);
     void set_rows(int rows);
     void set_cols(int cols);
@@ -250,30 +248,23 @@ class SCAMP5RM : Architecture {
 
     void DNEWS(DREG Ra, DREG Rx, int dir, bool boundary);
 
-    // Digital Propagation
-    void PROP0();
-
-    void PROP1();
 
     // Vision system functions
     //   Analogue
-    void scamp5_get_image(AREG yf, AREG yh, int gain = 1);
 
     // todo overload all the default ones and add to registration
     void scamp5_in(AREG areg, int16_t value);
-    void scamp5_in(AREG areg, int16_t value, std::shared_ptr<AREG>& temp);
+    void scamp5_in(AREG areg, int16_t value, AREG temp);
 
-    void scamp5_load_in(AREG areg, int8_t value, std::shared_ptr<AREG>& temp);
+    void scamp5_load_in(AREG areg, int8_t value, AREG temp);
     void scamp5_load_in(AREG areg, int8_t value);
 
     void scamp5_load_in(int8_t value);
 
-    void scamp5_load_dac(AREG areg, uint16_t value, std::shared_ptr<AREG>& temp);
+    void scamp5_load_dac(AREG areg, uint16_t value, AREG temp);
     void scamp5_load_dac(AREG areg, uint16_t value);
 
     void scamp5_load_dac(uint16_t value);
-
-    void scamp5_shift(AREG areg, int h, int v);
 
 //    void scamp5_diffuse(AREG target, int iterations);
 //    void scamp5_diffuse(AREG target, int iterations, bool vertical);
@@ -282,24 +273,9 @@ class SCAMP5RM : Architecture {
 
     uint8_t scamp5_read_areg(AREG areg, uint8_t r, uint8_t c);
 
-    uint32_t scamp5_global_sum_16(AREG areg, uint8_t* result16v = nullptr);
-
-    uint32_t scamp5_global_sum_64(AREG areg, uint8_t* result64v = nullptr);
-
-    uint8_t scamp5_global_sum_fast(AREG areg);
-
-    uint8_t scamp5_global_sum_sparse(AREG areg, uint8_t r = 2, uint8_t c = 2,
-                                     uint8_t rx = 254, uint8_t cx = 254);
-
-    //    Digital
-    void scamp5_shift(DREG dreg, int h, int v, int boundary = 0);
-
     int scamp5_global_or(DREG dreg, uint8_t r = 0, uint8_t c = 0, uint8_t rx = 255, uint8_t cx = 255);
 
     int scamp5_global_count(DREG dreg, AREG temp, int options = 0);
-
-    void scamp5_flood(DREG dreg_target, DREG dreg_mask, int boundary,
-                      int iterations = 5, bool use_local = false);
 
     void scamp5_load_point(DREG dr, uint8_t r, uint8_t c);
 
@@ -331,11 +307,11 @@ class SCAMP5RM : Architecture {
 
     bool scamp5_draw_point(int r, int c);
 
-    void scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1);
+//    void scamp5_draw_rect(uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1);
 
-    void scamp5_draw_line(int r0, int c0, int r1, int c1, bool repeat = false);
+//    void scamp5_draw_line(int r0, int c0, int r1, int c1, bool repeat = false);
 
-    void scamp5_draw_circle(int x0, int y0, int radius, bool repeat = false);
+//    void scamp5_draw_circle(int x0, int y0, int radius, bool repeat = false);
 
     void scamp5_draw_negate();
 
@@ -344,8 +320,6 @@ class SCAMP5RM : Architecture {
 
     void scamp5_scan_areg_8x8(AREG areg, uint8_t* result8x8);
 
-    void scamp5_scan_areg_mean_8x8(AREG areg, uint8_t* result8x8);
-
     void scamp5_scan_dreg(DREG dreg, uint8_t* mem, uint8_t r0 = 0,
                           uint8_t r1 = 255);
 
@@ -353,7 +327,6 @@ class SCAMP5RM : Architecture {
 
     void scamp5_scan_events(DREG dreg, uint8_t* buffer, uint16_t max_num, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs, uint8_t cs);
 
-    void scamp5_scan_boundingbox(DREG dr, uint8_t* vec4v);
 
     // Simulator specific methods
     void print_stats();

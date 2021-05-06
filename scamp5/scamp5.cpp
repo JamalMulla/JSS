@@ -1589,26 +1589,6 @@ void SCAMP5::print_stats() {
 #endif
 }
 
-// todo move into base class
-rttr::variant SCAMP5::components_converter(json& j) {
-    std::unordered_map<std::string, std::shared_ptr<Component>> components;
-    try {
-        for (auto& [_, value] : j.items()) {
-            std::string name = value["_name"];
-            std::string component = value["_component"];
-            std::shared_ptr<Component> instance = Parser::get_instance().create_instance(component, value).get_value<std::shared_ptr<Component>>();
-            components[name] = instance;
-        }
-        return rttr::variant(components);
-    } catch (json::type_error&) {
-        std::cerr << "[Warning] Could not parse component" << std::endl;
-    } catch (json::parse_error&) {
-        std::cerr << "[Warning] Could not parse component" << std::endl;
-    }
-
-    return rttr::variant();
-}
-
 rttr::variant SCAMP5::config_converter(json& j) {
     return Parser::get_instance().create_instance("Config", j);
 }
@@ -1655,7 +1635,6 @@ RTTR_REGISTRATION {
         .constructor()
         .method("init", &SCAMP5::init)
         .method("config_converter", &SCAMP5::config_converter)
-        .method("components_converter", &SCAMP5::components_converter)
         .method("set_rows", &SCAMP5::set_rows)
         .method("set_cols", &SCAMP5::set_cols)
         .method("set_row_stride", &SCAMP5::set_row_stride)

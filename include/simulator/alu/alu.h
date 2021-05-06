@@ -8,7 +8,7 @@
 #include "simulator/base/component.h"
 #include "simulator/base/config.h"
 
-class ALU : Component {
+class ALU : public Component {
    public:
     enum OPCODE {
         ADD,
@@ -55,7 +55,6 @@ class ALU : Component {
     void set_row_stride(int row_stride);
     void set_col_stride(int col_stride);
     void set_config(const std::shared_ptr<Config>& config);
-
 
     int execute(int a, int b, OPCODE opcode);
 

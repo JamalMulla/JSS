@@ -39,6 +39,7 @@ class Architecture {
 
     void add_component(const std::string& name, std::shared_ptr<Component> component);
     void add_components(std::unordered_map<std::string, std::shared_ptr<Component> > components);
+    rttr::variant components_converter(json& j);
 
     void update_cycles(int cycles);
 #ifdef TRACK_STATISTICS

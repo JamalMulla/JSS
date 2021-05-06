@@ -50,7 +50,6 @@ class SCAMP5 : public Architecture {
 
     SCAMP5() = default;
     void init();
-    rttr::variant components_converter(json& j);
     rttr::variant config_converter(json& j);
     void set_rows(int rows);
     void set_cols(int cols);

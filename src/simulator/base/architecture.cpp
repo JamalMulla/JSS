@@ -3,15 +3,10 @@
 //
 
 #include "simulator/base/architecture.h"
+#include <rttr/registration>
 
 #include <utility>
 
-//Architecture::Architecture(int rows, int columns, Config& config, ProcessingElement pe) :
-//    rows_(rows), columns_(columns),
-//    config_(config), pe(std::move(pe))
-////    cla(rows, columns, 4, 4, 8, config),
-////    dram(rows, columns, 8, 8, 256, 1, 16, config)
-//{}
 
 std::shared_ptr<Component> Architecture::get_component(const std::string& name) {
     return components_[name];
@@ -23,6 +18,34 @@ void Architecture::add_component(const std::string& name, std::shared_ptr<Compon
 
 void Architecture::add_components(std::unordered_map<std::string, std::shared_ptr<Component>> components) {
     components_.merge(components);
+}
+
+rttr::variant Architecture::components_converter(json& j) {
+    std::unordered_map<std::string, std::shared_ptr<Component>> components;
+    std::string component;
+    try {
+        for (auto& [_, value] : j.items()) {
+            if (!value.contains("_name")) {
+                std::cerr << "Component does not have a \"_name\" field set" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            std::string name = value["_name"];
+            if (!value.contains("_component")) {
+                std::cerr << "Component does not have a \"_component\" field set" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            component = value["_component"];
+            std::shared_ptr<Component> instance = Parser::get_instance().create_instance(component, value).get_value<std::shared_ptr<Component>>();
+            components[name] = instance;
+        }
+        return rttr::variant(components);
+    } catch (json::type_error&) {
+        std::cerr << "[Error] Could not parse JSON for component \"" << component << "\"" << std::endl;
+    } catch (json::parse_error&) {
+        std::cerr << "[Error] Could not parse JSON for component \"" << component << "\"" << std::endl;
+    }
+
+    return rttr::variant();
 }
 
 void Architecture::update_cycles(int cycles) {
@@ -99,3 +122,11 @@ unsigned long long Architecture::get_cycles() {
 //    this->pe.write_stats(counter, j);
 //}
 #endif
+
+RTTR_REGISTRATION {
+    using namespace rttr;
+
+    registration::class_<Architecture>("Architecture")
+        .method("components_converter", &Architecture::components_converter);
+
+};

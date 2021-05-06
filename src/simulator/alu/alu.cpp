@@ -56,7 +56,10 @@ int ALU::execute(int a, int b, ALU::OPCODE opcode) {
         };
         case CMP: {
             int v = a - b;
-            if (v < 0) N = true;
+            if (v < 0) {
+                N = true;
+            }
+            return -1;
         };
         case MUL: {
             return a * b;
