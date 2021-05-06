@@ -41,8 +41,8 @@ rttr::variant Parser::get_arg(rttr::instance class_obj, const std::string& arg) 
     // Try to get/convert the argument. If nothing else works then will be treated as string
     // Tried in this order:
     // 1. Class property that has been registered
-    // 2. Enum value of one of the given enum types
-    // 3. Cache
+    // 2. Cache
+    // 3. Enum value of one of the given enum types
     // 4. Integer
     // 5. Float
     // 6. String
@@ -54,16 +54,16 @@ rttr::variant Parser::get_arg(rttr::instance class_obj, const std::string& arg) 
         return arg_val;
     }
 
+    if (cache.find(arg) != cache.end()) {
+        // found in cache
+        return cache[arg];
+    }
+
     for (rttr::enumeration& e: enums_) {
         arg_val = e.name_to_value(arg);
         if (arg_val.is_valid()) {
             return arg_val;
         }
-    }
-
-    if (cache.find(arg) != cache.end()) {
-        // found in cache
-        return cache[arg];
     }
 
     char* p = nullptr;
@@ -125,11 +125,6 @@ rttr::method Parser::get_method(const rttr::type& class_type, std::vector<rttr::
             }
         }
     }
-
-    //    std::string types;
-    //    for (auto& t : arg_types) {
-    //        types += t.get_name().to_string() = ", ";
-    //    }
 
     std::cerr << "Method \"" << instr << "\" not found with given argument types. It may not have been registered or you may have passed arguments with incorrect types" << std::endl;
     exit(EXIT_FAILURE);
@@ -335,7 +330,7 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     }
 
     std::vector<std::shared_ptr<Register>> regs_to_display;
-    UI ui;
+    UI& ui = UI::get_instance();
     if (ui_enabled) {
         if (c.contains("ui_registers_to_display")) {
             json regs = c["ui_registers_to_display"];
@@ -348,7 +343,6 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
                 regs_to_display.push_back(arg.get_value<std::shared_ptr<Register> >());
             }
         }
-        ui.start();
     }
 
     Instructions instructions = Parser::parse_instructions(arch, program);

@@ -449,8 +449,7 @@ void SCAMP5E::histogram(const std::shared_ptr<AREG>& src) {
         for (int col = 0; col < cols_; col += blocksize) {
             for (int r = row; r < row + blocksize; r++) {
                 for (int c = col; c < col + blocksize; c++) {
-                    int m_row = s.at<int16_t>(r, c) + 128;  // intensity is used as index
-                    // need to shift by 128 to get a 0-255 range
+                    int m_row = s.at<int16_t>(r, c);  // intensity is used as index
                     int m_col = 0;
 
                     int value = this->dram_->read_byte(block, m_row, m_col);

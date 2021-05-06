@@ -4,15 +4,16 @@
 
 #include "scamp5rm.h"
 
+#include <simulator/external/parser.h>
 #include <simulator/memory/sram6t_cell.h>
+#include <simulator/ui/ui.h>
 #include <simulator/util/utility.h>
-#include <rttr/registration>
 
 #include <filesystem>
 #include <iostream>
 #include <ostream>
+#include <rttr/registration>
 #include <utility>
-#include <simulator/external/parser.h>
 
 void SCAMP5RM::init() {
     // Registers used often in instructions
@@ -133,9 +134,11 @@ void SCAMP5RM::where(AREG a) {
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
             int val = this->dram->read_byte(row, col, a);
-            this->alu->execute(0, val, ALU::CMP);
+            this->alu->execute(val, 0, ALU::CMP);
             if (!this->alu->N) {
-                this->dram->write_bit(row, col, FLAG, 1);
+                this->dram->write_bit(row, col, FLAG, true);
+            } else {
+                this->dram->write_bit(row, col, FLAG, false);
             }
         }
     }
@@ -152,9 +155,11 @@ void SCAMP5RM::where(AREG a0, AREG a1) {
             int a0_val = this->dram->read_byte(row, col, a0);
             int a1_val = this->dram->read_byte(row, col, a1);
             int res = this->alu->execute(a0_val, a1_val, ALU::ADD);
-            this->alu->execute(0, res, ALU::CMP);
+            this->alu->execute(res, 0, ALU::CMP);
             if (!this->alu->N) {
-                this->dram->write_bit(row, col, FLAG, 1);
+                this->dram->write_bit(row, col, FLAG, true);
+            } else {
+                this->dram->write_bit(row, col, FLAG, false);
             }
         }
     }
@@ -172,9 +177,11 @@ void SCAMP5RM::where(AREG a0, AREG a1, AREG a2) {
             int a2_val = this->dram->read_byte(row, col, a2);
             int middle = this->alu->execute(a0_val, a1_val, ALU::ADD);
             int res = this->alu->execute(middle, a2_val, ALU::ADD);
-            this->alu->execute(0, res, ALU::CMP);
+            this->alu->execute(res, 0, ALU::CMP);
             if (!this->alu->N) {
-                this->dram->write_bit(row, col, FLAG, 1);
+                this->dram->write_bit(row, col, FLAG, true);
+            } else {
+                this->dram->write_bit(row, col, FLAG, false);
             }
         }
     }
@@ -186,7 +193,7 @@ void SCAMP5RM::all() {
     // FLAG := 1.
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, FLAG, 1);
+            this->dram->write_bit(row, col, FLAG, 1);
         }
     }
     this->update_cycles(1);  // 1 write
@@ -292,6 +299,7 @@ void SCAMP5RM::neg(AREG y, AREG x0) {
 }
 
 // TODO ALU
+// todo masking
 void SCAMP5RM::abs(AREG y, AREG x0) {
     // y = |x0|
 
@@ -300,6 +308,7 @@ void SCAMP5RM::abs(AREG y, AREG x0) {
             int x0_val = this->dram->read_byte(row, col, x0);
             int neg = this->alu->execute(0, x0_val, ALU::SUB);
             this->dram->write_byte(row, col, NEWS, neg);
+            this->dram->write_byte(row, col, y, neg);
         }
     }
 
@@ -308,7 +317,10 @@ void SCAMP5RM::abs(AREG y, AREG x0) {
         for (int col = 0; col < this->cols_; ++col) {
             int news = this->dram->read_byte(row, col, NEWS);
             int neg = this->alu->execute(0, news, ALU::SUB);
-            this->dram->write_byte(row, col, y, neg);
+            bool f = this->dram->read_bit(row, col, FLAG); //mask
+            if (f) {
+                this->dram->write_byte(row, col, y, neg);
+            }
         }
     }
     this->all();
@@ -399,40 +411,39 @@ void SCAMP5RM::divq(AREG y0, AREG x0) {
     }
 }
 
-
-
-
 // TODO If east or west, then same row, same dram array. if north then north array, and same for south
 void SCAMP5RM::movx(AREG y, AREG x0, news_t dir) {
     // y = x0_dir
+    PlaneParams p;
+    get_dir_params(p, dir, 0, 0, this->rows_, this->cols_, 1, 1);
 
-    for (int row = 0; row < this->rows_; ++row) {
-        for (int col = 0; col < this->cols_; ++col) {
+    for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
+        for(int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
             int x0_val = 0;
             switch (dir) {
                 case east: {
-                    int dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    int dram_row_select = col - 1; // TOP_RIGHT origin means it's -1
                     if (dram_row_select >= 0) {
                         x0_val = this->dram->read_byte(row, dram_row_select, x0);
                     }
                     break;
                 }
                 case west: {
-                    int dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    int dram_row_select = col + 1; // TOP_RIGHT origin means it's +1
                     if (dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(row, dram_row_select, x0);
                     }
                     break;
                 };
                 case north: {
-                    int dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    int dram_array_select = row - 1; // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_) {
                         x0_val = this->dram->read_byte(dram_array_select, col, x0);
                     }
                     break;
                 };
                 case south: {
-                    int dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    int dram_array_select = row + 1; // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0) {
                         x0_val = this->dram->read_byte(dram_array_select, col, x0);
                     }
@@ -457,35 +468,38 @@ void SCAMP5RM::movx(AREG y, AREG x0, news_t dir) {
 void SCAMP5RM::mov2x(AREG y, AREG x0, news_t dir, news_t dir2) {
     // y = x0_dir_dir2 (note: this only works when FLAG is "all")
 
-    for (int row = 0; row < this->rows_; ++row) {
-        for (int col = 0; col < this->cols_; ++col) {
+    PlaneParams p;
+    get_dir_params(p, dir, 0, 0, this->rows_, this->cols_, 1, 1);
+
+    for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
+        for(int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
             int x0_val = 0;
             int dram_row_select = 0;
             int dram_array_select = 0;
             switch (dir) {
                 case east: {
-                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_row_select = col - 1; // TOP_RIGHT origin means it's -1
                     if (dram_row_select < 0) {
                         x0_val = this->dram->read_byte(row, dram_row_select, x0);
                     }
                     break;
                 }
                 case west: {
-                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_row_select = col + 1; // TOP_RIGHT origin means it's +1
                     if (dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(row, dram_row_select, x0);
                     }
                     break;
                 };
                 case north: {
-                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_array_select = row - 1; // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_) {
                         x0_val = this->dram->read_byte(dram_array_select, col, x0);
                     }
                     break;
                 };
                 case south: {
-                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_array_select = row + 1; // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0) {
                         x0_val = this->dram->read_byte(dram_array_select, col, x0);
                     }
@@ -501,28 +515,28 @@ void SCAMP5RM::mov2x(AREG y, AREG x0, news_t dir, news_t dir2) {
 
             switch (dir2) {
                 case east: {
-                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_row_select = col - 1; // TOP_RIGHT origin means it's -1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select >= 0) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 }
                 case west: {
-                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_row_select = col + 1; // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 };
                 case north: {
-                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_array_select = row - 1; // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_ && dram_row_select >= 0 && dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 };
                 case south: {
-                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_array_select = row + 1; // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_row_select >= 0 && dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                     }
@@ -544,12 +558,15 @@ void SCAMP5RM::mov2x(AREG y, AREG x0, news_t dir, news_t dir2) {
 void SCAMP5RM::addx(AREG y, AREG x0, AREG x1, news_t dir) {
     // y := x0_dir + x1_dir
 
-    for (int row = 0; row < this->rows_; ++row) {
-        for (int col = 0; col < this->cols_; ++col) {
+    PlaneParams p;
+    get_dir_params(p, dir, 0, 0, this->rows_, this->cols_, 1, 1);
+
+    for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
+        for(int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
             int sum = 0;
             switch (dir) {
                 case east: {
-                    int dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    int dram_row_select = col - 1; // TOP_RIGHT origin means it's -1
                     if (dram_row_select >= 0) {
                         int x0_val = this->dram->read_byte(row, dram_row_select, x0);
                         int x1_val = this->dram->read_byte(row, dram_row_select, x1);
@@ -558,7 +575,7 @@ void SCAMP5RM::addx(AREG y, AREG x0, AREG x1, news_t dir) {
                     break;
                 }
                 case west: {
-                    int dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    int dram_row_select = col + 1; // TOP_RIGHT origin means it's +1
                     if (dram_row_select < this->cols_) {
                         int x0_val = this->dram->read_byte(row, dram_row_select, x0);
                         int x1_val = this->dram->read_byte(row, dram_row_select, x1);
@@ -567,7 +584,7 @@ void SCAMP5RM::addx(AREG y, AREG x0, AREG x1, news_t dir) {
                     break;
                 };
                 case north: {
-                    int dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    int dram_array_select = row - 1; // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_) {
                         int x0_val = this->dram->read_byte(dram_array_select, col, x0);
                         int x1_val = this->dram->read_byte(dram_array_select, col, x1);
@@ -576,7 +593,7 @@ void SCAMP5RM::addx(AREG y, AREG x0, AREG x1, news_t dir) {
                     break;
                 };
                 case south: {
-                    int dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    int dram_array_select = row + 1; // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0) {
                         int x0_val = this->dram->read_byte(dram_array_select, col, x0);
                         int x1_val = this->dram->read_byte(dram_array_select, col, x1);
@@ -601,15 +618,19 @@ void SCAMP5RM::addx(AREG y, AREG x0, AREG x1, news_t dir) {
 // If east or west, then same row, same dram array. if north then north array, and same for south
 void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
     // y := x0_dir_dir2 + x1_dir_dir2
-    for (int row = 0; row < this->rows_; ++row) {
-        for (int col = 0; col < this->cols_; ++col) {
+    PlaneParams p;
+    get_dir_params(p, dir, dir2, 0, 0, this->rows_, this->cols_, 1, 1);
+
+    for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
+        for(int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
             int x0_val = 0;
             int x1_val = 0;
             int dram_row_select = 0;
             int dram_array_select = 0;
             switch (dir) {
                 case east: {
-                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_row_select = col - 1; // TOP_RIGHT origin means it's -1
+                    dram_array_select = row;
                     if (dram_row_select < 0) {
                         x0_val = this->dram->read_byte(row, dram_row_select, x0);
                         x1_val = this->dram->read_byte(row, dram_row_select, x1);
@@ -617,7 +638,8 @@ void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     break;
                 }
                 case west: {
-                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_row_select = col + 1; // TOP_RIGHT origin means it's +1
+                    dram_array_select = row;
                     if (dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(row, dram_row_select, x0);
                         x1_val = this->dram->read_byte(row, dram_row_select, x1);
@@ -625,7 +647,8 @@ void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     break;
                 };
                 case north: {
-                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_array_select = row - 1; // TOP_RIGHT origin means it's -1
+                    dram_row_select = col;
                     if (dram_array_select < this->rows_) {
                         x0_val = this->dram->read_byte(dram_array_select, col, x0);
                         x1_val = this->dram->read_byte(dram_array_select, col, x1);
@@ -633,7 +656,8 @@ void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     break;
                 };
                 case south: {
-                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_array_select = row + 1; // TOP_RIGHT origin means it's +1
+                    dram_array_select = col;
                     if (dram_array_select >= 0) {
                         x0_val = this->dram->read_byte(dram_array_select, col, x0);
                         x1_val = this->dram->read_byte(dram_array_select, col, x1);
@@ -651,7 +675,7 @@ void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
 
             switch (dir2) {
                 case east: {
-                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_row_select = dram_row_select - 1; // TOP_RIGHT origin means it's -1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select >= 0) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                         x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
@@ -659,7 +683,7 @@ void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     break;
                 }
                 case west: {
-                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_row_select = dram_row_select + 1; // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                         x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
@@ -667,7 +691,7 @@ void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     break;
                 };
                 case north: {
-                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_array_select = dram_array_select - 1; // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_ && dram_row_select >= 0 && dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                         x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
@@ -675,7 +699,7 @@ void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     break;
                 };
                 case south: {
-                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_array_select = dram_array_select + 1; // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_row_select >= 0 && dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                         x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
@@ -697,12 +721,15 @@ void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
 // If east or west, then same row, same dram array. if north then north array, and same for south
 void SCAMP5RM::subx(AREG y, AREG x0, news_t dir, AREG x1) {
     // y := x0_dir - x1
-    for (int row = 0; row < this->rows_; ++row) {
-        for (int col = 0; col < this->cols_; ++col) {
+    PlaneParams p;
+    get_dir_params(p, dir, 0, 0, this->rows_, this->cols_, 1, 1);
+
+    for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
+        for(int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
             int sub = 0;
             switch (dir) {
                 case east: {
-                    int dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    int dram_row_select = col - 1; // TOP_RIGHT origin means it's -1
                     if (dram_row_select >= 0) {
                         int x0_val = this->dram->read_byte(row, dram_row_select, x0);
                         int x1_val = this->dram->read_byte(row, col, x1);
@@ -711,7 +738,7 @@ void SCAMP5RM::subx(AREG y, AREG x0, news_t dir, AREG x1) {
                     break;
                 }
                 case west: {
-                    int dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    int dram_row_select = col + 1; // TOP_RIGHT origin means it's +1
                     if (dram_row_select < this->cols_) {
                         int x0_val = this->dram->read_byte(row, dram_row_select, x0);
                         int x1_val = this->dram->read_byte(row, col, x1);
@@ -720,7 +747,7 @@ void SCAMP5RM::subx(AREG y, AREG x0, news_t dir, AREG x1) {
                     break;
                 };
                 case north: {
-                    int dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    int dram_array_select = row - 1; // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_) {
                         int x0_val = this->dram->read_byte(dram_array_select, col, x0);
                         int x1_val = this->dram->read_byte(row, col, x1);
@@ -729,7 +756,7 @@ void SCAMP5RM::subx(AREG y, AREG x0, news_t dir, AREG x1) {
                     break;
                 };
                 case south: {
-                    int dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    int dram_array_select = row + 1; // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0) {
                         int x0_val = this->dram->read_byte(dram_array_select, col, x0);
                         int x1_val = this->dram->read_byte(row, col, x1);
@@ -754,15 +781,19 @@ void SCAMP5RM::subx(AREG y, AREG x0, news_t dir, AREG x1) {
 // If east or west, then same row, same dram array. if north then north array, and same for south
 void SCAMP5RM::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
     // y := x0_dir_dir2 - x1
-    for (int row = 0; row < this->rows_; ++row) {
-        for (int col = 0; col < this->cols_; ++col) {
+    PlaneParams p;
+    get_dir_params(p, dir, dir2, 0, 0, this->rows_, this->cols_, 1, 1);
+
+    for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
+        for(int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
             int x0_val = 0;
             int x1_val = 0;
             int dram_row_select = 0;
             int dram_array_select = 0;
             switch (dir) {
                 case east: {
-                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_row_select = col - 1; // TOP_RIGHT origin means it's -1
+                    dram_array_select = row;
                     if (dram_row_select < 0) {
                         x0_val = this->dram->read_byte(row, dram_row_select, x0);
                         x1_val = this->dram->read_byte(row, col, x1);
@@ -770,7 +801,8 @@ void SCAMP5RM::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
                     break;
                 }
                 case west: {
-                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_row_select = col + 1; // TOP_RIGHT origin means it's +1
+                    dram_array_select = row;
                     if (dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(row, dram_row_select, x0);
                         x1_val = this->dram->read_byte(row, col, x1);
@@ -778,7 +810,8 @@ void SCAMP5RM::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
                     break;
                 };
                 case north: {
-                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_array_select = row - 1; // TOP_RIGHT origin means it's -1
+                    dram_row_select = col;
                     if (dram_array_select < this->rows_) {
                         x0_val = this->dram->read_byte(dram_array_select, col, x0);
                         x1_val = this->dram->read_byte(row, col, x1);
@@ -786,7 +819,8 @@ void SCAMP5RM::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
                     break;
                 };
                 case south: {
-                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_array_select = row + 1; // TOP_RIGHT origin means it's +1
+                    dram_row_select = col;
                     if (dram_array_select >= 0) {
                         x0_val = this->dram->read_byte(dram_array_select, col, x0);
                         x1_val = this->dram->read_byte(row, col, x1);
@@ -804,28 +838,28 @@ void SCAMP5RM::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
 
             switch (dir2) {
                 case east: {
-                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_row_select = dram_row_select - 1; // TOP_RIGHT origin means it's -1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select >= 0) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 }
                 case west: {
-                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_row_select = dram_row_select + 1; // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 };
                 case north: {
-                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    dram_array_select = dram_array_select - 1; // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_ && dram_row_select >= 0 && dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 };
                 case south: {
-                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    dram_array_select = dram_array_select + 1; // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_row_select >= 0 && dram_row_select < this->cols_) {
                         x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
                     }
@@ -839,6 +873,8 @@ void SCAMP5RM::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
             this->dram->write_byte(row, col, y, this->alu->execute(x0_val, x1_val, ALU::SUB));
         }
     }
+
+
     this->update_cycles(2);  // movement
 }
 
@@ -1061,7 +1097,7 @@ void SCAMP5RM::ALL() {
     // FLAG := 1, same as all.
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, FLAG, 1);
+            this->dram->write_bit(row, col, FLAG, 1);
         }
     }
     this->update_cycles(1);  // 1 write
@@ -1072,7 +1108,7 @@ void SCAMP5RM::SET(DREG d0) {
     // d0 := 1
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, d0, 1);
+            this->dram->write_bit(row, col, d0, 1);
         }
     }
     this->update_cycles(1);  // 1 write
@@ -1083,8 +1119,8 @@ void SCAMP5RM::SET(DREG d0, DREG d1) {
     // d0, d1 := 1
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, d0, 1);
-            this->dram->write_byte(row, col, d1, 1);
+            this->dram->write_bit(row, col, d0, 1);
+            this->dram->write_bit(row, col, d1, 1);
         }
     }
     this->update_cycles(2);  // 2 writes
@@ -1095,9 +1131,9 @@ void SCAMP5RM::SET(DREG d0, DREG d1, DREG d2) {
     // 	d0, d1, d2 := 1
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, d0, 1);
-            this->dram->write_byte(row, col, d1, 1);
-            this->dram->write_byte(row, col, d2, 1);
+            this->dram->write_bit(row, col, d0, 1);
+            this->dram->write_bit(row, col, d1, 1);
+            this->dram->write_bit(row, col, d2, 1);
         }
     }
     this->update_cycles(3);  // 3 writes
@@ -1108,10 +1144,10 @@ void SCAMP5RM::SET(DREG d0, DREG d1, DREG d2, DREG d3) {
     // d0, d1, d2, d3 := 1
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, d0, 1);
-            this->dram->write_byte(row, col, d1, 1);
-            this->dram->write_byte(row, col, d2, 1);
-            this->dram->write_byte(row, col, d3, 1);
+            this->dram->write_bit(row, col, d0, 1);
+            this->dram->write_bit(row, col, d1, 1);
+            this->dram->write_bit(row, col, d2, 1);
+            this->dram->write_bit(row, col, d3, 1);
         }
     }
     this->update_cycles(4);  // 4 writes
@@ -1122,7 +1158,7 @@ void SCAMP5RM::CLR(DREG d0) {
     // d0 := 0
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, d0, 0);
+            this->dram->write_bit(row, col, d0, 0);
         }
     }
     this->update_cycles(1);  // 1 write
@@ -1133,8 +1169,8 @@ void SCAMP5RM::CLR(DREG d0, DREG d1) {
     // d0, d1 := 0
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, d0, 0);
-            this->dram->write_byte(row, col, d1, 0);
+            this->dram->write_bit(row, col, d0, 0);
+            this->dram->write_bit(row, col, d1, 0);
         }
     }
     this->update_cycles(2);  // 2 writes
@@ -1145,9 +1181,9 @@ void SCAMP5RM::CLR(DREG d0, DREG d1, DREG d2) {
     // d0, d1, d2 := 0
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, d0, 0);
-            this->dram->write_byte(row, col, d1, 0);
-            this->dram->write_byte(row, col, d2, 0);
+            this->dram->write_bit(row, col, d0, 0);
+            this->dram->write_bit(row, col, d1, 0);
+            this->dram->write_bit(row, col, d2, 0);
         }
     }
     this->update_cycles(3);  // 3 writes
@@ -1158,10 +1194,10 @@ void SCAMP5RM::CLR(DREG d0, DREG d1, DREG d2, DREG d3) {
     // 	d0, d1, d2, d3 := 0
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, d0, 0);
-            this->dram->write_byte(row, col, d1, 0);
-            this->dram->write_byte(row, col, d2, 0);
-            this->dram->write_byte(row, col, d3, 0);
+            this->dram->write_bit(row, col, d0, 0);
+            this->dram->write_bit(row, col, d1, 0);
+            this->dram->write_bit(row, col, d2, 0);
+            this->dram->write_bit(row, col, d3, 0);
         }
     }
     this->update_cycles(4);  // 4 writes
@@ -1172,7 +1208,7 @@ void SCAMP5RM::MOV(DREG d, DREG d0) {
     // d := d0
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
-            this->dram->write_byte(row, col, d, this->dram->read_bit(row, col, d0));
+            this->dram->write_bit(row, col, d, this->dram->read_bit(row, col, d0));
         }
     }
     this->update_cycles(2);  // 1 read, 1 write
@@ -1235,23 +1271,23 @@ void SCAMP5RM::DNEWS0(DREG d, DREG d0) {
                 // west
                 int dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
                 if (dram_row_select < this->cols_) {
-                    d0_val = this->dram->read_byte(row, dram_row_select, d0);
+                    d0_val = this->dram->read_bit(row, dram_row_select, d0);
                 }
             }  else if (this->dram->read_bit(row, col, R3)) {
                 // north
                 int dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
                 if (dram_array_select < this->rows_) {
-                    d0_val = this->dram->read_byte(dram_array_select, col, d0);
+                    d0_val = this->dram->read_bit(dram_array_select, col, d0);
                 }
             } else if (this->dram->read_bit(row, col, R4)) {
                 // east
                 int dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
                 if (dram_row_select >= 0) {
-                    d0_val = this->dram->read_byte(row, dram_row_select, d0);
+                    d0_val = this->dram->read_bit(row, dram_row_select, d0);
                 }
             }
 
-            this->dram->write_byte(row, col, d, d0_val);
+            this->dram->write_bit(row, col, d, d0_val);
         }
     }
 }
@@ -1273,23 +1309,23 @@ void SCAMP5RM::DNEWS1(DREG d, DREG d0) {
                 // west
                 int dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
                 if (dram_row_select < this->cols_) {
-                    d0_val = this->dram->read_byte(row, dram_row_select, d0);
+                    d0_val = this->dram->read_bit(row, dram_row_select, d0);
                 }
             }  else if (this->dram->read_bit(row, col, R3)) {
                 // north
                 int dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
                 if (dram_array_select < this->rows_) {
-                    d0_val = this->dram->read_byte(dram_array_select, col, d0);
+                    d0_val = this->dram->read_bit(dram_array_select, col, d0);
                 }
             } else if (this->dram->read_bit(row, col, R4)) {
                 // east
                 int dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
                 if (dram_row_select >= 0) {
-                    d0_val = this->dram->read_byte(row, dram_row_select, d0);
+                    d0_val = this->dram->read_bit(row, dram_row_select, d0);
                 }
             }
 
-            this->dram->write_byte(row, col, d, d0_val);
+            this->dram->write_bit(row, col, d, d0_val);
         }
     }
 }
@@ -1523,8 +1559,8 @@ void SCAMP5RM::scamp5_select_pattern(uint8_t r, uint8_t c, uint8_t rx,
 
 void SCAMP5RM::scamp5_select_col(uint8_t c) {
     // select column
-    for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
-        for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
+    for(int row_index = 0; row_index < this->cols_; row_index++) {
+        for(int col_index = 0; col_index < this->rows_; col_index++) {
             if(col_index == c) {
                 this->dram->write_bit(row_index, col_index, SELECT, 1);
             }
@@ -1534,8 +1570,8 @@ void SCAMP5RM::scamp5_select_col(uint8_t c) {
 
 void SCAMP5RM::scamp5_select_row(uint8_t r) {
     // select row
-    for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
-        for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
+    for(int row_index = 0; row_index < this->cols_; row_index++) {
+        for(int col_index = 0; col_index < this->rows_; col_index++) {
             if(row_index == r) {
                 this->dram->write_bit(row_index, col_index, SELECT, 1);
             }
@@ -1711,6 +1747,43 @@ void SCAMP5RM::scamp5_scan_events(DREG dreg, uint8_t *buffer, uint16_t max_num,
 }
 // Simulator specific
 
+void SCAMP5RM::display() {
+    cv::Mat val_a = cv::Mat::zeros(cv::Size(rows_, cols_), CV_16S);
+    cv::Mat val_b = cv::Mat::zeros(cv::Size(rows_, cols_), CV_16S);
+    cv::Mat val_c = cv::Mat::zeros(cv::Size(rows_, cols_), CV_16S);
+    cv::Mat val_d = cv::Mat::zeros(cv::Size(rows_, cols_), CV_16S);
+    cv::Mat val_r5 = cv::Mat::zeros(cv::Size(rows_, cols_), CV_8U);
+
+    for (int row = 0; row < rows_; ++row) {
+        for (int col = 0; col < cols_; ++col) {
+            val_a.at<int16_t>(row, col) = this->dram->read_byte(row, col, A);
+            val_b.at<int16_t>(row, col) = this->dram->read_byte(row, col, B);
+            val_c.at<int16_t>(row, col) = this->dram->read_byte(row, col, C);
+            val_d.at<int16_t>(row, col) = this->dram->read_byte(row, col, D);
+            val_r5.at<uint8_t>(row, col) = this->dram->read_bit(row, col, R5);
+        }
+    }
+    std::shared_ptr<AnalogueRegister> ar = std::make_shared<AnalogueRegister>(val_a);
+    ar->name_ = "A";
+
+    std::shared_ptr<AnalogueRegister> br = std::make_shared<AnalogueRegister>(val_b);
+    br->name_ = "B";
+
+    std::shared_ptr<AnalogueRegister> cr = std::make_shared<AnalogueRegister>(val_c);
+    cr->name_ = "C";
+
+    std::shared_ptr<AnalogueRegister> dr = std::make_shared<AnalogueRegister>(val_d);
+    dr->name_ = "D";
+
+    std::shared_ptr<DigitalRegister> r5r = std::make_shared<DigitalRegister>(val_r5);
+    r5r->name_ = "R5";
+    UI::get_instance().display_reg(ar);
+    UI::get_instance().display_reg(br);
+    UI::get_instance().display_reg(cr);
+    UI::get_instance().display_reg(dr);
+    UI::get_instance().display_reg(r5r);
+}
+
 //todo remove
 void SCAMP5RM::print_stats() {
     // TODO move
@@ -1804,6 +1877,7 @@ RTTR_REGISTRATION {
     registration::class_<SCAMP5RM>("SCAMP5RM")
         .constructor()
         .method("init", &SCAMP5RM::init)
+        .method("display", &SCAMP5RM::display)
         .method("config_converter", &SCAMP5RM::config_converter)
         .method("set_rows", &SCAMP5RM::set_rows)
         .method("set_cols", &SCAMP5RM::set_cols)

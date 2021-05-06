@@ -87,8 +87,7 @@ void update(UI& ui, const std::vector<std::shared_ptr<Register>>& reg) {
 
 int analog_main() {
     SCAMP5 s = SCAMP5();
-    UI ui;
-    ui.start();
+    UI ui = UI::get_instance();
 
     int threshold_value;
     int t1_value, t2_value, t3_value;

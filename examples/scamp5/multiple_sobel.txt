@@ -8,3 +8,4 @@ addx(C, C, A, north);
 addx(B, B, D, east);
 sub2x(A, B, west, west, B);
 sub2x(B, C, south, south, C);
+display()

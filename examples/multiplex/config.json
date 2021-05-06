@@ -4,15 +4,6 @@
    "with_stats":true,
    "ui_enabled":true,
    "ui_registers_to_display":[
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "R5",
-      "R6",
-      "R7",
-      "R12"
    ],
    "SCAMP5RM":{
       "rows":256,

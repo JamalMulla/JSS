@@ -13,12 +13,6 @@
 #include "simulator/base/architecture.h"
 #include "simulator/pe/processing_element.h"
 
-enum news_t { east = 1,
-    west = 2,
-    north = 4,
-    south = 8,
-    alldir = 15 };
-
 enum AREG {
     PIX = 0,
     IN = 8,
@@ -327,6 +321,7 @@ class SCAMP5RM : public Architecture {
 
     void scamp5_scan_events(DREG dreg, uint8_t* buffer, uint16_t max_num, uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs, uint8_t cs);
 
+    void display();
 
     // Simulator specific methods
     void print_stats();

@@ -60,6 +60,11 @@ int Dram::read_byte(int array, int row, int start_col) {
 }
 
 void Dram::write_byte(int array, int row, int start_col, int value) {
+    if (value < -128 ) {
+        value = -128;
+    } else if (value > 127) {
+        value = 127;
+    }
     for (int i = 0; i < 8; i++) {
         write_bit(array, row, start_col + i, value & (1 << i));
     }

@@ -7,3 +7,4 @@ sub(A,B,E);	// A = B - E
 where(A);	// where A > 0
     MOV(R5, FLAG);
 all();
+display()

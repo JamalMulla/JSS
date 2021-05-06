@@ -68,10 +68,9 @@ More complicated fields will likely also need a converter method. This method mu
 If you want to do something after all the fields have been set (basically a pseudo constructor), then register a `void init()` method which will be called last if it exists.
 
 # UI
-There is a browser based UI which can be used to display the outputs of the registers in realtime. Create a UI object and start it before the main loop like this:
+There is a browser based UI which can be used to display the outputs of the registers in realtime. You can use it like this:
 ```
-UI ui;
-ui.start();
+UI& ui = UI::get_instance();
 ```
 Then in the main loop, you can display a register by calling
 ```

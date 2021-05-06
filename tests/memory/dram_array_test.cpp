@@ -31,4 +31,14 @@ TEST_CASE("can write and read") {
         REQUIRE(dram->read_byte(0, 1, 1) == 10);
     }
 
+    SECTION("some test") {
+        bool t = true;
+
+        dram->write_bit(0, 0, 5, t);
+
+        bool b = dram->read_bit(0, 0, 5);
+
+        REQUIRE(b == t);
+    }
+
 }

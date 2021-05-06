@@ -41,6 +41,7 @@ void ALU::set_config(const std::shared_ptr<Config>& config) {
 
 // todo all flags
 int ALU::execute(int a, int b, ALU::OPCODE opcode) {
+    N = false;
     switch (opcode) {
         case ADD: {
             return a + b;

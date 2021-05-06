@@ -8,14 +8,9 @@
 #include <opencv4/opencv2/opencv.hpp>
 #include <rttr/type>
 
+#include "news_t.h"
 #include "simulator/base/architecture.h"
 #include "simulator/pe/processing_element.h"
-
-enum news_t { east = 1,
-              west = 2,
-              north = 4,
-              south = 8,
-              alldir = 15 };
 
 typedef AnalogueRegister AREG;
 typedef DigitalRegister DREG;

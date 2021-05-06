@@ -120,7 +120,7 @@ void ProcessingElement::add_digital_register(const std::string& name, std::share
 }
 
 std::shared_ptr<AnalogueRegister> ProcessingElement::get_analogue_register(const std::string& name) {
-    if (digital_registers_.find(name) == digital_registers_.end()) {
+    if (analogue_registers_.find(name) == analogue_registers_.end()) {
         // not found
         std::cerr << "[Error] Could not find analogue register \"" << name << "\"" << std::endl;
         exit(EXIT_FAILURE);

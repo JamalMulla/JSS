@@ -28,12 +28,11 @@
 			{
                 "_inherit" : ["config", "rows", "cols"],
                 "_component": "Dram",
-                "name" : "dram",
+                "_name" : "dram",
                 "row_stride": 8,
                 "col_stride": 8,
                 "array_rows" : 256,
-                "array_cols" : 1,
-                "word_length" : 16
+                "array_cols" : 16
 			}
 		]
 	}
