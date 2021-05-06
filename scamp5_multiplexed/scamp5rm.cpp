@@ -18,6 +18,7 @@ void SCAMP5RM::init() {
     // Registers used often in instructions
     pe = this->get_component<ProcessingElement>("pe");
     alu = this->get_component<ALU>("alu");
+    dram = this->get_component<Dram>("alu");
 
     // TODO write to DRAM - Initially all PEs are active
 //    FLAG->write(1);
@@ -36,545 +37,940 @@ void SCAMP5RM::rpix() {
 }
 
 // TODO ADC
-void SCAMP5RM::get_image(const std::shared_ptr<AREG>& y) {
-    // y := half-range image, and reset *PIX
+void SCAMP5RM::get_image(AREG y) {
+    // y := half-range image, and reset pixel
     cv::Mat image = this->pe->get_pixel()->read();
 
-    
-
-    this->bus(NEWS, PIX);
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int16_t v = image.at<int16_t>(row, col);
+            dram->write_byte(row, col, PIX, v/2);
+            dram->write_byte(row, col, NEWS, -v/2);
+            dram->write_byte(row, col, y, v/2);
+        }
+    }
     this->rpix();
     this->rpix();
     this->nop();
-    this->bus(y, NEWS, PIX);
 }
 
-void SCAMP5RM::get_image(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& h) {
+void SCAMP5RM::get_image(AREG y, AREG h) {
     // y := full-range image, h := negative half-range image, and reset *PIX
-    this->pe->get_pixel()->read(*PIX);
-    this->bus(NEWS, PIX);
-    this->bus(h, PIX);
+    cv::Mat image = this->pe->get_pixel()->read();
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int16_t v = image.at<int16_t>(row, col);
+            dram->write_byte(row, col, PIX, v/2);
+            dram->write_byte(row, col, NEWS, -v/2);
+            dram->write_byte(row, col, h, -v/2);
+            dram->write_byte(row, col, y, v);
+        }
+    }
     this->rpix();
     this->rpix();
     this->nop();
-    this->bus(y, h, NEWS, PIX);
 }
 
-void SCAMP5RM::respix() {
-    // reset *PIX
-    this->rpix();
-    this->rpix();
-    this->nop();
-}
-
-void SCAMP5RM::respix(const std::shared_ptr<AREG>& y) {
-    // reset *PIX, keep its reset level in y
-    this->rpix();
-    this->rpix();
-    this->nop();
-    this->pe->get_pixel()->read(*PIX);
-    this->bus(NEWS, PIX);
-    this->bus(y, NEWS);
-}
-
-void SCAMP5RM::getpix(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& pix_res) {
-    // y := half-range image, supplying the reset level of *PIX
-    this->pe->get_pixel()->read(*PIX);
-    this->bus(NEWS, PIX);
-    this->bus(y, NEWS, pix_res);
-}
-
-void SCAMP5RM::getpix(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& h, const std::shared_ptr<AREG>& pix_res) {
-    // y := full-range, h := half-range image, supplying the reset level of *PIX
-    this->pe->get_pixel()->read(*PIX);
-    this->bus(h, PIX);
-    this->bus(NEWS, PIX);
-    this->bus(y, h, NEWS, pix_res);
-}
-
-void SCAMP5RM::bus(const std::shared_ptr<AREG>& a) {
+void SCAMP5RM::bus(AREG a) {
     // a = 0 + error
     this->pe->analogue_bus.bus(*a, *FLAG);
     this->update_cycles(1);
 }
 
-void SCAMP5RM::bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0) {
+void SCAMP5RM::bus(AREG a, AREG a0) {
     // a = -a0 + error
     this->pe->analogue_bus.bus(*a, *a0, *FLAG);
     this->update_cycles(1);
 }
 
-void SCAMP5RM::bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1) {
+void SCAMP5RM::bus(AREG a, AREG a0, AREG a1) {
     // a = -(a0 + a1) + error
     this->pe->analogue_bus.bus(*a, *a0, *a1, *FLAG);
     this->update_cycles(4); // 2 reads, 1 add, 1 write
 }
 
-void SCAMP5RM::bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1, const std::shared_ptr<AREG>& a2) {
+void SCAMP5RM::bus(AREG a, AREG a0, AREG a1, AREG a2) {
     // a = -(a0 + a1 + a2) + error
     this->pe->analogue_bus.bus(*a, *a0, *a1, *a2, *FLAG);
     this->update_cycles(5);  // 3 reads, 1 add, 1 write
 }
 
-void SCAMP5RM::bus(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1, const std::shared_ptr<AREG>& a2, const std::shared_ptr<AREG>& a3) {
+void SCAMP5RM::bus(AREG a, AREG a0, AREG a1, AREG a2, AREG a3) {
     // a = -(a0 + a1 + a2 + a3) + error
     this->pe->analogue_bus.bus(*a, *a0, *a1, *a2, *a3, *FLAG);
     this->update_cycles(6);  // 4 reads, 1 add, 1 write
 }
 
-void SCAMP5RM::bus2(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b) {
+void SCAMP5RM::bus2(AREG a, AREG b) {
     // a,b = 0 + error
     this->pe->analogue_bus.bus2(*a, *b, *FLAG);
     this->update_cycles(2);  // 2 writes
 }
 
-void SCAMP5RM::bus2(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b, const std::shared_ptr<AREG>& a0) {
+void SCAMP5RM::bus2(AREG a, AREG b, AREG a0) {
     // a,b = -0.5*a0 + error + noise
     this->pe->analogue_bus.bus2(*a, *b, *a0, *FLAG);
     this->update_cycles(3);  // 1 read, 2 writes
 }
 
-void SCAMP5RM::bus2(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b, const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1) {
+void SCAMP5RM::bus2(AREG a, AREG b, AREG a0, AREG a1) {
     // a,b = -0.5*(a0 + a1) + error + noise
     this->pe->analogue_bus.bus2(*a, *b, *a0, *a1, *FLAG);
     this->update_cycles(5);  // 2 reads, 1 add, 2 writes
 }
 
-void SCAMP5RM::bus3(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b, const std::shared_ptr<AREG>& c, const std::shared_ptr<AREG>& a0) {
+void SCAMP5RM::bus3(AREG a, AREG b, AREG c, AREG a0) {
     // a,b,c = -0.33*a0 + error + noise
     this->pe->analogue_bus.bus3(*a, *b, *c, *a0, *FLAG);
     this->update_cycles(2);  // 1 read, 3 writes
 }
 
 // TODO use alu for comparison
-void SCAMP5RM::where(const std::shared_ptr<AREG>& a) {
-    // FLAG := a > 0.
-    this->pe->analogue_bus.conditional_positive_set(*FLAG, *a);
+void SCAMP5RM::where(AREG a) {
+    // FLAG := a > 0
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int val = this->dram->read_byte(row, col, a);
+            this->alu->execute(0, val, ALU::CMP);
+            if (!this->alu->N) {
+                this->dram->write_bit(row, col, FLAG, 1);
+            }
+        }
+    }
+
     this->update_cycles(2);  // 1 read, 1 write
 }
 
 // TODO use alu for comparison
-void SCAMP5RM::where(const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1) {
+void SCAMP5RM::where(AREG a0, AREG a1) {
     // FLAG := (a0 + a1) > 0.
-    this->pe->analogue_bus.conditional_positive_set(*FLAG, *a0, *a1);
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int a0_val = this->dram->read_byte(row, col, a0);
+            int a1_val = this->dram->read_byte(row, col, a1);
+            int res = this->alu->execute(a0_val, a1_val, ALU::ADD);
+            this->alu->execute(0, res, ALU::CMP);
+            if (!this->alu->N) {
+                this->dram->write_bit(row, col, FLAG, 1);
+            }
+        }
+    }
+
     this->update_cycles(4);  // 2 reads, 1 add, 1 write
 }
 
 // TODO use alu for comparison
-void SCAMP5RM::where(const std::shared_ptr<AREG>& a0, const std::shared_ptr<AREG>& a1, const std::shared_ptr<AREG>& a2) {
+void SCAMP5RM::where(AREG a0, AREG a1, AREG a2) {
     // FLAG := (a0 + a1 + a2) > 0.
-    this->pe->analogue_bus.conditional_positive_set(*FLAG, *a0, *a1, *a2);
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int a0_val = this->dram->read_byte(row, col, a0);
+            int a1_val = this->dram->read_byte(row, col, a1);
+            int a2_val = this->dram->read_byte(row, col, a2);
+            int middle = this->alu->execute(a0_val, a1_val, ALU::ADD);
+            int res = this->alu->execute(middle, a2_val, ALU::ADD);
+            this->alu->execute(0, res, ALU::CMP);
+            if (!this->alu->N) {
+                this->dram->write_bit(row, col, FLAG, 1);
+            }
+        }
+    }
     this->update_cycles(5);  // 3 reads, 1 add, 1 write
 }
 
 // TODO Dram write
 void SCAMP5RM::all() {
     // FLAG := 1.
-    this->FLAG->set();
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            this->dram->write_byte(row, col, FLAG, 1);
+        }
+    }
     this->update_cycles(1);  // 1 write
 }
 
 // TODO Dram write
-void SCAMP5RM::mov(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0) {
+// todo negate should also be alu op
+void SCAMP5RM::mov(AREG y, AREG x0) {
     // y = x0
-    this->bus(NEWS, x0);
-    this->bus(y, NEWS);
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = this->dram->read_byte(row, col, x0);
+            this->dram->write_byte(row, col, NEWS, -x0_val);
+            this->dram->write_byte(row, col, y, x0_val);
+        }
+    }
 }
 
-// TODO Dram write
-void SCAMP5RM::res(const std::shared_ptr<AREG>& a) {
+// TODO cycles
+void SCAMP5RM::res(AREG a) {
     // a = 0
-    this->bus(NEWS);
-    this->bus(a, NEWS);
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            this->dram->write_byte(row, col, NEWS, 0);
+            this->dram->write_byte(row, col, a, 0);
+        }
+    }
 }
 
-// TODO Dram write
-void SCAMP5RM::res(const std::shared_ptr<AREG>& a, const std::shared_ptr<AREG>& b) {
+// TODO cycles
+void SCAMP5RM::res(AREG a, AREG b) {
     // a = 0, b := 0
-    this->bus(NEWS);
-    this->bus(a, NEWS);
-    this->bus(b, NEWS);
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            this->dram->write_byte(row, col, NEWS, 0);
+            this->dram->write_byte(row, col, a, 0);
+            this->dram->write_byte(row, col, b, 0);
+        }
+    }
 }
 
 // TODO ALU
-void SCAMP5RM::add(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0, const std::shared_ptr<AREG>& x1) {
+void SCAMP5RM::add(AREG y, AREG x0, AREG x1) {
     // y = x0 + x1
-    this->bus(NEWS, x0, x1);
-    this->bus(y, NEWS);
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = this->dram->read_byte(row, col, x0);
+            int x1_val = this->dram->read_byte(row, col, x1);
+            int sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
+            this->dram->write_byte(row, col, NEWS, -sum);
+            this->dram->write_byte(row, col, y, sum);
+        }
+    }
+
 }
 
 // TODO ALU
-void SCAMP5RM::add(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0, const std::shared_ptr<AREG>& x1, const std::shared_ptr<AREG>& x2) {
+void SCAMP5RM::add(AREG y, AREG x0, AREG x1, AREG x2) {
     // y = x0 + x1 + x2
-    this->bus(NEWS, x0, x1, x2);
-    this->bus(y, NEWS);
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = this->dram->read_byte(row, col, x0);
+            int x1_val = this->dram->read_byte(row, col, x1);
+            int x2_val = this->dram->read_byte(row, col, x2);
+            int middle = this->alu->execute(x0_val, x1_val, ALU::ADD);
+            int sum = this->alu->execute(middle, x2_val, ALU::ADD);
+            this->dram->write_byte(row, col, NEWS, -sum);
+            this->dram->write_byte(row, col, y, sum);
+        }
+    }
 }
 
 // TODO ALU
-void SCAMP5RM::sub(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0, const std::shared_ptr<AREG>& x1) {
+void SCAMP5RM::sub(AREG y, AREG x0, AREG x1) {
     // y = x0 - x1
-    this->bus(NEWS, x0);
-    this->bus(y, NEWS, x1);
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = this->dram->read_byte(row, col, x0);
+            int x1_val = this->dram->read_byte(row, col, x1);
+            int sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, -x0_val);
+            this->dram->write_byte(row, col, y, sub);
+        }
+    }
+
 }
 
 // TODO ALU
-void SCAMP5RM::neg(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0) {
+void SCAMP5RM::neg(AREG y, AREG x0) {
     // y = -x0
-    this->bus(NEWS);
-    this->bus(y, NEWS, x0);
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = this->dram->read_byte(row, col, x0);
+            int neg = this->alu->execute(0, x0_val, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, 0);
+            this->dram->write_byte(row, col, y, neg);
+        }
+    }
 }
 
 // TODO ALU
-void SCAMP5RM::abs(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0) {
+void SCAMP5RM::abs(AREG y, AREG x0) {
     // y = |x0|
-    this->bus(NEWS);
-    this->bus(y, NEWS, x0);
-    this->bus(NEWS, x0);
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = this->dram->read_byte(row, col, x0);
+            int neg = this->alu->execute(0, x0_val, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, neg);
+        }
+    }
+
     this->where(x0);
-    this->bus(y, NEWS);
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int news = this->dram->read_byte(row, col, NEWS);
+            int neg = this->alu->execute(0, news, ALU::SUB);
+            this->dram->write_byte(row, col, y, neg);
+        }
+    }
     this->all();
 }
 
 // TODO ALU
-void SCAMP5RM::div(const std::shared_ptr<AREG>& y0, const std::shared_ptr<AREG>& y1, const std::shared_ptr<AREG>& y2) {
-    // y0 := 0.5*y2; y1 := -0.5*y2 + error, y2 := y2 + error
-    this->bus2(y0, y1, y2);
-    this->bus(NEWS, y2, y1);
-    this->bus(y2, NEWS, y0);
-    this->bus2(y0, y1, y2);
-    this->bus(y0, y1);
-}
+void SCAMP5RM::div(AREG y0, AREG y1, AREG y2) {
+    // y0 := y2/2; y1 := -y2/2, y2 := y2
 
-// TODO ALU
-void SCAMP5RM::div(const std::shared_ptr<AREG>& y0, const std::shared_ptr<AREG>& y1, const std::shared_ptr<AREG>& y2, const std::shared_ptr<AREG>& x0) {
-    // y0 := 0.5*x0; y1 := -0.5*x0 + error, y2 := x0 + error
-    this->bus2(y0, y1, x0);
-    this->bus(NEWS, x0, y1);
-    this->bus(y2, NEWS, y0);
-    this->bus2(y0, y1, y2);
-    this->bus(y0, y1);
-}
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int y1_val = this->dram->read_byte(row, col, y1);
+            int y2_val = this->dram->read_byte(row, col, y2);
+            int add = this->alu->execute(y1_val, y2_val, ALU::ADD);
+            int neg = this->alu->execute(0, add, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, neg);
 
-// TODO ALU
-void SCAMP5RM::diva(const std::shared_ptr<AREG>& y0, const std::shared_ptr<AREG>& y1, const std::shared_ptr<AREG>& y2) {
-    // y0 := 0.5*y0; y1 := -0.5*y0 + error, y2 := -0.5*y0 + error
-    this->bus2(y1, y2, y0);
-    this->bus(NEWS, y1, y0);
-    this->bus(y0, NEWS, y2);
-    this->bus2(y1, y2, y0);
-    this->bus(y0, y1);
-}
+            int half_y2 = this->alu->execute(y2_val, 2, ALU::DIV);
+            this->dram->write_byte(row, col, y0, half_y2);
 
-// TODO ALU
-void SCAMP5RM::divq(const std::shared_ptr<AREG>& y0, const std::shared_ptr<AREG>& x0) {
-    // y0 := 0.5*x0 + error
-    this->bus2(y0, NEWS, x0);
-    this->bus(y0, NEWS);
-}
-
-// TODO
-// If east or west, then same row, same dram array. if north then north array, and same for south
-void SCAMP5RM::movx(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0, news_t dir) {
-    // y = x0_dir
-    this->bus(intermediate_a, x0);
-    switch(dir) {
-        case south:
-            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case west:
-            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case east:
-            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case north:
-            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+            int neg_half_y2 = this->alu->execute(0, half_y2, ALU::SUB);
+            this->dram->write_byte(row, col, y1, neg_half_y2);
+        }
     }
-    this->bus(y, NEWS);
+}
+
+// TODO ALU
+void SCAMP5RM::div(AREG y0, AREG y1, AREG y2, AREG x0) {
+    // y0 := 0.5*x0; y1 := -0.5*x0, y2 := x0
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int y1_val = this->dram->read_byte(row, col, y1);
+            int x0_val = this->dram->read_byte(row, col, x0);
+            this->dram->write_byte(row, col, y2, x0_val);
+
+            int add = this->alu->execute(x0_val, y1_val, ALU::ADD);
+            int neg = this->alu->execute(0, add, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, neg);
+
+            int half_x0 = this->alu->execute(x0_val, 2, ALU::DIV);
+            this->dram->write_byte(row, col, y0, half_x0);
+
+            int neg_half_x0 = this->alu->execute(0, half_x0, ALU::SUB);
+            this->dram->write_byte(row, col, y1, neg_half_x0);
+        }
+    }
+
+}
+
+// TODO ALU
+void SCAMP5RM::diva(AREG y0, AREG y1, AREG y2) {
+    // y0 := 0.5*y0; y1 := -0.5*y0, y2 := -0.5*y0
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int y0_val = this->dram->read_byte(row, col, y0);
+            int y1_val = this->dram->read_byte(row, col, y1);
+
+            int add = this->alu->execute(y0_val, y1_val, ALU::ADD);
+            int neg = this->alu->execute(0, add, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, neg);
+
+            int half_y0 = this->alu->execute(y0_val, 2, ALU::DIV);
+            this->dram->write_byte(row, col, y0, half_y0);
+
+            int neg_half_y0 = this->alu->execute(0, half_y0, ALU::SUB);
+            this->dram->write_byte(row, col, y1, neg_half_y0);
+            this->dram->write_byte(row, col, y2, neg_half_y0);
+        }
+    }
+
+}
+
+// TODO ALU
+void SCAMP5RM::divq(AREG y0, AREG x0) {
+    // y0 := 0.5*x0 + error
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = this->dram->read_byte(row, col, x0);
+
+            int half_x0 = this->alu->execute(x0_val, 2, ALU::DIV);
+            int neg = this->alu->execute(0, half_x0, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, neg);
+            this->dram->write_byte(row, col, y0, half_x0);
+        }
+    }
+}
+
+
+
+
+// TODO If east or west, then same row, same dram array. if north then north array, and same for south
+void SCAMP5RM::movx(AREG y, AREG x0, news_t dir) {
+    // y = x0_dir
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = 0;
+            switch (dir) {
+                case east: {
+                    int dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_row_select >= 0) {
+                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                    }
+                    break;
+                }
+                case west: {
+                    int dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                    }
+                    break;
+                };
+                case north: {
+                    int dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select < this->rows_) {
+                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                    }
+                    break;
+                };
+                case south: {
+                    int dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0) {
+                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                    }
+                    break;
+                };
+                case alldir: {
+                    std::cerr << "Unhandled direction" << std::endl;
+                    break;
+                };
+            }
+            int neg = this->alu->execute(0, x0_val, ALU::SUB);
+            this->dram->write_byte(row, col, y, x0_val);
+            this->dram->write_byte(row, col, NEWS, neg);
+        }
+    }
+
+
     this->update_cycles(1);  // movement?
 }
 
 // If east or west, then same row, same dram array. if north then north array, and same for south
-void SCAMP5RM::mov2x(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0, news_t dir, news_t dir2) {
+void SCAMP5RM::mov2x(AREG y, AREG x0, news_t dir, news_t dir2) {
     // y = x0_dir_dir2 (note: this only works when FLAG is "all")
-    this->bus(intermediate_a, x0);
-    switch(dir) {
-        case north: {
-            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        }
-        case east: {
-            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        }
-        case west: {
-            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        }
-        case south: {
-            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        }
-        case alldir: {
-            std::cerr << "Unhandled direction" << std::endl;
-            break;
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = 0;
+            int dram_row_select = 0;
+            int dram_array_select = 0;
+            switch (dir) {
+                case east: {
+                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_row_select < 0) {
+                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                    }
+                    break;
+                }
+                case west: {
+                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                    }
+                    break;
+                };
+                case north: {
+                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select < this->rows_) {
+                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                    }
+                    break;
+                };
+                case south: {
+                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0) {
+                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                    }
+                    break;
+                };
+                case alldir: {
+                    std::cerr << "Unhandled direction" << std::endl;
+                    break;
+                };
+            }
+            int neg = this->alu->execute(0, x0_val, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, neg);
+
+            switch (dir2) {
+                case east: {
+                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select >= 0) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                    }
+                    break;
+                }
+                case west: {
+                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                    }
+                    break;
+                };
+                case north: {
+                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select < this->rows_ && dram_row_select >= 0 && dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                    }
+                    break;
+                };
+                case south: {
+                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0 && dram_row_select >= 0 && dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                    }
+                    break;
+                };
+                case alldir: {
+                    std::cerr << "Unhandled direction" << std::endl;
+                    break;
+                };
+            }
+            this->dram->write_byte(row, col, y, x0_val);
         }
     }
-    switch(dir2) {
-        case north: {
-            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        }
-        case east: {
-            this->pe->analogue_bus.get_east(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        }
-        case west: {
-            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        }
-        case south: {
-            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        }
-        case alldir: {
-            std::cerr << "Unhandled direction" << std::endl;
-            break;
-        }
-    }
-    this->bus(y, intermediate_a2);
+
     this->update_cycles(2);  // movement
 }
 
 // If east or west, then same row, same dram array. if north then north array, and same for south
-void SCAMP5RM::addx(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0, const std::shared_ptr<AREG>& x1, news_t dir) {
+void SCAMP5RM::addx(AREG y, AREG x0, AREG x1, news_t dir) {
     // y := x0_dir + x1_dir
-    this->bus(intermediate_a, x0, x1);
-    switch(dir) {
-        case north:
-            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case east:
-            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case west:
-            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case south:
-            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int sum = 0;
+            switch (dir) {
+                case east: {
+                    int dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_row_select >= 0) {
+                        int x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                        int x1_val = this->dram->read_byte(row, dram_row_select, x1);
+                        sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
+                    }
+                    break;
+                }
+                case west: {
+                    int dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_row_select < this->cols_) {
+                        int x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                        int x1_val = this->dram->read_byte(row, dram_row_select, x1);
+                        sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
+                    }
+                    break;
+                };
+                case north: {
+                    int dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select < this->rows_) {
+                        int x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                        int x1_val = this->dram->read_byte(dram_array_select, col, x1);
+                        sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
+                    }
+                    break;
+                };
+                case south: {
+                    int dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0) {
+                        int x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                        int x1_val = this->dram->read_byte(dram_array_select, col, x1);
+                        sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
+                    }
+                    break;
+                };
+                case alldir: {
+                    std::cerr << "Unhandled direction" << std::endl;
+                    break;
+                };
+            }
+            int neg = this->alu->execute(0, sum, ALU::SUB);
+            this->dram->write_byte(row, col, y, sum);
+            this->dram->write_byte(row, col, NEWS, neg);
+        }
     }
 
-    this->bus(y, NEWS);
     this->update_cycles(1);  //movement
 }
 
 // If east or west, then same row, same dram array. if north then north array, and same for south
-void SCAMP5RM::add2x(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0, const std::shared_ptr<AREG>& x1, news_t dir, news_t dir2) {
+void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
     // y := x0_dir_dir2 + x1_dir_dir2
-    this->bus(intermediate_a, x0, x1);
-    switch(dir) {
-        case north:
-            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case east:
-            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case west:
-            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case south:
-            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = 0;
+            int x1_val = 0;
+            int dram_row_select = 0;
+            int dram_array_select = 0;
+            switch (dir) {
+                case east: {
+                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_row_select < 0) {
+                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                        x1_val = this->dram->read_byte(row, dram_row_select, x1);
+                    }
+                    break;
+                }
+                case west: {
+                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                        x1_val = this->dram->read_byte(row, dram_row_select, x1);
+                    }
+                    break;
+                };
+                case north: {
+                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select < this->rows_) {
+                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                        x1_val = this->dram->read_byte(dram_array_select, col, x1);
+                    }
+                    break;
+                };
+                case south: {
+                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0) {
+                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                        x1_val = this->dram->read_byte(dram_array_select, col, x1);
+                    }
+                    break;
+                };
+                case alldir: {
+                    std::cerr << "Unhandled direction" << std::endl;
+                    break;
+                };
+            }
+            int sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
+            int neg = this->alu->execute(0, sum, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, neg);
+
+            switch (dir2) {
+                case east: {
+                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select >= 0) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
+                    }
+                    break;
+                }
+                case west: {
+                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
+                    }
+                    break;
+                };
+                case north: {
+                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select < this->rows_ && dram_row_select >= 0 && dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
+                    }
+                    break;
+                };
+                case south: {
+                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0 && dram_row_select >= 0 && dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
+                    }
+                    break;
+                };
+                case alldir: {
+                    std::cerr << "Unhandled direction" << std::endl;
+                    break;
+                };
+            }
+            this->dram->write_byte(row, col, y, this->alu->execute(x0_val, x1_val, ALU::ADD));
+        }
     }
-    switch(dir2) {
-        case north:
-            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        case east:
-            this->pe->analogue_bus.get_east(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        case west:
-            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        case south:
-            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-    }
-    this->bus(y, intermediate_a2);
+
     this->update_cycles(2);  // movement
 }
 
 // If east or west, then same row, same dram array. if north then north array, and same for south
-void SCAMP5RM::subx(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0, news_t dir, const std::shared_ptr<AREG>& x1) {
+void SCAMP5RM::subx(AREG y, AREG x0, news_t dir, AREG x1) {
     // y := x0_dir - x1
-    this->bus(intermediate_a, x0);
-    switch(dir) {
-        case north:
-            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case east:
-            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case west:
-            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case south:
-            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int sub = 0;
+            switch (dir) {
+                case east: {
+                    int dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_row_select >= 0) {
+                        int x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                        int x1_val = this->dram->read_byte(row, col, x1);
+                        sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
+                    }
+                    break;
+                }
+                case west: {
+                    int dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_row_select < this->cols_) {
+                        int x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                        int x1_val = this->dram->read_byte(row, col, x1);
+                        sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
+                    }
+                    break;
+                };
+                case north: {
+                    int dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select < this->rows_) {
+                        int x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                        int x1_val = this->dram->read_byte(row, col, x1);
+                        sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
+                    }
+                    break;
+                };
+                case south: {
+                    int dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0) {
+                        int x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                        int x1_val = this->dram->read_byte(row, col, x1);
+                        sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
+                    }
+                    break;
+                };
+                case alldir: {
+                    std::cerr << "Unhandled direction" << std::endl;
+                    break;
+                };
+            }
+            int neg = this->alu->execute(0, sub, ALU::SUB);
+            this->dram->write_byte(row, col, y, sub);
+            this->dram->write_byte(row, col, NEWS, neg);
+        }
     }
-    this->bus(y, NEWS, x1);
+
     this->update_cycles(1);  // movement
 }
 
 // If east or west, then same row, same dram array. if north then north array, and same for south
-void SCAMP5RM::sub2x(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& x0, news_t dir, news_t dir2, const std::shared_ptr<AREG>& x1) {
+void SCAMP5RM::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
     // y := x0_dir_dir2 - x1
-    this->bus(intermediate_a, x0);
-    switch(dir) {
-        case north:
-            this->pe->analogue_bus.get_north(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case east:
-            this->pe->analogue_bus.get_east(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case west:
-            this->pe->analogue_bus.get_west(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case south:
-            this->pe->analogue_bus.get_south(*NEWS, *intermediate_a, 1, origin_);
-            break;
-        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int x0_val = 0;
+            int x1_val = 0;
+            int dram_row_select = 0;
+            int dram_array_select = 0;
+            switch (dir) {
+                case east: {
+                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_row_select < 0) {
+                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                        x1_val = this->dram->read_byte(row, col, x1);
+                    }
+                    break;
+                }
+                case west: {
+                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                        x1_val = this->dram->read_byte(row, col, x1);
+                    }
+                    break;
+                };
+                case north: {
+                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select < this->rows_) {
+                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                        x1_val = this->dram->read_byte(row, col, x1);
+                    }
+                    break;
+                };
+                case south: {
+                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0) {
+                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                        x1_val = this->dram->read_byte(row, col, x1);
+                    }
+                    break;
+                };
+                case alldir: {
+                    std::cerr << "Unhandled direction" << std::endl;
+                    break;
+                };
+            }
+            int sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
+            int neg = this->alu->execute(0, sub, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, neg);
+
+            switch (dir2) {
+                case east: {
+                    dram_row_select = this->cols_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select >= 0) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                    }
+                    break;
+                }
+                case west: {
+                    dram_row_select = this->cols_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                    }
+                    break;
+                };
+                case north: {
+                    dram_array_select = this->rows_ - 1; // TOP_RIGHT origin means it's -1
+                    if (dram_array_select < this->rows_ && dram_row_select >= 0 && dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                    }
+                    break;
+                };
+                case south: {
+                    dram_array_select = this->rows_ + 1; // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0 && dram_row_select >= 0 && dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                    }
+                    break;
+                };
+                case alldir: {
+                    std::cerr << "Unhandled direction" << std::endl;
+                    break;
+                };
+            }
+            this->dram->write_byte(row, col, y, this->alu->execute(x0_val, x1_val, ALU::SUB));
+        }
     }
-    switch(dir2) {
-        case north:
-            this->pe->analogue_bus.get_north(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        case east:
-            this->pe->analogue_bus.get_east(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        case west:
-            this->pe->analogue_bus.get_west(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        case south:
-            this->pe->analogue_bus.get_south(*intermediate_a2, *NEWS, 1, origin_);
-            break;
-        case alldir: std::cerr << "Unhandled direction" << std::endl; break;
-    }
-    this->bus(y, intermediate_a2, x1);
     this->update_cycles(2);  // movement
 }
 
 // TODO ALU
-void SCAMP5RM::OR(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
+void SCAMP5RM::OR(DREG d, DREG d0, DREG d1) {
     // d := d0 OR d1
-    this->pe->local_read_bus.OR(*d, *d0, *d1);
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int res = this->alu->execute(dram->read_bit(row, col, d0), dram->read_bit(row, col, d1), ALU::OR);
+            this->dram->write_bit(row, col, d, res);
+        }
+    }
+
     this->update_cycles(4); // 2 reads, 1 op, 1 write
 }
 
 // TODO ALU
-void SCAMP5RM::OR(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
+void SCAMP5RM::OR(DREG d, DREG d0, DREG d1, DREG d2) {
     // d := d0 OR d1 OR d2
-    this->pe->local_read_bus.OR(*d, *d0, *d1, *d2);
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int d0_d1 = this->alu->execute(dram->read_bit(row, col, d0), dram->read_bit(row, col, d1), ALU::OR);
+            int res = this->alu->execute(d0_d1, dram->read_bit(row, col, d2), ALU::OR);
+            this->dram->write_bit(row, col, d, res);
+        }
+    }
+
     this->update_cycles(5);  // 3 reads, 1 op, 1 write
 }
 
 // TODO ALU
-void SCAMP5RM::OR(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
+void SCAMP5RM::OR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
     // d := d0 OR d1 OR d2 OR d3
-    this->pe->local_read_bus.OR(*d, *d0, *d1, *d2, *d3);
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int d0_d1 = this->alu->execute(dram->read_bit(row, col, d0), dram->read_bit(row, col, d1), ALU::OR);
+            int d0_d1_d2 = this->alu->execute(d0_d1, dram->read_bit(row, col, d2), ALU::OR);
+            int res = this->alu->execute(d0_d1_d2, dram->read_bit(row, col, d3), ALU::OR);
+            this->dram->write_bit(row, col, d, res);
+        }
+    }
     this->update_cycles(6);  // 4 reads, 1 op, 1 write
 }
 
 // TODO ALU
-void SCAMP5RM::NOT(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0) {
+void SCAMP5RM::NOT(DREG d, DREG d0) {
     // d := NOT d0
-    this->pe->local_read_bus.NOT(*d, *d0);
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            int negated = this->alu->execute(dram->read_bit(row, col, d0), 1, ALU::XOR);
+            this->dram->write_bit(row, col, d, negated);
+        }
+    }
     this->update_cycles(3); // 1 read, 1 op, 1 write
 }
 
 // TODO ALU
-void SCAMP5RM::NOR(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
+void SCAMP5RM::NOR(DREG d, DREG d0, DREG d1) {
     // d := NOT(d0 OR d1)
     this->pe->local_read_bus.NOR(*d, *d0, *d1);
     this->update_cycles(5);  // 2 reads, 2 op, 1 write
 }
 
 // TODO ALU
-void SCAMP5RM::NOR(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
+void SCAMP5RM::NOR(DREG d, DREG d0, DREG d1, DREG d2) {
     // d := NOT(d0 OR d1 OR d2)
     this->pe->local_read_bus.NOR(*d, *d0, *d1, *d2);
     this->update_cycles(6);  // 3 reads, 2 op, 1 write
 }
 
 // TODO ALU
-void SCAMP5RM::NOR(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
+void SCAMP5RM::NOR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
     // d := NOT(d0 OR d1 OR d2 OR d3)
     this->pe->local_read_bus.NOR(*d, *d0, *d1, *d2, *d3);
     this->update_cycles(7); // 4 reads, 2 op, 1 write
 }
 
 // TODO ALU
-void SCAMP5RM::NOT(const std::shared_ptr<DREG>& Rl) {
+void SCAMP5RM::NOT(DREG Rl) {
     // Rl := NOT Rl
     this->NOT(Rl, Rl);
     this->update_cycles(4); // 2 reads, 1 op, 1 write
 }
 
 // TODO ALU
-void SCAMP5RM::OR(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>& Rx) {
+void SCAMP5RM::OR(DREG Rl, DREG Rx) {
     // Rl := Rl OR Rx
     this->OR(Rl, Rl, Rx);
 }
 
 // TODO ALU
-void SCAMP5RM::NOR(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>& Rx) {
+void SCAMP5RM::NOR(DREG Rl, DREG Rx) {
     // Rl := Rl NOR Rx
     this->NOR(Rl, Rl, Rx);
 }
 
 // TODO ALU
-void SCAMP5RM::AND(const std::shared_ptr<DREG>& Ra, const std::shared_ptr<DREG>& Rx, const std::shared_ptr<DREG>& Ry) {
+void SCAMP5RM::AND(DREG Ra, DREG Rx, DREG Ry) {
     //  Ra := Rx AND Ry; R0 = NOT Ry; R12 = NOT RX
-    this->SET(RF);
-    this->NOT(RP, Rx);
-    this->NOT(RF, Ry);
-    this->NOR(Ra, RF, RP);
+    this->SET(R0);
+    this->NOT(R12, Rx);
+    this->NOT(R0, Ry);
+    this->NOR(Ra, R0, R12);
 }
 
 // TODO ALU
-void SCAMP5RM::NAND(const std::shared_ptr<DREG>& Ra, const std::shared_ptr<DREG>& Rx, const std::shared_ptr<DREG>& Ry) {
+void SCAMP5RM::NAND(DREG Ra, DREG Rx, DREG Ry) {
     // Ra := Rx NAND Ry; R0 = NOT Ry; R12 = NOT RX
-    this->SET(RF);
-    this->NOT(RP, Rx);
-    this->NOT(RF, Ry);
-    this->OR(Ra, RF, RP);
+    this->SET(R0);
+    this->NOT(R12, Rx);
+    this->NOT(R0, Ry);
+    this->OR(Ra, R0, R12);
 }
 
 // TODO ALU
-void SCAMP5RM::ANDX(const std::shared_ptr<DREG>& Ra, const std::shared_ptr<DREG>& Rb, const std::shared_ptr<DREG>& Rx) {
+void SCAMP5RM::ANDX(DREG Ra, DREG Rb, DREG Rx) {
     // Ra := Rb AND Rx; Rb := NOT Rx; R0 = NOT Rb
-    this->NOT(RF, Rb);
+    this->NOT(R0, Rb);
     this->NOT(Rb, Rx);
-    this->NOR(Ra, RF, Rb);
+    this->NOR(Ra, R0, Rb);
 }
 
 // TODO ALU
-void SCAMP5RM::NANDX(const std::shared_ptr<DREG>& Ra, const std::shared_ptr<DREG>& Rb, const std::shared_ptr<DREG>& Rx) {
+void SCAMP5RM::NANDX(DREG Ra, DREG Rb, DREG Rx) {
     // Ra := Rx NAND Ry; Rb := NOT Rx; R0 = NOT Rb
-    this->NOT(RF, Rb);
+    this->NOT(R0, Rb);
     this->NOT(Rb, Rx);
-    this->OR(Ra, RF, Rb);
+    this->OR(Ra, R0, Rb);
 }
 
 // TODO ALU
-void SCAMP5RM::IMP(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>& Rx, const std::shared_ptr<DREG>& Ry) {
+void SCAMP5RM::IMP(DREG Rl, DREG Rx, DREG Ry) {
     // Rl := Rx IMP Ry (logical implication)
     //    Truth Table:
     //    Rx  Ry    Rl
@@ -582,36 +978,36 @@ void SCAMP5RM::IMP(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>&
     //    0   1     0
     //    1   0     1
     //    1   1     1
-    this->NOT(RF, Ry);
-    this->OR(RS, Rx, RF);
+    this->NOT(R0, Ry);
+    this->OR(R1, Rx, R0);
 }
 
 // TODO ALU
-void SCAMP5RM::NIMP(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>& Rx, const std::shared_ptr<DREG>& Ry) {
+void SCAMP5RM::NIMP(DREG Rl, DREG Rx, DREG Ry) {
     // Rl := Rx NIMP Ry
-    this->NOT(RF, Ry);
-    this->NOR(RS, Rx, RF);
+    this->NOT(R0, Ry);
+    this->NOR(R1, Rx, R0);
 }
 
 // TODO ALU
-void SCAMP5RM::XOR(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>& Rx, const std::shared_ptr<DREG>& Ry) {
+void SCAMP5RM::XOR(DREG Rl, DREG Rx, DREG Ry) {
     // Rl := Rx XOR Ry, Rx := *
-    this->NOT(RF, Ry);
-    this->NOR(Rl, Rx, RF);
-    this->NOT(RF, Rx);
-    this->NOR(Rx, Ry, RF);
+    this->NOT(R0, Ry);
+    this->NOR(Rl, Rx, R0);
+    this->NOT(R0, Rx);
+    this->NOR(Rx, Ry, R0);
     this->OR(Rl, Rx);
 }
 
 // TODO DRAM write
-void SCAMP5RM::WHERE(const std::shared_ptr<DREG>& d) {
+void SCAMP5RM::WHERE(DREG d) {
     // FLAG := d.
     this->FLAG->write(d->read(), FLAG->get_mask());
     this->update_cycles(2);  // 1 read, 1 write
 }
 
 // TODO DRAM write
-void SCAMP5RM::WHERE(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
+void SCAMP5RM::WHERE(DREG d0, DREG d1) {
     // FLAG := d0 OR d1.
     this->OR(intermediate_d, d0, d1);
     this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
@@ -619,7 +1015,7 @@ void SCAMP5RM::WHERE(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG
 }
 
 // TODO DRAM write
-void SCAMP5RM::WHERE(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
+void SCAMP5RM::WHERE(DREG d0, DREG d1, DREG d2) {
     // FLAG := d0 OR d1 OR d2.
     this->OR(intermediate_d, d0, d1, d2);
     this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
@@ -634,14 +1030,14 @@ void SCAMP5RM::ALL() {
 }
 
 // TODO DRAM write
-void SCAMP5RM::SET(const std::shared_ptr<DREG>& d0) {
+void SCAMP5RM::SET(DREG d0) {
     // d0 := 1
     d0->write(1, d0->get_mask());
     this->update_cycles(1);  // 1 write
 }
 
 // TODO DRAM write
-void SCAMP5RM::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
+void SCAMP5RM::SET(DREG d0, DREG d1) {
     // d0, d1 := 1
     d0->write(1, d0->get_mask());
     d1->write(1, d1->get_mask());
@@ -649,7 +1045,7 @@ void SCAMP5RM::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>&
 }
 
 // TODO DRAM write
-void SCAMP5RM::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
+void SCAMP5RM::SET(DREG d0, DREG d1, DREG d2) {
     // 	d0, d1, d2 := 1
     d0->write(1, d0->get_mask());
     d1->write(1, d1->get_mask());
@@ -658,7 +1054,7 @@ void SCAMP5RM::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>&
 }
 
 // TODO DRAM write
-void SCAMP5RM::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
+void SCAMP5RM::SET(DREG d0, DREG d1, DREG d2, DREG d3) {
     // d0, d1, d2, d3 := 1
     d0->write(1, d0->get_mask());
     d1->write(1, d1->get_mask());
@@ -668,14 +1064,14 @@ void SCAMP5RM::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>&
 }
 
 // TODO DRAM write
-void SCAMP5RM::CLR(const std::shared_ptr<DREG>& d0) {
+void SCAMP5RM::CLR(DREG d0) {
     // d0 := 0
     d0->write(0, d0->get_mask());
     this->update_cycles(1);  // 1 write
 }
 
 // TODO DRAM write
-void SCAMP5RM::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
+void SCAMP5RM::CLR(DREG d0, DREG d1) {
     // d0, d1 := 0
     d0->write(0, d0->get_mask());
     d1->write(0, d1->get_mask());
@@ -683,7 +1079,7 @@ void SCAMP5RM::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>&
 }
 
 // TODO DRAM write
-void SCAMP5RM::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
+void SCAMP5RM::CLR(DREG d0, DREG d1, DREG d2) {
     // d0, d1, d2 := 0
     d0->write(0, d0->get_mask());
     d1->write(0, d1->get_mask());
@@ -692,7 +1088,7 @@ void SCAMP5RM::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>&
 }
 
 // TODO DRAM write
-void SCAMP5RM::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
+void SCAMP5RM::CLR(DREG d0, DREG d1, DREG d2, DREG d3) {
     // 	d0, d1, d2, d3 := 0
     d0->write(0, d0->get_mask());
     d1->write(0, d1->get_mask());
@@ -702,31 +1098,31 @@ void SCAMP5RM::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>&
 }
 
 // TODO DRAM write
-void SCAMP5RM::MOV(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0) {
+void SCAMP5RM::MOV(DREG d, DREG d0) {
     // d := d0
     this->pe->local_read_bus.MOV(*d, *d0);
     this->update_cycles(2);  // 1 read, 1 write
 }
 
 // TODO ALU
-void SCAMP5RM::MUX(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>& Rx, const std::shared_ptr<DREG>& Ry, const std::shared_ptr<DREG>& Rz) {
+void SCAMP5RM::MUX(DREG Rl, DREG Rx, DREG Ry, DREG Rz) {
     // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
     this->pe->local_read_bus.MUX(*Rl, *Rx, *Ry, *Rz);
     this->update_cycles(4);  // 3 reads, 1 write, some op?
 }
 
-void SCAMP5RM::CLR_IF(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>& Rx) {
+void SCAMP5RM::CLR_IF(DREG Rl, DREG Rx) {
     // Rl := 0 IF Rx = 1, Rl := Rl IF Rx = 0
     this->pe->local_read_bus.CLR_IF(*Rl, *Rx);
     this->update_cycles(2);  // 1 read, up to 1 write, some op for if?
 }
 
-void SCAMP5RM::REFRESH(const std::shared_ptr<DREG>& Rl) {
+void SCAMP5RM::REFRESH(DREG Rl) {
     // 	refresh a DREG to prevent decay after a long time (e.g. > 1.5 seconds)
     // without any operations
 }
 
-void SCAMP5RM::DNEWS0(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0) {
+void SCAMP5RM::DNEWS0(DREG d, DREG d0) {
     // d := d0_dir, direction selected by R1, R2, R3, R4
     // Reads 0 from the edge
     DREG east = DREG(this->rows_, this->cols_);
@@ -747,12 +1143,12 @@ void SCAMP5RM::DNEWS0(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG
     AND(east_ptr, east_ptr, RE);
     AND(north_ptr, north_ptr, RN);
     AND(west_ptr, west_ptr, RW);
-    AND(south_ptr, south_ptr, RS);
+    AND(south_ptr, south_ptr, R1);
 
     OR(d, east_ptr, north_ptr, south_ptr, west_ptr);
 }
 
-void SCAMP5RM::DNEWS1(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0) {
+void SCAMP5RM::DNEWS1(DREG d, DREG d0) {
     // d := d0_dir, direction selected by R1, R2, R3, R4
     // Reads 1 from the edge
     DREG east = DREG(this->rows_, this->cols_);
@@ -773,18 +1169,18 @@ void SCAMP5RM::DNEWS1(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG
     AND(east_ptr, east_ptr, RE);
     AND(north_ptr, north_ptr, RN);
     AND(west_ptr, west_ptr, RW);
-    AND(south_ptr, south_ptr, RS);
+    AND(south_ptr, south_ptr, R1);
 
     OR(d, east_ptr, north_ptr, south_ptr, west_ptr);
 }
 
-void SCAMP5RM::DNEWS(const std::shared_ptr<DREG>& Ra, const std::shared_ptr<DREG>& Rx, int dir, bool boundary) {
+void SCAMP5RM::DNEWS(DREG Ra, DREG Rx, int dir, bool boundary) {
     // digital neighbour OR, Ra := Rx_dir1 OR Rx_dir2 ...; (also modify R1 R2 R3
     // R4).
-    this->CLR(RS, RW, RN, RE);
+    this->CLR(R1, RW, RN, RE);
     // set multiple DREG& (upto 4) can be done via one icw
     if(dir & south) {
-        this->SET(RS);
+        this->SET(R1);
     }
     if(dir & west) {
         this->SET(RW);
@@ -811,7 +1207,7 @@ void SCAMP5RM::PROP1() {
     // async-propagation on R12, masked by R0 when boundaries are considered '1'
 }
 
-void SCAMP5RM::scamp5_get_image(const std::shared_ptr<AREG>& yf, const std::shared_ptr<AREG>& yh, int gain) {
+void SCAMP5RM::scamp5_get_image(AREG yf, AREG yh, int gain) {
     // put the exposure result in *PIX to AREGs and reset *PIX
     // yf	full range [-128,127]
     // yh	half range [0,127]
@@ -850,7 +1246,7 @@ void SCAMP5RM::scamp5_get_image(const std::shared_ptr<AREG>& yf, const std::shar
     bus(yf, NEWS);
 }
 
-void SCAMP5RM::scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value, std::shared_ptr<AREG>& temp) {
+void SCAMP5RM::scamp5_in(AREG areg, int16_t value, std::shared_ptr<AREG>& temp) {
     // load an analog value to the AREG with error&noise correction
     // TODO noise
     IN->write(value);
@@ -859,12 +1255,12 @@ void SCAMP5RM::scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value, std::
     bus(areg, temp);
 }
 
-void SCAMP5RM::scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value) {
+void SCAMP5RM::scamp5_in(AREG areg, int16_t value) {
     // load an analog value to the AREG with error&noise correction
     scamp5_in(areg, value, NEWS);
 }
 
-void SCAMP5RM::scamp5_load_in(const std::shared_ptr<AREG>& areg, int8_t value, std::shared_ptr<AREG>& temp) {
+void SCAMP5RM::scamp5_load_in(AREG areg, int8_t value, std::shared_ptr<AREG>& temp) {
     // load a analog value to the AREG plane without error&noise correction
     // TODO noise
     IN->write(value);
@@ -873,7 +1269,7 @@ void SCAMP5RM::scamp5_load_in(const std::shared_ptr<AREG>& areg, int8_t value, s
     bus(areg, temp);
 }
 
-void SCAMP5RM::scamp5_load_in(const std::shared_ptr<AREG>& areg, int8_t value) {
+void SCAMP5RM::scamp5_load_in(AREG areg, int8_t value) {
     // load a analog value to the AREG plane without error&noise correction
     scamp5_load_in(areg, value, NEWS);
 }
@@ -885,7 +1281,7 @@ void SCAMP5RM::scamp5_load_in(int8_t value) {
     this->update_cycles(1);
 }
 
-void SCAMP5RM::scamp5_load_dac(const std::shared_ptr<AREG>& areg, uint16_t value, std::shared_ptr<AREG>& temp) {
+void SCAMP5RM::scamp5_load_dac(AREG areg, uint16_t value, std::shared_ptr<AREG>& temp) {
     // load an analog value to the AREG plane using a raw DAC value
     // areg	target AREG
     // value a 12-bit DAC value to use (in the range of [0,4095])
@@ -896,7 +1292,7 @@ void SCAMP5RM::scamp5_load_dac(const std::shared_ptr<AREG>& areg, uint16_t value
     bus(areg, temp);
 }
 
-void SCAMP5RM::scamp5_load_dac(const std::shared_ptr<AREG>& areg, uint16_t value) {
+void SCAMP5RM::scamp5_load_dac(AREG areg, uint16_t value) {
     // load an analog value to the AREG plane using a raw DAC value
     // areg	target AREG
     // value a 12-bit DAC value to use (in the range of [0,4095])
@@ -912,7 +1308,7 @@ void SCAMP5RM::scamp5_load_dac(uint16_t value) {
     this->update_cycles(1);
 }
 
-void SCAMP5RM::scamp5_shift(const std::shared_ptr<AREG>& areg, int h, int v) {
+void SCAMP5RM::scamp5_shift(AREG areg, int h, int v) {
     // shift an AREG image
     // this->pe->analogue_bus.
 
@@ -940,8 +1336,8 @@ void SCAMP5RM::scamp5_shift(const std::shared_ptr<AREG>& areg, int h, int v) {
     //    AREG EAST(1, 1);
     //    AREG WEST(1, 1);
     //    if (h != 0) {
-    //        const std::shared_ptr<AREG>& direction = *(h > 0 ? EAST : WEST);
-    //        const std::shared_ptr<AREG>& end = (h % 2 == 0 ? direction : *NEWS);
+    //        AREG direction = *(h > 0 ? EAST : WEST);
+    //        AREG end = (h % 2 == 0 ? direction : *NEWS);
     //
     //        bus(*direction, areg);
     //        for (int i = 2; i < h; i++) {
@@ -957,13 +1353,13 @@ void SCAMP5RM::scamp5_shift(const std::shared_ptr<AREG>& areg, int h, int v) {
     // Vertical shift
 }
 
-uint8_t SCAMP5RM::scamp5_read_areg(const std::shared_ptr<AREG>& areg, uint8_t r, uint8_t c) {
+uint8_t SCAMP5RM::scamp5_read_areg(AREG areg, uint8_t r, uint8_t c) {
     // read a single pixel
     // TODO check that the value is properly mapped to uint8_t from CV_16U
     return areg->read().at<uint8_t>(r, c);
 }
 
-uint32_t SCAMP5RM::scamp5_global_sum_16(const std::shared_ptr<AREG>& areg, uint8_t *result16v) {
+uint32_t SCAMP5RM::scamp5_global_sum_16(AREG areg, uint8_t *result16v) {
     // get the AREG sum level using a set of 4x4 sparse grid.
     // When result16v is a NULL pointer, the function will return sum of the
     // data. The result is not equal to the actual sum of all pixels of the AREG
@@ -990,7 +1386,7 @@ uint32_t SCAMP5RM::scamp5_global_sum_16(const std::shared_ptr<AREG>& areg, uint8
     return sum;
 }
 
-uint32_t SCAMP5RM::scamp5_global_sum_64(const std::shared_ptr<AREG>& areg, uint8_t *result64v) {
+uint32_t SCAMP5RM::scamp5_global_sum_64(AREG areg, uint8_t *result64v) {
     // get the AREG sum level with a better resolution
     // This function achieves similar functionally as the "global_sum_16"
     // version, but the grid used is 8x8. As a consequence, the result has
@@ -1015,14 +1411,14 @@ uint32_t SCAMP5RM::scamp5_global_sum_64(const std::shared_ptr<AREG>& areg, uint8
     return sum;
 }
 
-uint8_t SCAMP5RM::scamp5_global_sum_fast(const std::shared_ptr<AREG>& areg) {
+uint8_t SCAMP5RM::scamp5_global_sum_fast(AREG areg) {
     // get approximate sum level of the whole AREG plane
     // TODO should be approximate sum not exact. Also need to abstract away cv call
     this->update_cycles(70); // TODO improve
     return cv::sum(areg->read())[0];
 }
 
-uint8_t SCAMP5RM::scamp5_global_sum_sparse(const std::shared_ptr<AREG>& areg, uint8_t r, uint8_t c,
+uint8_t SCAMP5RM::scamp5_global_sum_sparse(AREG areg, uint8_t r, uint8_t c,
                                          uint8_t rx, uint8_t cx) {
     // get sum level of the pixels selected using a pattern
     // This result is less probable to saturate because it only counts a quarter
@@ -1046,11 +1442,11 @@ uint8_t SCAMP5RM::scamp5_global_sum_sparse(const std::shared_ptr<AREG>& areg, ui
     return sum;
 }
 
-void SCAMP5RM::scamp5_shift(const std::shared_ptr<DREG>& dreg, int h, int v, const int boundary) {
+void SCAMP5RM::scamp5_shift(DREG dreg, int h, int v, const int boundary) {
     // shift a DREG image
 }
 
-int SCAMP5RM::scamp5_global_or(const std::shared_ptr<DREG>& dreg, uint8_t r, uint8_t c, uint8_t rx,
+int SCAMP5RM::scamp5_global_or(DREG dreg, uint8_t r, uint8_t c, uint8_t rx,
                              uint8_t cx) {
     // get OR result of all pixels in a DREG plane. 0 if all pixel is 0,
     // non-zero otherwise. The default mask pattern parameters gives the whole
@@ -1076,7 +1472,7 @@ int SCAMP5RM::scamp5_global_or(const std::shared_ptr<DREG>& dreg, uint8_t r, uin
     return val;
 }
 
-int SCAMP5RM::scamp5_global_count(const std::shared_ptr<DREG>& dreg, const std::shared_ptr<AREG>& temp, int options) {
+int SCAMP5RM::scamp5_global_count(DREG dreg, AREG temp, int options) {
     // get an estimation of the number of '1's in a DREG plane
     // Internally this function converts the DREG to AREG using suitable analog
     // levels to represent '0's and '1's. Then a AREG global sum is done and the
@@ -1089,7 +1485,7 @@ int SCAMP5RM::scamp5_global_count(const std::shared_ptr<DREG>& dreg, const std::
     return utility::normalise(total, min_val, max_val, 0, 4096);
 }
 
-void SCAMP5RM::scamp5_flood(const std::shared_ptr<DREG>& dreg_target, const std::shared_ptr<DREG>& dreg_mask, int boundary,
+void SCAMP5RM::scamp5_flood(DREG dreg_target, DREG dreg_mask, int boundary,
                           int iterations, bool use_local) {
     // flooding a DREG image with '1's from the '1's in the DREG image
     // dreg_target	the DREG to be flooded
@@ -1124,13 +1520,13 @@ void SCAMP5RM::scamp5_flood(const std::shared_ptr<DREG>& dreg_target, const std:
     }
 }
 
-void SCAMP5RM::scamp5_load_point(const std::shared_ptr<DREG>& dr, uint8_t r, uint8_t c) {
+void SCAMP5RM::scamp5_load_point(DREG dr, uint8_t r, uint8_t c) {
     // set a single pixel on a DREG image to 1, the rest to 0
     dr->read().setTo(0);
     dr->read().at<uint8_t>(r, c) = 1;
 }
 
-void SCAMP5RM::scamp5_load_rect(const std::shared_ptr<DREG>& dr, uint8_t r0, uint8_t c0, uint8_t r1,
+void SCAMP5RM::scamp5_load_rect(DREG dr, uint8_t r0, uint8_t c0, uint8_t r1,
                               uint8_t c1) {
     // set a rectangle area on a DREG image to 1, the rest to 0
     // r0	pixel row index of the top right corner
@@ -1152,7 +1548,7 @@ void SCAMP5RM::scamp5_load_rect(const std::shared_ptr<DREG>& dr, uint8_t r0, uin
     dr->read()(cv::Rect(r0, c1, width, height)).setTo(1);
 }
 
-void SCAMP5RM::scamp5_load_pattern(const std::shared_ptr<DREG>& dr, uint8_t r, uint8_t c, uint8_t rx,
+void SCAMP5RM::scamp5_load_pattern(DREG dr, uint8_t r, uint8_t c, uint8_t rx,
                                  uint8_t cx) {
     // set those pixels with matching address to 1, the rest to 0
     // To mask out certain bits in the column/row address allow a match to occur
@@ -1227,7 +1623,7 @@ void SCAMP5RM::scamp5_select_rowx(uint8_t rx) {
     // select row mask
 }
 
-void SCAMP5RM::scamp5_draw_begin(const std::shared_ptr<DREG>& dr) {
+void SCAMP5RM::scamp5_draw_begin(DREG dr) {
     // targeting a DREG image to a series of drawing operations
     scratch = dr;
 }
@@ -1327,7 +1723,7 @@ void SCAMP5RM::scamp5_draw_negate() {
 
 // Image Readout
 
-void SCAMP5RM::scamp5_scan_areg(const std::shared_ptr<AREG>& areg, uint8_t *buffer, uint8_t r0,
+void SCAMP5RM::scamp5_scan_areg(AREG areg, uint8_t *buffer, uint8_t r0,
                               uint8_t c0, uint8_t r1, uint8_t c1, uint8_t rs,
                               uint8_t cs) {
     // scan a customized grid of pixels in an AREG image
@@ -1337,7 +1733,7 @@ void SCAMP5RM::scamp5_scan_areg(const std::shared_ptr<AREG>& areg, uint8_t *buff
     this->pe->analogue_bus.scan(buffer, *areg, r0, c0, r1, c1, rs, cs, this->origin_);
 }
 
-void SCAMP5RM::scamp5_scan_areg_8x8(const std::shared_ptr<AREG>& areg, uint8_t *result8x8) {
+void SCAMP5RM::scamp5_scan_areg_8x8(AREG areg, uint8_t *result8x8) {
     // scan a 8x8 grid of pixels in an AREG image
     // This function is slightly faster and more accurate than scamp5_scan_areg.
     // TODO currently assuming this takes beginning of each cell in 8x8 grid.
@@ -1353,13 +1749,13 @@ void SCAMP5RM::scamp5_scan_areg_8x8(const std::shared_ptr<AREG>& areg, uint8_t *
     }
 }
 
-void SCAMP5RM::scamp5_scan_areg_mean_8x8(const std::shared_ptr<AREG>& areg, uint8_t *result8x8) {
+void SCAMP5RM::scamp5_scan_areg_mean_8x8(AREG areg, uint8_t *result8x8) {
     // divide the AREG image into 8x8 square blocks, and get the average of each
     // block result8x8 - pointer to a buffer to store the results
     this->pe->analogue_bus.blocked_average(result8x8, *areg, 8, this->origin_);
 }
 
-void SCAMP5RM::scamp5_scan_dreg(const std::shared_ptr<DREG>& dreg, uint8_t *mem, uint8_t r0,
+void SCAMP5RM::scamp5_scan_dreg(DREG dreg, uint8_t *mem, uint8_t r0,
                               uint8_t r1) {
     // scan DREG image, store the result in a buffer
     // mem - pointer to a buffer
@@ -1388,7 +1784,7 @@ void SCAMP5RM::scamp5_scan_dreg(const std::shared_ptr<DREG>& dreg, uint8_t *mem,
     }
 }
 
-void SCAMP5RM::scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *mem, uint16_t max_num,
+void SCAMP5RM::scamp5_scan_events(DREG dreg, uint8_t *mem, uint16_t max_num,
                                 uint8_t h_dir, uint8_t v_dir) {
     // scan the coordinates of all '1's in a DREG image and store the result in
     // a buffer mem - pointer to a buffer of (max_num*2) bytes max_num - maximum
@@ -1412,7 +1808,7 @@ void SCAMP5RM::scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *me
     }
 }
 
-void SCAMP5RM::scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *buffer, uint16_t max_num,
+void SCAMP5RM::scamp5_scan_events(DREG dreg, uint8_t *buffer, uint16_t max_num,
                                 uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1,
                                 uint8_t rs, uint8_t cs) {
     // assuming 0,0 in top left
@@ -1429,7 +1825,7 @@ void SCAMP5RM::scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *bu
     }
 }
 
-void SCAMP5RM::scamp5_scan_boundingbox(const std::shared_ptr<DREG>& dr, uint8_t *vec4v) {
+void SCAMP5RM::scamp5_scan_boundingbox(DREG dr, uint8_t *vec4v) {
     // scan the bounding box coordinates of '1's in a DREG image
     // The coordinates are two points: the top-right and the bottom-left corners
     // of the axis-aligned bounding box (AABB) of '1's in the DREG. vec4v -
@@ -1538,44 +1934,44 @@ RTTR_REGISTRATION {
         .method("set_components", &SCAMP5RM::set_components)
         .method("nop", &SCAMP5RM::nop)
         .method("rpix", &SCAMP5RM::rpix)
-        .method("get_image", select_overload<void(const std::shared_ptr<AREG>&)> (&SCAMP5RM::get_image))
-        .method("get_image", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::get_image))
+        .method("get_image", select_overload<void(AREG)> (&SCAMP5RM::get_image))
+        .method("get_image", select_overload<void(AREG, AREG)>(&SCAMP5RM::get_image))
         .method("respix", select_overload<void()>(&SCAMP5RM::respix))
-        .method("respix", select_overload<void(const std::shared_ptr<AREG>&)>(&SCAMP5RM::respix))
-        .method("getpix", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::getpix))
-        .method("getpix", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::getpix))
-        .method("where", select_overload<void(const std::shared_ptr<AREG>&)>(&SCAMP5RM::where))
-        .method("where", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::where))
-        .method("where", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::where))
+        .method("respix", select_overload<void(AREG)>(&SCAMP5RM::respix))
+        .method("getpix", select_overload<void(AREG, AREG)>(&SCAMP5RM::getpix))
+        .method("getpix", select_overload<void(AREG, AREG, AREG)>(&SCAMP5RM::getpix))
+        .method("where", select_overload<void(AREG)>(&SCAMP5RM::where))
+        .method("where", select_overload<void(AREG, AREG)>(&SCAMP5RM::where))
+        .method("where", select_overload<void(AREG, AREG, AREG)>(&SCAMP5RM::where))
         .method("all", &SCAMP5RM::all)
         .method("mov", &SCAMP5RM::mov)
-        .method("res", select_overload<void(const std::shared_ptr<AREG>&)>(&SCAMP5RM::res))
-        .method("res", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::res))
-        .method("add", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::add))
-        .method("add", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::add))
-        .method("sub", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::sub))
+        .method("res", select_overload<void(AREG)>(&SCAMP5RM::res))
+        .method("res", select_overload<void(AREG, AREG)>(&SCAMP5RM::res))
+        .method("add", select_overload<void(AREG, AREG, AREG)>(&SCAMP5RM::add))
+        .method("add", select_overload<void(AREG, AREG, AREG, AREG)>(&SCAMP5RM::add))
+        .method("sub", select_overload<void(AREG, AREG, AREG)>(&SCAMP5RM::sub))
         .method("neg", &SCAMP5RM::neg)
         .method("abs", &SCAMP5RM::abs)
-        .method("div", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::div))
-        .method("div", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::div))
-        .method("diva", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::diva))
-        .method("divq", select_overload<void(const std::shared_ptr<AREG>&, const std::shared_ptr<AREG>&)>(&SCAMP5RM::divq))
+        .method("div", select_overload<void(AREG, AREG, AREG)>(&SCAMP5RM::div))
+        .method("div", select_overload<void(AREG, AREG, AREG, AREG)>(&SCAMP5RM::div))
+        .method("diva", select_overload<void(AREG, AREG, AREG)>(&SCAMP5RM::diva))
+        .method("divq", select_overload<void(AREG, AREG)>(&SCAMP5RM::divq))
         .method("movx", &SCAMP5RM::movx)
         .method("mov2x", &SCAMP5RM::mov2x)
         .method("addx", &SCAMP5RM::addx)
         .method("add2x", &SCAMP5RM::add2x)
         .method("subx", &SCAMP5RM::subx)
         .method("sub2x", &SCAMP5RM::sub2x)
-        .method("OR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::OR))
-        .method("OR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::OR))
-        .method("OR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::OR))
-        .method("NOT", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::NOT))
-        .method("NOR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::NOR))
-        .method("NOR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::NOR))
-        .method("NOR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::NOR))
-        .method("NOR", select_overload<void(const std::shared_ptr<DREG>&)>(&SCAMP5RM::NOT))
-        .method("OR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::OR))
-        .method("NOR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::NOR))
+        .method("OR", select_overload<void(DREG, DREG, DREG)>(&SCAMP5RM::OR))
+        .method("OR", select_overload<void(DREG, DREG, DREG, DREG)>(&SCAMP5RM::OR))
+        .method("OR", select_overload<void(DREG, DREG, DREG, DREG, DREG)>(&SCAMP5RM::OR))
+        .method("NOT", select_overload<void(DREG, DREG)>(&SCAMP5RM::NOT))
+        .method("NOR", select_overload<void(DREG, DREG, DREG)>(&SCAMP5RM::NOR))
+        .method("NOR", select_overload<void(DREG, DREG, DREG, DREG)>(&SCAMP5RM::NOR))
+        .method("NOR", select_overload<void(DREG, DREG, DREG, DREG, DREG)>(&SCAMP5RM::NOR))
+        .method("NOR", select_overload<void(DREG)>(&SCAMP5RM::NOT))
+        .method("OR", select_overload<void(DREG, DREG)>(&SCAMP5RM::OR))
+        .method("NOR", select_overload<void(DREG, DREG)>(&SCAMP5RM::NOR))
         .method("AND", &SCAMP5RM::AND)
         .method("NAND", &SCAMP5RM::NAND)
         .method("ANDX", &SCAMP5RM::ANDX)
@@ -1583,18 +1979,18 @@ RTTR_REGISTRATION {
         .method("IMP", &SCAMP5RM::IMP)
         .method("NIMP", &SCAMP5RM::NIMP)
         .method("XOR", &SCAMP5RM::XOR)
-        .method("WHERE", select_overload<void(const std::shared_ptr<DREG>&)>(&SCAMP5RM::WHERE))
-        .method("WHERE", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::WHERE))
-        .method("WHERE", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::WHERE))
+        .method("WHERE", select_overload<void(DREG)>(&SCAMP5RM::WHERE))
+        .method("WHERE", select_overload<void(DREG, DREG)>(&SCAMP5RM::WHERE))
+        .method("WHERE", select_overload<void(DREG, DREG, DREG)>(&SCAMP5RM::WHERE))
         .method("ALL", &SCAMP5RM::ALL)
-        .method("SET", select_overload<void(const std::shared_ptr<DREG>&)>(&SCAMP5RM::SET))
-        .method("SET", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::SET))
-        .method("SET", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::SET))
-        .method("SET", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::SET))
-        .method("CLR", select_overload<void(const std::shared_ptr<DREG>&)>(&SCAMP5RM::CLR))
-        .method("CLR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::CLR))
-        .method("CLR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::CLR))
-        .method("CLR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5RM::CLR))
+        .method("SET", select_overload<void(DREG)>(&SCAMP5RM::SET))
+        .method("SET", select_overload<void(DREG, DREG)>(&SCAMP5RM::SET))
+        .method("SET", select_overload<void(DREG, DREG, DREG)>(&SCAMP5RM::SET))
+        .method("SET", select_overload<void(DREG, DREG, DREG, DREG)>(&SCAMP5RM::SET))
+        .method("CLR", select_overload<void(DREG)>(&SCAMP5RM::CLR))
+        .method("CLR", select_overload<void(DREG, DREG)>(&SCAMP5RM::CLR))
+        .method("CLR", select_overload<void(DREG, DREG, DREG)>(&SCAMP5RM::CLR))
+        .method("CLR", select_overload<void(DREG, DREG, DREG, DREG)>(&SCAMP5RM::CLR))
         .method("MOV", &SCAMP5RM::MOV)
         .method("MUX", &SCAMP5RM::MUX)
         .method("CLR_IF", &SCAMP5RM::CLR_IF)
@@ -1605,21 +2001,21 @@ RTTR_REGISTRATION {
         .method("PROP0", &SCAMP5RM::PROP0)
         .method("PROP1", &SCAMP5RM::PROP1)
         .method("scamp5_get_image", &SCAMP5RM::scamp5_get_image)(default_arguments(1))
-        .method("scamp5_in", select_overload<void(const std::shared_ptr<AREG>&, int16_t)>(&SCAMP5RM::scamp5_in))
-        .method("scamp5_in", select_overload<void(const std::shared_ptr<AREG>&, int16_t, std::shared_ptr<AREG>&)>(&SCAMP5RM::scamp5_in))
-        .method("scamp5_load_in", select_overload<void(const std::shared_ptr<AREG>&, int8_t, std::shared_ptr<AREG>&)>(&SCAMP5RM::scamp5_load_in))
-        .method("scamp5_load_in", select_overload<void(const std::shared_ptr<AREG>&, int8_t)>(&SCAMP5RM::scamp5_load_in))
+        .method("scamp5_in", select_overload<void(AREG, int16_t)>(&SCAMP5RM::scamp5_in))
+        .method("scamp5_in", select_overload<void(AREG, int16_t, std::shared_ptr<AREG>&)>(&SCAMP5RM::scamp5_in))
+        .method("scamp5_load_in", select_overload<void(AREG, int8_t, std::shared_ptr<AREG>&)>(&SCAMP5RM::scamp5_load_in))
+        .method("scamp5_load_in", select_overload<void(AREG, int8_t)>(&SCAMP5RM::scamp5_load_in))
         .method("scamp5_load_in", select_overload<void(int8_t)>(&SCAMP5RM::scamp5_load_in))
-        .method("scamp5_load_dac", select_overload<void(const std::shared_ptr<AREG>&, uint16_t, std::shared_ptr<AREG>&)>(&SCAMP5RM::scamp5_load_dac))
-        .method("scamp5_load_dac", select_overload<void(const std::shared_ptr<AREG>&, uint16_t)>(&SCAMP5RM::scamp5_load_dac))
+        .method("scamp5_load_dac", select_overload<void(AREG, uint16_t, std::shared_ptr<AREG>&)>(&SCAMP5RM::scamp5_load_dac))
+        .method("scamp5_load_dac", select_overload<void(AREG, uint16_t)>(&SCAMP5RM::scamp5_load_dac))
         .method("scamp5_load_dac", select_overload<void(uint16_t)>(&SCAMP5RM::scamp5_load_dac))
-        .method("scamp5_shift", select_overload<void(const std::shared_ptr<AREG>&, int, int)>(&SCAMP5RM::scamp5_shift))
+        .method("scamp5_shift", select_overload<void(AREG, int, int)>(&SCAMP5RM::scamp5_shift))
         .method("scamp5_read_areg", &SCAMP5RM::scamp5_read_areg)
         .method("scamp5_global_sum_16", &SCAMP5RM::scamp5_global_sum_16)(default_arguments(nullptr))
         .method("scamp5_global_sum_64", &SCAMP5RM::scamp5_global_sum_64)(default_arguments(nullptr))
         .method("scamp5_global_sum_fast", &SCAMP5RM::scamp5_global_sum_fast)
         .method("scamp5_global_sum_sparse", &SCAMP5RM::scamp5_global_sum_sparse)(default_arguments((uint8_t)2, (uint8_t)2, (uint8_t)254, (uint8_t)254))
-        .method("scamp5_shift", select_overload<void(const std::shared_ptr<DREG>&, int, int, int)>(&SCAMP5RM::scamp5_shift))(default_arguments(0))
+        .method("scamp5_shift", select_overload<void(DREG, int, int, int)>(&SCAMP5RM::scamp5_shift))(default_arguments(0))
         .method("scamp5_global_or", &SCAMP5RM::scamp5_global_or)(default_arguments((uint8_t)0, (uint8_t)0, (uint8_t)255, (uint8_t)255))
         .method("scamp5_global_count", &SCAMP5RM::scamp5_global_count)(default_arguments(0))
         .method("scamp5_flood", &SCAMP5RM::scamp5_flood)(default_arguments(5, false))
@@ -1645,8 +2041,8 @@ RTTR_REGISTRATION {
         .method("scamp5_scan_areg_8x8", &SCAMP5RM::scamp5_scan_areg_8x8)
         .method("scamp5_scan_areg_mean_8x8", &SCAMP5RM::scamp5_scan_areg_mean_8x8)
         .method("scamp5_scan_dreg", &SCAMP5RM::scamp5_scan_dreg)(default_arguments((uint8_t)0, (uint8_t)255))
-        .method("scamp5_scan_events", select_overload<void(const std::shared_ptr<DREG>&, uint8_t*, uint16_t, uint8_t, uint8_t)>(&SCAMP5RM::scamp5_scan_events))(default_arguments((uint16_t)1000, (uint8_t)0, (uint8_t)0))
-        .method("scamp5_scan_events", select_overload<void(const std::shared_ptr<DREG>&, uint8_t*, uint16_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t)>(&SCAMP5RM::scamp5_scan_events))
+        .method("scamp5_scan_events", select_overload<void(DREG, uint8_t*, uint16_t, uint8_t, uint8_t)>(&SCAMP5RM::scamp5_scan_events))(default_arguments((uint16_t)1000, (uint8_t)0, (uint8_t)0))
+        .method("scamp5_scan_events", select_overload<void(DREG, uint8_t*, uint16_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t)>(&SCAMP5RM::scamp5_scan_events))
         .method("scamp5_scan_boundingbox", &SCAMP5RM::scamp5_scan_boundingbox)
         .method("print_stats", &SCAMP5RM::print_stats);
 }

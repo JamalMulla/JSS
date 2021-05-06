@@ -9,11 +9,15 @@
 #include "simulator/base/config.h"
 
 class ALU : Component {
+   public:
     enum OPCODE {
         ADD,
         SUB,
         INC,
         DEC,
+        CMP,
+        MUL,
+        DIV,
         AND,
         OR,
         XOR
@@ -39,6 +43,10 @@ class ALU : Component {
     void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
 
    public:
+    // Flags
+    bool N = false; // Set on negative
+
+   public:
     ALU() = default;
     void init();
 
@@ -49,7 +57,7 @@ class ALU : Component {
     void set_config(const std::shared_ptr<Config>& config);
 
 
-    int operate(int a, int b, OPCODE opcode);
+    int execute(int a, int b, OPCODE opcode);
 
 #ifdef TRACK_STATISTICS
     void fun_internal_mask();
@@ -63,7 +71,6 @@ class ALU : Component {
     int get_cycle_count() override;
     void print_stats(const CycleCounter &counter) override;
 #endif
-
 };
 
 #endif  //SIMULATOR_ALU_H

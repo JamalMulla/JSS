@@ -39,7 +39,8 @@ void ALU::set_config(const std::shared_ptr<Config>& config) {
     this->config_ = config;
 }
 
-int ALU::operate(int a, int b, ALU::OPCODE opcode) {
+// todo all flags
+int ALU::execute(int a, int b, ALU::OPCODE opcode) {
     switch (opcode) {
         case ADD: {
             return a + b;
@@ -53,6 +54,16 @@ int ALU::operate(int a, int b, ALU::OPCODE opcode) {
         case DEC: {
             return a - 1;
         };
+        case CMP: {
+            int v = a - b;
+            if (v < 0) N = true;
+        };
+        case MUL: {
+            return a * b;
+        };
+        case DIV: {
+            return a / b;
+        }
         case AND: {
             return a & b;
         };

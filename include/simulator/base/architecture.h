@@ -29,6 +29,11 @@ class Architecture {
 
     template<class type>
     std::shared_ptr<type> get_component(const std::string& name) {
+        if (components_.find(name) == components_.end()) {
+            // not found in components
+            std::cerr << "Could not get component \"" << name << "\"" << std::endl;
+            exit(EXIT_FAILURE);
+        }
         return std::dynamic_pointer_cast<type>(components_[name]);
     }
 
