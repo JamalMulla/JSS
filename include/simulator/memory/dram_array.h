@@ -24,10 +24,11 @@ class Dram : public Component {
 //    int word_length_;
     std::shared_ptr<Config> config_;
 #ifdef TRACK_STATISTICS
-    int cycle_count_ = 2;
+    int cycle_count_ = 1;
     int transistor_count_;
     double static_power_;  // in Watts
     double dynamic_power_;  // in Watts
+    double time_;
     cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
     cv::Mat array_transistor_count_;
     cv::Mat array_static_energy_;
@@ -66,6 +67,7 @@ class Dram : public Component {
     double fun_static(const std::shared_ptr<Config>& config);
     double fun_dynamic(const std::shared_ptr<Config>& config);
     void update_static(double time) override;
+    void update_dynamic(int count);
     int get_cycle_count() override;
     cv::Mat get_static_energy() override;
     cv::Mat get_dynamic_energy() override;

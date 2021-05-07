@@ -1570,7 +1570,7 @@ void SCAMP5::print_stats() {
     // TODO move
 #ifdef TRACK_STATISTICS
     this->update_static(); //move
-    Architecture::print_stats();
+    Architecture::print_stats(rows_, cols_);
 //    json j;
 //    j["Total number of cycles"] = counter->get_cycles();
 //    j["Equivalent in seconds"] = counter->to_seconds(config_.clock_rate_);

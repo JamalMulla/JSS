@@ -5,6 +5,7 @@
 #ifndef SIMULATOR_SCAMP5RM_H
 #define SIMULATOR_SCAMP5RM_H
 
+#include <simulator/adc/adc.h>
 #include <simulator/alu/alu.h>
 
 #include <opencv4/opencv2/opencv.hpp>
@@ -58,6 +59,7 @@ class SCAMP5RM : public Architecture {
     std::shared_ptr<ProcessingElement> pe;
     std::shared_ptr<ALU> alu;
     std::shared_ptr<Dram> dram;
+    std::shared_ptr<ADC> adc;
     DREG scratch = R0;
 
     SCAMP5RM() = default;

@@ -11,6 +11,7 @@ void ALU::init() {
     transistor_count_ = fun_transistor(config_);
     static_power_ = fun_static(config_);
     dynamic_power_ = fun_dynamic(config_);
+    time_ = (this->cycle_count_ * (1.0 / config_->get_clock_rate()));
     internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
     array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
     array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
@@ -98,12 +99,11 @@ int ALU::fun_transistor(const std::shared_ptr<Config>& config) {
 
 double ALU::fun_static(const std::shared_ptr<Config>& config) {
     // todo
-    return 0;
+    return 0.000001;
 }
 
 double ALU::fun_dynamic(const std::shared_ptr<Config>& config) {
-    // todo
-    return 55e-6;
+    return 0.000751428;
 }
 
 void ALU::update_static(double time) {
@@ -127,6 +127,10 @@ cv::Mat ALU::get_transistor_count() {
 }
 
 void ALU::print_stats(const CycleCounter& counter) {
+}
+
+void ALU::update_dynamic(int count) {
+    cv::add(this->array_dynamic_energy_, count * this->dynamic_power_ * time_, this->array_dynamic_energy_, internal_mask);
 }
 #endif
 

@@ -2,7 +2,7 @@
    "architecture":"SCAMP5RM",
    "frames":500,
    "with_stats":true,
-   "ui_enabled":true,
+   "ui_enabled":false,
    "ui_registers_to_display":[
    ],
    "SCAMP5RM":{
@@ -50,6 +50,17 @@
             ],
             "_component":"ALU",
             "_name":"alu"
+         },
+         {
+            "_inherit":[
+               "config",
+               "rows",
+               "cols",
+               "row_stride",
+               "col_stride"
+            ],
+            "_component":"ADC",
+            "_name":"adc"
          }
       ]
    }

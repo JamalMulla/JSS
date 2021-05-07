@@ -1,28 +1,15 @@
 //
-// Created by jm1417 on 05/05/2021.
+// Created by jm1417 on 07/05/2021.
 //
 
-#ifndef SIMULATOR_ALU_H
-#define SIMULATOR_ALU_H
+#ifndef SIMULATOR_ADC_H
+#define SIMULATOR_ADC_H
+
 
 #include "simulator/base/component.h"
 #include "simulator/base/config.h"
 
-class ALU : public Component {
-   public:
-    enum OPCODE {
-        ADD,
-        SUB,
-        INC,
-        DEC,
-        CMP,
-        MUL,
-        DIV,
-        AND,
-        OR,
-        XOR
-    };
-
+class ADC : public Component {
    private:
     int rows_;
     int cols_;
@@ -44,11 +31,9 @@ class ALU : public Component {
     void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
 
    public:
-    // Flags
-    bool N = false; // Set on negative
 
    public:
-    ALU() = default;
+    ADC() = default;
     void init();
 
     void set_rows(int rows);
@@ -57,7 +42,7 @@ class ALU : public Component {
     void set_col_stride(int col_stride);
     void set_config(const std::shared_ptr<Config>& config);
 
-    int execute(int a, int b, OPCODE opcode);
+    int convert(int analogue);
 
 #ifdef TRACK_STATISTICS
     void fun_internal_mask();
@@ -74,4 +59,4 @@ class ALU : public Component {
 #endif
 };
 
-#endif  //SIMULATOR_ALU_H
+#endif  //SIMULATOR_ADC_H

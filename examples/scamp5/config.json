@@ -3,7 +3,7 @@
     "frames": 500,
     "frame_time": true,
 	"with_stats": true,
-	"ui_enabled": true,
+	"ui_enabled": false,
     "ui_registers_to_display" : ["A", "B", "C", "D", "E", "R5", "R6", "R7", "R12"],
 	"SCAMP5": {
 		"rows": 256,
@@ -24,15 +24,6 @@
                 "pixel" : {
                     "input_source" : "LIVE"
                 }
-			},
-			{
-                "_inherit" : ["config", "rows", "cols"],
-                "_component": "Dram",
-                "_name" : "dram",
-                "row_stride": 8,
-                "col_stride": 8,
-                "array_rows" : 256,
-                "array_cols" : 16
 			}
 		]
 	}

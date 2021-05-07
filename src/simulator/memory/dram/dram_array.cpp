@@ -11,6 +11,7 @@ void Dram::init() {
     transistor_count_ = fun_transistor(config_);
     static_power_ = fun_static(config_);
     dynamic_power_ = fun_dynamic(config_);
+    time_ = this->cycle_count_ * (1.0 / config_->get_clock_rate());
     internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
     array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
     array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
@@ -107,7 +108,7 @@ int Dram::fun_transistor(const std::shared_ptr<Config>& config) {
     // 1t1c DRAM cells (for now). So rows * cols for just DRAM cell transistor counts
     // Some number for sense amplifiers
     // Some number for row/col decoders
-    return (array_rows_ * array_cols_);
+    return (array_rows_ * array_cols_) + (2 * array_cols_);
 }
 
 double Dram::fun_static(const std::shared_ptr<Config>& config) {
@@ -115,7 +116,7 @@ double Dram::fun_static(const std::shared_ptr<Config>& config) {
     // Some amount for sense amplifiers
     // Some amount for row/col decoders
     // Refresh
-    return 0;
+    return 5.0e-11;
 }
 
 double Dram::fun_dynamic(const std::shared_ptr<Config>& config) {
@@ -123,7 +124,7 @@ double Dram::fun_dynamic(const std::shared_ptr<Config>& config) {
     // Some amount for sense amplifiers
     // Some amount for row/col decoders
     // read/write entire row. dependant on word length and cols
-    return 0;
+    return 5.0e-9;
 }
 
 void Dram::update_static(double time) {
@@ -147,6 +148,10 @@ cv::Mat Dram::get_transistor_count() {
 }
 
 void Dram::print_stats(const CycleCounter& counter) {
+}
+
+void Dram::update_dynamic(int count) {
+    cv::add(this->array_dynamic_energy_, count * this->dynamic_power_ * time_, this->array_dynamic_energy_, internal_mask);
 }
 
 #endif

@@ -12,6 +12,7 @@
 
 /*Bits refers to the number of bits in the two inputs and the output. So an 8-bit adders takes in two 8-bit values and outputs an 8-bit value*/
 
+
 CarryLookAheadAdder::CarryLookAheadAdder(int rows, int cols, int row_stride, int col_stride, int bits, Config& config) :
     rows_(rows),
     cols_(cols),

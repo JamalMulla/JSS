@@ -44,7 +44,7 @@ class Architecture {
     void update_cycles(int cycles);
 #ifdef TRACK_STATISTICS
     void update_static(); // Calculates static power using the number of cycles we've got to
-    void print_stats();
+    void print_stats(int rows, int cols);
     unsigned long long get_cycles();
 #endif
     std::shared_ptr<Component> get_component(const std::string& name);

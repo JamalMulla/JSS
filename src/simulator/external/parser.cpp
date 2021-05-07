@@ -126,8 +126,9 @@ rttr::method Parser::get_method(const rttr::type& class_type, std::vector<rttr::
         }
     }
 
-    std::cerr << "Method \"" << instr << "\" not found with given argument types. It may not have been registered or you may have passed arguments with incorrect types" << std::endl;
-    exit(EXIT_FAILURE);
+    std::cerr << "Method \"" << instr << "\" not found with given argument types. It may not have been registered or you may have passed arguments with incorrect types. Continuing" << std::endl;
+    return instr_method;
+//    exit(EXIT_FAILURE);
 }
 
 std::vector<rttr::enumeration> Parser::get_enums() {
@@ -187,7 +188,9 @@ Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream&
         }
 
         rttr::method instr_method = get_method(class_type, args, arg_types, instr);
-        instructionArgs.emplace_back(instr_method, args);
+        if (instr_method.is_valid()) {
+            instructionArgs.emplace_back(instr_method, args);
+        }
     }
     return instructionArgs;
 }
