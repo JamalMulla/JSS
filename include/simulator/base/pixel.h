@@ -21,17 +21,11 @@ class Pixel : public Component {
 
 #ifdef TRACK_STATISTICS
     int cycle_count_;
-
-
 #endif
 
    public:
     Pixel() = default;
     void init();
-
-    int calc_transistor_count() override;
-    double calc_static() override;
-    double calc_dynamic() override;
 
     void set_src(Source src);
     void set_path(const std::string& path);
@@ -41,6 +35,9 @@ class Pixel : public Component {
     cv::Mat read();
     double last_frame_time();
 #ifdef TRACK_STATISTICS
+    int calc_transistor_count() override;
+    double calc_static() override;
+    double calc_dynamic() override;
     void update_static(double time) override;
     int get_cycle_count() override;
     void print_stats(const CycleCounter& counter) override;

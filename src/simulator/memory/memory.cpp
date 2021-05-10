@@ -10,9 +10,11 @@
 
 void Memory::init() {
     internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
+#ifdef TRACK_STATISTICS
     array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
     array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
     array_dynamic_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
+#endif
     this->calc_internal_mask();
 }
 
@@ -21,12 +23,15 @@ std::shared_ptr<Memory> Memory::construct(MemoryType memory_type, int rows, int 
     switch(memory_type) {
         case DRAM3T: {
             memory = std::make_shared<Dram3tCell>();
+            break;
         }
         case SRAM6T: {
             memory = std::make_shared<Sram6tCell>();
+            break;
         }
         case S2I: {
             memory = std::make_shared<SiCell>();
+            break;
         };
     }
     memory->set_rows(rows);

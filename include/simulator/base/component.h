@@ -16,18 +16,32 @@
 //using json = nlohmann::json;
 class Component : public StatsOutputter {
     RTTR_ENABLE(StatsOutputter)
-#ifdef TRACK_STATISTICS
+
    protected:
     int rows_; // rows of the whole plane
     int cols_; // cols of the whole plane
     int row_stride_ = 1;
     int col_stride_ = 1;
     std::shared_ptr<Config> config_;
+    cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
+
+   public:
+    void calc_internal_mask();
+
+    /*Setters*/
+    void set_rows(int rows);
+    void set_cols(int cols);
+    void set_row_stride(int row_stride);
+    void set_col_stride(int col_stride);
+    void set_config(std::shared_ptr<Config> config);
+
+
+#ifdef TRACK_STATISTICS
+   protected:
     int cycle_count_;
     int transistor_count_;
     double static_power_;  // in Watts
     double dynamic_power_;  // in Watts
-    cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
     cv::Mat array_transistor_count_;
     cv::Mat array_static_energy_;
     cv::Mat array_dynamic_energy_;
@@ -54,17 +68,6 @@ class Component : public StatsOutputter {
     virtual int calc_transistor_count();
     virtual double calc_static();
     virtual double calc_dynamic();
-
-    void calc_internal_mask();
-
-    /*Setters*/
-    void set_rows(int rows);
-    void set_cols(int cols);
-    void set_row_stride(int row_stride);
-    void set_col_stride(int col_stride);
-    void set_config(std::shared_ptr<Config> config);
-
-
 #endif
     virtual ~Component() = default;
 

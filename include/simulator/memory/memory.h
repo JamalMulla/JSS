@@ -16,8 +16,6 @@ enum MemoryType {
 };
 
 class Memory : public Component {
-   protected:
-
    public:
     Memory() = default;
     void init();

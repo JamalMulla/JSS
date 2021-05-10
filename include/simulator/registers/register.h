@@ -47,14 +47,15 @@ class Register : public Component {
     int calc_transistor_count() override;
     double calc_static() override;
     double calc_dynamic() override;
+
+    cv::Mat get_transistor_count() override;
+    cv::Mat get_static_energy() override;
+    cv::Mat get_dynamic_energy() override;
 #endif
 
     void set_memory(MemoryType memory_type);
     void set_type(int type);
 
-    cv::Mat get_transistor_count() override;
-    cv::Mat get_static_energy() override;
-    cv::Mat get_dynamic_energy() override;
     cv::Mat& read();
     void write(cv::Mat& data);
     void write(const cv::Mat& data);

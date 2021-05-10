@@ -16,9 +16,11 @@ class CarryLookAheadAdder : public Component {
     int bits_;
     int cycle_count_;
     double time_; // time in seconds for an addition
+#ifdef TRACK_STATISTICS
     int calc_transistor_count() override;
     double calc_static() override;
     double calc_dynamic() override;
+#endif
     cv::Mat scratch;
 
    public:

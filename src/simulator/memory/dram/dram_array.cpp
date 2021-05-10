@@ -74,6 +74,12 @@ void Dram::reset() {
     data = 0;
 }
 
+void Dram::update_dynamic(int count) {
+#ifdef TRACK_STATISTICS
+    cv::add(this->array_dynamic_energy_, count * this->dynamic_power_ * time_, this->array_dynamic_energy_, internal_mask);
+#endif
+}
+
 #ifdef TRACK_STATISTICS
 
 int Dram::calc_transistor_count() {
@@ -108,10 +114,6 @@ int Dram::get_cycle_count() {
 }
 
 void Dram::print_stats(const CycleCounter& counter) {
-}
-
-void Dram::update_dynamic(int count) {
-    cv::add(this->array_dynamic_energy_, count * this->dynamic_power_ * time_, this->array_dynamic_energy_, internal_mask);
 }
 
 #endif

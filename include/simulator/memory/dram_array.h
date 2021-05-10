@@ -40,9 +40,10 @@ class Dram : public Component {
 
     void reset();
 
+    void update_dynamic(int count);
+
 #ifdef TRACK_STATISTICS
 
-    void update_dynamic(int count);
     void update_static(double time) override;
     int get_cycle_count() override;
     int calc_transistor_count() override;

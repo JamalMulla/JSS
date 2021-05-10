@@ -24,6 +24,11 @@ int ADC::convert(int analogue) {
    return analogue;
 }
 
+void ADC::update_dynamic(int count) {
+#ifdef TRACK_STATISTICS
+    cv::add(this->array_dynamic_energy_, count * this->dynamic_power_ * time_, this->array_dynamic_energy_, internal_mask);
+#endif
+}
 #ifdef TRACK_STATISTICS
 
 int ADC::calc_transistor_count() {
@@ -51,9 +56,6 @@ int ADC::get_cycle_count() {
 void ADC::print_stats(const CycleCounter& counter) {
 }
 
-void ADC::update_dynamic(int count) {
-    cv::add(this->array_dynamic_energy_, count * this->dynamic_power_ * time_, this->array_dynamic_energy_, internal_mask);
-}
 #endif
 
 

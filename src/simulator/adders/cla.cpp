@@ -12,21 +12,22 @@
 /*Bits refers to the number of bits in the two inputs and the output. So an 8-bit adders takes in two 8-bit values and outputs an 8-bit value*/
 
 void CarryLookAheadAdder::init() {
+    internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
 #ifdef TRACK_STATISTICS
     cycle_count_ = 1;
     transistor_count_ = calc_transistor_count();
     static_power_ = calc_static();
     dynamic_power_ = calc_dynamic();
     time_ = this->cycle_count_ * (1.0 / config_->get_clock_rate());
-    internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
     array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
     array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
     array_dynamic_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
     scratch  = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
-    this->calc_internal_mask();
 #endif
+    this->calc_internal_mask();
 }
 
+#ifdef TRACK_STATISTICS
 int CarryLookAheadAdder::calc_transistor_count() {
     // Transistor count based off number of bits and config
     return 12 + 26 + ((bits_ - 2) * 28);
@@ -42,7 +43,6 @@ double CarryLookAheadAdder::calc_dynamic() {
     return 0.00015 * ((bits_ / 4.0) + 0.5);
 }
 
-#ifdef TRACK_STATISTICS
 int CarryLookAheadAdder::get_cycle_count() {
     return cycle_count_;
 }

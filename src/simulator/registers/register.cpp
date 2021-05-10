@@ -11,32 +11,6 @@ void Register::init() {
     this->value_ = cv::Mat(rows_, cols_, type_, cv::Scalar(0));
 }
 
-#ifdef TRACK_STATISTICS
-
-void Register::update_static(double time) {
-    if (memory_) {
-        memory_->update_static(time);
-    }
-}
-
-cv::Mat Register::get_static_energy() {
-    return memory_->get_static_energy();
-}
-
-cv::Mat Register::get_dynamic_energy() {
-    return memory_->get_dynamic_energy();
-}
-
-cv::Mat Register::get_transistor_count() {
-    return memory_->get_transistor_count();
-}
-
-int Register::get_cycle_count() {
-    return this->memory_->get_cycle_count();
-}
-
-#endif
-
 cv::Mat &Register::read() {
 #ifdef TRACK_STATISTICS
     this->inc_read();
@@ -91,7 +65,41 @@ void Register::write(int data, Register &mask) {
     this->write(data, mask.read());
 }
 
+void Register::change_memory_type(MemoryType memory_type) {
+    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, config_);
+}
+
+void Register::set_memory(MemoryType memory_type) {
+    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, config_);
+}
+
+void Register::set_type(int type) {
+    this->type_ = type;
+}
+
 #ifdef TRACK_STATISTICS
+void Register::update_static(double time) {
+    if (memory_) {
+        memory_->update_static(time);
+    }
+}
+
+cv::Mat Register::get_static_energy() {
+    return memory_->get_static_energy();
+}
+
+cv::Mat Register::get_dynamic_energy() {
+    return memory_->get_dynamic_energy();
+}
+
+cv::Mat Register::get_transistor_count() {
+    return memory_->get_transistor_count();
+}
+
+int Register::get_cycle_count() {
+    return this->memory_->get_cycle_count();
+}
+
 void Register::inc_read(const cv::_InputOutputArray &mask) {
     if (memory_) {
         // mask can be noArray() which will cause an issue if we try to use it
@@ -125,19 +133,6 @@ void Register::inc_write() {
         this->memory_->write();
     }
 }
-#endif
-
-void Register::change_memory_type(MemoryType memory_type) {
-    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, config_);
-}
-
-void Register::set_memory(MemoryType memory_type) {
-    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, config_);
-}
-
-void Register::set_type(int type) {
-    this->type_ = type;
-}
 
 int Register::calc_transistor_count() {
     return memory_->calc_transistor_count();
@@ -150,3 +145,6 @@ double Register::calc_static() {
 double Register::calc_dynamic() {
     return memory_->calc_dynamic();
 }
+#endif
+
+

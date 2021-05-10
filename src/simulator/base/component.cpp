@@ -3,14 +3,17 @@
 //
 #include <simulator/base/component.h>
 
-#ifdef TRACK_STATISTICS
+#include <utility>
+
 void Component::calc_internal_mask() {
     for (int row = 0; row < rows_; row += row_stride_) {
         for (int col = 0; col < cols_; col += col_stride_) {
             this->internal_mask.at<uint8_t>(row, col) = 1;
         }
     }
+#ifdef TRACK_STATISTICS
     array_transistor_count_.setTo(transistor_count_, this->internal_mask);
+#endif
 }
 
 void Component::set_rows(int rows) {
@@ -30,8 +33,10 @@ void Component::set_col_stride(int col_stride) {
 }
 
 void Component::set_config(std::shared_ptr<Config> config) {
-    this->config_ = config;
+    this->config_ = std::move(config);
 }
+
+#ifdef TRACK_STATISTICS
 
 cv::Mat Component::get_static_energy() {
     return this->array_static_energy_;
@@ -57,6 +62,8 @@ double Component::calc_dynamic() {
     return 0;
 }
 
+#endif
+
 RTTR_REGISTRATION {
     using namespace rttr;
 
@@ -69,4 +76,4 @@ RTTR_REGISTRATION {
 
 };
 
-#endif
+

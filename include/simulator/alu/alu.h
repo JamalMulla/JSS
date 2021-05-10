@@ -29,9 +29,11 @@ class ALU : public Component {
     double time_;
     int bits_;
 
+#ifdef TRACK_STATISTICS
     int calc_transistor_count() override;
     double calc_static() override;
     double calc_dynamic() override;
+#endif
 
    public:
     // Flags
@@ -45,10 +47,10 @@ class ALU : public Component {
 
     int execute(int a, int b, OPCODE opcode);
 
-#ifdef TRACK_STATISTICS
-    void fun_internal_mask();
-    void update_static(double time) override;
     void update_dynamic(int count);
+
+#ifdef TRACK_STATISTICS
+    void update_static(double time) override;
     int get_cycle_count() override;
     void print_stats(const CycleCounter &counter) override;
 #endif
