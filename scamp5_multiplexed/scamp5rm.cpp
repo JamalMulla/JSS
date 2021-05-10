@@ -25,10 +25,6 @@ void SCAMP5RM::init() {
 
     // TODO write to DRAM - Initially all PEs are active
 //    FLAG->write(1);
-
-//    intermediate_a = std::make_shared<AREG>(this->rows_, this->cols_);
-//    intermediate_a2 = std::make_shared<AREG>(this->rows_, this->cols_);
-//    intermediate_d = std::make_shared<DREG>(this->rows_, this->cols_);
 }
 
 void SCAMP5RM::nop() { this->update_cycles(1); }
@@ -54,7 +50,7 @@ void SCAMP5RM::get_image(AREG y) {
     }
     dram->update_dynamic(cols_ * 8 * 3);
     adc->update_dynamic(cols_);
-    this->update_cycles(cols_ * 8 * 3);
+    this->update_cycles(cols_ * 8 * 3 + cols_);
     this->rpix();
     this->rpix();
     this->nop();
@@ -73,7 +69,7 @@ void SCAMP5RM::get_image(AREG y, AREG h) {
             dram->write_byte(row, col, y, v);
         }
     }
-    this->update_cycles(cols_ * 8 * 4);
+    this->update_cycles(cols_ * 8 * 4 + cols_);
     adc->update_dynamic(cols_);
     dram->update_dynamic(cols_ * 8 * 4);
     this->rpix();
@@ -150,7 +146,7 @@ void SCAMP5RM::where(AREG a) {
         }
     }
     this->update_cycles(cols_ * 10);
-    dram->update_dynamic(cols_ * (8 + 1));
+    dram->update_dynamic(cols_ * 9);
     alu->update_dynamic(cols_);
 }
 
@@ -171,7 +167,7 @@ void SCAMP5RM::where(AREG a0, AREG a1) {
             }
         }
     }
-    this->update_cycles(cols_ * 10);
+    this->update_cycles(cols_ * 19);
     dram->update_dynamic(cols_ * 17);
     alu->update_dynamic(cols_ * 2);
 }

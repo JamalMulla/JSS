@@ -8,35 +8,20 @@
 
 void Dram::init() {
 #ifdef TRACK_STATISTICS
-    transistor_count_ = fun_transistor(config_);
-    static_power_ = fun_static(config_);
-    dynamic_power_ = fun_dynamic(config_);
+    transistor_count_ = calc_transistor_count();
+    static_power_ = calc_static();
+    dynamic_power_ = calc_dynamic();
     time_ = this->cycle_count_ * (1.0 / config_->get_clock_rate());
     internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
     array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
     array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
     array_dynamic_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
-    this->fun_internal_mask();
+    this->calc_internal_mask();
 #endif
     int sizes[] = {((rows_ * cols_) / row_stride_) / col_stride_, array_rows_, array_cols_};
     data = cv::Mat(3, sizes, CV_8U, cv::Scalar(0)); // only holds 1s and 0s
 }
 
-void Dram::set_rows(int rows) {
-    this->rows_ = rows;
-}
-
-void Dram::set_cols(int cols) {
-    this->cols_ = cols;
-}
-
-void Dram::set_row_stride(int row_stride) {
-    this->row_stride_ = row_stride;
-}
-
-void Dram::set_col_stride(int col_stride) {
-    this->col_stride_ = col_stride;
-}
 
 void Dram::set_array_rows(int array_rows) {
     this->array_rows_ = array_rows;
@@ -44,10 +29,6 @@ void Dram::set_array_rows(int array_rows) {
 
 void Dram::set_array_cols(int array_cols) {
     this->array_cols_ = array_cols;
-}
-
-void Dram::set_config(const std::shared_ptr<Config>& config) {
-    this->config_ = config;
 }
 
 int Dram::read_byte(int array, int row, int start_col) {
@@ -94,24 +75,15 @@ void Dram::reset() {
 }
 
 #ifdef TRACK_STATISTICS
-void Dram::fun_internal_mask() {
-    for (int row = 0; row < rows_; row += row_stride_) {
-        for (int col = 0; col < cols_; col += col_stride_) {
-            this->internal_mask.at<uint8_t>(row, col) = 1;
-        }
-    }
-    // todo move somewhere else
-    array_transistor_count_.setTo(transistor_count_, this->internal_mask);
-}
 
-int Dram::fun_transistor(const std::shared_ptr<Config>& config) {
+int Dram::calc_transistor_count() {
     // 1t1c DRAM cells (for now). So rows * cols for just DRAM cell transistor counts
     // Some number for sense amplifiers
     // Some number for row/col decoders
     return (array_rows_ * array_cols_) + (2 * array_cols_);
 }
 
-double Dram::fun_static(const std::shared_ptr<Config>& config) {
+double Dram::calc_static() {
     // 1t1c DRAM cells (for now)
     // Some amount for sense amplifiers
     // Some amount for row/col decoders
@@ -119,7 +91,7 @@ double Dram::fun_static(const std::shared_ptr<Config>& config) {
     return 5.0e-11;
 }
 
-double Dram::fun_dynamic(const std::shared_ptr<Config>& config) {
+double Dram::calc_dynamic() {
     // 1t1c DRAM cells (for now)
     // Some amount for sense amplifiers
     // Some amount for row/col decoders
@@ -133,18 +105,6 @@ void Dram::update_static(double time) {
 
 int Dram::get_cycle_count() {
     return cycle_count_;
-}
-
-cv::Mat Dram::get_static_energy() {
-    return array_static_energy_;
-}
-
-cv::Mat Dram::get_dynamic_energy() {
-    return array_dynamic_energy_;
-}
-
-cv::Mat Dram::get_transistor_count() {
-    return array_transistor_count_;
 }
 
 void Dram::print_stats(const CycleCounter& counter) {
@@ -162,11 +122,6 @@ RTTR_REGISTRATION {
     registration::class_<Dram>("Dram")
         .constructor()
         .method("init", &Dram::init)
-        .method("set_rows", &Dram::set_rows)
-        .method("set_cols", &Dram::set_cols)
-        .method("set_row_stride", &Dram::set_row_stride)
-        .method("set_col_stride", &Dram::set_col_stride)
         .method("set_array_rows", &Dram::set_array_rows)
-        .method("set_array_cols", &Dram::set_array_cols)
-        .method("set_config", &Dram::set_config);
+        .method("set_array_cols", &Dram::set_array_cols);
 };

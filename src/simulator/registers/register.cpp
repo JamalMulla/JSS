@@ -6,22 +6,10 @@
 
 #include <opencv4/opencv2/core.hpp>
 
-Register::Register(int rows, int cols, int row_stride, int col_stride, int type, const std::shared_ptr<Config>& config, MemoryType memory_type) :
-    rows_(rows),
-    cols_(cols),
-    row_stride_(row_stride),
-    col_stride_(col_stride),
-    config_(config),
-    value_(rows, cols, type, cv::Scalar(0)) {
-    this->memory_ = Memory::construct(memory_type, rows, cols, row_stride, col_stride, config);
-}
 
-Register::Register(int rows, int cols, int row_stride, int col_stride, int type) :
-    rows_(rows),
-    cols_(cols),
-    row_stride_(row_stride),
-    col_stride_(col_stride),
-    value_(rows, cols, type, cv::Scalar(0)) {}
+void Register::init() {
+    this->value_ = cv::Mat(rows_, cols_, type_, cv::Scalar(0));
+}
 
 #ifdef TRACK_STATISTICS
 
@@ -141,4 +129,24 @@ void Register::inc_write() {
 
 void Register::change_memory_type(MemoryType memory_type) {
     this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, config_);
+}
+
+void Register::set_memory(MemoryType memory_type) {
+    this->memory_ = Memory::construct(memory_type, rows_, cols_, row_stride_, col_stride_, config_);
+}
+
+void Register::set_type(int type) {
+    this->type_ = type;
+}
+
+int Register::calc_transistor_count() {
+    return memory_->calc_transistor_count();
+}
+
+double Register::calc_static() {
+    return memory_->calc_static();
+}
+
+double Register::calc_dynamic() {
+    return memory_->calc_dynamic();
 }

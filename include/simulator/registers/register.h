@@ -13,17 +13,11 @@
 
 #include <rttr/type>
 
-// TODO need to be able to pass in some way of creating the underlying memory of registers. add as param
 class Register : public Component {
     RTTR_ENABLE();
-    // TODO internal mask
    protected:
-    int rows_;
-    int cols_;
-    int row_stride_ = 1;
-    int col_stride_ = 1;
-    std::shared_ptr<Config> config_;
     std::shared_ptr<Memory> memory_;
+    int type_;
 
    private:
     cv::Mat value_;
@@ -33,9 +27,8 @@ class Register : public Component {
     int min_val = 0;
     int max_val = 0;
 
-    Register(int rows, int columns, int row_stride, int col_stride, int type, const std::shared_ptr<Config>& config, MemoryType memoryType);
-
-    Register(int rows, int columns, int row_stride, int col_stride, int type);
+    Register() = default;
+    void init();
 
     void change_memory_type(MemoryType memory_type);
 
@@ -47,14 +40,21 @@ class Register : public Component {
     void inc_read();
     void inc_write(const cv::_InputOutputArray& mask);
     void inc_write();
-    cv::Mat get_static_energy() override;
-    cv::Mat get_dynamic_energy() override;
-    cv::Mat get_transistor_count() override;
     int get_cycle_count() override;
     void print_stats(const CycleCounter& counter) override = 0;
 //    void write_stats(const CycleCounter& counter, json& j) override = 0;
+
+    int calc_transistor_count() override;
+    double calc_static() override;
+    double calc_dynamic() override;
 #endif
 
+    void set_memory(MemoryType memory_type);
+    void set_type(int type);
+
+    cv::Mat get_transistor_count() override;
+    cv::Mat get_static_energy() override;
+    cv::Mat get_dynamic_energy() override;
     cv::Mat& read();
     void write(cv::Mat& data);
     void write(const cv::Mat& data);
@@ -64,6 +64,7 @@ class Register : public Component {
     void write(int data);
     void write(int data, cv::Mat& mask);
     void write(int data, Register& mask);
+
 };
 
 #endif  // SIMULATOR_REGISTER_H

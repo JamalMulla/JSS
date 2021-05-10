@@ -8,9 +8,9 @@
 
 void ALU::init() {
 #ifdef TRACK_STATISTICS
-    transistor_count_ = fun_transistor(config_);
-    static_power_ = fun_static(config_);
-    dynamic_power_ = fun_dynamic(config_);
+    transistor_count_ = calc_transistor_count();
+    static_power_ = calc_static();
+    dynamic_power_ = calc_dynamic();
     time_ = (this->cycle_count_ * (1.0 / config_->get_clock_rate()));
     internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
     array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
@@ -20,24 +20,8 @@ void ALU::init() {
 #endif
 }
 
-void ALU::set_rows(int rows) {
-    this->rows_ = rows;
-}
-
-void ALU::set_cols(int cols) {
-    this->cols_ = cols;
-}
-
-void ALU::set_row_stride(int row_stride) {
-    this->row_stride_ = row_stride;
-}
-
-void ALU::set_col_stride(int col_stride) {
-    this->col_stride_ = col_stride;
-}
-
-void ALU::set_config(const std::shared_ptr<Config>& config) {
-    this->config_ = config;
+void ALU::set_bits(int bits) {
+    this->bits_ = bits;
 }
 
 // todo all flags
@@ -92,17 +76,17 @@ void ALU::fun_internal_mask() {
     array_transistor_count_.setTo(transistor_count_, this->internal_mask);
 }
 
-int ALU::fun_transistor(const std::shared_ptr<Config>& config) {
+int ALU::calc_transistor_count() {
     //todo
     return 1000;
 }
 
-double ALU::fun_static(const std::shared_ptr<Config>& config) {
+double ALU::calc_static() {
     // todo
     return 0.000001;
 }
 
-double ALU::fun_dynamic(const std::shared_ptr<Config>& config) {
+double ALU::calc_dynamic() {
     return 0.000751428;
 }
 
@@ -112,18 +96,6 @@ void ALU::update_static(double time) {
 
 int ALU::get_cycle_count() {
     return cycle_count_;
-}
-
-cv::Mat ALU::get_static_energy() {
-    return array_static_energy_;
-}
-
-cv::Mat ALU::get_dynamic_energy() {
-    return array_dynamic_energy_;
-}
-
-cv::Mat ALU::get_transistor_count() {
-    return array_transistor_count_;
 }
 
 void ALU::print_stats(const CycleCounter& counter) {
@@ -140,9 +112,5 @@ RTTR_REGISTRATION {
     registration::class_<ALU>("ALU")
         .constructor()
         .method("init", &ALU::init)
-        .method("set_rows", &ALU::set_rows)
-        .method("set_cols", &ALU::set_cols)
-        .method("set_row_stride", &ALU::set_row_stride)
-        .method("set_col_stride", &ALU::set_col_stride)
-        .method("set_config", &ALU::set_config);
+        .method("set_bits", &ALU::set_bits);
 };

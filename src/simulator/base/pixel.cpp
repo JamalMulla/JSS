@@ -9,40 +9,43 @@
 #include <simulator/input/video_input.h>
 
 #include <opencv4/opencv2/imgproc.hpp>
-#include <utility>
 
-Pixel::Pixel(int rows, int cols, int row_stride, int col_stride, Source src, const std::string& path, std::shared_ptr<Config> config)
+#include <rttr/registration>
+
+void Pixel::init() {
 #ifdef TRACK_STATISTICS
-    :
-    cycle_count_(0),
-    transistor_count_(4),
-    static_power_(0),
-    dynamic_power_(0),
-    array_transistor_count_(rows, cols, CV_32S, cv::Scalar(transistor_count_)),
-    array_static_energy_(rows, cols, CV_64F, cv::Scalar(0)),
-    array_dynamic_energy_(rows, cols, CV_64F, cv::Scalar(0)),
-    internal_mask(rows, cols, CV_8U, cv::Scalar(0)),
-    config_(std::move(config))
+    transistor_count_ = calc_transistor_count();
+    static_power_ = calc_static();
+    dynamic_power_ = calc_dynamic();
+
+    internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
+    array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
+    array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
+    array_dynamic_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
+
+    this->calc_internal_mask();
 #endif
-     {
+}
+
+void Pixel::set_path(const std::string& path) {
+    this->path_ = path;
+}
+
+void Pixel::set_src(Source src) {
     switch(src) {
         case LIVE: {
-            input_source = std::make_shared<LiveInput>(rows, cols);
+            input_source = std::make_shared<LiveInput>(rows_, cols_);
             break;
         }
         case VIDEO: {
-            input_source = std::make_shared<VideoInput>(rows, cols, path);
+            input_source = std::make_shared<VideoInput>(rows_, cols_, path_);
             break;
         }
         case IMAGE: {
-            input_source = std::make_shared<ImageInput>(rows, cols, path);
+            input_source = std::make_shared<ImageInput>(rows_, cols_, path_);
             break;
         }
     }
-#ifdef TRACK_STATISTICS
-    this->fun_internal_mask(rows, cols, row_stride, col_stride);
-#endif
-
 }
 
 void Pixel::reset() { input_source->reset(); }
@@ -72,35 +75,39 @@ double Pixel::last_frame_time() {
 
 #ifdef TRACK_STATISTICS
 
-cv::Mat Pixel::get_static_energy() {
-    return array_static_energy_;
-}
-
-cv::Mat Pixel::get_dynamic_energy() {
-    return array_dynamic_energy_;
-}
-
 int Pixel::get_cycle_count() {
     return cycle_count_;
 }
 
-cv::Mat Pixel::get_transistor_count() {
-    return array_transistor_count_;
-}
-void Pixel::fun_internal_mask(int rows, int cols, int row_stride, int col_stride) {
-    for(int row = 0; row < rows; row += row_stride) {
-        for(int col = 0; col < cols; col += col_stride) {
-            this->internal_mask.at<uint8_t>(row, col) = 1;
-        }
-    }
-}
 void Pixel::update_static(double time) {
     cv::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
 }
+
 void Pixel::print_stats(const CycleCounter& counter) {
 
 }
 
+int Pixel::calc_transistor_count() {
+    return 4;
+}
+
+double Pixel::calc_static() {
+    return 0;
+}
+
+double Pixel::calc_dynamic() {
+    return 0;
+}
+
 #endif
 
-Pixel::~Pixel() = default;
+RTTR_REGISTRATION {
+    using namespace rttr;
+
+    registration::class_<Pixel>("Pixel")
+        .constructor()
+        .method("init", &Pixel::init)
+        .method("set_path", &Pixel::set_path)
+        .method("set_src", &Pixel::set_src);
+};
+

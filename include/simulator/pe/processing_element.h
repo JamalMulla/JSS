@@ -18,15 +18,11 @@
 #include "simulator/units/squarer.h"
 
 class ProcessingElement : public Component {
+    RTTR_ENABLE(Component);
    protected:
-    int rows_;
-    int cols_;
-    int row_stride_ = 1;
-    int col_stride_ = 1;
     std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers_;
     std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers_;
     std::shared_ptr<Pixel> pixel_;
-    std::shared_ptr<Config> config_;
 
    public:
     Squarer squarer;
@@ -37,14 +33,9 @@ class ProcessingElement : public Component {
 
     ProcessingElement() = default;
 
-    void set_rows(int rows);
-    void set_cols(int cols);
-    void set_row_stride(int row_stride);
-    void set_col_stride(int col_stride);
     void set_analogue_registers(std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers);
     void set_digital_registers(std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers);
     void set_pixel(std::shared_ptr<Pixel> pixel);
-    void set_config(std::shared_ptr<Config> config);
 
     rttr::variant analogue_registers_converter(json& j, std::unordered_map<std::string, rttr::variant>& cache);
     rttr::variant digital_registers_converter(json& j, std::unordered_map<std::string, rttr::variant>& cache);

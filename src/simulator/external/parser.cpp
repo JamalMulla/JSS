@@ -257,6 +257,7 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
                 std::cerr << "Could not inherit property " << name << " as it does not exist in the cache" << std::endl;
                 exit(EXIT_FAILURE);
             }
+//            std::cout << arch_name << "->" << name << "=" << val->second.convert<std::string>() << std::endl;
             set_property(class_type, class_obj, name, val->second);
         }
     }
