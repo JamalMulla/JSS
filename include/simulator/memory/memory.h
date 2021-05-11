@@ -18,7 +18,7 @@ enum MemoryType {
 class Memory : public Component {
    public:
     Memory() = default;
-    void init();
+    virtual void init() = 0;
 
 #ifdef TRACK_STATISTICS
     virtual void read(const cv::_InputOutputArray &mask) = 0;

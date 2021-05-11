@@ -38,6 +38,8 @@ class Pixel : public Component {
     int calc_transistor_count() override;
     double calc_static() override;
     double calc_dynamic() override;
+    int calc_width() override;
+    int calc_height() override;
     void update_static(double time) override;
     int get_cycle_count() override;
     void print_stats(const CycleCounter& counter) override;

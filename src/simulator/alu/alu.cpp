@@ -94,6 +94,16 @@ int ALU::get_cycle_count() {
     return cycle_count_;
 }
 
+int ALU::calc_width() {
+    // todo
+    return 10;
+}
+
+int ALU::calc_height() {
+    // todo
+    return 10;
+}
+
 void ALU::print_stats(const CycleCounter& counter) {
 }
 #endif

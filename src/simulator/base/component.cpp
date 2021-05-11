@@ -38,16 +38,28 @@ void Component::set_config(std::shared_ptr<Config> config) {
 
 #ifdef TRACK_STATISTICS
 
-cv::Mat Component::get_static_energy() {
+cv::Mat Component::get_static_energy_array() {
     return this->array_static_energy_;
 }
 
-cv::Mat Component::get_dynamic_energy() {
+cv::Mat Component::get_dynamic_energy_array() {
     return this->array_dynamic_energy_;
 }
 
-cv::Mat Component::get_transistor_count() {
+cv::Mat Component::get_transistor_count_array() {
     return this->array_transistor_count_;
+}
+
+int Component::get_transistor_count() {
+    return this->transistor_count_;
+}
+
+int Component::get_width() {
+    return this->width_;
+}
+
+int Component::get_height() {
+    return this->height_;
 }
 
 int Component::calc_transistor_count() {
@@ -59,6 +71,14 @@ double Component::calc_static() {
 }
 
 double Component::calc_dynamic() {
+    return 0;
+}
+
+int Component::calc_width() {
+    return 0;
+}
+
+int Component::calc_height() {
     return 0;
 }
 

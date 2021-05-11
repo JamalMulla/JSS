@@ -18,6 +18,8 @@ void CarryLookAheadAdder::init() {
     transistor_count_ = calc_transistor_count();
     static_power_ = calc_static();
     dynamic_power_ = calc_dynamic();
+    width_ = calc_width();
+    height_ = calc_height();
     time_ = this->cycle_count_ * (1.0 / config_->get_clock_rate());
     array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
     array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
@@ -49,6 +51,14 @@ int CarryLookAheadAdder::get_cycle_count() {
 
 void CarryLookAheadAdder::update_static(double time) {
     cv::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
+}
+
+int CarryLookAheadAdder::calc_width() {
+    return (12 + 26 + ((bits_ - 2) * 28)) / 10;
+}
+
+int CarryLookAheadAdder::calc_height() {
+    return (12 + 26 + ((bits_ - 2) * 28)) / 10;
 }
 
 void CarryLookAheadAdder::inc_add() {

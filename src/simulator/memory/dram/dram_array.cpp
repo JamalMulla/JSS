@@ -11,6 +11,8 @@ void Dram::init() {
     transistor_count_ = calc_transistor_count();
     static_power_ = calc_static();
     dynamic_power_ = calc_dynamic();
+    width_ = calc_width();
+    height_ = calc_height();
     time_ = this->cycle_count_ * (1.0 / config_->get_clock_rate());
     internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
     array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
@@ -103,6 +105,14 @@ double Dram::calc_dynamic() {
     // Some amount for row/col decoders
     // read/write entire row. dependant on word length and cols
     return 5.0e-9;
+}
+
+int Dram::calc_width() {
+    return array_cols_ / 15;
+}
+
+int Dram::calc_height() {
+    return array_rows_ / 15;
 }
 
 void Dram::update_static(double time) {

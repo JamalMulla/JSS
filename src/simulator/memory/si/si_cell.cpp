@@ -9,13 +9,21 @@
 #include "simulator/base/config.h"
 
 void SiCell::init() {
+    internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
 #ifdef TRACK_STATISTICS
+    transistor_count_ = calc_transistor_count();
     static_power_ = calc_static();
     dynamic_read_power_ = calc_dynamic_read();
     dynamic_write_power_ = calc_dynamic_write();
+    dynamic_power_ = calc_dynamic();
+    width_ = calc_width();
+    height_ = calc_height();
     time_ = this->cycle_count_ * (1.0/config_->get_clock_rate());
     scratch = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
-    Memory::init();
+    array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
+    array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
+    array_dynamic_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
+    this->calc_internal_mask();
 #endif
 }
 
@@ -38,6 +46,14 @@ double SiCell::calc_dynamic_write() {
 
 double SiCell::calc_dynamic() {
     return calc_dynamic_read() + calc_dynamic_write();
+}
+
+int SiCell::calc_width() {
+    return 3;
+}
+
+int SiCell::calc_height() {
+    return 2;
 }
 
 int SiCell::get_cycle_count() {

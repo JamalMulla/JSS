@@ -14,7 +14,7 @@ AnalogueRegister::AnalogueRegister(int rows, int cols, const std::shared_ptr<Con
     this->col_stride_ = col_stride;
     this->config_ = config;
     this->type_ = MAT_TYPE;
-    this->change_memory_type(memory);
+    this->set_memory(memory);
     Register::init();
     this->min_val = -128;
     this->max_val = 127;
@@ -52,8 +52,8 @@ AnalogueRegister &AnalogueRegister::operator()(const std::string &name) {
 void AnalogueRegister::print_stats(const CycleCounter &counter) {
     std::cout << "===================" << std::endl;
     std::cout << "Name: " << name_ << "\n";
-    std::cout << "Static power: " << cv::sum(this->get_static_energy())[0] << std::endl;
-    std::cout << "Dynamic power: " << cv::sum(this->get_dynamic_energy())[0] << std::endl;
+    std::cout << "Static power: " << cv::sum(this->get_static_energy_array())[0] << std::endl;
+    std::cout << "Dynamic power: " << cv::sum(this->get_dynamic_energy_array())[0] << std::endl;
 
 }
 #endif

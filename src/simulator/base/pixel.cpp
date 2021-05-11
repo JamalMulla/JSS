@@ -17,7 +17,8 @@ void Pixel::init() {
     transistor_count_ = calc_transistor_count();
     static_power_ = calc_static();
     dynamic_power_ = calc_dynamic();
-
+    width_ = calc_width();
+    height_ = calc_height();
     internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
     array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
     array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
@@ -97,6 +98,14 @@ double Pixel::calc_static() {
 
 double Pixel::calc_dynamic() {
     return 0;
+}
+
+int Pixel::calc_width() {
+    return 7;
+}
+
+int Pixel::calc_height() {
+    return 9;
 }
 
 #endif

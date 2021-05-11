@@ -93,6 +93,7 @@ rttr::variant ProcessingElement::pixel_converter(json& j) {
     pix->set_config(config_);
     pix->set_src(source);
     pix->set_path(path);
+    pix->init();
 
     return rttr::variant(pix);
 }
@@ -141,42 +142,66 @@ void ProcessingElement::update_static(double time) {
     pixel_->update_static(time);
 }
 
-cv::Mat ProcessingElement::get_transistor_count() {
+cv::Mat ProcessingElement::get_transistor_count_array() {
     cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_32S);
 
     for (auto& [_, a]: analogue_registers_) {
-        out += a->get_transistor_count();
+        out += a->get_transistor_count_array();
     }
 
     for (auto& [_, d]: digital_registers_) {
-        out += d->get_transistor_count();
+        out += d->get_transistor_count_array();
     }
 
-    out += pixel_->get_transistor_count();
+    out += pixel_->get_transistor_count_array();
     return out;
 }
 
-cv::Mat ProcessingElement::get_static_energy() {
+cv::Mat ProcessingElement::get_static_energy_array() {
     cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_64F);
     for (auto& [_, a]: analogue_registers_) {
-        out += a->get_static_energy();
+        out += a->get_static_energy_array();
     }
     for (auto& [_, d]: digital_registers_) {
-        out += d->get_static_energy();
+        out += d->get_static_energy_array();
     }
-    out += pixel_->get_static_energy();
+    out += pixel_->get_static_energy_array();
     return out;
 }
 
-cv::Mat ProcessingElement::get_dynamic_energy() {
+cv::Mat ProcessingElement::get_dynamic_energy_array() {
     cv::Mat out = cv::Mat::zeros(rows_, cols_, CV_64F);
     for (auto& [_, a]: analogue_registers_) {
-        out += a->get_dynamic_energy();
+        out += a->get_dynamic_energy_array();
     }
     for (auto& [_, d]: digital_registers_) {
-        out += d->get_dynamic_energy();
+        out += d->get_dynamic_energy_array();
     }
-    out += pixel_->get_dynamic_energy();
+    out += pixel_->get_dynamic_energy_array();
+    return out;
+}
+
+int ProcessingElement::get_width() {
+    int out = 0;
+    for (auto& [_, a]: analogue_registers_) {
+        out += a->get_width();
+    }
+    for (auto& [_, d]: digital_registers_) {
+        out += d->get_width();
+    }
+    out += pixel_->get_width();
+    return out;
+}
+
+int ProcessingElement::get_height() {
+    int out = 0;
+    for (auto& [_, a]: analogue_registers_) {
+        out += a->get_height();
+    }
+    for (auto& [_, d]: digital_registers_) {
+        out += d->get_height();
+    }
+    out += pixel_->get_height();
     return out;
 }
 

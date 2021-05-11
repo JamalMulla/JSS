@@ -29,6 +29,7 @@ class DigitalRegister : public Register {
 #ifdef TRACK_STATISTICS
     void print_stats(const CycleCounter& counter) override;
 //    void write_stats(const CycleCounter& counter, json& j) override;
+
 #endif
 };
 

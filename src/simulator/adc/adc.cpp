@@ -4,6 +4,7 @@
 
 #include "simulator/adc/adc.h"
 #include <rttr/registration>
+#include "simulator/util/utility.h"
 
 
 void ADC::init() {
@@ -11,6 +12,8 @@ void ADC::init() {
     transistor_count_ = calc_transistor_count();
     static_power_ = calc_static();
     dynamic_power_ = calc_dynamic();
+    width_ = calc_width();
+    height_ = calc_height();
     time_ = (this->cycle_count_ * (1.0 / config_->get_clock_rate()));
     internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
     array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
@@ -43,6 +46,14 @@ double ADC::calc_static() {
 
 double ADC::calc_dynamic() {
     return 0.0418; //todo find better numbers
+}
+
+int ADC::calc_width() {
+    return 5;
+}
+
+int ADC::calc_height() {
+    return 4;
 }
 
 void ADC::update_static(double time) {

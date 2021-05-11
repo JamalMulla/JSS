@@ -85,20 +85,20 @@ void Architecture::print_stats(int rows, int cols) {
 
     long transistor_count = 0;
     for (auto& [_, component] : components_) {
-        transistor_count += cv::sum(component->get_transistor_count())[0];
+        transistor_count += cv::sum(component->get_transistor_count_array())[0];
     }
     std::cout << "Architecture transistor count: " << transistor_count << "\n";
     std::cout << "Average transistor count per PE: " << transistor_count / (rows * cols) << " \n";
 
     double static_energy = 0.0;
     for (auto& [_, component] : components_) {
-        static_energy += cv::sum(component->get_static_energy())[0];
+        static_energy += cv::sum(component->get_static_energy_array())[0];
     }
     double static_power = static_energy/exec_time;
 
     double dynamic_energy = 0.0;
     for (auto& [_, component] : components_) {
-        dynamic_energy += cv::sum(component->get_dynamic_energy())[0];
+        dynamic_energy += cv::sum(component->get_dynamic_energy_array())[0];
     }
     double dynamic_power = dynamic_energy/exec_time;
 
@@ -107,6 +107,15 @@ void Architecture::print_stats(int rows, int cols) {
     std::cout << "Architecture dynamic energy: " << dynamic_energy << " J\n";
     std::cout << "Architecture dynamic power: " << dynamic_power << " W\n";
     std::cout << "Architecture total power: " << static_power + dynamic_power << " W\n";
+    int width = 0;
+    for (auto& [_, component] : components_) {
+        width += component->get_width();
+    }
+    int height = 0;
+    for (auto& [_, component] : components_) {
+        height += component->get_height();
+    }
+    std::cout << "Architecture total dimensions: " << width << "x" << height << std::endl;
 
 //    this->pe.print_stats(counter_);
 }

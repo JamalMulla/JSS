@@ -58,6 +58,11 @@ std::string utility::opencv_type_to_str(int type) {
     return r;
 }
 
+void utility::NOT_IMPLEMENTED() {
+    std::cerr << "This function has not been implemented" << std::endl;
+    exit(EXIT_FAILURE);
+}
+
 //    int e1 = cv::getTickCount();
 //    int e2 = cv::getTickCount();
 //    double time = (e2 - e1)/cv::getTickFrequency();

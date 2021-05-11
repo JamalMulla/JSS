@@ -44,13 +44,9 @@ class Register : public Component {
     void print_stats(const CycleCounter& counter) override = 0;
 //    void write_stats(const CycleCounter& counter, json& j) override = 0;
 
-    int calc_transistor_count() override;
-    double calc_static() override;
-    double calc_dynamic() override;
-
-    cv::Mat get_transistor_count() override;
-    cv::Mat get_static_energy() override;
-    cv::Mat get_dynamic_energy() override;
+    cv::Mat get_transistor_count_array() override;
+    cv::Mat get_static_energy_array() override;
+    cv::Mat get_dynamic_energy_array() override;
 #endif
 
     void set_memory(MemoryType memory_type);

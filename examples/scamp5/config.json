@@ -1,6 +1,6 @@
 {
 	"architecture": "SCAMP5",
-    "frames": 500,
+    "frames": 100,
     "frame_time": true,
 	"with_stats": true,
 	"ui_enabled": false,

@@ -8,6 +8,7 @@
 
 
 void Register::init() {
+
     this->value_ = cv::Mat(rows_, cols_, type_, cv::Scalar(0));
 }
 
@@ -84,16 +85,22 @@ void Register::update_static(double time) {
     }
 }
 
-cv::Mat Register::get_static_energy() {
-    return memory_->get_static_energy();
+cv::Mat Register::get_static_energy_array() {
+    if (memory_) {
+        return memory_->get_static_energy_array();
+    }
 }
 
-cv::Mat Register::get_dynamic_energy() {
-    return memory_->get_dynamic_energy();
+cv::Mat Register::get_dynamic_energy_array() {
+    if (memory_) {
+        return memory_->get_dynamic_energy_array();
+    }
 }
 
-cv::Mat Register::get_transistor_count() {
-    return memory_->get_transistor_count();
+cv::Mat Register::get_transistor_count_array() {
+    if (memory_) {
+        return memory_->get_transistor_count_array();
+    }
 }
 
 int Register::get_cycle_count() {
@@ -134,17 +141,6 @@ void Register::inc_write() {
     }
 }
 
-int Register::calc_transistor_count() {
-    return memory_->calc_transistor_count();
-}
-
-double Register::calc_static() {
-    return memory_->calc_static();
-}
-
-double Register::calc_dynamic() {
-    return memory_->calc_dynamic();
-}
 #endif
 
 

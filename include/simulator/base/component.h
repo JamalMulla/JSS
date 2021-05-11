@@ -42,6 +42,8 @@ class Component : public StatsOutputter {
     int transistor_count_;
     double static_power_;  // in Watts
     double dynamic_power_;  // in Watts
+    int width_; // in Micrometres
+    int height_; // in Mircometres
     cv::Mat array_transistor_count_;
     cv::Mat array_static_energy_;
     cv::Mat array_dynamic_energy_;
@@ -49,28 +51,32 @@ class Component : public StatsOutputter {
     /* Update component with how much time has passed for operation. Used for updating static power. */
     virtual void update_static(double time) = 0;
     /* Returns the total amount of static energy use */
-    virtual cv::Mat get_static_energy();
+    virtual cv::Mat get_static_energy_array();
     /* Returns the total amount of dynamic energy use */
-    virtual cv::Mat get_dynamic_energy();
+    virtual cv::Mat get_dynamic_energy_array();
     /* Returns the transistor count of the component
      * This should be a constant after the component is configured. */
-    virtual cv::Mat get_transistor_count();
+    virtual cv::Mat get_transistor_count_array();
+    virtual int get_transistor_count();
     /* The number of cycles needed for the operation. */
-//    /* width of component in micrometres */
-//    virtual cv::Mat get_width() = 0;
-//    /* width of component in micrometres */
-//    virtual cv::Mat get_height() = 0;
+    /* width of component in micrometres */
+    virtual int get_width();
+    /* width of component in micrometres */
+    virtual int get_height();
+
     virtual int get_cycle_count() = 0;
     void print_stats(const CycleCounter& counter) override = 0;
 //    virtual void write_stats(const CycleCounter& counter, json& j) = 0;
-
-    // caclulates the values for each individual component in the array
+    // calculates the values for each individual component in the array
     virtual int calc_transistor_count();
     virtual double calc_static();
     virtual double calc_dynamic();
+    virtual int calc_width();
+    virtual int calc_height();
 #endif
     virtual ~Component() = default;
 
 };
+
 
 #endif  // SIMULATOR_COMPONENT_H

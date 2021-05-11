@@ -11,13 +11,21 @@
 // TODO take refresh into account for dynamic power? Or average out and include as part of static power.
 
 void Dram3tCell::init() {
+    internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
 #ifdef TRACK_STATISTICS
+    transistor_count_ = calc_transistor_count();
     static_power_ = calc_static();
     dynamic_read_power_ = calc_dynamic_read();
     dynamic_write_power_ = calc_dynamic_write();
+    dynamic_power_ = calc_dynamic();
+    width_ = calc_width();
+    height_ = calc_height();
     time_ = this->cycle_count_ * (1.0/config_->get_clock_rate());
     scratch = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
-    Memory::init();
+    array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
+    array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
+    array_dynamic_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
+    this->calc_internal_mask();
 #endif
 }
 
@@ -32,6 +40,14 @@ double Dram3tCell::calc_dynamic_read() {
 
 double Dram3tCell::calc_dynamic_write() {
     return 2.4934605e-6;
+}
+
+int Dram3tCell::calc_width() {
+    return 1;
+}
+
+int Dram3tCell::calc_height() {
+    return 1;
 }
 
 int Dram3tCell::get_cycle_count() {

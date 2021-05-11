@@ -11,7 +11,6 @@ class SiCell : public Memory {
    private:
 #ifdef TRACK_STATISTICS
     int cycle_count_ = 1;  // TODO find proper numbers for cycle counts
-    int transistor_count_ = 7;
     double dynamic_read_power_;  // in Watts for a read
     double dynamic_write_power_;  // in Watts for a read
     double time_; // time in seconds for a read/write
@@ -20,6 +19,8 @@ class SiCell : public Memory {
     double calc_dynamic() override;
     double calc_dynamic_read();
     double calc_dynamic_write();
+    int calc_width() override;
+    int calc_height() override;
     cv::Mat scratch;
 #endif
 
