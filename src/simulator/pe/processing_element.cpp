@@ -4,6 +4,8 @@
 
 #include "simulator/pe/processing_element.h"
 
+#include <simulator/metrics/packer.h>
+
 #include <rttr/registration>
 #include <utility>
 
@@ -182,27 +184,43 @@ cv::Mat ProcessingElement::get_dynamic_energy_array() {
 }
 
 int ProcessingElement::get_width() {
-    int out = 0;
+    std::vector<std::shared_ptr<Component> > components;
+
     for (auto& [_, a]: analogue_registers_) {
-        out += a->get_width();
+        components.push_back(a);
     }
     for (auto& [_, d]: digital_registers_) {
-        out += d->get_width();
+        components.push_back(d);
     }
-    out += pixel_->get_width();
-    return out;
+    components.push_back(pixel_);
+
+    Packer packer;
+    std::shared_ptr<PackNode> pn = packer.pack(components);
+
+//    std::cout << components.size() << std::endl;
+//    for (auto& c : components) {
+//        std::cout << "components.append(Node(width=" << c->get_width() <<", height=" << c->get_height()<<"))" << std::endl;
+////        std::cout << "y:" << c->fit->y << " height:" << c->get_height() << " x:" << c->fit->x << " width:" << c->get_width() << std::endl;
+//    }
+
+    return pn->width;
 }
 
 int ProcessingElement::get_height() {
-    int out = 0;
+    std::vector<std::shared_ptr<Component> > components;
+
     for (auto& [_, a]: analogue_registers_) {
-        out += a->get_height();
+        components.push_back(a);
     }
     for (auto& [_, d]: digital_registers_) {
-        out += d->get_height();
+        components.push_back(d);
     }
-    out += pixel_->get_height();
-    return out;
+    components.push_back(pixel_);
+
+    Packer packer;
+    std::shared_ptr<PackNode> pn = packer.pack(components);
+
+    return pn->height;
 }
 
 void ProcessingElement::print_stats(const CycleCounter& counter) {

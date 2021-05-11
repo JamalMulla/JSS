@@ -43,11 +43,11 @@ double Dram3tCell::calc_dynamic_write() {
 }
 
 int Dram3tCell::calc_width() {
-    return 1;
+    return 3;
 }
 
 int Dram3tCell::calc_height() {
-    return 1;
+    return 3;
 }
 
 int Dram3tCell::get_cycle_count() {

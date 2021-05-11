@@ -141,6 +141,24 @@ void Register::inc_write() {
     }
 }
 
+int Register::get_width() {
+    if (memory_) {
+        return this->memory_->get_width();
+    }
+}
+
+int Register::get_height() {
+    if (memory_) {
+        return this->memory_->get_height();
+    }
+}
+
+int Register::get_transistor_count() {
+    if (memory_) {
+        return this->memory_->get_transistor_count();
+    }
+}
+
 #endif
 
 

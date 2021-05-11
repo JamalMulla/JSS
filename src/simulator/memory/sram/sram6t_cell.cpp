@@ -42,11 +42,11 @@ double Sram6tCell::calc_dynamic_write() {
 }
 
 int Sram6tCell::calc_width() {
-    return 2;
+    return 4;
 }
 
 int Sram6tCell::calc_height() {
-    return 2;
+    return 4;
 }
 
 int Sram6tCell::get_cycle_count() {

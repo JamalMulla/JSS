@@ -3,24 +3,23 @@
 //
 #include "simulator/metrics/packer.h"
 
-PackNode* Packer::find_node(PackNode* root, int width, int height) {
-    if (root_->used) {
-        PackNode* node;
-        node = find_node(root_->right, width, height);
-        if (node != nullptr) {
+std::shared_ptr<PackNode> Packer::find_node(std::shared_ptr<PackNode> root, int width, int height) {
+    if (root->used) {
+        std::shared_ptr<PackNode> node = find_node(root->right, width, height);
+        if (!node->empty) {
             return node;
         }
-        node = find_node(root_->down, width, height);
-        if (node != nullptr) {
+        node = find_node(root->down, width, height);
+        if (!node->empty) {
             return node;
         }
-    } else if (width <= root_->width && height <= root_->height) {
+    } else if (width <= root->width && height <= root->height) {
         return root;
     }
-    return nullptr;
+    return std::make_shared<PackNode>();
 }
 
-PackNode* Packer::grow_node(int width, int height) {
+std::shared_ptr<PackNode> Packer::grow_node(int width, int height) {
     bool can_grow_down = width <= this->root_->width;
     bool can_grow_right = height <= this->root_->height;
 
@@ -41,45 +40,45 @@ PackNode* Packer::grow_node(int width, int height) {
     }
 }
 
-PackNode* Packer::grow_right(int width, int height) {
-    this->root_ = new PackNode(0, 0, root_->width + width, root_->height, this->root_, new PackNode(root_->width, 0, width, root_->height), true);
-    PackNode* node = find_node(this->root_, width, height);
+std::shared_ptr<PackNode> Packer::grow_right(int width, int height) {
+    this->root_ = std::make_shared<PackNode>(0, 0, root_->width + width, root_->height, this->root_, std::make_shared<PackNode>(root_->width, 0, width, root_->height), true);
+    std::shared_ptr<PackNode> node = find_node(this->root_, width, height);
     return split_node(node, width, height);
 }
 
-PackNode* Packer::grow_down(int width, int height) {
-    this->root_ = new PackNode(0, 0, root_->width, root_->height + height, new PackNode(0, root_->height, root_->width, height), this->root_, true);
-    PackNode* node = find_node(this->root_, width, height);
+std::shared_ptr<PackNode> Packer::grow_down(int width, int height) {
+    this->root_ = std::make_shared<PackNode>(0, 0, root_->width, root_->height + height, std::make_shared<PackNode>(0, root_->height, root_->width, height), this->root_, true);
+    std::shared_ptr<PackNode> node = find_node(this->root_, width, height);
     return split_node(node, width, height);
 }
 
-PackNode* Packer::split_node(PackNode* node, int width, int height) {
+std::shared_ptr<PackNode> Packer::split_node(std::shared_ptr<PackNode> node, int width, int height) {
     node->used = true;
-    node->down = new PackNode(node->x, node->y + height, node->width, node->height - height);
-    node->right = new PackNode(node->x + width, node->y, node->width - width, height);
+    node->down = std::make_shared<PackNode>(node->x, node->y + height, node->width, node->height - height);
+    node->right = std::make_shared<PackNode>(node->x + width, node->y, node->width - width, height);
     return node;
 }
 
-PackNode* Packer::pack(std::vector<Component>& components) {
+std::shared_ptr<PackNode> Packer::pack(std::vector<std::shared_ptr<Component>>& components) {
     if (components.empty()) {
-        return nullptr;
+        return std::make_shared<PackNode>();
     }
 
     std::sort(components.begin(), components.end(), [](const auto& lhs, const auto& rhs) {
-        return std::max(lhs.get_width(), lhs.get_height()) > std::max(rhs.get_width(), rhs.get_height());
+        return std::max(lhs->get_width(), lhs->get_height()) > std::max(rhs->get_width(), rhs->get_height());
     });
 
-    int w = components[0].get_width();
-    int h = components[1].get_height();
+    int w = components[0]->get_width();
+    int h = components[0]->get_height();
 
-    this->root_ = new PackNode(0, 0, w, h);
+    this->root_ = std::make_shared<PackNode>(0, 0, w, h);
 
-    for (auto& c : components) {
-        PackNode* node = find_node(this->root_, c.get_width(), c.get_height());
-        if (node != nullptr) {
-            c.fit = this->split_node(node, c.get_width(), c.get_height());
+    for (auto& c: components) {
+        std::shared_ptr<PackNode> node = find_node(this->root_, c->get_width(), c->get_height());
+        if (!node->empty) {
+            c->fit = this->split_node(node, c->get_width(), c->get_height());
         } else {
-            c.fit = this->grow_node(c.get_width(), c.get_height());
+            c->fit = this->grow_node(c->get_width(), c->get_height());
         }
     }
 

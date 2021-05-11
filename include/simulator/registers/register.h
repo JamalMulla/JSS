@@ -47,6 +47,9 @@ class Register : public Component {
     cv::Mat get_transistor_count_array() override;
     cv::Mat get_static_energy_array() override;
     cv::Mat get_dynamic_energy_array() override;
+    int get_width() override;
+    int get_height() override;
+    int get_transistor_count() override;
 #endif
 
     void set_memory(MemoryType memory_type);

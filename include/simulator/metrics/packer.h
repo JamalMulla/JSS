@@ -9,15 +9,16 @@
 #include "simulator/metrics/pack_node.h"
 
 class Packer {
-    PackNode* root_ = nullptr;
+    std::shared_ptr<PackNode> root_ = std::make_shared<PackNode>();
 
+    std::shared_ptr<PackNode> find_node(std::shared_ptr<PackNode> root, int width, int height);
+    std::shared_ptr<PackNode> grow_node(int width, int height);
+    std::shared_ptr<PackNode> grow_right(int width, int height);
+    std::shared_ptr<PackNode> grow_down(int width, int height);
+    std::shared_ptr<PackNode> split_node(std::shared_ptr<PackNode> node, int width, int height);
 
-    PackNode* find_node(PackNode* root, int width, int height);
-    PackNode* grow_node(int width, int height);
-    PackNode* grow_right(int width, int height);
-    PackNode* grow_down(int width, int height);
-    PackNode* split_node(PackNode* node, int width, int height);
-    PackNode* pack(std::vector<Component>& components);
+   public:
+    std::shared_ptr<PackNode> pack(std::vector<std::shared_ptr<Component> >& components);
 };
 
 #endif  //SIMULATOR_PACKER_H

@@ -8,6 +8,7 @@
 #include "simulator/memory/memory.h"
 
 class SiCell : public Memory {
+    RTTR_ENABLE(Memory);
    private:
 #ifdef TRACK_STATISTICS
     int cycle_count_ = 1;  // TODO find proper numbers for cycle counts

@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 #include <opencv4/opencv2/core.hpp>
 #include <rttr/registration>
+#include <memory>
 
 #include "config.h"
 #include "simulator/metrics/cycle_counter.h"
@@ -18,7 +19,7 @@
 class Component : public StatsOutputter {
     RTTR_ENABLE(StatsOutputter)
    public:
-    PackNode* fit;
+    std::shared_ptr<PackNode> fit;
 
    protected:
     int rows_; // rows of the whole plane

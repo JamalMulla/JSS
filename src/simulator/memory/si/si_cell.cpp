@@ -49,11 +49,11 @@ double SiCell::calc_dynamic() {
 }
 
 int SiCell::calc_width() {
-    return 3;
+    return 8;
 }
 
 int SiCell::calc_height() {
-    return 2;
+    return 9;
 }
 
 int SiCell::get_cycle_count() {
