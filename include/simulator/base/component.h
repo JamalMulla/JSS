@@ -12,10 +12,13 @@
 #include "config.h"
 #include "simulator/metrics/cycle_counter.h"
 #include "simulator/metrics/stats_outputter.h"
+#include "simulator/metrics/pack_node.h"
 
 //using json = nlohmann::json;
 class Component : public StatsOutputter {
     RTTR_ENABLE(StatsOutputter)
+   public:
+    PackNode* fit;
 
    protected:
     int rows_; // rows of the whole plane
