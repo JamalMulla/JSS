@@ -22,6 +22,7 @@ class Component : public StatsOutputter {
     std::shared_ptr<PackNode> fit;
 
    protected:
+    int process_node_ = -1; // process node in nm that the other metrics are defined in terms of. for example
     int rows_; // rows of the whole plane
     int cols_; // cols of the whole plane
     int row_stride_ = 1;
@@ -33,6 +34,7 @@ class Component : public StatsOutputter {
     void calc_internal_mask();
 
     /*Setters*/
+    void set_process_node(int process_node);
     void set_rows(int rows);
     void set_cols(int cols);
     void set_row_stride(int row_stride);
@@ -42,12 +44,12 @@ class Component : public StatsOutputter {
 
 #ifdef TRACK_STATISTICS
    protected:
-    int cycle_count_;
+    int cycle_count_ = 1;
     int transistor_count_;
     double static_power_;  // in Watts
     double dynamic_power_;  // in Watts
-    int width_; // in Micrometres
-    int height_; // in Mircometres
+    double width_; // in Micrometres
+    double height_; // in Mircometres
     cv::Mat array_transistor_count_;
     cv::Mat array_static_energy_;
     cv::Mat array_dynamic_energy_;
@@ -64,9 +66,9 @@ class Component : public StatsOutputter {
     virtual int get_transistor_count();
     /* The number of cycles needed for the operation. */
     /* width of component in micrometres */
-    virtual int get_width();
+    virtual double get_width();
     /* width of component in micrometres */
-    virtual int get_height();
+    virtual double get_height();
 
     virtual int get_cycle_count() = 0;
     void print_stats(const CycleCounter& counter) override = 0;
@@ -75,8 +77,14 @@ class Component : public StatsOutputter {
     virtual int calc_transistor_count();
     virtual double calc_static();
     virtual double calc_dynamic();
-    virtual int calc_width();
-    virtual int calc_height();
+    virtual double calc_width();
+    virtual double calc_height();
+
+    /* Scales the width with the config*/
+    double scale_width(double base);
+
+    /* Scales the height with the config*/
+    double scale_height(double base);
 #endif
     virtual ~Component() = default;
 

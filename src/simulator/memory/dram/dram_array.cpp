@@ -107,11 +107,11 @@ double Dram::calc_dynamic() {
     return 5.0e-9;
 }
 
-int Dram::calc_width() {
+double Dram::calc_width() {
     return array_cols_ / 15;
 }
 
-int Dram::calc_height() {
+double Dram::calc_height() {
     return array_rows_ / 15;
 }
 

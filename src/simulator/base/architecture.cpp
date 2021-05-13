@@ -107,17 +107,19 @@ void Architecture::print_stats(int rows, int cols) {
     std::cout << "Architecture dynamic energy: " << dynamic_energy << " J\n";
     std::cout << "Architecture dynamic power: " << dynamic_power << " W\n";
     std::cout << "Architecture total power: " << static_power + dynamic_power << " W\n";
-    int width = 0;
+    double width = 0;
     for (auto& [_, component] : components_) {
         width += component->get_width();
     }
-    int height = 0;
+    double height = 0;
     for (auto& [_, component] : components_) {
         height += component->get_height();
     }
-    std::cout << "Architecture total dimensions: " << width << "x" << height << std::endl;
+    std::cout << "Single PE dimensions: " << width << "μm x " << height << "μm\n";
+    std::cout << "Area of a single PE: " << width*0.001 * height * 0.001 << " mm^2" << "\n";
+    std::cout << "Chip total dimensions: " << width*(rows*1.1) << "μm x " << height*(cols * 1.1) << "μm\n";
+    std::cout << "Chip area: " << width*(rows*1.15) * 0.001 * height*(cols * 1.15) * 0.001 << " mm^2" << std::endl;
 
-//    this->pe.print_stats(counter_);
 }
 
 unsigned long long Architecture::get_cycles() {

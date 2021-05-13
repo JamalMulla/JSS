@@ -52,8 +52,8 @@ class ProcessingElement : public Component {
     cv::Mat get_transistor_count_array() override;
     cv::Mat get_static_energy_array() override;
     cv::Mat get_dynamic_energy_array() override;
-    int get_width() override;
-    int get_height() override;
+    double get_width() override;
+    double get_height() override;
     int get_cycle_count() override;
     void print_stats(const CycleCounter &counter) override;
 #endif

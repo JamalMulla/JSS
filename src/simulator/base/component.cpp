@@ -16,6 +16,10 @@ void Component::calc_internal_mask() {
 #endif
 }
 
+void Component::set_process_node(int process_node) {
+    this->process_node_ = process_node;
+}
+
 void Component::set_rows(int rows) {
     this->rows_ = rows;
 }
@@ -54,11 +58,11 @@ int Component::get_transistor_count() {
     return this->transistor_count_;
 }
 
-int Component::get_width() {
+double Component::get_width() {
     return this->width_;
 }
 
-int Component::get_height() {
+double Component::get_height() {
     return this->height_;
 }
 
@@ -74,12 +78,23 @@ double Component::calc_dynamic() {
     return 0;
 }
 
-int Component::calc_width() {
+double Component::calc_width() {
     return 0;
 }
 
-int Component::calc_height() {
+double Component::calc_height() {
     return 0;
+}
+
+double Component::scale_width(double base) {
+    // Scale with process node
+    double sf = (double) config_->get_process_node() / this->process_node_;
+    return base * sf;
+}
+
+double Component::scale_height(double base) {
+    double sf = (double) config_->get_process_node() / this->process_node_;
+    return base * sf;
 }
 
 #endif
@@ -88,6 +103,7 @@ RTTR_REGISTRATION {
     using namespace rttr;
 
     registration::class_<Component>("Component")
+        .method("set_process_node", &Component::set_process_node)
         .method("set_rows", &Component::set_rows)
         .method("set_cols", &Component::set_cols)
         .method("set_row_stride", &Component::set_row_stride)

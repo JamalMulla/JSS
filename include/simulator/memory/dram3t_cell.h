@@ -22,8 +22,8 @@ class Dram3tCell : public Memory {
     int calc_transistor_count() override;
     double calc_static() override;
     double calc_dynamic() override;
-    int calc_width() override;
-    int calc_height() override;
+    double calc_width() override;
+    double calc_height() override;
     double calc_dynamic_read();
     double calc_dynamic_write();
     cv::Mat scratch;

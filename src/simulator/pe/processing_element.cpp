@@ -183,7 +183,8 @@ cv::Mat ProcessingElement::get_dynamic_energy_array() {
     return out;
 }
 
-int ProcessingElement::get_width() {
+//todo avoid recomputation
+double ProcessingElement::get_width() {
     std::vector<std::shared_ptr<Component> > components;
 
     for (auto& [_, a]: analogue_registers_) {
@@ -206,7 +207,7 @@ int ProcessingElement::get_width() {
     return pn->width;
 }
 
-int ProcessingElement::get_height() {
+double ProcessingElement::get_height() {
     std::vector<std::shared_ptr<Component> > components;
 
     for (auto& [_, a]: analogue_registers_) {

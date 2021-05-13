@@ -14,6 +14,7 @@
 
 void Pixel::init() {
 #ifdef TRACK_STATISTICS
+    process_node_ = 180;
     transistor_count_ = calc_transistor_count();
     static_power_ = calc_static();
     dynamic_power_ = calc_dynamic();
@@ -100,12 +101,12 @@ double Pixel::calc_dynamic() {
     return 0;
 }
 
-int Pixel::calc_width() {
-    return 7;
+double Pixel::calc_width() {
+    return this->scale_width(6);
 }
 
-int Pixel::calc_height() {
-    return 9;
+double Pixel::calc_height() {
+    return this->scale_height(9);
 }
 
 #endif

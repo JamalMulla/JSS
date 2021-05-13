@@ -12,6 +12,7 @@
 		"col_stride" : 1,
 		"origin" : "TOP_RIGHT",
 		"config": {
+			"process_node" : 180,
             "clock_rate" : 1e7
 		},
 		"components" : [

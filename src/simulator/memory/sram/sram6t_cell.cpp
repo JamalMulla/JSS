@@ -9,6 +9,7 @@
 #include "simulator/base/config.h"
 
 void Sram6tCell::init() {
+    process_node_ = 180;
     internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
 #ifdef TRACK_STATISTICS
     transistor_count_ = calc_transistor_count();
@@ -41,12 +42,12 @@ double Sram6tCell::calc_dynamic_write() {
     return 6.305e-7;
 }
 
-int Sram6tCell::calc_width() {
-    return 4;
+double Sram6tCell::calc_width() {
+    return this->scale_width(5);
 }
 
-int Sram6tCell::calc_height() {
-    return 4;
+double Sram6tCell::calc_height() {
+    return this->scale_height(5);
 }
 
 int Sram6tCell::get_cycle_count() {

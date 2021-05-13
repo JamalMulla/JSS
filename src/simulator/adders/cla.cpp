@@ -53,12 +53,12 @@ void CarryLookAheadAdder::update_static(double time) {
     cv::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
 }
 
-int CarryLookAheadAdder::calc_width() {
-    return (12 + 26 + ((bits_ - 2) * 28)) / 10;
+double CarryLookAheadAdder::calc_width() {
+    return (12 + 26 + ((bits_ - 2) * 28)) / 10.0;
 }
 
-int CarryLookAheadAdder::calc_height() {
-    return (12 + 26 + ((bits_ - 2) * 28)) / 10;
+double CarryLookAheadAdder::calc_height() {
+    return (12 + 26 + ((bits_ - 2) * 28)) / 10.0;
 }
 
 void CarryLookAheadAdder::inc_add() {

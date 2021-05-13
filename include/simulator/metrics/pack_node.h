@@ -9,18 +9,18 @@
 
 class PackNode {
    public:
-    int x = -1;
-    int y = -1;
-    int width = -1;
-    int height = -1;
+    double x = -1;
+    double  y = -1;
+    double width = -1;
+    double height = -1;
     std::shared_ptr<PackNode> right;
     std::shared_ptr<PackNode> down;
     bool used = false;
     bool empty = true;
 
-    PackNode(int x, int y, int width, int height, std::shared_ptr<PackNode> down, std::shared_ptr<PackNode> right, bool used);
+    PackNode(double x, double y, double width, double height, std::shared_ptr<PackNode> down, std::shared_ptr<PackNode> right, bool used);
 
-    PackNode(int x, int y, int width, int height);
+    PackNode(double x, double y, double width, double height);
 
     PackNode();
 };

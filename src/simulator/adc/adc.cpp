@@ -48,12 +48,12 @@ double ADC::calc_dynamic() {
     return 0.0418; //todo find better numbers
 }
 
-int ADC::calc_width() {
-    return 5;
+double ADC::calc_width() {
+    return 15;
 }
 
-int ADC::calc_height() {
-    return 4;
+double ADC::calc_height() {
+    return 20;
 }
 
 void ADC::update_static(double time) {

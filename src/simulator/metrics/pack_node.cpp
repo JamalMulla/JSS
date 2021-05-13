@@ -5,7 +5,7 @@
 
 #include "simulator/metrics/pack_node.h"
 
-PackNode::PackNode(int x, int y, int width, int height, std::shared_ptr<PackNode> down, std::shared_ptr<PackNode> right, bool used) {
+PackNode::PackNode(double x, double y, double width, double height, std::shared_ptr<PackNode> down, std::shared_ptr<PackNode> right, bool used) {
     this->x = x;
     this->y = y;
     this->width = width;
@@ -16,7 +16,7 @@ PackNode::PackNode(int x, int y, int width, int height, std::shared_ptr<PackNode
     this->empty = false;
 }
 
-PackNode::PackNode(int x, int y, int width, int height) {
+PackNode::PackNode(double x, double y, double width, double height) {
     this->x = x;
     this->y = y;
     this->width = width;

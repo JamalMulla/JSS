@@ -94,12 +94,12 @@ int ALU::get_cycle_count() {
     return cycle_count_;
 }
 
-int ALU::calc_width() {
+double ALU::calc_width() {
     // todo
     return 10;
 }
 
-int ALU::calc_height() {
+double ALU::calc_height() {
     // todo
     return 10;
 }

@@ -1,6 +1,6 @@
 {
    "architecture":"SCAMP5RM",
-   "frames":10,
+   "frames":5,
    "with_stats":true,
    "ui_enabled":false,
    "ui_registers_to_display":[

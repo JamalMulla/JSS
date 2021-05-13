@@ -49,8 +49,8 @@ class Dram : public Component {
     int calc_transistor_count() override;
     double calc_static() override;
     double calc_dynamic() override;
-    int calc_width() override;
-    int calc_height() override;
+    double calc_width() override;
+    double calc_height() override;
     void print_stats(const CycleCounter& counter) override;
 #endif
 };

@@ -6,9 +6,7 @@
 
 #include <simulator/adc/adc.h>
 #include <simulator/external/parser.h>
-#include <simulator/memory/sram6t_cell.h>
 #include <simulator/ui/ui.h>
-#include <simulator/util/utility.h>
 
 #include <filesystem>
 #include <iostream>
@@ -23,8 +21,13 @@ void SCAMP5RM::init() {
     dram = this->get_component<Dram>("dram");
     adc = this->get_component<ADC>("adc");
 
-    // TODO write to DRAM - Initially all PEs are active
-//    FLAG->write(1);
+
+    for (int row = 0; row < this->rows_; ++row) {
+        for (int col = 0; col < this->cols_; ++col) {
+            dram->write_byte(row, col, FLAG, 1);
+        }
+    }
+
 }
 
 void SCAMP5RM::nop() { this->update_cycles(1); }
@@ -35,7 +38,7 @@ void SCAMP5RM::rpix() {
     this->update_cycles(1);
 }
 
-// TODO ADC
+
 void SCAMP5RM::get_image(AREG y) {
     // y := half-range image, and reset pixel
     cv::Mat image = this->pe->get_pixel()->read();
@@ -160,11 +163,7 @@ void SCAMP5RM::where(AREG a0, AREG a1) {
             int a1_val = this->dram->read_byte(row, col, a1);
             int res = this->alu->execute(a0_val, a1_val, ALU::ADD);
             this->alu->execute(res, 0, ALU::CMP);
-            if (!this->alu->N) {
-                this->dram->write_bit(row, col, FLAG, true);
-            } else {
-                this->dram->write_bit(row, col, FLAG, false);
-            }
+            this->dram->write_bit(row, col, FLAG, !this->alu->N ? true : false);
         }
     }
     this->update_cycles(cols_ * 19);
@@ -183,11 +182,7 @@ void SCAMP5RM::where(AREG a0, AREG a1, AREG a2) {
             int middle = this->alu->execute(a0_val, a1_val, ALU::ADD);
             int res = this->alu->execute(middle, a2_val, ALU::ADD);
             this->alu->execute(res, 0, ALU::CMP);
-            if (!this->alu->N) {
-                this->dram->write_bit(row, col, FLAG, true);
-            } else {
-                this->dram->write_bit(row, col, FLAG, false);
-            }
+            this->dram->write_bit(row, col, FLAG, !this->alu->N ? true : false);
         }
     }
     this->update_cycles(cols_ * 28);
@@ -195,7 +190,6 @@ void SCAMP5RM::where(AREG a0, AREG a1, AREG a2) {
     dram->update_dynamic(cols_ * 25);
 }
 
-// TODO Dram write
 void SCAMP5RM::all() {
     // FLAG := 1.
     for (int row = 0; row < this->rows_; ++row) {
@@ -207,19 +201,20 @@ void SCAMP5RM::all() {
     this->update_cycles(cols_ * 1);
 }
 
-// TODO Dram write
 // todo negate should also be alu op
 void SCAMP5RM::mov(AREG y, AREG x0) {
-    // y = x0
+    // y = x0N
 
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {
             int x0_val = this->dram->read_byte(row, col, x0);
-            this->dram->write_byte(row, col, NEWS, -x0_val);
+            int neg_x0 = this->alu->execute(0, x0_val, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, neg_x0);
             this->dram->write_byte(row, col, y, x0_val);
         }
     }
     dram->update_dynamic(cols_ * 8 * 3);
+    alu->update_dynamic(cols_ * 1);
     this->update_cycles(cols_ * 8 * 3);
 }
 
@@ -289,7 +284,6 @@ void SCAMP5RM::add(AREG y, AREG x0, AREG x1, AREG x2) {
     this->update_cycles(cols_ * 8 * 5 + cols_ * 2);
 }
 
-// TODO ALU
 void SCAMP5RM::sub(AREG y, AREG x0, AREG x1) {
     // y = x0 - x1
 
@@ -308,7 +302,6 @@ void SCAMP5RM::sub(AREG y, AREG x0, AREG x1) {
 
 }
 
-// TODO ALU
 void SCAMP5RM::neg(AREG y, AREG x0) {
     // y = -x0
     for (int row = 0; row < this->rows_; ++row) {
@@ -324,7 +317,6 @@ void SCAMP5RM::neg(AREG y, AREG x0) {
     this->update_cycles(cols_ * 8 * 3 + cols_ );
 }
 
-// TODO ALU
 // todo masking
 void SCAMP5RM::abs(AREG y, AREG x0) {
     // y = |x0|
@@ -355,7 +347,6 @@ void SCAMP5RM::abs(AREG y, AREG x0) {
     this->update_cycles(cols_ * 8 * 4 + cols_ * 2);
 }
 
-// TODO ALU
 void SCAMP5RM::div(AREG y0, AREG y1, AREG y2) {
     // y0 := y2/2; y1 := -y2/2, y2 := y2
 
@@ -450,7 +441,6 @@ void SCAMP5RM::divq(AREG y0, AREG x0) {
     this->update_cycles(cols_ * 8 * 3 + cols_ * 2);
 }
 
-// TODO If east or west, then same row, same dram array. if north then north array, and same for south
 void SCAMP5RM::movx(AREG y, AREG x0, news_t dir) {
     // y = x0_dir
     PlaneParams p;
@@ -501,8 +491,6 @@ void SCAMP5RM::movx(AREG y, AREG x0, news_t dir) {
     alu->update_dynamic(cols_);
     dram->update_dynamic(cols_ * 8 * 3);
     this->update_cycles(cols_ * 8 * 3 + cols_ );
-
-    this->update_cycles(1);  // movement?
 }
 
 // If east or west, then same row, same dram array. if north then north array, and same for south
@@ -594,7 +582,6 @@ void SCAMP5RM::mov2x(AREG y, AREG x0, news_t dir, news_t dir2) {
     alu->update_dynamic(cols_);
     dram->update_dynamic(cols_ * 8 * 4);
     this->update_cycles(cols_ * 8 * 4 + cols_ );
-    this->update_cycles(2);  // movement
 }
 
 // If east or west, then same row, same dram array. if north then north array, and same for south
@@ -657,7 +644,6 @@ void SCAMP5RM::addx(AREG y, AREG x0, AREG x1, news_t dir) {
     alu->update_dynamic(cols_ * 2);
     dram->update_dynamic(cols_ * 8 * 4);
     this->update_cycles(cols_ * 8 * 4 + cols_ * 2);
-    this->update_cycles(1);  //movement
 }
 
 // If east or west, then same row, same dram array. if north then north array, and same for south
@@ -762,7 +748,6 @@ void SCAMP5RM::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
     alu->update_dynamic(cols_ * 3);
     dram->update_dynamic(cols_ * 8 * 6);
     this->update_cycles(cols_ * 8 * 6 + cols_ * 3);
-    this->update_cycles(2);  // movement
 }
 
 // If east or west, then same row, same dram array. if north then north array, and same for south
@@ -824,7 +809,6 @@ void SCAMP5RM::subx(AREG y, AREG x0, news_t dir, AREG x1) {
     alu->update_dynamic(cols_ * 2);
     dram->update_dynamic(cols_ * 8 * 4);
     this->update_cycles(cols_ * 8 * 4 + cols_ * 2);
-    this->update_cycles(1);  // movement
 }
 
 // If east or west, then same row, same dram array. if north then north array, and same for south
@@ -925,10 +909,8 @@ void SCAMP5RM::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
     alu->update_dynamic(cols_ * 3);
     dram->update_dynamic(cols_ * 8 * 5);
     this->update_cycles(cols_ * 8 * 5 + cols_ * 3);
-    this->update_cycles(2);  // movement
 }
 
-// TODO ALU
 void SCAMP5RM::OR(DREG d, DREG d0, DREG d1) {
     // d := d0 OR d1
     for (int row = 0; row < this->rows_; ++row) {
@@ -940,10 +922,8 @@ void SCAMP5RM::OR(DREG d, DREG d0, DREG d1) {
     alu->update_dynamic(cols_);
     dram->update_dynamic(cols_ * 1 * 3);
     this->update_cycles(cols_ * 1 * 3 + cols_);
-    this->update_cycles(4); // 2 reads, 1 op, 1 write
 }
 
-// TODO ALU
 void SCAMP5RM::OR(DREG d, DREG d0, DREG d1, DREG d2) {
     // d := d0 OR d1 OR d2
     for (int row = 0; row < this->rows_; ++row) {
@@ -956,10 +936,8 @@ void SCAMP5RM::OR(DREG d, DREG d0, DREG d1, DREG d2) {
     alu->update_dynamic(cols_ * 2);
     dram->update_dynamic(cols_ * 1 * 4);
     this->update_cycles(cols_ * 1 * 4 + cols_ * 2);
-    this->update_cycles(5);  // 3 reads, 1 op, 1 write
 }
 
-// TODO ALU
 void SCAMP5RM::OR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
     // d := d0 OR d1 OR d2 OR d3
     for (int row = 0; row < this->rows_; ++row) {
@@ -973,10 +951,8 @@ void SCAMP5RM::OR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
     alu->update_dynamic(cols_ * 3);
     dram->update_dynamic(cols_ * 1 * 6);
     this->update_cycles(cols_ * 1 * 6 + cols_ * 3);
-    this->update_cycles(6);  // 4 reads, 1 op, 1 write
 }
 
-// TODO ALU
 void SCAMP5RM::NOT(DREG d, DREG d0) {
     // d := NOT d0
     for (int row = 0; row < this->rows_; ++row) {
@@ -988,7 +964,6 @@ void SCAMP5RM::NOT(DREG d, DREG d0) {
     alu->update_dynamic(cols_);
     dram->update_dynamic(cols_ * 1 * 2);
     this->update_cycles(cols_ * 1 * 2 + cols_);
-    this->update_cycles(3); // 1 read, 1 op, 1 write
 }
 
 // TODO ALU
@@ -1004,10 +979,8 @@ void SCAMP5RM::NOR(DREG d, DREG d0, DREG d1) {
     alu->update_dynamic(cols_ * 2);
     dram->update_dynamic(cols_ * 1 * 3);
     this->update_cycles(cols_ * 1 * 3 + cols_ * 2);
-    this->update_cycles(5);  // 2 reads, 2 op, 1 write
 }
 
-// TODO ALU
 void SCAMP5RM::NOR(DREG d, DREG d0, DREG d1, DREG d2) {
     // d := NOT(d0 OR d1 OR d2)
     for (int row = 0; row < this->rows_; ++row) {
@@ -1021,10 +994,8 @@ void SCAMP5RM::NOR(DREG d, DREG d0, DREG d1, DREG d2) {
     alu->update_dynamic(cols_ * 3);
     dram->update_dynamic(cols_ * 1 * 4);
     this->update_cycles(cols_ * 1 * 4 + cols_ * 3);
-    this->update_cycles(6);  // 3 reads, 2 op, 1 write
 }
 
-// TODO ALU
 void SCAMP5RM::NOR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
     // d := NOT(d0 OR d1 OR d2 OR d3)
     for (int row = 0; row < this->rows_; ++row) {
@@ -1039,29 +1010,24 @@ void SCAMP5RM::NOR(DREG d, DREG d0, DREG d1, DREG d2, DREG d3) {
     alu->update_dynamic(cols_ * 4);
     dram->update_dynamic(cols_ * 1 * 5);
     this->update_cycles(cols_ * 1 * 5 + cols_ * 4);
-    this->update_cycles(7); // 4 reads, 2 op, 1 write
 }
 
-// TODO ALU
 void SCAMP5RM::NOT(DREG Rl) {
     // Rl := NOT Rl
     this->NOT(Rl, Rl);
     this->update_cycles(4); // 2 reads, 1 op, 1 write
 }
 
-// TODO ALU
 void SCAMP5RM::OR(DREG Rl, DREG Rx) {
     // Rl := Rl OR Rx
     this->OR(Rl, Rl, Rx);
 }
 
-// TODO ALU
 void SCAMP5RM::NOR(DREG Rl, DREG Rx) {
     // Rl := Rl NOR Rx
     this->NOR(Rl, Rl, Rx);
 }
 
-// TODO ALU
 void SCAMP5RM::AND(DREG Ra, DREG Rx, DREG Ry) {
     //  Ra := Rx AND Ry; R0 = NOT Ry; R12 = NOT RX
     this->SET(R0);
@@ -1070,7 +1036,6 @@ void SCAMP5RM::AND(DREG Ra, DREG Rx, DREG Ry) {
     this->NOR(Ra, R0, R12);
 }
 
-// TODO ALU
 void SCAMP5RM::NAND(DREG Ra, DREG Rx, DREG Ry) {
     // Ra := Rx NAND Ry; R0 = NOT Ry; R12 = NOT RX
     this->SET(R0);
@@ -1079,7 +1044,6 @@ void SCAMP5RM::NAND(DREG Ra, DREG Rx, DREG Ry) {
     this->OR(Ra, R0, R12);
 }
 
-// TODO ALU
 void SCAMP5RM::ANDX(DREG Ra, DREG Rb, DREG Rx) {
     // Ra := Rb AND Rx; Rb := NOT Rx; R0 = NOT Rb
     this->NOT(R0, Rb);
@@ -1087,7 +1051,6 @@ void SCAMP5RM::ANDX(DREG Ra, DREG Rb, DREG Rx) {
     this->NOR(Ra, R0, Rb);
 }
 
-// TODO ALU
 void SCAMP5RM::NANDX(DREG Ra, DREG Rb, DREG Rx) {
     // Ra := Rx NAND Ry; Rb := NOT Rx; R0 = NOT Rb
     this->NOT(R0, Rb);
@@ -1095,7 +1058,6 @@ void SCAMP5RM::NANDX(DREG Ra, DREG Rb, DREG Rx) {
     this->OR(Ra, R0, Rb);
 }
 
-// TODO ALU
 void SCAMP5RM::IMP(DREG Rl, DREG Rx, DREG Ry) {
     // Rl := Rx IMP Ry (logical implication)
     //    Truth Table:
@@ -1108,14 +1070,12 @@ void SCAMP5RM::IMP(DREG Rl, DREG Rx, DREG Ry) {
     this->OR(R1, Rx, R0);
 }
 
-// TODO ALU
 void SCAMP5RM::NIMP(DREG Rl, DREG Rx, DREG Ry) {
     // Rl := Rx NIMP Ry
     this->NOT(R0, Ry);
     this->NOR(R1, Rx, R0);
 }
 
-// TODO ALU
 void SCAMP5RM::XOR(DREG Rl, DREG Rx, DREG Ry) {
     // Rl := Rx XOR Ry, Rx := *
     this->NOT(R0, Ry);
@@ -1137,7 +1097,6 @@ void SCAMP5RM::WHERE(DREG d) {
     this->update_cycles(cols_ * 1 * 2);
 }
 
-// TODO DRAM write
 void SCAMP5RM::WHERE(DREG d0, DREG d1) {
     // FLAG := d0 OR d1.
     for (int row = 0; row < this->rows_; ++row) {
@@ -1151,7 +1110,7 @@ void SCAMP5RM::WHERE(DREG d0, DREG d1) {
     this->update_cycles(cols_ * 1 * 3 + cols_);
 }
 
-// TODO DRAM write
+
 void SCAMP5RM::WHERE(DREG d0, DREG d1, DREG d2) {
     // FLAG := d0 OR d1 OR d2.
     for (int row = 0; row < this->rows_; ++row) {
@@ -1166,7 +1125,7 @@ void SCAMP5RM::WHERE(DREG d0, DREG d1, DREG d2) {
     this->update_cycles(cols_ * 1 * 4 + cols_ * 2);
 }
 
-// TODO DRAM write
+
 void SCAMP5RM::ALL() {
     // FLAG := 1, same as all.
     for (int row = 0; row < this->rows_; ++row) {
@@ -1178,7 +1137,6 @@ void SCAMP5RM::ALL() {
     this->update_cycles(cols_ * 1 * 3 + cols_);
 }
 
-// TODO DRAM write
 void SCAMP5RM::SET(DREG d0) {
     // d0 := 1
     for (int row = 0; row < this->rows_; ++row) {
@@ -1190,7 +1148,6 @@ void SCAMP5RM::SET(DREG d0) {
     this->update_cycles(cols_ * 1);
 }
 
-// TODO DRAM write
 void SCAMP5RM::SET(DREG d0, DREG d1) {
     // d0, d1 := 1
     for (int row = 0; row < this->rows_; ++row) {
@@ -1232,7 +1189,6 @@ void SCAMP5RM::SET(DREG d0, DREG d1, DREG d2, DREG d3) {
     this->update_cycles(cols_ * 1 * 4);
 }
 
-// TODO DRAM write
 void SCAMP5RM::CLR(DREG d0) {
     // d0 := 0
     for (int row = 0; row < this->rows_; ++row) {
@@ -1244,7 +1200,6 @@ void SCAMP5RM::CLR(DREG d0) {
     this->update_cycles(cols_ * 1);
 }
 
-// TODO DRAM write
 void SCAMP5RM::CLR(DREG d0, DREG d1) {
     // d0, d1 := 0
     for (int row = 0; row < this->rows_; ++row) {
@@ -1257,7 +1212,6 @@ void SCAMP5RM::CLR(DREG d0, DREG d1) {
     this->update_cycles(cols_ * 1 * 2);
 }
 
-// TODO DRAM write
 void SCAMP5RM::CLR(DREG d0, DREG d1, DREG d2) {
     // d0, d1, d2 := 0
     for (int row = 0; row < this->rows_; ++row) {
@@ -1286,7 +1240,6 @@ void SCAMP5RM::CLR(DREG d0, DREG d1, DREG d2, DREG d3) {
     this->update_cycles(cols_ * 1 * 4);
 }
 
-// TODO DRAM write
 void SCAMP5RM::MOV(DREG d, DREG d0) {
     // d := d0
     for (int row = 0; row < this->rows_; ++row) {
@@ -1298,7 +1251,6 @@ void SCAMP5RM::MOV(DREG d, DREG d0) {
     this->update_cycles(cols_ * 1 * 2);
 }
 
-// TODO ALU
 void SCAMP5RM::MUX(DREG Rl, DREG Rx, DREG Ry, DREG Rz) {
     // Rl := Ry IF Rx = 1, Rl := Rz IF Rx = 0.
     for (int row = 0; row < this->rows_; ++row) {
@@ -1339,7 +1291,6 @@ void SCAMP5RM::REFRESH(DREG Rl) {
     // without any operations
 }
 
-// todo maybe using the AND and OR method
 void SCAMP5RM::DNEWS0(DREG d, DREG d0) {
     // d := d0_dir, direction selected by R1, R2, R3, R4
     // Reads 0 from the edge
@@ -1455,6 +1406,7 @@ void SCAMP5RM::scamp5_in(AREG areg, int16_t value, AREG temp) {
             this->dram->write_byte(row, col, areg, value);
         }
     }
+
     dram->update_dynamic(cols_ * 8 * 3);
     this->update_cycles(cols_ * 8 * 3);
 }
@@ -1532,10 +1484,10 @@ void SCAMP5RM::scamp5_load_dac(uint16_t value) {
 
 uint8_t SCAMP5RM::scamp5_read_areg(AREG areg, uint8_t r, uint8_t c) {
     // read a single pixel
-    // TODO check that the value is properly mapped to uint8_5
-    return this->dram->read_byte(r, c, areg);
+    // TODO check that the value is properly mapped to uint8_t
     dram->update_dynamic(8);
     this->update_cycles(8);
+    return this->dram->read_byte(r, c, areg);
 }
 
 

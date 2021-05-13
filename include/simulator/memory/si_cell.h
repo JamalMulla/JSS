@@ -20,8 +20,8 @@ class SiCell : public Memory {
     double calc_dynamic() override;
     double calc_dynamic_read();
     double calc_dynamic_write();
-    int calc_width() override;
-    int calc_height() override;
+    double calc_width() override;
+    double calc_height() override;
     cv::Mat scratch;
 #endif
 

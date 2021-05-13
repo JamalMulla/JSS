@@ -9,6 +9,7 @@
 #include "simulator/base/config.h"
 
 void SiCell::init() {
+    process_node_ = 180;
     internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
 #ifdef TRACK_STATISTICS
     transistor_count_ = calc_transistor_count();
@@ -48,12 +49,14 @@ double SiCell::calc_dynamic() {
     return calc_dynamic_read() + calc_dynamic_write();
 }
 
-int SiCell::calc_width() {
-    return 8;
+double SiCell::calc_width() {
+    double base = 9;
+    return this->scale_width(base);
 }
 
-int SiCell::calc_height() {
-    return 9;
+double SiCell::calc_height() {
+    double base = 9;
+    return this->scale_width(base);
 }
 
 int SiCell::get_cycle_count() {
