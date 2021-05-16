@@ -2,7 +2,7 @@
 // Created by jm1417 on 08/02/2021.
 //
 #include <simulator/base/component.h>
-
+#include <cmath>
 #include <utility>
 
 void Component::calc_internal_mask() {
@@ -84,6 +84,11 @@ double Component::calc_width() {
 
 double Component::calc_height() {
     return 0;
+}
+
+double Component::scale_speed(double base) {
+    double sf = 7.6 - 0.961 * log(5.531 * config_->get_clock_rate() - 104.456);
+    return base * sf;
 }
 
 double Component::scale_width(double base) {

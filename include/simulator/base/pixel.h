@@ -25,6 +25,7 @@ class Pixel : public Component {
 
    public:
     Pixel() = default;
+    Pixel(int rows, int cols, int row_stride, int col_stride, Source src, const std::string& path, std::shared_ptr<Config> config);
     void init();
 
     void set_src(Source src);

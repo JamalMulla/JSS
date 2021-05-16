@@ -10,6 +10,8 @@
 class SiCell : public Memory {
     RTTR_ENABLE(Memory);
    private:
+    int read_count_ = 0;
+    int write_count_ = 0;
 #ifdef TRACK_STATISTICS
     int cycle_count_ = 1;  // TODO find proper numbers for cycle counts
     double dynamic_read_power_;  // in Watts for a read
@@ -30,6 +32,7 @@ class SiCell : public Memory {
     void init();
 
 #ifdef TRACK_STATISTICS
+    cv::Mat get_dynamic_energy_array() override;
     void update_static(double time) override;
     int get_cycle_count() override;
     void read(const cv::_InputOutputArray& mask) override;

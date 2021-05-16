@@ -70,7 +70,7 @@ void SiCell::read(const cv::_InputOutputArray& mask) {
 }
 
 void SiCell::read() {
-    cv::add(this->array_dynamic_energy_, this->dynamic_read_power_ * time_, this->array_dynamic_energy_, internal_mask);
+    read_count_++;
 }
 
 void SiCell::write(const cv::_InputOutputArray& mask) {
@@ -80,7 +80,7 @@ void SiCell::write(const cv::_InputOutputArray& mask) {
 }
 
 void SiCell::write() {
-    cv::add(this->array_dynamic_energy_, this->dynamic_write_power_ * time_, this->array_dynamic_energy_, internal_mask);
+    write_count_++;
 }
 
 void SiCell::update_static(double time) {
@@ -89,6 +89,13 @@ void SiCell::update_static(double time) {
 
 void SiCell::print_stats(const CycleCounter& counter) {
     std::cout << "TODO: Implement in SICELL" << std::endl;
+}
+
+cv::Mat SiCell::get_dynamic_energy_array() {
+    cv::add(this->array_dynamic_energy_, read_count_ * this->dynamic_read_power_ * time_, this->array_dynamic_energy_, internal_mask);
+    cv::add(this->array_dynamic_energy_, write_count_ * this->dynamic_write_power_ * time_, this->array_dynamic_energy_, internal_mask);
+
+    return Component::get_dynamic_energy_array();
 }
 
 #endif

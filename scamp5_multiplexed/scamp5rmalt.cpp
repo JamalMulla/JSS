@@ -32,35 +32,50 @@ void SCAMP5RMALT::rpix() {
 void SCAMP5RMALT::motion() {
     get_image(C, D);
 
+    for (int row = 0; row < rows_; ++row) {
+        for (int col = 0; col < cols_; ++col) {
+            this->dram->write_byte(row, col, E, 15);
+            int c = this->dram->read_byte(row, col, C);
+            int f = this->dram->read_byte(row, col, F);
+            int c_f = this->alu->execute(c, f, ALU::SUB);
+            int neg_d = this->alu->execute(0, c_f, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, neg_d);
+            this->dram->write_byte(row, col, D, c_f);
+            this->dram->write_byte(row, col, F, c_f);
 
+            this->dram->write_byte(row, col, B, neg_d);
 
-    int c = this->dram->read_byte(row_, col_, C);
-    int f = this->dram->read_byte(row_, col_, F);
-    int c_f = this->alu->execute(c, f, ALU::SUB);
-    int neg_d = this->alu->execute(0, c_f, ALU::SUB);
-    this->dram->write_byte(row_, col_, NEWS, neg_d);
-    this->dram->write_byte(row_, col_, D, c_f);
-    this->dram->write_byte(row_, col_, F, c_f);
+            this->alu->execute(c_f, 0, ALU::CMP);
+            this->dram->write_bit(row, col, FLAG, !this->alu->N ? true : false);
 
-    this->dram->write_byte(row_, col_, B, neg_d);
+            int news = this->dram->read_byte(row, col, NEWS);
+            int neg = this->alu->execute(0, news, ALU::SUB);
+            bool flag = this->dram->read_bit(row, col, FLAG);  //mask
+            if (flag) {
+                this->dram->write_byte(row, col, B, neg);
+            }
 
-    this->alu->execute(c_f, 0, ALU::CMP);
-    this->dram->write_bit(row_, col_, FLAG, !this->alu->N ? true : false);
+            this->dram->write_bit(row, col, FLAG, 1);
 
-    int news = this->dram->read_byte(row_, col_, NEWS);
-    int neg = this->alu->execute(0, news, ALU::SUB);
-    bool flag = this->dram->read_bit(row_, col_, FLAG); //mask
-    if (flag) {
-        this->dram->write_byte(row_, col_, B, neg);
+            int e_val = this->dram->read_byte(row, col, E);
+            int b_val = this->dram->read_byte(row, col, B);
+            int sub = this->alu->execute(b_val, e_val, ALU::SUB);
+            this->dram->write_byte(row, col, NEWS, -e_val);
+            this->dram->write_byte(row, col, A, sub);
+
+            int val = this->dram->read_byte(row, col, A);
+            this->alu->execute(val, 0, ALU::CMP);
+            this->dram->write_bit(row, col, FLAG, !this->alu->N ? true : false);
+
+            this->dram->write_bit(row, col, R5, this->dram->read_bit(row, col, FLAG));
+
+            this->dram->write_bit(row, col, FLAG, 1);
+
+        }
     }
-
-    this->all();
-
-
-    alu->update_dynamic(1);
-    dram->update_dynamic( 8 * 4);
-    this->update_cycles( 8 * 4 + cols_);
-
+    alu->update_dynamic(6 * cols_);
+    dram->update_dynamic((14 * 8 + 6) * cols_);
+    this->update_cycles((12 + 14 * 8) * cols_);
 
 }
 
@@ -1309,6 +1324,7 @@ RTTR_REGISTRATION {
 
     registration::class_<SCAMP5RMALT>("SCAMP5RMALT")
         .constructor()
+        .method("motion", &SCAMP5RMALT::motion)
         .method("init", &SCAMP5RMALT::init)
         .method("display", &SCAMP5RMALT::display)
         .method("config_converter", &SCAMP5RMALT::config_converter)

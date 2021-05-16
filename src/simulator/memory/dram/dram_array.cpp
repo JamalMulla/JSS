@@ -20,7 +20,8 @@ void Dram::init() {
     array_dynamic_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
     this->calc_internal_mask();
 #endif
-    int sizes[] = {((rows_ * cols_) / row_stride_) / col_stride_, array_rows_, array_cols_};
+    // dims = (arrays x rows_in_array x cols_in_row)
+    int sizes[] = {((rows_ * cols_) / row_stride_) / col_stride_, row_stride_*col_stride_, array_cols_};
     data = cv::Mat(3, sizes, CV_8U, cv::Scalar(0)); // only holds 1s and 0s
 }
 

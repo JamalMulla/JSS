@@ -70,7 +70,7 @@ void Dram3tCell::read(const cv::_InputOutputArray& mask) {
 }
 
 void Dram3tCell::read() {
-    cv::add(this->array_dynamic_energy_, this->dynamic_read_power_ * time_, this->array_dynamic_energy_, internal_mask);
+    read_count_++;
 }
 
 void Dram3tCell::write(const cv::_InputOutputArray& mask) {
@@ -80,7 +80,7 @@ void Dram3tCell::write(const cv::_InputOutputArray& mask) {
 }
 
 void Dram3tCell::write() {
-    cv::add(this->array_dynamic_energy_, this->dynamic_write_power_ * time_, this->array_dynamic_energy_, internal_mask);
+    write_count_++;
 }
 
 int Dram3tCell::calc_transistor_count() {
@@ -89,6 +89,13 @@ int Dram3tCell::calc_transistor_count() {
 
 double Dram3tCell::calc_dynamic() {
     return calc_dynamic_read() + calc_dynamic_write();
+}
+
+cv::Mat Dram3tCell::get_dynamic_energy_array() {
+    cv::add(this->array_dynamic_energy_, read_count_ * this->dynamic_read_power_ * time_, this->array_dynamic_energy_, internal_mask);
+    cv::add(this->array_dynamic_energy_, write_count_ * this->dynamic_write_power_ * time_, this->array_dynamic_energy_, internal_mask);
+
+    return Component::get_dynamic_energy_array();
 }
 
 #endif

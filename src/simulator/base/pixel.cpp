@@ -12,6 +12,17 @@
 
 #include <rttr/registration>
 
+Pixel::Pixel(int rows, int cols, int row_stride, int col_stride, Source src, const std::string& path, std::shared_ptr<Config> config)
+{
+    set_rows(rows);
+    set_cols(cols);
+    set_row_stride(row_stride);
+    set_col_stride(col_stride);
+    set_src(src);
+    set_path(path);
+    set_config(config);
+}
+
 void Pixel::init() {
 #ifdef TRACK_STATISTICS
     process_node_ = 180;

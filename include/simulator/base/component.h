@@ -80,6 +80,9 @@ class Component : public StatsOutputter {
     virtual double calc_width();
     virtual double calc_height();
 
+    /* Scales base speed with the config*/
+    double scale_speed(double base);
+
     /* Scales the width with the config*/
     double scale_width(double base);
 

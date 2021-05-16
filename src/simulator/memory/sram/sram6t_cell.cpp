@@ -61,7 +61,7 @@ void Sram6tCell::read(const cv::_InputOutputArray& mask) {
 }
 
 void Sram6tCell::read() {
-    cv::add(this->array_dynamic_energy_, this->dynamic_read_power_ * time_, this->array_dynamic_energy_, internal_mask);
+    read_count_++;
 }
 
 void Sram6tCell::write(const cv::_InputOutputArray& mask) {
@@ -71,7 +71,7 @@ void Sram6tCell::write(const cv::_InputOutputArray& mask) {
 }
 
 void Sram6tCell::write() {
-    cv::add(this->array_dynamic_energy_, this->dynamic_write_power_ * time_, this->array_dynamic_energy_, internal_mask);
+    write_count_++;
 }
 
 void Sram6tCell::update_static(double time) {
@@ -88,6 +88,12 @@ int Sram6tCell::calc_transistor_count() {
 
 double Sram6tCell::calc_dynamic() {
     return calc_dynamic_read() + calc_dynamic_write();
+}
+
+cv::Mat Sram6tCell::get_dynamic_energy_array() {
+    cv::add(this->array_dynamic_energy_, read_count_ * this->dynamic_read_power_ * time_, this->array_dynamic_energy_, internal_mask);
+    cv::add(this->array_dynamic_energy_, write_count_ * this->dynamic_write_power_ * time_, this->array_dynamic_energy_, internal_mask);
+    return Component::get_dynamic_energy_array();
 }
 
 #endif

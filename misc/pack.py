@@ -66,11 +66,13 @@ class Packer:
             exit(2)
 
     def grow_right(self, width, height):
+        print("right grow")
         self.root = Node(0, 0, self.root.width + width, self.root.height, self.root, Node(self.root.width, 0, width, self.root.height), True)
         node = self.find_node(self.root, width, height)
         return self.split_node(node, width, height)
 
     def grow_down(self, width, height):
+        print("down grow")
         self.root = Node(0, 0, self.root.width, self.root.height + height, Node(0, self.root.height, self.root.width, height), self.root, True)
         node = self.find_node(self.root, width, height)
         return self.split_node(node, width, height)
@@ -93,6 +95,7 @@ class Packer:
         self.root = Node(x=0, y=0, width=w, height=h)
 
         for c in components:
+            print(self.root.width, self.root.height)
             node = self.find_node(self.root, c.width, c.height)
             if not node is None:
                 c.fit = self.split_node(node, c.width, c.height)
@@ -135,37 +138,15 @@ components = []
 # components.append(Node(width=28, height=79))
 # components.append(Node(width=28, height=79))
 
-components.append(Node(width=8, height=9))
-components.append(Node(width=7, height=9))
-components.append(Node(width=8, height=9))
-components.append(Node(width=8, height=9))
-components.append(Node(width=8, height=9))
-components.append(Node(width=8, height=9))
-components.append(Node(width=8, height=9))
-components.append(Node(width=8, height=9))
-components.append(Node(width=8, height=9))
-components.append(Node(width=8, height=9))
+
 components.append(Node(width=4, height=4))
 components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
-components.append(Node(width=3, height=3))
+components.append(Node(width=2, height=2))
+components.append(Node(width=1, height=2))
 
 p = Packer()
 print(len(components))
 root = p.pack(components)
-print(root.width, root.height)
 
 visualise(components, root.width, root.height)
 

@@ -2,8 +2,8 @@
 // Created by jm1417 on 05/05/2021.
 //
 
-#ifndef SIMULATOR_SCAMP5RM_H
-#define SIMULATOR_SCAMP5RM_H
+#ifndef SIMULATOR_SCAMP5M_H
+#define SIMULATOR_SCAMP5M_H
 
 #include <simulator/adc/adc.h>
 #include <simulator/alu/alu.h>
@@ -45,7 +45,9 @@ enum DREG {
     R0 = 87
 };
 
-class SCAMP5RM : public Architecture {
+/*Multiplexed architecture*/
+
+class SCAMP5M : public Architecture {
 
    protected:
     int rows_;
@@ -53,6 +55,8 @@ class SCAMP5RM : public Architecture {
     int row_stride_ = 1;
     int col_stride_ = 1;
     Origin origin_;
+    int num_pes = 0; // number of PEs in total
+    int num_pixels = 0; // number of pixels in
 
    public:
 
@@ -62,7 +66,7 @@ class SCAMP5RM : public Architecture {
     std::shared_ptr<ADC> adc;
     DREG scratch = R0;
 
-    SCAMP5RM() = default;
+    SCAMP5M() = default;
     void init();
     rttr::variant config_converter(json& j);
     void set_rows(int rows);
@@ -235,8 +239,6 @@ class SCAMP5RM : public Architecture {
 
     void CLR_IF(DREG Rl, DREG Rx);
 
-    void REFRESH(DREG Rl);
-
     // Digital Neighbour Access
     void DNEWS0(DREG d, DREG d0);
 
@@ -326,8 +328,8 @@ class SCAMP5RM : public Architecture {
     void display();
 
     // Simulator specific methods
-    void print_stats();
+    void print_stats(const std::string& output_path = "");
     RTTR_ENABLE(Architecture);
 };
 
-#endif  //SIMULATOR_SCAMP5RM_H
+#endif  //SIMULATOR_SCAMP5M_H

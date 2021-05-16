@@ -55,7 +55,7 @@ void SCAMP5E::superpixel_positions_from_bitorder(position_map& locations) {
     }
 }
 
-void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, const std::shared_ptr<DREG>& REAST, std::shared_ptr<DREG> RWEST, bool shift_left) {
+void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, const std::shared_ptr<DREG>& REAST, const std::shared_ptr<DREG>& RWEST, bool shift_left) {
     size_t rows = bitorder_[0].size();
     size_t cols = bitorder_[0][0].size();
     DigitalRegister R_NORTH(rows, cols);
@@ -85,18 +85,34 @@ void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::share
 
             if (current == north + 1) {
                 // bigger than north
-                (shift_left ? R_SOUTH : R_NORTH).read().at<uint8_t>(row - (shift_left ? 0 : 1), col) = 1;
+                if (shift_left) {
+                    R_SOUTH.read().at<uint8_t>(row - 0, col) = 1;
+                } else {
+                    R_NORTH.read().at<uint8_t>(row - 1, col) = 1;
+                }
             } else if (current == north - 1) {
                 // smaller than north
-                (shift_left ? R_NORTH : R_SOUTH).read().at<uint8_t>(row - (shift_left ? 1 : 0), col) = 1;
+                if (shift_left) {
+                    R_NORTH.read().at<uint8_t>(row - 1, col) = 1;
+                } else {
+                    R_SOUTH.read().at<uint8_t>(row, col) = 1;
+                }
             }
 
             if (current == west + 1) {
                 // bigger than west
-                (shift_left ? R_EAST : R_WEST).read().at<uint8_t>(row, col - (shift_left ? 0 : 1)) = 1;
+                if (shift_left) {
+                    R_EAST.read().at<uint8_t>(row, col) = 1;
+                } else {
+                    R_WEST.read().at<uint8_t>(row, col - 1) = 1;
+                }
             } else if (current == west - 1) {
                 // smaller than west
-                (shift_left ? R_WEST : R_EAST).read().at<uint8_t>(row, col - (shift_left ? 1 : 0)) = 1;
+                if (shift_left) {
+                    R_WEST.read().at<uint8_t>(row, col - 1) = 1;
+                } else {
+                    R_EAST.read().at<uint8_t>(row, col) = 1;
+                }
             }
         }
     }
@@ -134,7 +150,7 @@ void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::share
     }
 }
 
-void SCAMP5E::superpixel_shift_block(const std::shared_ptr<DREG>& dst, const std::shared_ptr<DREG>& src, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, std::shared_ptr<DREG> REAST, const std::shared_ptr<DREG>& RWEST) {
+void SCAMP5E::superpixel_shift_block(const std::shared_ptr<DREG>& dst, const std::shared_ptr<DREG>& src, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, const std::shared_ptr<DREG>& REAST, const std::shared_ptr<DREG>& RWEST) {
     int rows = src->read().rows;
     int cols = src->read().cols;
     DigitalRegister east = DigitalRegister(rows, cols);
@@ -161,7 +177,7 @@ void SCAMP5E::superpixel_shift_block(const std::shared_ptr<DREG>& dst, const std
     OR(dst, east_ptr, north_ptr, south_ptr, west_ptr);
 }
 
-void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, std::shared_ptr<AREG> src) {
+void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, const std::shared_ptr<AREG>& src) {
     // Converts an analogue image to a digital superpixel format
     // Values will always be put in bank 0
     position_map locations;
@@ -189,7 +205,7 @@ void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, std::sh
     });
 }
 
-void SCAMP5E::superpixel_dac(std::shared_ptr<AREG> dst, int bank, const std::shared_ptr<DREG>& src) {
+void SCAMP5E::superpixel_dac(const std::shared_ptr<AREG>& dst, int bank, const std::shared_ptr<DREG>& src) {
     position_map locations;
     this->superpixel_positions_from_bitorder(locations);
     // Converts digital superpixel format image to an analogue image

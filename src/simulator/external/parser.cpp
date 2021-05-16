@@ -373,7 +373,7 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 
         if (frame_time) {
             int e2 = cv::getTickCount();
-            std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
+            std::cout << ((double)(e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
         }
 
         if (ui_enabled) {
@@ -396,8 +396,12 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     }
 
     // Stats
-    if (c["with_stats"] && c["with_stats"] == true) {
-        if (!arch.extract_wrapped_value().get_type().invoke("print_stats", arch, {}).is_valid()) {
+    if (c.contains("with_stats") && c["with_stats"] == true) {
+        std::vector<rttr::argument> args;
+        if (c.contains("output_filename")){
+            args.emplace_back(c["output_filename"].get<std::string>());
+        }
+        if (!arch.extract_wrapped_value().get_type().invoke("print_stats", arch, args).is_valid()) {
             std::cerr << "Could not print stats for run. Has a \"print_stats\" method been registered?" << std::endl;
         }
     }

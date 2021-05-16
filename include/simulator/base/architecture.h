@@ -29,11 +29,11 @@ class Architecture {
 
     template<class type>
     std::shared_ptr<type> get_component(const std::string& name) {
-        if (components_.find(name) == components_.end()) {
-            // not found in components
-            std::cerr << "Could not get component \"" << name << "\"" << std::endl;
-            exit(EXIT_FAILURE);
-        }
+//        if (components_.find(name) == components_.end()) {
+//            // not found in components
+//            std::cerr << "Could not get component \"" << name << "\"" << std::endl;
+//            exit(EXIT_FAILURE);
+//        }
         return std::dynamic_pointer_cast<type>(components_[name]);
     }
 
@@ -45,6 +45,7 @@ class Architecture {
 #ifdef TRACK_STATISTICS
     void update_static(); // Calculates static power using the number of cycles we've got to
     void print_stats(int rows, int cols);
+    void write_stats(int rows, int cols, json& j);
     unsigned long long get_cycles();
 #endif
     std::shared_ptr<Component> get_component(const std::string& name);
