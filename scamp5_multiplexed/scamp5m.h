@@ -13,6 +13,7 @@
 
 #include "simulator/base/architecture.h"
 #include "simulator/pe/processing_element.h"
+#include "vj_classifier.h"
 
 enum AREG {
     PIX = 0,
@@ -57,6 +58,8 @@ class SCAMP5M : public Architecture {
     Origin origin_;
     int num_pes = 0; // number of PEs in total
     int num_pixels = 0; // number of pixels in
+
+    cv::CascadeClassifier classifier_;
 
    public:
 
@@ -327,7 +330,11 @@ class SCAMP5M : public Architecture {
 
     void display();
 
-    void viola_jones();
+    void init_viola();
+    std::shared_ptr<VjClassifier> read_viola_classifier(const std::string& classifier_path);
+    void viola_jones(AREG areg);
+
+    void jpeg_compresssion(AREG a);
 
     // Simulator specific methods
     void print_stats(json& config, const std::string& output_path = "");

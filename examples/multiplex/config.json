@@ -1,6 +1,6 @@
 {
     "architecture": "SCAMP5M",
-    "frames": 5,
+    "frames": 500,
     "with_stats": true,
     "ui_enabled": true,
     "output_filename": "146",
