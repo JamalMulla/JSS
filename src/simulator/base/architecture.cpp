@@ -87,7 +87,7 @@ void Architecture::print_stats(int rows, int cols) {
         transistor_count += cv::sum(component->get_transistor_count_array())[0];
     }
     std::cout << "Architecture transistor count: " << transistor_count << "\n";
-    std::cout << "Average transistor count per PE: " << transistor_count / (rows * cols) << " \n";
+//    std::cout << "Average transistor count per PE: " << transistor_count / (num_pes) << " \n";
 
     double static_energy = 0.0;
     for (auto& [_, component] : components_) {
@@ -141,7 +141,7 @@ void Architecture::write_stats(int rows, int cols, json& j) {
         transistor_count += cv::sum(component->get_transistor_count_array())[0];
     }
     j["Architecture transistor count"] = transistor_count;
-    j["Average transistor count per PE"] = transistor_count / (rows * cols);
+//    j["Average transistor count per PE"] = transistor_count / (num_pes);
 
     double static_energy = 0.0;
     for (auto& [_, component] : components_) {

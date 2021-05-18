@@ -10,12 +10,11 @@
 #include <opencv4/opencv2/imgproc.hpp>
 #include <opencv4/opencv2/opencv.hpp>
 
-LiveInput::LiveInput() = default;
-
-LiveInput::LiveInput(int rows, int cols) {
+LiveInput::LiveInput(int rows, int cols, int camera_index) {
     this->rows_ = rows;
     this->cols_ = cols;
-    this->capture = std::make_unique<cv::VideoCapture>(0);
+    std::cout << "Using camera: " << camera_index << "\n";
+    this->capture = std::make_unique<cv::VideoCapture>(camera_index);
     if(!this->capture->isOpened()) {
         std::cerr << "Could not open camera" << std::endl;
         exit(1);

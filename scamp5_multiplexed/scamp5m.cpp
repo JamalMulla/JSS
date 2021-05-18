@@ -2263,8 +2263,18 @@ void SCAMP5M::display() {
     UI::get_instance().display_reg(r5r);
 }
 
+void SCAMP5M::viola_jones() {
+    std::string face_cascade_name = cv::samples::findFile("data/haarcascades/haarcascade_frontalface_alt.xml");
+    cv::CascadeClassifier face_cascade;
+    if( !face_cascade.load( face_cascade_name ) )
+    {
+        std::cout << "--(!)Error loading face cascade\n";
+        exit(EXIT_FAILURE);
+    };
+}
+
 //move to base class
-void SCAMP5M::print_stats(const std::string& output_path) {
+void SCAMP5M::print_stats(json& config, const std::string& output_path) {
     // TODO move
 #ifdef TRACK_STATISTICS
     this->update_static(); //move
@@ -2272,6 +2282,7 @@ void SCAMP5M::print_stats(const std::string& output_path) {
     Architecture::print_stats(rows_, cols_);
 
     json j;
+    j["Config"] = config;
     j["Number of PEs"] = num_pes;
     this->write_stats(rows_, cols_,j);
 //    std::cout << std::setw(2) << j << std::endl;
@@ -2465,6 +2476,7 @@ RTTR_REGISTRATION {
         .method("scamp5_scan_dreg", &SCAMP5M::scamp5_scan_dreg)(default_arguments((uint8_t)0, (uint8_t)255))
         .method("scamp5_scan_events", select_overload<void(DREG, uint8_t*, uint16_t, uint8_t, uint8_t)>(&SCAMP5M::scamp5_scan_events))(default_arguments((uint16_t)1000, (uint8_t)0, (uint8_t)0))
         .method("scamp5_scan_events", select_overload<void(DREG, uint8_t*, uint16_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t)>(&SCAMP5M::scamp5_scan_events))
-        .method("print_stats", &SCAMP5M::print_stats)(default_arguments(std::string()));
+        .method("print_stats", &SCAMP5M::print_stats)(default_arguments(std::string()))
+        .method("viola_jones", &SCAMP5M::viola_jones);
 }
 

@@ -11,6 +11,7 @@
 #include <opencv4/opencv2/imgproc.hpp>
 
 #include <rttr/registration>
+#include <utility>
 
 Pixel::Pixel(int rows, int cols, int row_stride, int col_stride, Source src, const std::string& path, std::shared_ptr<Config> config)
 {
@@ -20,7 +21,7 @@ Pixel::Pixel(int rows, int cols, int row_stride, int col_stride, Source src, con
     set_col_stride(col_stride);
     set_src(src);
     set_path(path);
-    set_config(config);
+    set_config(std::move(config));
 }
 
 void Pixel::init() {
@@ -44,10 +45,14 @@ void Pixel::set_path(const std::string& path) {
     this->path_ = path;
 }
 
+void Pixel::set_camera_index(int camera_index) {
+    this->camera_index_ = camera_index;
+}
+
 void Pixel::set_src(Source src) {
     switch(src) {
         case LIVE: {
-            input_source = std::make_shared<LiveInput>(rows_, cols_);
+            input_source = std::make_shared<LiveInput>(rows_, cols_, camera_index_);
             break;
         }
         case VIDEO: {
@@ -129,6 +134,7 @@ RTTR_REGISTRATION {
         .constructor()
         .method("init", &Pixel::init)
         .method("set_path", &Pixel::set_path)
-        .method("set_src", &Pixel::set_src);
+        .method("set_src", &Pixel::set_src)
+        .method("set_camera_index", &Pixel::set_camera_index);
 };
 

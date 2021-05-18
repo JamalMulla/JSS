@@ -8,7 +8,6 @@
 
 
 void Register::init() {
-
     this->value_ = cv::Mat(rows_, cols_, type_, cv::Scalar(0));
 }
 

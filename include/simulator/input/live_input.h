@@ -15,8 +15,8 @@ class LiveInput : public InputSource {
     std::unique_ptr<cv::Size> size;
 
    public:
-    LiveInput(int rows, int cols);
-    LiveInput();
+    LiveInput(int rows, int cols, int camera_index = 0);
+    LiveInput() = default;
 
     void read(Register& reg) override;
     cv::Mat read() override;

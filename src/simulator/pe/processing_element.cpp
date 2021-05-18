@@ -87,12 +87,18 @@ rttr::variant ProcessingElement::pixel_converter(json& j) {
             std::cout << "Unknown input. Assuming LIVE input" << std::endl;
         }
     }
+    int camera_index = 0;
+    if (j.contains("camera_index")) {
+        camera_index = j["camera_index"].get<int>();
+    }
+
     auto pix = std::make_shared<Pixel>();
     pix->set_rows(rows_);
     pix->set_cols(cols_);
     pix->set_row_stride(row_stride_);
     pix->set_col_stride(col_stride_);
     pix->set_config(config_);
+    pix->set_camera_index(camera_index);
     pix->set_src(source);
     pix->set_path(path);
     pix->init();

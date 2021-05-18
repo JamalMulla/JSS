@@ -18,6 +18,7 @@ class Pixel : public Component {
    private:
     std::string path_;
     std::shared_ptr<InputSource> input_source;
+    int camera_index_ = 0;
 
 #ifdef TRACK_STATISTICS
     int cycle_count_;
@@ -30,6 +31,7 @@ class Pixel : public Component {
 
     void set_src(Source src);
     void set_path(const std::string& path);
+    void set_camera_index(int camera_index);
 
     void reset();
     void read(Register& reg);

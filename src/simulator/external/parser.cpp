@@ -398,6 +398,7 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     // Stats
     if (c.contains("with_stats") && c["with_stats"] == true) {
         std::vector<rttr::argument> args;
+        args.emplace_back(c);
         if (c.contains("output_filename")){
             args.emplace_back(c["output_filename"].get<std::string>());
         }

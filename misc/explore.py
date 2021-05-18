@@ -5,7 +5,7 @@ import pathlib
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import itertools
 
 simulator_path = "/home/jm1417/Simulator/cmake-build-release/bin/simulator"
 config_path = "/home/jm1417/Simulator/examples/multiplex/config.json"
@@ -36,19 +36,34 @@ def execute(config):
     out, err = process.communicate()
 
 def mutate(config):
-    row_strides = [4, 8, 16, 32, 64, 128, 256]
-    col_strides = [4, 8, 16, 32, 64, 128, 256]
+    row_strides = [2, 8, 16, 256]
+    col_strides = [2, 8, 16, 256]
+    rows        = [128, 256]
+    cols        = [128, 256]
+    clock_rates = [10000000, 50000000, 100000000]
+
+    possibilities = list(itertools.product(row_strides,col_strides,rows, cols, clock_rates))
+    print("Combinations:", len(possibilities))
+
     count = 0
-    for row_stride in row_strides:
-        for col_stride in col_strides:
-            config['SCAMP5M']['row_stride'] = row_stride
-            config['SCAMP5M']['col_stride'] = col_stride
-            config['output_filename'] = str(count)
-            print("Executing with row_stride=", row_stride, "col_stride=", col_stride)
-            execute(config)
+    for row_stride, col_stride, rows, cols, clock_rate in possibilities:
+        if (row_stride > rows or col_stride > cols):
+            continue
+        config['SCAMP5M']['rows'] = rows
+        config['SCAMP5M']['cols'] = cols
+        config['SCAMP5M']['row_stride'] = row_stride
+        config['SCAMP5M']['col_stride'] = col_stride
+        config['SCAMP5M']['config']['clock_rate'] = clock_rate
+        config['output_filename'] = str(count)
+        print("Executing with row_stride=", row_stride, "col_stride=", col_stride, "rows=", rows, "cols=", cols, "clock=", clock_rate)
+        execute(config)
+        try:
             res = read_json(output_path + "/" + str(count) + ".json")
             results.append((res["Cycle count"], res["Architecture total power"]))
-            count+=1
+        except:
+            print("Could not add")
+        count+=1
+
 
 
 # execute the simulator with a new config
@@ -61,43 +76,75 @@ def run():
         print(r)
 
 
+def is_outlier(points, thresh=6):
+    """
+    Returns a boolean array with True if points are outliers and False
+    otherwise.
 
-def identify_pareto(scores):
-    # Count number of items
-    population_size = scores.shape[0]
-    # Create a NumPy index for scores on the pareto front (zero indexed)
-    population_ids = np.arange(population_size)
-    # Create a starting list of items on the Pareto front
-    # All items start off as being labelled as on the Parteo front
-    pareto_front = np.ones(population_size, dtype=bool)
-    # Loop through each item. This will then be compared with all other items
-    for i in range(population_size):
-        # Loop through all other items
-        for j in range(population_size):
-            # Check if our 'i' pint is dominated by out 'j' point
-            if all(scores[j] >= scores[i]) and any(scores[j] > scores[i]):
-                # j dominates i. Label 'i' point as not on Pareto front
-                pareto_front[i] = 0
-                # Stop further comparisons with 'i' (no more comparisons needed)
-                break
-    # Return ids of scenarios on pareto front
-    return population_ids[pareto_front]
+    Parameters:
+    -----------
+        points : An numobservations by numdimensions array of observations
+        thresh : The modified z-score to use as a threshold. Observations with
+            a modified z-score (based on the median absolute deviation) greater
+            than this value will be classified as outliers.
+
+    Returns:
+    --------
+        mask : A numobservations-length boolean array.
+
+    References:
+    ----------
+        Boris Iglewicz and David Hoaglin (1993), "Volume 16: How to Detect and
+        Handle Outliers", The ASQC Basic References in Quality Control:
+        Statistical Techniques, Edward F. Mykytka, Ph.D., Editor.
+    """
+    if len(points.shape) == 1:
+        points = points[:,None]
+    median = np.median(points, axis=0)
+    diff = np.sum((points - median)**2, axis=-1)
+    diff = np.sqrt(diff)
+    med_abs_deviation = np.median(diff)
+
+    modified_z_score = 0.6745 * diff / med_abs_deviation
+
+    return modified_z_score > thresh
+
+
+'''
+Method to take two equally-sized lists and return just the elements which lie 
+on the Pareto frontier, sorted into order.
+Default behaviour is to find the maximum for both X and Y, but the option is
+available to specify maxX = False or maxY = False to find the minimum for either
+or both of the parameters.
+'''
+def pareto_frontier(Xs, Ys, maxX = True, maxY = True):
+    # Sort the list in either ascending or descending order of X
+    myList = sorted([[Xs[i], Ys[i]] for i in range(len(Xs))], reverse=maxX)
+    # Start the Pareto frontier with the first value in the sorted list
+    p_front = [myList[0]]
+    # Loop through the sorted list
+    for pair in myList[1:]:
+        if maxY:
+            if pair[1] >= p_front[-1][1]: # Look for higher values of Y…
+                p_front.append(pair) # … and add them to the Pareto frontier
+        else:
+            if pair[1] <= p_front[-1][1]: # Look for lower values of Y…
+                p_front.append(pair) # … and add them to the Pareto frontier
+    # Turn resulting pairs back into a list of Xs and Ys
+    p_frontX = [pair[0] for pair in p_front]
+    p_frontY = [pair[1] for pair in p_front]
+    return p_frontX, p_frontY
 
 def plot_results():
     res = np.array(results)
-    pareto = identify_pareto(res)
-    pareto_front = res[pareto]
-    pareto_front_df = pd.DataFrame(pareto_front)
-    pareto_front_df.sort_values(0, inplace=True)
-    pareto_front = pareto_front_df.values
+    cycles = res[:, 0]
+    powers = res[:, 1]
+    pareto_front = pareto_frontier(powers, cycles, False, False)
 
-    y_all = res[:, 0]
-    x_all = res[:, 1]
-    y_pareto = pareto_front[:, 0]
-    x_pareto = pareto_front[:, 1]
-
-    plt.scatter(x_all, y_all)
-    plt.plot(x_pareto, y_pareto, color='r')
+    plt.scatter(powers, cycles)
+    plt.plot(pareto_front[0], pareto_front[1], color='r')
+    plt.xlim(0, 0.5)
+    plt.ylim(0, 0.4e7)
     plt.xlabel('Total Power (W)')
     plt.ylabel('Total Cycles')
     plt.savefig("pareto.png")
@@ -106,6 +153,5 @@ def plot_results():
 
 
 run()
-
 
 plot_results()

@@ -8,7 +8,6 @@
 
 int main(int argc, char **argv) {
 
-//    analog_main();
     if (argc < 3) {
         std::cerr << "[Error] Must provide a config file and a program file" << std::endl;
         exit(EXIT_FAILURE);

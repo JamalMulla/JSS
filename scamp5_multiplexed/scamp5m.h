@@ -327,8 +327,10 @@ class SCAMP5M : public Architecture {
 
     void display();
 
+    void viola_jones();
+
     // Simulator specific methods
-    void print_stats(const std::string& output_path = "");
+    void print_stats(json& config, const std::string& output_path = "");
     RTTR_ENABLE(Architecture);
 };
 

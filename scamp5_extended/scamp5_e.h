@@ -60,6 +60,7 @@ class SCAMP5E : public SCAMP5 {
     // Histogramming
     void histogram(const std::shared_ptr<AREG>& src);
     void hog(const std::shared_ptr<AREG>& src);
+
 };
 
 
