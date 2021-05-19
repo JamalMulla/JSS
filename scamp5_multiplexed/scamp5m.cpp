@@ -2261,7 +2261,218 @@ void SCAMP5M::init_viola() {
     };
 }
 
-std::shared_ptr<VjClassifier> read_viola_classifier(const std::string &classifier_path) {
+std::shared_ptr<VjClassifier> SCAMP5M::read_viola_classifier(const std::string &classifier_path) {
+    int stages = 25; // number of stages
+    /*total number of weak classifiers (one node each)*/
+    int total_nodes = 2913;
+    int i, j, k, l;
+    char mystring[12];
+    int r_index = 0;
+    int w_index = 0;
+    int tree_index = 0;
+
+    i = 0;
+
+    std::vector<int> stages_array {9, 16, 27, 32, 52, 53, 62, 72, 83, 91, 99, 115, 127, 135, 136, 137, 159, 155, 169, 196, 197, 181, 199, 211, 200};
+
+
+    /* TODO: use matrices where appropriate */
+    /***********************************************
+     * Allocate a lot of array structures
+     * Note that, to increase parallelism,
+     * some arrays need to be splitted or duplicated
+     **********************************************/
+    std::shared_ptr<std::vector<int> > rectangles_array = std::make_shared<std::vector<int> >(total_nodes * 12);
+    std::shared_ptr<std::vector<int> > scaled_rectangles_array = std::make_shared<std::vector<int> >(total_nodes * 12);
+    std::shared_ptr<std::vector<int> > weights_array = std::make_shared<std::vector<int> >(total_nodes * 3);
+    std::shared_ptr<std::vector<int> > alpha1_array = std::make_shared<std::vector<int> >(total_nodes);
+    std::shared_ptr<std::vector<int> > alpha2_array = std::make_shared<std::vector<int> >(total_nodes);
+    std::shared_ptr<std::vector<int> > tree_thresh_array = std::make_shared<std::vector<int> >(total_nodes);
+    std::shared_ptr<std::vector<int> > stages_thresh_array = std::make_shared<std::vector<int> >(stages);
+    FILE *fp = fopen(classifier_path.data(), "r");
+
+    /******************************************
+     * Read the filter parameters in class.txt
+     *
+     * Each stage of the cascaded filter has:
+     * 18 parameter per filter x tilter per stage
+     * + 1 threshold per stage
+     *
+     * For example, in 5kk73,
+     * the first stage has 9 filters,
+     * the first stage is specified using
+     * 18 * 9 + 1 = 163 parameters
+     * They are line 1 to 163 of class.txt
+     *
+     * The 18 parameters for each filter are:
+     * 1 to 4: coordinates of rectangle 1
+     * 5: weight of rectangle 1
+     * 6 to 9: coordinates of rectangle 2
+     * 10: weight of rectangle 2
+     * 11 to 14: coordinates of rectangle 3
+     * 15: weight of rectangle 3
+     * 16: threshold of the filter
+     * 17: alpha 1 of the filter
+     * 18: alpha 2 of the filter
+     ******************************************/
+    /* loop over n of stages */
+    for (i = 0; i < stages; i++) {    /* loop over n of trees */
+        for (j = 0; j < stages_array[i]; j++) {    /* loop over n of rectangular features */
+            for (k = 0; k < 3; k++) {    /* loop over the n of vertices */
+                for (l = 0; l < 4; l++) {
+                    if (fgets(mystring, 12, fp) != nullptr)
+                        rectangles_array->at(r_index) = atoi(mystring);
+                    else
+                        break;
+                    r_index++;
+                } /* end of l loop */
+                if (fgets(mystring, 12, fp) != nullptr) {
+                    weights_array->at(w_index) = atoi(mystring);
+                    /* Shift value to avoid overflow in the haar evaluation */
+                    /*TODO: make more general */
+                    /*weights_array[w_index]>>=8; */
+                } else
+                    break;
+                w_index++;
+            } /* end of k loop */
+            if (fgets(mystring, 12, fp) != nullptr)
+                tree_thresh_array->at(tree_index) = atoi(mystring);
+            else
+                break;
+            if (fgets(mystring, 12, fp) != nullptr)
+                alpha1_array->at(tree_index) = atoi(mystring);
+            else
+                break;
+            if (fgets(mystring, 12, fp) != nullptr)
+                alpha2_array->at(tree_index) = atoi(mystring);
+            else
+                break;
+            tree_index++;
+            if (j == stages_array[i] - 1) {
+                if (fgets(mystring, 12, fp) != nullptr)
+                    stages_thresh_array->at(i) = atoi(mystring);
+                else
+                    break;
+            }
+        } /* end of j loop */
+    } /* end of i loop */
+    fclose(fp);
+
+    std::shared_ptr<VjClassifier> classifier = std::make_shared<VjClassifier>();
+    classifier->set_rectangles_array(rectangles_array);
+    classifier->set_scaled_rectangles_array(scaled_rectangles_array);
+    classifier->set_weights_array(weights_array);
+    classifier->set_alpha1_array(alpha1_array);
+    classifier->set_alpha2_array(alpha2_array);
+    classifier->set_tree_thresh_array(tree_thresh_array);
+    classifier->set_stages_thresh_array(stages_thresh_array);
+    return classifier;
+}
+
+inline int int_round(float value) {
+    return (int) (value + (value >= 0 ? 0.5 : -0.5));
+}
+
+std::vector<cv::Rect> SCAMP5M::vj_detect(AREG src, Size minSize, Size maxSize, float scaleFactor, int minNeighbors) {
+    std::vector<cv::Rect> allCandidates;
+
+    if (maxSize.height == 0 || maxSize.width == 0) {
+        maxSize.height = rows_;
+        maxSize.width = cols_;
+    }
+
+    // original window size
+    Size win_size_init = {24, 24};
+
+    float factor = 0.0;
+    int iter_counter = 0;
+
+    /* iterate over the image pyramid */
+    for (factor = 1;; factor *= scaleFactor) {
+        /* iteration counter */
+        iter_counter++;
+
+        /* size of the image scaled up */
+        Size winSize = {int_round(win_size_init.width * factor), int_round(win_size_init.height * factor)};
+
+        /* size of the image scaled down (from bigger to smaller) */
+        Size sz = {static_cast<int>((cols_ / factor)), static_cast<int>((rows_ / factor))};
+
+        /* difference between sizes of the scaled image and the original detection window */
+        Size sz1 = {sz.width - win_size_init.width, sz.height - win_size_init.height};
+
+        /* if the actual scaled image is smaller than the original detection window, break */
+        if (sz1.width < 0 || sz1.height < 0)
+            break;
+
+        /* if a minSize different from the original detection window is specified, continue to the next scaling */
+        if (winSize.width < minSize.width || winSize.height < minSize.height)
+            continue;
+
+        /***************************************
+         * Compute-intensive step:
+         * building image pyramid by downsampling
+         * downsampling using nearest neighbor
+         **************************************/
+         // todo check args
+        vj_downsample(D, src, sz, {rows_, cols_});
+
+        /***************************************************
+         * Compute-intensive step:
+         * At each scale of the image pyramid,
+         * compute a new integral and squared integral image
+         ***************************************************/
+        integralImages(img1, sum1, sqsum1);
+
+        /* sets images for haar classifier cascade */
+        /**************************************************
+         * Note:
+         * Summing pixels within a haar window is done by
+         * using four corners of the integral image:
+         * http://en.wikipedia.org/wiki/Summed_area_table
+         *
+         * This function loads the four corners,
+         * but does not do compuation based on four coners.
+         * The computation is done next in ScaleImage_Invoker
+         *************************************************/
+        setImageForCascadeClassifier(cascade, sum1, sqsum1);
+
+        /* print out for each scale of the image pyramid */
+        printf("detecting faces, iter := %d\n", iter_counter);
+
+        /****************************************************
+         * Process the current scale with the cascaded fitler.
+         * The main computations are invoked by this function.
+         * Optimization oppurtunity:
+         * the same cascade filter is invoked each time
+         ***************************************************/
+        ScaleImage_Invoker(cascade, factor, sum1->height, sum1->width,
+                           allCandidates);
+    } /* end of the factor loop, finish all scales in pyramid*/
+
+}
+
+void SCAMP5M::vj_downsample(AREG dst, AREG src, Size dst_size, Size src_size) {
+    // nearest neighbour downsampling
+
+    int sh = dst_size.height / src_size.height;
+    int sw = dst_size.width / src_size.width;
+
+    int patch = 0;
+    for (int row = 0; row < dst_size.height; row ++) {
+        for (int col = 0; col < dst_size.width; col ++) {
+            int x = row / sh;
+            int y = col / sw;
+            // todo look at e() use
+            int val = this->dram->read_int(patch, index(row, col), src);
+            this->dram->write_int(patch, index(row, col), dst, val);
+            patch++;
+        }
+    }
+}
+
+void SCAMP5M::vj_integral_image(AREG src, AREG sum, AREG sqrsum) {
+
 }
 
 void SCAMP5M::viola_jones(AREG areg) {
@@ -2293,7 +2504,7 @@ void SCAMP5M::viola_jones(AREG areg) {
     cv::waitKey(1);
 }
 
-int e(int row, int col) {
+int SCAMP5M::index(int row, int col) {
     return row * 8 + col;
 }
 
@@ -2342,11 +2553,11 @@ void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
 
                     for (int k = 0; k < 8; ++k) {
                         int coefficient = DCT[r - row][k];
-                        int val = this->dram->read_byte(patch, e(k, c - col), src);
+                        int val = this->dram->read_byte(patch, index(k, c - col), src);
                         int mult = this->alu->execute(coefficient, val, ALU::MUL);
                         sum = this->alu->execute(sum, mult, ALU::ADD);
                     }
-                    this->dram->write_int(patch, e(r - row, c - col), dst, sum);
+                    this->dram->write_int(patch, index(r - row, c - col), dst, sum);
 
                 }
             }
@@ -2363,11 +2574,11 @@ void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
 
                     for (int k = 0; k < 8; ++k) {
                         int coefficient = DCT_transpose[k][c - col];
-                        int val = this->dram->read_int(patch, e(r - row, k), dst);
+                        int val = this->dram->read_int(patch, index(r - row, k), dst);
                         int mult = this->alu->execute(coefficient, val, ALU::MUL);
                         sum = this->alu->execute(sum, mult, ALU::ADD);
                     }
-                    this->dram->write_int(patch, e(r - row, c - col), NEWS, sum);
+                    this->dram->write_int(patch, index(r - row, c - col), NEWS, sum);
                 }
             }
             patch++;
@@ -2596,6 +2807,7 @@ RTTR_REGISTRATION {
         .method("scamp5_scan_events", select_overload<void(DREG, uint8_t *, uint16_t, uint8_t, uint8_t)>(&SCAMP5M::scamp5_scan_events))(default_arguments((uint16_t)1000, (uint8_t)0, (uint8_t)0))
         .method("scamp5_scan_events", select_overload<void(DREG, uint8_t *, uint16_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t)>(&SCAMP5M::scamp5_scan_events))
         .method("print_stats", &SCAMP5M::print_stats)(default_arguments(std::string()))
+        .method("read_viola_classifier", &SCAMP5M::read_viola_classifier)
         .method("viola_jones", &SCAMP5M::viola_jones)
         .method("jpeg_compression", &SCAMP5M::jpeg_compression);
 }

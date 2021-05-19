@@ -1,13 +1,2 @@
-get_image(A, D)
-scamp5_kernel_begin();
-movx(D, A, north);
-sub2x(A, A, south, south, D);
-movx(D, A, north);
-movx(C, D, north);
-add(A, A, D, C);
-movx(D, A, east);
-addx(A, A, D, west);
-neg(C, A);
-add2x(D, D, A, east, east);
-sub(C, C, D);
-sub2x(A, A, west, west, C);
+read_viola_classifier(/home/jm1417/Simulator/scamp5_multiplexed/class.txt)
+

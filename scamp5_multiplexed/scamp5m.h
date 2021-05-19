@@ -46,6 +46,13 @@ enum DREG {
     R0 = 272
 };
 
+typedef struct
+{
+    int width;
+    int height;
+}
+Size;
+
 /*Multiplexed architecture*/
 
 class SCAMP5M : public Architecture {
@@ -330,8 +337,12 @@ class SCAMP5M : public Architecture {
 
     void display();
 
+    int index(int row, int col);
     void init_viola();
     std::shared_ptr<VjClassifier> read_viola_classifier(const std::string& classifier_path);
+    std::vector<cv::Rect> vj_detect(AREG src, Size minSize, Size maxSize, float scaleFactor, int minNeighbors);
+    void vj_downsample(AREG dst, AREG src, Size dst_size, Size src_size);
+    void vj_integral_image(AREG src, AREG sum, AREG sqrsum);
     void viola_jones(AREG areg);
 
     void jpeg_compression(AREG dst, AREG src);
