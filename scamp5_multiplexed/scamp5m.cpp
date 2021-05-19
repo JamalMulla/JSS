@@ -30,7 +30,7 @@ void SCAMP5M::init() {
     // array for that row and col
 
     this->SET(FLAG);
-    init_viola();
+    //    init_viola();
 }
 
 void SCAMP5M::nop() { this->update_cycles(1); }
@@ -2253,7 +2253,7 @@ void SCAMP5M::display() {
 }
 
 void SCAMP5M::init_viola() {
-    cv::samples::addSamplesDataSearchPath("/home/jm1417/Simulator/data");
+    cv::samples::addSamplesDataSearchPath("/home/jm1417/Simulator/scamp5_multiplexed");
     std::string face_cascade_name = cv::samples::findFile("haarcascade_frontalface_default.xml");
     if (!classifier_.load(face_cascade_name)) {
         std::cout << "--(!)Error loading face cascade\n";
@@ -2293,32 +2293,104 @@ void SCAMP5M::viola_jones(AREG areg) {
     cv::waitKey(1);
 }
 
-void SCAMP5M::jpeg_compresssion(AREG a) {
-    std::vector<std::vector<int>> T {{71, 71, 71, 71, 71, 71, 71, 71},
-                                     {98, 83, 56, 20, -20, -56, -83, -98},
-                                     {92, 38, -38, -92, -92, -38, 38, 92},
-                                     {83, -20, -98, -56, 56, 98, 20, -83},
-                                     {71, -71, -71, 71, 71, -71, -71, 71},
-                                     {56, -98, 20, 83, -83, -20, 98, -56},
-                                     {38, -92, 92, -38, -38, 92, -92, 38},
-                                     {20, -56, 83, -98, 98, -83, 56, -20}};
+int e(int row, int col) {
+    return row * 8 + col;
+}
+
+void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
+    // scaled by 200 DCT coefficients
+    std::vector<std::vector<int>> DCT {
+        {11, 11, 11, 11, 11, 11, 11, 11},
+        {16, 13, 9, 3, -3, -9, -13, -16},
+        {15, 6, -6, -15, -15, -6, 6, 15},
+        {13, -3, -16, -9, 9, 16, 3, -13},
+        {11, -11, -11, 11, 11, -11, -11, 11},
+        {9, -16, 3, 13, -13, -3, 16, -9},
+        {6, -15, 15, -6, -6, 15, -15, 6},
+        {3, -9, 13, -16, 16, -13, 9, -3},
+    };
+
+    std::vector<std::vector<int>> DCT_transpose {{11, 16, 15, 13, 11, 9, 6, 3},
+                                                 {11, 13, 6, -3, -11, -16, -15, -9},
+                                                 {11, 9, -6, -16, -11, 3, 15, 13},
+                                                 {11, 3, -15, -9, 11, 13, -6, -16},
+                                                 {11, -3, -15, 9, 11, -13, -6, 16},
+                                                 {11, -9, -6, 16, -11, -3, 15, -13},
+                                                 {11, -13, 6, 3, -11, 16, -15, 9},
+                                                 {11, -16, 15, -13, 11, -9, 6, -3}};
+
+    // Quality 50 quantisation table
+    std::vector<std::vector<int>> Q50 {{16, 11, 10, 16, 24, 40, 51, 61},
+                                       {12, 12, 14, 19, 26, 58, 60, 55},
+                                       {14, 13, 16, 24, 40, 57, 69, 56},
+                                       {14, 17, 22, 29, 51, 87, 80, 62},
+                                       {18, 22, 37, 56, 68, 109, 103, 77},
+                                       {24, 35, 55, 64, 81, 104, 113, 92},
+                                       {49, 64, 78, 87, 103, 121, 120, 101},
+                                       {72, 92, 95, 98, 112, 100, 103, 99}};
 
 
+    int sf = 32 * 32;
+
+    // left multiply with DCT
     int patch = 0;
     for (int row = 0; row < rows_; row += row_stride_) {
         for (int col = 0; col < cols_; col += col_stride_) {
-            int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int i = this->dram->read_byte(patch, elem, areg);
-                    val.at<int8_t>(r, c) = i + 128;
-                    elem++;
+                    int sum = 0;
+
+                    for (int k = 0; k < 8; ++k) {
+                        int coefficient = DCT[r - row][k];
+                        int val = this->dram->read_byte(patch, e(k, c - col), src);
+                        int mult = this->alu->execute(coefficient, val, ALU::MUL);
+                        sum = this->alu->execute(sum, mult, ALU::ADD);
+                    }
+                    this->dram->write_int(patch, e(r - row, c - col), dst, sum);
+
                 }
             }
             patch++;
         }
     }
 
+    patch = 0;
+    for (int row = 0; row < rows_; row += row_stride_) {
+        for (int col = 0; col < cols_; col += col_stride_) {
+            for (int r = row; r < row + row_stride_; r++) {
+                for (int c = col; c < col + col_stride_; c++) {
+                    int sum = 0;
+
+                    for (int k = 0; k < 8; ++k) {
+                        int coefficient = DCT_transpose[k][c - col];
+                        int val = this->dram->read_int(patch, e(r - row, k), dst);
+                        int mult = this->alu->execute(coefficient, val, ALU::MUL);
+                        sum = this->alu->execute(sum, mult, ALU::ADD);
+                    }
+                    this->dram->write_int(patch, e(r - row, c - col), NEWS, sum);
+                }
+            }
+            patch++;
+        }
+    }
+
+    // quantisation
+    patch = 0;
+    for (int row = 0; row < rows_; row += row_stride_) {
+        for (int col = 0; col < cols_; col += col_stride_) {
+            int elem = 0;
+            for (int r = row; r < row + row_stride_; r++) {
+                for (int c = col; c < col + col_stride_; c++) {
+                    int val = this->dram->read_int(patch, elem, NEWS);
+                    val = this->alu->execute(val, sf, ALU::DIV);
+                    val = this->alu->execute(val, Q50[r - row][c - col], ALU::DIV);
+                    this->dram->write_int(patch, elem, dst, val);
+                    elem++;
+                }
+            }
+            patch++;
+        }
+    }
 
 }
 
@@ -2524,5 +2596,6 @@ RTTR_REGISTRATION {
         .method("scamp5_scan_events", select_overload<void(DREG, uint8_t *, uint16_t, uint8_t, uint8_t)>(&SCAMP5M::scamp5_scan_events))(default_arguments((uint16_t)1000, (uint8_t)0, (uint8_t)0))
         .method("scamp5_scan_events", select_overload<void(DREG, uint8_t *, uint16_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t)>(&SCAMP5M::scamp5_scan_events))
         .method("print_stats", &SCAMP5M::print_stats)(default_arguments(std::string()))
-        .method("viola_jones", &SCAMP5M::viola_jones);
+        .method("viola_jones", &SCAMP5M::viola_jones)
+        .method("jpeg_compression", &SCAMP5M::jpeg_compression);
 }

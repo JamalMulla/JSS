@@ -34,6 +34,48 @@ void Dram::set_array_cols(int array_cols) {
     this->array_cols_ = array_cols;
 }
 
+int Dram::read_int(int array, int row, int start_col) {
+    int32_t value = 0;
+    for (int i = 0; i < 32; i++) {
+        bool b = read_bit(array, row, start_col + i);
+        value |= b << i;
+    }
+
+    return value;
+}
+
+void Dram::write_int(int array, int row, int start_col, int value) {
+    if (value < -2147483648 ) {
+        value = -2147483648;
+    } else if (value > 2147483647) {
+        value = 2147483647;
+    }
+    for (int i = 0; i < 32; i++) {
+        write_bit(array, row, start_col + i, value & (1 << i));
+    }
+}
+
+int Dram::read_short(int array, int row, int start_col) {
+    int16_t value = 0;
+    for (int i = 0; i < 16; i++) {
+        bool b = read_bit(array, row, start_col + i);
+        value |= b << i;
+    }
+
+    return value;
+}
+
+void Dram::write_short(int array, int row, int start_col, int value) {
+    if (value < -32768 ) {
+        value = -32768;
+    } else if (value > 32767) {
+        value = 32767;
+    }
+    for (int i = 0; i < 16; i++) {
+        write_bit(array, row, start_col + i, value & (1 << i));
+    }
+}
+
 int Dram::read_byte(int array, int row, int start_col) {
     int8_t value = 0;
     for (int i = 0; i < 8; i++) {

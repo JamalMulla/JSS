@@ -17,33 +17,33 @@
 
 enum AREG {
     PIX = 0,
-    IN = 8,
-    NEWS = 16,
-    A = 24,
-    B = 32,
-    C = 40,
-    D = 48,
-    E = 56,
-    F = 64
+    IN = 32,
+    NEWS = 64,
+    A = 96,
+    B = 128,
+    C = 160,
+    D = 192,
+    E = 224,
+    F = 256
 };
 
 enum DREG {
-    FLAG = 72,
-    SELECT = 73,
-    RECT = 74,
-    R1 = 75,
-    R2 = 76,
-    R3 = 77,
-    R4 = 78,
-    R5 = 79,
-    R6 = 80,
-    R7 = 81,
-    R8 = 82,
-    R9 = 83,
-    R10 = 84,
-    R11 = 85,
-    R12 = 86,
-    R0 = 87
+    FLAG = 257,
+    SELECT = 258,
+    RECT = 259,
+    R1 = 260,
+    R2 = 261,
+    R3 = 262,
+    R4 = 263,
+    R5 = 264,
+    R6 = 265,
+    R7 = 266,
+    R8 = 267,
+    R9 = 268,
+    R10 = 269,
+    R11 = 270,
+    R12 = 271,
+    R0 = 272
 };
 
 /*Multiplexed architecture*/
@@ -334,7 +334,7 @@ class SCAMP5M : public Architecture {
     std::shared_ptr<VjClassifier> read_viola_classifier(const std::string& classifier_path);
     void viola_jones(AREG areg);
 
-    void jpeg_compresssion(AREG a);
+    void jpeg_compression(AREG dst, AREG src);
 
     // Simulator specific methods
     void print_stats(json& config, const std::string& output_path = "");

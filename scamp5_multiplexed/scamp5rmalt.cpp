@@ -1291,36 +1291,36 @@ void SCAMP5RMALT::set_components(std::unordered_map<std::string, std::shared_ptr
 RTTR_REGISTRATION {
     using namespace rttr;
 
-    registration::enumeration<AREG>("AREG") (
-        value("PIX", AREG::PIX),
-        value("IN", AREG::IN),
-        value("NEWS", AREG::NEWS),
-        value("A", AREG::A),
-        value("B", AREG::B),
-        value("C", AREG::C),
-        value("D", AREG::D),
-        value("E", AREG::E),
-        value("F", AREG::F)
-    );
-
-    registration::enumeration<DREG>("DREG") (
-        value("FLAG", DREG::FLAG),
-        value("SELECT", DREG::SELECT),
-        value("RECT", DREG::RECT),
-        value("R1", DREG::R1),
-        value("R2", DREG::R2),
-        value("R3", DREG::R3),
-        value("R4", DREG::R4),
-        value("R5", DREG::R5),
-        value("R6", DREG::R6),
-        value("R7", DREG::R7),
-        value("R8", DREG::R8),
-        value("R9", DREG::R9),
-        value("R10", DREG::R10),
-        value("R11", DREG::R11),
-        value("R12", DREG::R12),
-        value("R0", DREG::R0)
-    );
+//    registration::enumeration<AREG>("AREG") (
+//        value("PIX", AREG::PIX),
+//        value("IN", AREG::IN),
+//        value("NEWS", AREG::NEWS),
+//        value("A", AREG::A),
+//        value("B", AREG::B),
+//        value("C", AREG::C),
+//        value("D", AREG::D),
+//        value("E", AREG::E),
+//        value("F", AREG::F)
+//    );
+//
+//    registration::enumeration<DREG>("DREG") (
+//        value("FLAG", DREG::FLAG),
+//        value("SELECT", DREG::SELECT),
+//        value("RECT", DREG::RECT),
+//        value("R1", DREG::R1),
+//        value("R2", DREG::R2),
+//        value("R3", DREG::R3),
+//        value("R4", DREG::R4),
+//        value("R5", DREG::R5),
+//        value("R6", DREG::R6),
+//        value("R7", DREG::R7),
+//        value("R8", DREG::R8),
+//        value("R9", DREG::R9),
+//        value("R10", DREG::R10),
+//        value("R11", DREG::R11),
+//        value("R12", DREG::R12),
+//        value("R0", DREG::R0)
+//    );
 
     registration::class_<SCAMP5RMALT>("SCAMP5RMALT")
         .constructor()
