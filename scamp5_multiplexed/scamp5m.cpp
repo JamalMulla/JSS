@@ -2374,6 +2374,9 @@ inline int int_round(float value) {
 }
 
 std::vector<cv::Rect> SCAMP5M::vj_detect(AREG src, Size minSize, Size maxSize, float scaleFactor, int minNeighbors) {
+    // D for img1
+    // E for sum
+    // F for sqsum
     std::vector<cv::Rect> allCandidates;
 
     if (maxSize.height == 0 || maxSize.width == 0) {
@@ -2388,67 +2391,67 @@ std::vector<cv::Rect> SCAMP5M::vj_detect(AREG src, Size minSize, Size maxSize, f
     int iter_counter = 0;
 
     /* iterate over the image pyramid */
-    for (factor = 1;; factor *= scaleFactor) {
-        /* iteration counter */
-        iter_counter++;
-
-        /* size of the image scaled up */
-        Size winSize = {int_round(win_size_init.width * factor), int_round(win_size_init.height * factor)};
-
-        /* size of the image scaled down (from bigger to smaller) */
-        Size sz = {static_cast<int>((cols_ / factor)), static_cast<int>((rows_ / factor))};
-
-        /* difference between sizes of the scaled image and the original detection window */
-        Size sz1 = {sz.width - win_size_init.width, sz.height - win_size_init.height};
-
-        /* if the actual scaled image is smaller than the original detection window, break */
-        if (sz1.width < 0 || sz1.height < 0)
-            break;
-
-        /* if a minSize different from the original detection window is specified, continue to the next scaling */
-        if (winSize.width < minSize.width || winSize.height < minSize.height)
-            continue;
-
-        /***************************************
-         * Compute-intensive step:
-         * building image pyramid by downsampling
-         * downsampling using nearest neighbor
-         **************************************/
-         // todo check args
-        vj_downsample(D, src, sz, {rows_, cols_});
-
-        /***************************************************
-         * Compute-intensive step:
-         * At each scale of the image pyramid,
-         * compute a new integral and squared integral image
-         ***************************************************/
-        integralImages(img1, sum1, sqsum1);
-
-        /* sets images for haar classifier cascade */
-        /**************************************************
-         * Note:
-         * Summing pixels within a haar window is done by
-         * using four corners of the integral image:
-         * http://en.wikipedia.org/wiki/Summed_area_table
-         *
-         * This function loads the four corners,
-         * but does not do compuation based on four coners.
-         * The computation is done next in ScaleImage_Invoker
-         *************************************************/
-        setImageForCascadeClassifier(cascade, sum1, sqsum1);
-
-        /* print out for each scale of the image pyramid */
-        printf("detecting faces, iter := %d\n", iter_counter);
-
-        /****************************************************
-         * Process the current scale with the cascaded fitler.
-         * The main computations are invoked by this function.
-         * Optimization oppurtunity:
-         * the same cascade filter is invoked each time
-         ***************************************************/
-        ScaleImage_Invoker(cascade, factor, sum1->height, sum1->width,
-                           allCandidates);
-    } /* end of the factor loop, finish all scales in pyramid*/
+//    for (factor = 1;; factor *= scaleFactor) {
+//        /* iteration counter */
+//        iter_counter++;
+//
+//        /* size of the image scaled up */
+//        Size winSize = {int_round(win_size_init.width * factor), int_round(win_size_init.height * factor)};
+//
+//        /* size of the image scaled down (from bigger to smaller) */
+//        Size sz = {static_cast<int>((cols_ / factor)), static_cast<int>((rows_ / factor))};
+//
+//        /* difference between sizes of the scaled image and the original detection window */
+//        Size sz1 = {sz.width - win_size_init.width, sz.height - win_size_init.height};
+//
+//        /* if the actual scaled image is smaller than the original detection window, break */
+//        if (sz1.width < 0 || sz1.height < 0)
+//            break;
+//
+//        /* if a minSize different from the original detection window is specified, continue to the next scaling */
+//        if (winSize.width < minSize.width || winSize.height < minSize.height)
+//            continue;
+//
+//        /***************************************
+//         * Compute-intensive step:
+//         * building image pyramid by downsampling
+//         * downsampling using nearest neighbor
+//         **************************************/
+//         // todo check args
+//        vj_downsample(D, src, sz, {rows_, cols_});
+//
+//        /***************************************************
+//         * Compute-intensive step:
+//         * At each scale of the image pyramid,
+//         * compute a new integral and squared integral image
+//         ***************************************************/
+//        vj_integral_image(D, E, F);
+//
+//        /* sets images for haar classifier cascade */
+//        /**************************************************
+//         * Note:
+//         * Summing pixels within a haar window is done by
+//         * using four corners of the integral image:
+//         * http://en.wikipedia.org/wiki/Summed_area_table
+//         *
+//         * This function loads the four corners,
+//         * but does not do compuation based on four coners.
+//         * The computation is done next in ScaleImage_Invoker
+//         *************************************************/
+//        setImageForCascadeClassifier(cascade, sum1, sqsum1);
+//
+//        /* print out for each scale of the image pyramid */
+//        printf("detecting faces, iter := %d\n", iter_counter);
+//
+//        /****************************************************
+//         * Process the current scale with the cascaded fitler.
+//         * The main computations are invoked by this function.
+//         * Optimization oppurtunity:
+//         * the same cascade filter is invoked each time
+//         ***************************************************/
+//        ScaleImage_Invoker(cascade, factor, sum1->height, sum1->width,
+//                           allCandidates);
+//    } /* end of the factor loop, finish all scales in pyramid*/
 
 }
 
@@ -2464,15 +2467,145 @@ void SCAMP5M::vj_downsample(AREG dst, AREG src, Size dst_size, Size src_size) {
             int x = row / sh;
             int y = col / sw;
             // todo look at e() use
-            int val = this->dram->read_int(patch, index(row, col), src);
-            this->dram->write_int(patch, index(row, col), dst, val);
+            int val = this->dram->read_int(patch, index(row, col, 8), src);
+            this->dram->write_int(patch, index(row, col, 8), dst, val);
             patch++;
         }
     }
 }
 
-void SCAMP5M::vj_integral_image(AREG src, AREG sum, AREG sqrsum) {
+void SCAMP5M::vj_integral_image(AREG src, AREG sum_image, AREG sqrsum_image) {
+    // uses NEWS as a temp
 
+    int patch = 0;
+    for (int row = 0; row < rows_; row += row_stride_) {
+        for (int col = 0; col < cols_; col += col_stride_) {
+            for (int r = row; r < row + row_stride_; r++) {
+                for (int c = col; c < col + col_stride_; c++) {
+                    int i = this->dram->read_byte(patch, index(r-row, c-col, cols_), src) + 128;
+                    std::cout << i << ",";
+                }
+            }
+            patch++;
+        }
+        std::cout << "\n";
+    }
+
+    //sum up each row in parallel
+    patch = 0;
+    for (int row = 0; row < rows_; row += row_stride_) {
+        for (int col = 0; col < cols_; col += col_stride_) {
+            for (int r = row; r < row + row_stride_; r++) {
+                int sum = 0;
+                for (int c = col; c < col + col_stride_; c++) {
+                    int i = this->dram->read_byte(patch, index(r-row, c-col, cols_), src);
+                    i = this->alu->execute(i, 128, ALU::ADD); // add 128 to get to [0, 255] range
+                    sum = this->alu->execute(sum, i, ALU::ADD);
+                    this->dram->write_int(patch, index(r-row, c-col, cols_), NEWS, sum);
+                }
+            }
+            patch++;
+        }
+    }
+
+    std::cout << "Row sums-------------" << std::endl;
+    patch = 0;
+    for (int row = 0; row < rows_; row += row_stride_) {
+        for (int col = 0; col < cols_; col += col_stride_) {
+            for (int r = row; r < row + row_stride_; r++) {
+                for (int c = col; c < col + col_stride_; c++) {
+                    int i = this->dram->read_int(patch, index(r-row, c-col, cols_), NEWS);
+                    std::cout << i << ",";
+                }
+            }
+            patch++;
+        }
+        std::cout << "\n";
+    }
+
+    vj_transpose(sum_image, NEWS);
+
+    std::cout << "Transpose -------------" << std::endl;
+    patch = 0;
+    for (int row = 0; row < rows_; row += row_stride_) {
+        for (int col = 0; col < cols_; col += col_stride_) {
+            for (int r = row; r < row + row_stride_; r++) {
+                for (int c = col; c < col + col_stride_; c++) {
+                    int i = this->dram->read_int(patch, index(r-row, c-col, cols_), sum_image);
+                    std::cout << i << ",";
+                }
+            }
+            patch++;
+        }
+        std::cout << "\n";
+    }
+
+    //sum up each row in parallel (now comtains cols)
+    patch = 0;
+    for (int row = 0; row < rows_; row += row_stride_) {
+        for (int col = 0; col < cols_; col += col_stride_) {
+            int sum = 0;
+            for (int r = row; r < row + row_stride_; r++) {
+                for (int c = col; c < col + col_stride_; c++) {
+                    int i = this->dram->read_int(patch, index(r-row, c-col, cols_), sum_image);
+                    sum = this->alu->execute(sum, i, ALU::ADD);
+                    this->dram->write_int(patch, index(r-row, c-col, cols_), NEWS, sum);
+                }
+            }
+            patch++;
+        }
+    }
+
+    std::cout << "Sum cols -------------" << std::endl;
+    patch = 0;
+    for (int row = 0; row < rows_; row += row_stride_) {
+        for (int col = 0; col < cols_; col += col_stride_) {
+            for (int r = row; r < row + row_stride_; r++) {
+                for (int c = col; c < col + col_stride_; c++) {
+                    int i = this->dram->read_int(patch, index(r-row, c-col, cols_), NEWS);
+                    std::cout << i << ",";
+                }
+            }
+            patch++;
+        }
+        std::cout << "\n";
+    }
+
+
+    vj_transpose(sum_image, NEWS);
+
+    std::cout << "Final sums -------------" << std::endl;
+    patch = 0;
+    for (int row = 0; row < rows_; row += row_stride_) {
+        for (int col = 0; col < cols_; col += col_stride_) {
+            for (int r = row; r < row + row_stride_; r++) {
+                for (int c = col; c < col + col_stride_; c++) {
+                    int i = this->dram->read_int(patch, index(r-row, c-col, cols_), sum_image);
+                    std::cout << i << ",";
+                }
+            }
+            patch++;
+        }
+        std::cout << "\n";
+    }
+
+}
+
+void SCAMP5M::vj_transpose(AREG dst, AREG src) {
+    int patch = 0;
+    for (int row = 0; row < rows_; row += row_stride_) {
+        for (int col = 0; col < cols_; col += col_stride_) {
+            for (int r = row; r < row + row_stride_; r++) {
+                int patch2 = 0;
+                for (int c = col; c < col + col_stride_; c++) {
+                    int i = this->dram->read_int(c, r, src);
+                    this->dram->write_int(patch, c, dst, i);
+                    patch2++;
+                }
+            }
+            patch++;
+        }
+    }
 }
 
 void SCAMP5M::viola_jones(AREG areg) {
@@ -2504,8 +2637,8 @@ void SCAMP5M::viola_jones(AREG areg) {
     cv::waitKey(1);
 }
 
-int SCAMP5M::index(int row, int col) {
-    return row * 8 + col;
+int SCAMP5M::index(int row, int col, int num_cols) {
+    return row * num_cols + col;
 }
 
 void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
@@ -2553,11 +2686,11 @@ void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
 
                     for (int k = 0; k < 8; ++k) {
                         int coefficient = DCT[r - row][k];
-                        int val = this->dram->read_byte(patch, index(k, c - col), src);
+                        int val = this->dram->read_byte(patch, index(k, c - col, 8), src);
                         int mult = this->alu->execute(coefficient, val, ALU::MUL);
                         sum = this->alu->execute(sum, mult, ALU::ADD);
                     }
-                    this->dram->write_int(patch, index(r - row, c - col), dst, sum);
+                    this->dram->write_int(patch, index(r - row, c - col, 8), dst, sum);
 
                 }
             }
@@ -2574,11 +2707,11 @@ void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
 
                     for (int k = 0; k < 8; ++k) {
                         int coefficient = DCT_transpose[k][c - col];
-                        int val = this->dram->read_int(patch, index(r - row, k), dst);
+                        int val = this->dram->read_int(patch, index(r - row, k, 8), dst);
                         int mult = this->alu->execute(coefficient, val, ALU::MUL);
                         sum = this->alu->execute(sum, mult, ALU::ADD);
                     }
-                    this->dram->write_int(patch, index(r - row, c - col), NEWS, sum);
+                    this->dram->write_int(patch, index(r - row, c - col, 8), NEWS, sum);
                 }
             }
             patch++;
@@ -2809,5 +2942,7 @@ RTTR_REGISTRATION {
         .method("print_stats", &SCAMP5M::print_stats)(default_arguments(std::string()))
         .method("read_viola_classifier", &SCAMP5M::read_viola_classifier)
         .method("viola_jones", &SCAMP5M::viola_jones)
+        .method("vj_transpose", &SCAMP5M::vj_transpose)
+        .method("vj_integral_image", &SCAMP5M::vj_integral_image)
         .method("jpeg_compression", &SCAMP5M::jpeg_compression);
 }

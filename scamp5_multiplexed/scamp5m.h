@@ -337,12 +337,13 @@ class SCAMP5M : public Architecture {
 
     void display();
 
-    int index(int row, int col);
+    int index(int row, int col, int num_cols);
     void init_viola();
     std::shared_ptr<VjClassifier> read_viola_classifier(const std::string& classifier_path);
     std::vector<cv::Rect> vj_detect(AREG src, Size minSize, Size maxSize, float scaleFactor, int minNeighbors);
     void vj_downsample(AREG dst, AREG src, Size dst_size, Size src_size);
     void vj_integral_image(AREG src, AREG sum, AREG sqrsum);
+    void vj_transpose(AREG dst, AREG src);
     void viola_jones(AREG areg);
 
     void jpeg_compression(AREG dst, AREG src);

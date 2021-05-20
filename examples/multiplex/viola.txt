@@ -1,2 +1,3 @@
-read_viola_classifier(/home/jm1417/Simulator/scamp5_multiplexed/class.txt)
+get_image(A, D)
+vj_integral_image(A, B, C)
 

@@ -15,9 +15,11 @@ def scale(img):
             emptyImage[i,j]=img[x,y]
     return emptyImage
 
-img = np.array(Image.open('/home/jm1417/Downloads/jpeg2000-home.jpg'))
-scaled = scale(img)
 
-Image.fromarray(img).save("original_viola.png")
-Image.fromarray(scaled).save("downscaled.png")
+def scale_test():
+    img = np.array(Image.open('/home/jm1417/Downloads/jpeg2000-home.jpg'))
+    scaled = scale(img)
+
+    Image.fromarray(img).save("original_viola.png")
+    Image.fromarray(scaled).save("downscaled.png")
 
