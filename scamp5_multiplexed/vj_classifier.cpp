@@ -6,6 +6,9 @@
 
 #include <utility>
 
+void VjClassifier::set_stages_array(std::shared_ptr<std::vector<int>> stages_array) {
+    this->stages_array_ = std::move(stages_array);
+}
 
 void VjClassifier::set_rectangles_array(std::shared_ptr<std::vector<int> > rectangles_array) {
     this->rectangles_array_ = std::move(rectangles_array);
