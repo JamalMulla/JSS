@@ -1,15 +1,15 @@
 {
     "architecture": "SCAMP5M",
-    "frames": 1,
+    "frames": 200,
     "with_stats": true,
     "ui_enabled": true,
     "output_filename": "146",
     "ui_registers_to_display": [],
     "SCAMP5M": {
-        "rows": 8,
-        "cols": 8,
+        "rows": 128,
+        "cols": 128,
         "row_stride": 1,
-        "col_stride": 8,
+        "col_stride": 128,
         "origin": "TOP_RIGHT",
         "config": {
             "clock_rate": 10000000

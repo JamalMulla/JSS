@@ -5,6 +5,8 @@
 #ifndef SIMULATOR_SCAMP5M_H
 #define SIMULATOR_SCAMP5M_H
 
+#include "image.h"
+
 #include <simulator/adc/adc.h>
 #include <simulator/alu/alu.h>
 
@@ -46,13 +48,6 @@ enum DREG {
     R0 = 272
 };
 
-typedef struct
-{
-    int width;
-    int height;
-}
-Size;
-
 /*Multiplexed architecture*/
 
 class SCAMP5M : public Architecture {
@@ -66,8 +61,6 @@ class SCAMP5M : public Architecture {
     int num_pes = 0; // number of PEs in total
     int num_pixels = 0; // number of pixels in
 
-    cv::CascadeClassifier classifier_;
-
    public:
 
     std::shared_ptr<ProcessingElement> pe;
@@ -75,6 +68,8 @@ class SCAMP5M : public Architecture {
     std::shared_ptr<Dram> dram;
     std::shared_ptr<ADC> adc;
     DREG scratch = R0;
+
+    std::shared_ptr<VjClassifier> classifier;
 
     SCAMP5M() = default;
     void init();
@@ -340,10 +335,17 @@ class SCAMP5M : public Architecture {
     int index(int row, int col, int num_cols);
     void init_viola();
     std::shared_ptr<VjClassifier> read_viola_classifier(const std::string& classifier_path);
-    std::vector<cv::Rect> vj_detect(AREG src, Size minSize, Size maxSize, float scaleFactor, int minNeighbors);
-    void vj_downsample(AREG dst, AREG src, Size dst_size, Size src_size);
-    void vj_integral_image(AREG src, AREG sum, AREG sqrsum);
-    void vj_transpose(AREG dst, AREG src);
+    std::vector<cv::Rect> vj_detect(const std::shared_ptr<Image>& src, std::shared_ptr<VjClassifier> classifier, Size minSize, Size maxSize, float scaleFactor, int minNeighbors);
+    void vj_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> src);
+    void vj_scale_invoke(std::shared_ptr<VjClassifier> classifier, std::shared_ptr<std::vector<int>> sum_val, std::shared_ptr<std::vector<int>>  sqsum_val, float _factor, int sum_row, int sum_col, std::vector<cv::Rect> &_vec);
+    void vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Image> sum_image, std::shared_ptr<Image> sqrsum_image);
+    void vj_transpose(std::shared_ptr<Image> dst, std::shared_ptr<Image> src);
+    void vj_set_image_for_cascade(std::shared_ptr<VjClassifier> classifier, std::shared_ptr<Image> sum, std::shared_ptr<Image> sqsum);
+    int run_vj_classifier(std::shared_ptr<VjClassifier> classifier, std::shared_ptr<std::vector<int>>  sum_val, std::shared_ptr<std::vector<int>>  sqsum_val, Point pt, int start_stage);
+    inline int evalWeakClassifier(std::shared_ptr<VjClassifier> classifier, std::shared_ptr<std::vector<int>> sum_val, int variance_norm_factor, int p_offset, int tree_index, int w_index, int r_index);
+    std::shared_ptr<std::vector<int>> vj_readout(AREG src);
+
+
     void viola_jones(AREG areg);
 
     void jpeg_compression(AREG dst, AREG src);
