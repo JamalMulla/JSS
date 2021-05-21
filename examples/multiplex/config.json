@@ -1,15 +1,15 @@
 {
     "architecture": "SCAMP5M",
-    "frames": 5,
+    "frames": 200,
     "with_stats": true,
     "ui_enabled": true,
     "output_filename": "146",
     "ui_registers_to_display": [],
     "SCAMP5M": {
-        "rows": 256,
-        "cols": 256,
+        "rows": 128,
+        "cols": 128,
         "row_stride": 1,
-        "col_stride": 256,
+        "col_stride": 128,
         "origin": "TOP_RIGHT",
         "config": {
             "clock_rate": 10000000
@@ -40,7 +40,7 @@
                 "_component": "Dram",
                 "_name": "dram",
                 "array_rows": 256,
-                "array_cols": 88
+                "array_cols": 288
             },
             {
                 "_inherit": [

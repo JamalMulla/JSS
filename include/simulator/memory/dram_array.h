@@ -31,6 +31,10 @@ class Dram : public Component {
     void set_array_rows(int array_rows);
     void set_array_cols(int array_cols);
 
+    int read_int(int array, int row, int start_col);
+    void write_int(int array, int row, int start_col, int value);
+    int read_short(int array, int row, int start_col);
+    void write_short(int array, int row, int start_col, int value);
     int read_byte(int array, int row, int start_col);
     void write_byte(int array, int row, int start_col, int value);
     bool read_bit(int array, int row, int col);
