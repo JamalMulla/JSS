@@ -326,6 +326,10 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     std::string arch_name = c["architecture"];
     json arch_props = c[arch_name];
     rttr::variant arch = create_instance(arch_name, arch_props);
+    if (arch_props.empty()) {
+        std::cerr << "No architecture definition found for \"" << arch_name << "\"" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     // UI
     bool ui_enabled = false;

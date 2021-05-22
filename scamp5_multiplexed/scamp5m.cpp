@@ -2386,6 +2386,7 @@ std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image>& src, std:
     // D for sum
     // E for sqsum
 
+
     std::shared_ptr<Image> img1 = std::make_shared<Image>(src->width, src->height, C, 1);
     std::shared_ptr<Image> sum1 = std::make_shared<Image>(src->width, src->height, D, 1);
     std::shared_ptr<Image> sqsum = std::make_shared<Image>(src->width, src->height, E, 1);
