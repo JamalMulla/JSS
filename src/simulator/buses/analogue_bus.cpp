@@ -11,13 +11,25 @@
 void AnalogueBus::hard_sigmoid(AnalogueRegister &a, AnalogueRegister &a0,
                       DigitalRegister &FLAG) {
     // a = hard_sigmoid(a0) + error
+    //
+    //  The hard sigmoid activation, defined as:
+    // if x < -2.5: return 0
+    // if x > 2.5: return 1
+    // if -2.5 <= x <= 2.5: return 0.2 * x + 0.5
+
     cv::Mat &src = a0.read();
     cv::Mat &dst = a.read();
     cv::Mat &mask = FLAG.read();
-    std::cout << "cv mat src size" << src.size() << std::endl;
 
-    /* cv::bitwise_not(src, dst, mask); */
-    /* cv::add(dst, 1, dst, mask); //todo counts */
+    std::cout << "cv mat dst " << dst << std::endl;
+    cv::threshold(src, scratch, 2.5, 1, cv::THRESH_TRUNC);
+    // maxval is unused in THRESH_TOZERO
+    cv::threshold(scratch, scratch, -2.5, 0, cv::THRESH_TOZERO);
+
+    cv::multiply(0.2, scratch, scratch);
+    cv::add(scratch, 0.5, scratch);
+
+    scratch.copyTo(dst, mask);
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {

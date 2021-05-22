@@ -13,7 +13,7 @@ void SCAMP5T::init() {
 void SCAMP5T::hard_sigmoid(
         const std::shared_ptr<AnalogueRegister>& dst,
         const std::shared_ptr<AnalogueRegister>& src) {
-    hard_sigmoid(dst, src);
+    pe->analogue_bus.hard_sigmoid(*dst, *src, *FLAG);
 }
 
 RTTR_REGISTRATION {
