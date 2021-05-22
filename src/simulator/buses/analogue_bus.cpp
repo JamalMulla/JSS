@@ -8,6 +8,18 @@
 #include <opencv4/opencv2/imgproc.hpp>
 #include <opencv4/opencv2/opencv.hpp>
 
+void AnalogueBus::hard_sigmoid(AnalogueRegister &a, AnalogueRegister &a0,
+                      DigitalRegister &FLAG) {
+    // a = hard_sigmoid(a0) + error
+    cv::Mat &src = a0.read();
+    cv::Mat &dst = a.read();
+    cv::Mat &mask = FLAG.read();
+    std::cout << "cv mat src size" << src.size() << std::endl;
+
+    /* cv::bitwise_not(src, dst, mask); */
+    /* cv::add(dst, 1, dst, mask); //todo counts */
+}
+
 void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {
     // a = 0 + error
     a.write(0, FLAG);

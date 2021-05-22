@@ -15,6 +15,9 @@ class AnalogueBus {
     cv::Mat scratch;
 
    public:
+    // Hard sigmoid
+    void hard_sigmoid(AnalogueRegister& a, AnalogueRegister& a0, DigitalRegister& FLAG);
+
     // Analogue Register Transfer
     void bus(AnalogueRegister& a, DigitalRegister& FLAG);
     void bus(AnalogueRegister& a, AnalogueRegister& a0, DigitalRegister& FLAG);
