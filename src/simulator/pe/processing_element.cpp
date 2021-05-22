@@ -99,8 +99,8 @@ rttr::variant ProcessingElement::pixel_converter(json& j) {
     pix->set_col_stride(col_stride_);
     pix->set_config(config_);
     pix->set_camera_index(camera_index);
-    pix->set_src(source);
     pix->set_path(path);
+    pix->set_src(source);
     pix->init();
 
     return rttr::variant(pix);
