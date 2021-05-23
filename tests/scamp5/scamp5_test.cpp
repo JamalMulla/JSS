@@ -109,7 +109,6 @@ TEST_CASE("SCAMP5 Analogue Instructions") {
         REQUIRE(utility::mats_are_equal(out->read(), expected));
     }
 
-
 }
 
 TEST_CASE("SCAMP5 Digital Instructions") {

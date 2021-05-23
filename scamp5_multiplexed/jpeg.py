@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 
-image = np.array(Image.open('/home/jm1417/Downloads/jpeg2000-home.jpg').convert('L'))
+image = np.array(Image.open('/home/jm1417/Downloads/saturn.jpg').convert('L'))
 
 #image = np.array([[79, 79, 59, 82, 54, 33, 6, 92],
                   #[-17, 78, 60, -42, -80, -90, -106, 74],

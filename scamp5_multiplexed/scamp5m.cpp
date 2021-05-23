@@ -2263,7 +2263,7 @@ void SCAMP5M::init_viola() {
 }
 
 std::shared_ptr<VjClassifier> SCAMP5M::read_viola_classifier(const std::string &classifier_path) {
-    int stages = 6; // number of stages
+    int stages = 7; // number of stages
     /*total number of weak classifiers (one node each)*/
     int total_nodes = 2913;
     int i, j, k, l;
@@ -2711,16 +2711,49 @@ std::shared_ptr<std::vector<int>> SCAMP5M::vj_readout(AREG src) {
 void SCAMP5M::vj_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> src) {
     // nearest neighbour downsampling
 
-    int sh = (dst->height / src->height) + 1;
-    int sw = (dst->width / src->width) + 1;
+//    int width = src->width;
+//    int height = src->height;
+//
+//    for (int row = 0; row < dst->height; row ++) {
+//        for (int col = 0; col < dst->width; col ++) {
+//
+//            int srcX = round(((float)col / (float)(dst->width)) * (float)width);
+//            int srcY = round(((float)row / (float)dst->height) * (float)height);
+//            srcX = std::min( srcX, width-1);
+//            srcY = std::min( srcY, height-1);
+//
+//            int val = this->dram->read_int(srcY, srcX, src->reg);
+//            this->dram->write_int(row, col, dst->reg, val);
+//        }
+//    }
 
-    for (int row = 0; row < dst->height; row ++) {
-        for (int col = 0; col < dst->width; col ++) {
-            int x = row / sh;
-            int y = col / sw;
+    int y;
+    int j;
+    int x;
+    int i;
+    unsigned char *t;
+    unsigned char *p;
+    int w1 = src->width;
+    int h1 = src->height;
+    int w2 = dst->width;
+    int h2 = dst->height;
 
-            int val = this->dram->read_int(x, y, src->reg);
-            this->dram->write_int(row, col, dst->reg, val);
+    int rat = 0;
+
+    int x_ratio = (int) ((w1 << 16) / w2) + 1;
+    int y_ratio = (int) ((h1 << 16) / h2) + 1;
+
+    for (i = 0; i < h2; i++) {
+//        t = dst_data + i * w2; // dst
+        y = ((i * y_ratio) >> 16);
+//        p = src_data + y * w1; // src
+        rat = 0;
+        for (j = 0; j < w2; j++) {
+            x = (rat >> 16);
+            int val = this->dram->read_int(y, x, src->reg);
+            this->dram->write_int(i, j, dst->reg, val);
+//            *t++ = p[x];
+            rat += x_ratio;
         }
     }
 }
