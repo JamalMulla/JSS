@@ -35,6 +35,7 @@ class SCAMP5E : public SCAMP5 {
     SCAMP5E() = default;
     void init();
     rttr::variant bitorder_converter(json &j);
+    void print_stats(json &config, const std::string &output_path);
 
     // Superpixel methods
     void set_bitorder(Bitorder bitorder);

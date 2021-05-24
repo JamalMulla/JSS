@@ -9,13 +9,6 @@
 void utility::remap_register(Register &reg, cv::Mat &dst) {
     reg.read().convertTo(dst, CV_8U, 255.0 / (reg.max_val - reg.min_val),
                           -reg.min_val * 255.0 / (reg.max_val - reg.min_val));
-//    double minVal, maxVal;
-//    cv::minMaxLoc(reg.value(), &minVal, &maxVal);
-//    if(maxVal == minVal) {
-//        minVal = 0;
-//    }
-//    reg.value().convertTo(dst, CV_8U, 255.0 / (maxVal - minVal),
-//                  -minVal * 255.0 / (maxVal - minVal));
 }
 
 void utility::remap_mat(cv::Mat &src, cv::Mat &dst) {

@@ -2263,7 +2263,7 @@ void SCAMP5M::init_viola() {
 }
 
 std::shared_ptr<VjClassifier> SCAMP5M::read_viola_classifier(const std::string &classifier_path) {
-    int stages = 7; // number of stages
+    int stages = 20; // number of stages
     /*total number of weak classifiers (one node each)*/
     int total_nodes = 2913;
     int i, j, k, l;
@@ -2439,6 +2439,9 @@ std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image>& src, std:
          * downsampling using nearest neighbor
          **************************************/
         vj_downsample(img1, src);
+//        cv::Mat img1v = this->readout(C);
+//        cv::imshow("Scaled", img1v);
+//        cv::waitKey(1);
 
         /***************************************************
          * Compute-intensive step:
@@ -2446,6 +2449,12 @@ std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image>& src, std:
          * compute a new integral and squared integral image
          ***************************************************/
         vj_integral_image(img1, sum1, sqsum);
+        cv::Mat sum1v = this->readout(D);
+        cv::imshow("Sum", sum1v);
+        double minVal, maxVal;
+        cv::minMaxLoc(sum1v, &minVal, &maxVal);
+//        std::cout << minVal << " " << maxVal << std::endl;
+        cv::waitKey(1);
 
         /* sets images for haar classifier cascade */
         /**************************************************
@@ -2711,28 +2720,8 @@ std::shared_ptr<std::vector<int>> SCAMP5M::vj_readout(AREG src) {
 void SCAMP5M::vj_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> src) {
     // nearest neighbour downsampling
 
-//    int width = src->width;
-//    int height = src->height;
-//
-//    for (int row = 0; row < dst->height; row ++) {
-//        for (int col = 0; col < dst->width; col ++) {
-//
-//            int srcX = round(((float)col / (float)(dst->width)) * (float)width);
-//            int srcY = round(((float)row / (float)dst->height) * (float)height);
-//            srcX = std::min( srcX, width-1);
-//            srcY = std::min( srcY, height-1);
-//
-//            int val = this->dram->read_int(srcY, srcX, src->reg);
-//            this->dram->write_int(row, col, dst->reg, val);
-//        }
-//    }
-
     int y;
-    int j;
     int x;
-    int i;
-    unsigned char *t;
-    unsigned char *p;
     int w1 = src->width;
     int h1 = src->height;
     int w2 = dst->width;
@@ -2743,16 +2732,13 @@ void SCAMP5M::vj_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> s
     int x_ratio = (int) ((w1 << 16) / w2) + 1;
     int y_ratio = (int) ((h1 << 16) / h2) + 1;
 
-    for (i = 0; i < h2; i++) {
-//        t = dst_data + i * w2; // dst
+    for (int i = 0; i < h2; i++) {
         y = ((i * y_ratio) >> 16);
-//        p = src_data + y * w1; // src
         rat = 0;
-        for (j = 0; j < w2; j++) {
+        for (int j = 0; j < w2; j++) {
             x = (rat >> 16);
             int val = this->dram->read_int(y, x, src->reg);
             this->dram->write_int(i, j, dst->reg, val);
-//            *t++ = p[x];
             rat += x_ratio;
         }
     }
@@ -2764,10 +2750,9 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
     int height = src->height;
     int width = src->width;
 
-    std::shared_ptr<Image> sum_temp = std::make_shared<Image>(src->width, src->height, NEWS, 1);
-    std::shared_ptr<Image> sqsum_temp = std::make_shared<Image>(src->width, src->height, F, 1);
+    std::shared_ptr<Image> sum_temp = std::make_shared<Image>(width, height, NEWS, 1);
+    std::shared_ptr<Image> sqsum_temp = std::make_shared<Image>(width, height, F, 1);
 
-    int patch = 0;
 //    for (int row = 0; row < rows_; row += row_stride_) {
 //        for (int col = 0; col < cols_; col += col_stride_) {
 //            for (int r = row; r < row + row_stride_; r++) {
@@ -2782,22 +2767,16 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 //    }
 
     //sum up each row in parallel
-    patch = 0;
-    for (int row = 0; row < height; row += row_stride_) {
-        for (int col = 0; col < width; col += col_stride_) {
-            for (int r = row; r < row + row_stride_; r++) {
-                int sum = 0;
-                int sq = 0;
-                for (int c = col; c < col + col_stride_; c++) {
-                    int i = this->dram->read_byte(patch, index(r-row, c-col, cols_), src->reg);
-                    i = this->alu->execute(i, 128, ALU::ADD); // add 128 to get to [0, 255] range
-                    sum = this->alu->execute(sum, i, ALU::ADD);
-                    sq = this->alu->execute(i, i, ALU::MUL);
-                    this->dram->write_int(patch, index(r-row, c-col, cols_), NEWS, sum);
-                    this->dram->write_int(patch, index(r-row, c-col, cols_), F, sq);
-                }
-            }
-            patch++;
+    for (int row = 0; row < height; row ++) {
+        int sum = 0;
+        int sqsum = 0;
+        for (int col = 0; col < width; col ++) {
+            int i = this->dram->read_int(row, col, src->reg);
+            sum = this->alu->execute(sum, i, ALU::ADD);
+            int sq = this->alu->execute(i, i, ALU::MUL);
+            sqsum = this->alu->execute(sq, sqsum, ALU::ADD);
+            this->dram->write_int(row, col, sum_temp->reg, sum);
+            this->dram->write_int(row, col, sqsum_temp->reg, sq);
         }
     }
 
@@ -2835,21 +2814,18 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 //    }
 
     //sum up each row in parallel (now comtains cols)
-    patch = 0;
-    for (int row = 0; row < height; row += row_stride_) {
-        for (int col = 0; col < width; col += col_stride_) {
-            int sum = 0;
-            int sq = 0;
-            for (int r = row; r < row + row_stride_; r++) {
-                for (int c = col; c < col + col_stride_; c++) {
-                    int i = this->dram->read_int(patch, index(r-row, c-col, cols_), sum_image->reg);
-                    sum = this->alu->execute(sum, i, ALU::ADD);
-                    sq = this->alu->execute(i, i, ALU::MUL);
-                    this->dram->write_int(patch, index(r-row, c-col, cols_), NEWS, sum);
-                    this->dram->write_int(patch, index(r-row, c-col, cols_), F, sq);
-                }
-            }
-            patch++;
+
+    for (int row = 0; row < height; row ++) {
+        int sum = 0;
+        int sqsum = 0;
+        for (int col = 0; col < width; col ++) {
+            int i = this->dram->read_int(row, col, sum_image->reg);
+            sum = this->alu->execute(sum, i, ALU::ADD);
+            this->dram->write_int(row, col, sum_temp->reg, sum);
+
+            int j = this->dram->read_int(row, col, sqrsum_image->reg);
+            sqsum = this->alu->execute(sqsum, j, ALU::ADD);
+            this->dram->write_int(row, col, sqsum_temp->reg, sqsum);
         }
     }
 
@@ -2890,31 +2866,37 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 }
 
 void SCAMP5M::vj_transpose(std::shared_ptr<Image> dst, std::shared_ptr<Image> src) {
-    int patch = 0;
-    for (int row = 0; row < src->height; row += row_stride_) {
-        for (int col = 0; col < src->width; col += col_stride_) {
-            for (int r = row; r < row + row_stride_; r++) {
-                int patch2 = 0;
-                for (int c = col; c < col + col_stride_; c++) {
-                    int i = this->dram->read_int(c, r, src->reg);
-                    this->dram->write_int(patch, c, dst->reg, i);
-                    patch2++;
-                }
-            }
-            patch++;
+    for (int row = 0; row < src->height; row ++) {
+        for (int col = 0; col < src->width; col ++) {
+            int i = this->dram->read_int(col, row, src->reg);
+            this->dram->write_int(row, col, dst->reg, i);
         }
     }
 }
 
-void SCAMP5M::viola_jones(AREG areg) {
+//todo write proper tests until this vj stuff works
+cv::Mat SCAMP5M::readout(AREG areg) {
     cv::Mat val = cv::Mat::zeros(cv::Size(rows_, cols_), CV_8U);
     for (int row = 0; row < rows_; row ++) {
         for (int col = 0; col < cols_; col++) {
-            int i = this->dram->read_byte(row, col, areg);
-            this->dram->write_byte(row, col, areg, i+128);
-            val.at<uint8_t>(row, col) = i+128;
+            int i = this->dram->read_int(row, col, areg);
+//            val.at<uint8_t>(row, col) = i + 128;
         }
     }
+    return val;
+}
+
+void SCAMP5M::viola_jones(AREG areg) {
+//    cv::Mat val = cv::Mat::zeros(cv::Size(rows_, cols_), CV_8U);
+//    for (int row = 0; row < rows_; row ++) {
+//        for (int col = 0; col < cols_; col++) {
+//            int i = this->dram->read_byte(row, col, areg);
+//            this->dram->write_byte(row, col, areg, i+128);
+//            val.at<uint8_t>(row, col) = i+128;
+//        }
+//    }
+
+    cv::Mat val = this->readout(A);
 
     Size minSize = {20, 20};
     Size maxSize = {0, 0};
@@ -2935,7 +2917,10 @@ void SCAMP5M::viola_jones(AREG areg) {
 //        ellipse(val, center, cv::Size(face.width / 2, face.height / 2), 0, 0, 360, cv::Scalar(255, 0, 255), 4);
     }
 
-    cv::imshow("Capture - Face detection", val);
+    double minVal, maxVal;
+//    cv::minMaxLoc(val, &minVal, &maxVal);
+//    std::cout << minVal << " " << maxVal << std::endl;
+    cv::imshow("later", val);
     cv::waitKey(1);
 }
 
@@ -3072,6 +3057,84 @@ void SCAMP5M::print_stats(json &config, const std::string &output_path) {
     std::cerr << "Simulator has not been compiled with statistic tracking support. Recompile with -DTRACK_STATISTICS=ON" << std::endl;
 #endif
 }
+//
+//void SCAMP5M::hog(AREG src) {
+//    // Clobbers A, B
+//
+//    this->dram.reset();  //todo time and energy
+//
+//    scamp5_load_in(F, 127);
+//    add(src, src, F);
+//
+//    // calculate gradients gx, gy using sobel
+//    neg(B, src);
+//    subx(C, src, west, B);
+//    subx(E, src, east, B);
+//    subx(B, B, south, src);
+//    movx(A, B, north);
+//    addx(C, C, E, south);
+//    addx(B, B, A, west);
+//    sub2x(A, B, east, east, B);
+//    sub2x(B, C, north, north, C);
+//    // A = gy
+//    // B = gx
+//
+//    cv::Mat A_float;
+//    cv::Mat B_float;
+//    A->read().convertTo(A_float, CV_32F, 1 / 255.0);
+//    B->read().convertTo(B_float, CV_32F, 1 / 255.0);
+//
+//    // calculate gradient magnitude and direction (in degrees)
+//    cv::Mat m;  //magnitudes
+//    cv::Mat a;  //angles
+//    cv::cartToPolar(A_float, B_float, m, a, true);
+//    this->update_cycles(350);  // todo better number here for arctan
+//    // todo also need to add power here that would come from carrying out this computation
+//
+//    // calculate Histogram of Gradients in 8×8 cells
+//    int blocksize = 8;
+//    int bucket_size = 20;
+//    int num_buckets = 9;
+//
+//    int block = 0;
+//    for (int row = 0; row < rows_; row += blocksize) {
+//        for (int col = 0; col < cols_; col += blocksize) {
+//            for (int r = row; r < row + blocksize; r++) {
+//                for (int c = col; c < col + blocksize; c++) {
+//                    float magnitude = m.at<float>(r, c);
+//                    int angle = (int)a.at<float>(r, c) % 180;  // unsigned only
+//                    int m_col = 0;
+//
+//                    int b1 = floor((double)angle / bucket_size);
+//                    int b2 = (b1 + 1) % num_buckets;
+//
+//                    double v2 = ceil(((double)(angle - (b1 * bucket_size)) / bucket_size) * magnitude);
+//                    double v1 = ceil(magnitude - v2);
+//
+//                    int value = this->dram_->read_byte(block, b1, m_col);
+//                    this->dram_->write_byte(block, b1, m_col, value + v1);
+//
+//                    int value2 = this->dram_->read_byte(block, b2, m_col);
+//                    this->dram_->write_byte(block, b2, m_col, value2 + v2);
+//                }
+//            }
+//            block++;
+//        }
+//    }
+//
+//    // output histograms for each block
+//    for (int b = 0; b < block; b++) {
+//        std::cout << "B:" << b;
+//        for (int i = 0; i < 10; i++) {  //todo parameterise properly
+//            int i1 = this->dram_->read_byte(b, i, 0);
+//            std::cout << ", Bin: " << i * 20 << ", Count: " << i1 << " |";
+//        }
+//        std::cout << std::endl;
+//    }
+//
+//    // 16×16 Block Normalization
+//    // Calculate the HOG feature vector
+//}
 
 rttr::variant SCAMP5M::config_converter(json &j) {
     return Parser::get_instance().create_instance("Config", j);

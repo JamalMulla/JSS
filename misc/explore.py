@@ -36,17 +36,19 @@ def execute(config):
     out, err = process.communicate()
 
 def mutate(config):
-    row_strides = [2, 8, 16, 256]
-    col_strides = [2, 8, 16, 256]
-    rows        = [128, 256]
-    cols        = [128, 256]
-    clock_rates = [10000000, 50000000, 100000000]
+    row_strides = [8, 16, 64, 256]
+    col_strides = [8, 16, 64, 256]
+    rows        = [64, 128, 256]
+    cols        = [64, 128, 256]
+    clock_rates = [10000000]
+    array_rows  = [256, 350, 500]
+    array_cols  = [8, 16, 32]
 
-    possibilities = list(itertools.product(row_strides,col_strides,rows, cols, clock_rates))
+    possibilities = list(itertools.product(row_strides,col_strides,rows, cols, clock_rates, array_rows, array_cols))
     print("Combinations:", len(possibilities))
 
     count = 0
-    for row_stride, col_stride, rows, cols, clock_rate in possibilities:
+    for row_stride, col_stride, rows, cols, clock_rate, array_row, array_col in possibilities:
         if (row_stride > rows or col_stride > cols):
             continue
         config['SCAMP5M']['rows'] = rows
@@ -54,6 +56,8 @@ def mutate(config):
         config['SCAMP5M']['row_stride'] = row_stride
         config['SCAMP5M']['col_stride'] = col_stride
         config['SCAMP5M']['config']['clock_rate'] = clock_rate
+        config['SCAMP5M']['components'][1]['array_rows'] = array_row
+        config['SCAMP5M']['components'][1]['array_cols'] = array_col
         config['output_filename'] = str(count)
         print("Executing with row_stride=", row_stride, "col_stride=", col_stride, "rows=", rows, "cols=", cols, "clock=", clock_rate)
         execute(config)

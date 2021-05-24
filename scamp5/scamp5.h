@@ -374,7 +374,7 @@ class SCAMP5 : public Architecture {
     void scamp5_scan_boundingbox(const std::shared_ptr<DREG>& dr, uint8_t* vec4v);
 
     // Simulator specific methods
-    void print_stats();
+    void print_stats(json &config, const std::string &output_path);
     RTTR_ENABLE(Architecture);
 };
 

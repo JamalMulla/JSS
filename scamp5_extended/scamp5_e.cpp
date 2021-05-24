@@ -4,6 +4,8 @@
 
 #include "scamp5_e.h"
 
+#include <filesystem>
+#include <fstream>
 #include <rttr/registration>
 
 void SCAMP5E::init() {
@@ -446,6 +448,7 @@ void SCAMP5E::superpixel_sub(const std::shared_ptr<DREG>& dst, int bank, const s
 //}
 
 void SCAMP5E::superpixel_movx(const std::shared_ptr<DREG>& dst, std::shared_ptr<DREG> src, news_t dir) {
+    // moves entire array
     for (int i = 0; i < superpixel_size_; ++i) {
         DNEWS(dst, src, dir, 0);
         src = dst;
@@ -598,6 +601,40 @@ rttr::variant SCAMP5E::bitorder_converter(json& j) {
     return rttr::variant();
 }
 
+//move to base class
+void SCAMP5E::print_stats(json &config, const std::string &output_path) {
+    // TODO move
+#ifdef TRACK_STATISTICS
+    this->update_static();  //move
+    int num_pes = rows_ * cols_ / (row_stride_ * col_stride_);
+    std::cout << "Number of PEs: " << num_pes << std::endl;
+    Architecture::print_stats(rows_, cols_);
+
+    json j;
+    j["Config"] = config;
+    j["Number of PEs"] = num_pes;
+    this->write_stats(rows_, cols_, j);
+    //    std::cout << std::setw(2) << j << std::endl;
+    std::ofstream file_out;
+    const auto p1 = std::chrono::system_clock::now();
+    std::string epoch = std::to_string(std::chrono::duration_cast<std::chrono::seconds>(p1.time_since_epoch()).count());
+
+    std::string out = std::filesystem::current_path().string() + "/" + epoch + ".json";
+
+    if (!output_path.empty()) {
+        out = std::filesystem::current_path().string() + "/" + output_path + ".json";
+    }
+
+    std::cout << "Saved to " << out << std::endl;
+    file_out.open(out);
+    file_out << std::setw(2) << j;
+    file_out.close();
+#endif
+#ifndef TRACK_STATISTICS
+    std::cerr << "Simulator has not been compiled with statistic tracking support. Recompile with -DTRACK_STATISTICS=ON" << std::endl;
+#endif
+}
+
 RTTR_REGISTRATION {
     using namespace rttr;
 
@@ -616,5 +653,6 @@ RTTR_REGISTRATION {
         .method("superpixel_sub", &SCAMP5E::superpixel_sub)
         .method("superpixel_movx", &SCAMP5E::superpixel_movx)
         .method("histogram", &SCAMP5E::histogram)
-        .method("hog", &SCAMP5E::hog);
+        .method("hog", &SCAMP5E::hog)
+        .method("print_stats", &SCAMP5E::print_stats)(default_arguments(std::string()));
 };

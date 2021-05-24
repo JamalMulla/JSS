@@ -21,7 +21,7 @@ void Dram::init() {
     this->calc_internal_mask();
 #endif
     // dims = (arrays x rows_in_array x cols_in_row)
-    int sizes[] = {((rows_ * cols_) / row_stride_) / col_stride_, row_stride_*col_stride_, array_cols_};
+    int sizes[] = {((rows_ * cols_) / (row_stride_ * col_stride_)), array_rows_, array_cols_};
     data = cv::Mat(3, sizes, CV_8U, cv::Scalar(0)); // only holds 1s and 0s
 }
 

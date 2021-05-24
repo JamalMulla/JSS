@@ -346,9 +346,12 @@ class SCAMP5M : public Architecture {
     std::shared_ptr<std::vector<int>> vj_readout(AREG src);
 
 
+    cv::Mat readout(AREG areg);
     void viola_jones(AREG areg);
 
     void jpeg_compression(AREG dst, AREG src);
+
+//    void hog(AREG);
 
     // Simulator specific methods
     void print_stats(json& config, const std::string& output_path = "");

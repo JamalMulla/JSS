@@ -1,15 +1,15 @@
 {
     "architecture": "SCAMP5M",
-    "frames": 200,
+    "frames": 25,
     "with_stats": true,
     "ui_enabled": true,
-    "output_filename": "146",
+    "output_filename": "899",
     "ui_registers_to_display": [],
     "SCAMP5M": {
-        "rows": 128,
-        "cols": 128,
-        "row_stride": 1,
-        "col_stride": 128,
+        "rows": 256,
+        "cols": 256,
+        "row_stride": 256,
+        "col_stride": 256,
         "origin": "TOP_RIGHT",
         "config": {
             "clock_rate": 10000000
@@ -39,8 +39,8 @@
                 ],
                 "_component": "Dram",
                 "_name": "dram",
-                "array_rows": 256,
-                "array_cols": 288
+                "array_rows": 500,
+                "array_cols": 32
             },
             {
                 "_inherit": [

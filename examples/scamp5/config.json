@@ -1,13 +1,13 @@
 {
 	"architecture": "SCAMP5",
-    "frames": 500,
+    "frames": 1,
     "frame_time": true,
 	"with_stats": true,
 	"ui_enabled": true,
     "ui_registers_to_display" : ["A", "B", "C", "D", "E", "R5", "R6", "R7", "R12"],
 	"SCAMP5": {
-		"rows": 512,
-		"cols": 512,
+		"rows": 256,
+		"cols": 256,
 		"row_stride" : 1,
 		"col_stride" : 1,
 		"origin" : "TOP_RIGHT",

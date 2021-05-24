@@ -1,0 +1,90 @@
+{
+  "Config": {
+    "architecture": "SCAMP5M",
+    "frames": 25,
+    "with_stats": true,
+    "ui_enabled": true,
+    "output_filename": "887",
+    "ui_registers_to_display": [],
+    "SCAMP5M": {
+      "rows": 256,
+      "cols": 256,
+      "row_stride": 256,
+      "col_stride": 64,
+      "origin": "TOP_RIGHT",
+      "config": {
+        "clock_rate": 10000000
+      },
+      "components": [
+        {
+          "_inherit": [
+            "config",
+            "rows",
+            "cols",
+            "row_stride",
+            "col_stride"
+          ],
+          "_component": "ProcessingElement",
+          "_name": "pe",
+          "pixel": {
+            "input_source": "LIVE"
+          }
+        },
+        {
+          "_inherit": [
+            "config",
+            "rows",
+            "cols",
+            "row_stride",
+            "col_stride"
+          ],
+          "_component": "Dram",
+          "_name": "dram",
+          "array_rows": 350,
+          "array_cols": 32
+        },
+        {
+          "_inherit": [
+            "config",
+            "rows",
+            "cols",
+            "row_stride",
+            "col_stride"
+          ],
+          "_component": "ALU",
+          "_name": "alu"
+        },
+        {
+          "_inherit": [
+            "config",
+            "rows",
+            "cols",
+            "row_stride",
+            "col_stride"
+          ],
+          "_component": "ADC",
+          "_name": "adc"
+        }
+      ]
+    }
+  },
+  "Number of PEs": 4,
+  "Clock rate": 10000000,
+  "Process node": 180,
+  "Voltage": 1.8,
+  "Temperature": 20,
+  "Cycle count": 83997209,
+  "Device execution time": 8.3997209,
+  "Architecture transistor count": 49484,
+  "Architecture static energy": 6.719944714417999e-05,
+  "Architecture static power": 8.000199999999998e-06,
+  "Architecture dynamic energy": 0.0068486742343680015,
+  "Architecture dynamic power": 0.0008153454520575798,
+  "Architecture total power": 0.0008233456520575799,
+  "Single PE width": 23.0,
+  "Single PE height": 52.0,
+  "Area of a single PE": 0.001196,
+  "Chip total width": 6476.8,
+  "Chip total height": 14643.2,
+  "Chip area": 103.65894655999999
+}
