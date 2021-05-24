@@ -47,21 +47,21 @@ void Register::write(Register &data, Register &mask) {
     this->write(data.read(), mask.read());
 }
 
-void Register::write(int data) {
+void Register::write(double data) {
     this->value_.setTo(data);
 #ifdef TRACK_STATISTICS
     this->inc_write();
 #endif
 }
 
-void Register::write(int data, cv::Mat &mask) {
+void Register::write(double data, cv::Mat &mask) {
     this->value_.setTo(data, mask);
 #ifdef TRACK_STATISTICS
     this->inc_write(mask);
 #endif
 }
 
-void Register::write(int data, Register &mask) {
+void Register::write(double data, Register &mask) {
     this->write(data, mask.read());
 }
 

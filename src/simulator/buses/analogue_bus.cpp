@@ -135,7 +135,7 @@ void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b,
 void AnalogueBus::conditional_positive_set(DigitalRegister &b,
                                            AnalogueRegister &a) {
     // b := 1 if a > 0
-    cv::threshold(a.read(), b.read(), 0, 1, cv::THRESH_BINARY);
+    cv::threshold(a.read(), b.read(), 0.5, 1, cv::THRESH_BINARY);
     b.read().convertTo(b.read(), CV_8U);
 }
 
@@ -144,7 +144,7 @@ void AnalogueBus::conditional_positive_set(DigitalRegister &b,
                                            AnalogueRegister &a1) {
     // b := 1 if (a0 + a1) > 0.
     cv::add(a0.read(), a1.read(), scratch);
-    cv::threshold(scratch, b.read(), 0, 1, cv::THRESH_BINARY);
+    cv::threshold(scratch, b.read(), 0.5, 1, cv::THRESH_BINARY);
     b.read().convertTo(b.read(), CV_8U);
 }
 
@@ -155,7 +155,7 @@ void AnalogueBus::conditional_positive_set(DigitalRegister &b,
     // b := 1 if (a0 + a1 + a2) > 0.
     cv::add(a0.read(), a1.read(), scratch);
     cv::add(scratch, a2.read(), scratch);
-    threshold(scratch, b.read(), 0, 1, cv::THRESH_BINARY);
+    threshold(scratch, b.read(), 0.5, 1, cv::THRESH_BINARY);
     b.read().convertTo(b.read(), CV_8U);
 }
 

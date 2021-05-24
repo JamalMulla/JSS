@@ -954,10 +954,17 @@ void SCAMP5::scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value, std::sh
     bus(areg, temp);
 }
 
-void SCAMP5::scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value) {
-    // load an analog value to the AREG with error&noise correction
-    scamp5_in(areg, value, NEWS);
+void SCAMP5::scamp5_in(const std::shared_ptr<AREG>& areg, float value) {
+    IN->write(value);
+    this->update_cycles(1);
+    bus(NEWS, IN);
+    bus(areg, NEWS);
 }
+
+//void SCAMP5::scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value) {
+//    // load an analog value to the AREG with error&noise correction
+//    scamp5_in(areg, value, NEWS);
+//}
 
 void SCAMP5::scamp5_load_in(const std::shared_ptr<AREG>& areg, int8_t value, std::shared_ptr<AREG>& temp) {
     // load a analog value to the AREG plane without error&noise correction
@@ -1729,7 +1736,8 @@ RTTR_REGISTRATION {
         .method("PROP0", &SCAMP5::PROP0)
         .method("PROP1", &SCAMP5::PROP1)
         .method("scamp5_get_image", &SCAMP5::scamp5_get_image)(default_arguments(1))
-        .method("scamp5_in", select_overload<void(const std::shared_ptr<AREG>&, int16_t)>(&SCAMP5::scamp5_in))
+//        .method("scamp5_in", select_overload<void(const std::shared_ptr<AREG>&, int16_t)>(&SCAMP5::scamp5_in))
+        .method("scamp5_in", select_overload<void(const std::shared_ptr<AREG>&, float)>(&SCAMP5::scamp5_in))
         .method("scamp5_in", select_overload<void(const std::shared_ptr<AREG>&, int16_t, std::shared_ptr<AREG>&)>(&SCAMP5::scamp5_in))
         .method("scamp5_load_in", select_overload<void(const std::shared_ptr<AREG>&, int8_t, std::shared_ptr<AREG>&)>(&SCAMP5::scamp5_load_in))
         .method("scamp5_load_in", select_overload<void(const std::shared_ptr<AREG>&, int8_t)>(&SCAMP5::scamp5_load_in))

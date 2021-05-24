@@ -14,7 +14,7 @@ void utility::remap_register(Register &reg, cv::Mat &dst) {
     cv::minMaxLoc(reg.read(), &min, &max);
     std::cout << "REG: " << reg.name_ << "MIN: " << min << "MAX: " << max << std::endl;
 
-    reg.read().convertTo(dst, CV_8U, 255, 0);
+    reg.read().convertTo(dst, CV_8U, 255, 128);
     /* dst.convertTo(dst, CV_8U, 255.0 / (reg.max_val - reg.min_val), */
 
 //    double minVal, maxVal;

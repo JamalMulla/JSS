@@ -5,7 +5,7 @@
   "with_stats": true,
   "ui_enabled": true,
   "ui_registers_to_display" :
-  ["PIX", "NEWS", "A", "B", "C", "D", "E", "F", "AREG19"],
+  ["PIX", "NEWS", "A", "B", "C", "D", "E", "F", "AREG19", "R5"],
   "SCAMP5": {
     "rows": 256,
     "cols": 256,

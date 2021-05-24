@@ -61,9 +61,9 @@ class Register : public Component {
     void write(cv::Mat& data, cv::Mat& mask);
     void write(Register& data);
     void write(Register& data, Register& mask);
-    void write(int data);
-    void write(int data, cv::Mat& mask);
-    void write(int data, Register& mask);
+    void write(double data);
+    void write(double data, cv::Mat& mask);
+    void write(double data, Register& mask);
 
 };
 

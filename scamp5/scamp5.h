@@ -278,7 +278,8 @@ class SCAMP5 : public Architecture {
     void scamp5_get_image(const std::shared_ptr<AREG>& yf, const std::shared_ptr<AREG>& yh, int gain = 1);
 
     // todo overload all the default ones and add to registration
-    void scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value);
+//    void scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value);
+    void scamp5_in(const std::shared_ptr<AREG>& areg, float value);
     void scamp5_in(const std::shared_ptr<AREG>& areg, int16_t value, std::shared_ptr<AREG>& temp);
 
     void scamp5_load_in(const std::shared_ptr<AREG>& areg, int8_t value, std::shared_ptr<AREG>& temp);
