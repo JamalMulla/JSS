@@ -16,8 +16,8 @@ AnalogueRegister::AnalogueRegister(int rows, int cols, const std::shared_ptr<Con
     this->type_ = MAT_TYPE;
     this->set_memory(memory);
     Register::init();
-    this->min_val = -128;
-    this->max_val = 127;
+    this->min_val = 0;
+    this->max_val = 1;
 }
 
 AnalogueRegister::AnalogueRegister(int rows, int cols, int row_stride, int col_stride) {
@@ -27,8 +27,8 @@ AnalogueRegister::AnalogueRegister(int rows, int cols, int row_stride, int col_s
     this->col_stride_ = col_stride;
     this->type_ = MAT_TYPE;
     Register::init();
-    this->min_val = -128;
-    this->max_val = 127;
+    this->min_val = 0;
+    this->max_val = 1;
 }
 
 AnalogueRegister::AnalogueRegister(const cv::Mat &data, int row_stride, int col_stride) {
@@ -38,8 +38,8 @@ AnalogueRegister::AnalogueRegister(const cv::Mat &data, int row_stride, int col_
     this->col_stride_ = col_stride;
     this->type_ = MAT_TYPE;
     Register::init();
-    this->min_val = -128;
-    this->max_val = 127;
+    this->min_val = 0;
+    this->max_val = 1;
     this->write(data);
 }
 

@@ -7,8 +7,17 @@
 #include <opencv4/opencv2/highgui.hpp>
 
 void utility::remap_register(Register &reg, cv::Mat &dst) {
-    reg.read().convertTo(dst, CV_8U, 255.0 / (reg.max_val - reg.min_val),
-                          -reg.min_val * 255.0 / (reg.max_val - reg.min_val));
+    /* reg.read().convertTo(dst, CV_8U, 255.0 / (reg.max_val - reg.min_val), */
+    /*                       -reg.min_val * 255.0 / (reg.max_val - reg.min_val)); */
+
+    double min, max;
+    cv::minMaxLoc(reg.read(), &min, &max);
+    std::cout << "REG: " << reg.name_ << "MIN: " << min << "MAX: " << max << std::endl;
+
+    reg.read().convertTo(dst, CV_32F, 255, 0);
+    /* dst.convertTo(dst, CV_8U, 255.0 / (reg.max_val - reg.min_val), */
+    dst.convertTo(dst, CV_8U, 1);
+
 //    double minVal, maxVal;
 //    cv::minMaxLoc(reg.value(), &minVal, &maxVal);
 //    if(maxVal == minVal) {

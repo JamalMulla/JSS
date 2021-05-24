@@ -45,13 +45,15 @@ cv::Mat ImageInput::read() {
 
     cv::resize(img, img, {cols_, rows_});
 
-    img.convertTo(this->frame, MAT_TYPE, 1, -128);
+    /* img.convertTo(this->frame, MAT_TYPE, 1, -128); */
+    img.convertTo(this->frame, MAT_TYPE, 1.f/255);
 
     auto TIME_END = std::chrono::high_resolution_clock::now();
     long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(
         TIME_END - TIME_START)
         .count();
     time_taken = time_in_nano * 1e-9;
+    std::cout << "FRAME: " << this->frame << std::endl;
     return this->frame;
 }
 

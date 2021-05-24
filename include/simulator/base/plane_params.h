@@ -9,7 +9,7 @@
 
 #include "../../../scamp5/news_t.h"
 
-#define MAT_TYPE CV_16S
+#define MAT_TYPE CV_32F
 
 enum Origin { BOTTOM_LEFT, BOTTOM_RIGHT, TOP_RIGHT, TOP_LEFT };
 

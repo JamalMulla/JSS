@@ -31,7 +31,7 @@ cv::Mat LiveInput::read() {
         std::cerr << "No video capture defined" << std::endl;
     }
 #endif
-    cv::Mat temp(rows_, cols_, CV_32S);
+    cv::Mat temp(rows_, cols_, CV_32F);
     auto TIME_START = std::chrono::high_resolution_clock::now();
     *this->capture >> temp;
 #ifdef USE_RUNTIME_CHECKS
@@ -46,13 +46,15 @@ cv::Mat LiveInput::read() {
     cv::Mat cropFrame =
         temp(cv::Rect((width - height) / 2, 0, height - 1, height - 1));
     cv::resize(cropFrame, cropFrame, *this->size);
-    cropFrame.convertTo(temp, MAT_TYPE, 1, -128);
+    /* cropFrame.convertTo(temp, MAT_TYPE, 1, -128); */
+    cropFrame.convertTo(temp, MAT_TYPE, 1.f/128);
     cv::add(this->frame, temp, this->frame);
     auto TIME_END = std::chrono::high_resolution_clock::now();
     long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(
         TIME_END - TIME_START)
         .count();
     time_taken = time_in_nano * 1e-9;
+    /* std::cout << "FRAME: " << this->frame << std::endl; */
     return this->frame;
 }
 
