@@ -7,7 +7,7 @@
 
 #include <simulator/registers/analogue_register.h>
 
-#include <opencv4/opencv2/videoio.hpp>
+#include <opencv2/videoio.hpp>
 
 enum Source { LIVE, VIDEO, IMAGE };
 

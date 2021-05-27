@@ -8,7 +8,7 @@
 #include "simulator/base/component.h"
 #include "simulator/base/config.h"
 #include "simulator/registers/digital_register.h"
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 
 class CarryLookAheadAdder : public Component {
     RTTR_ENABLE(Component);

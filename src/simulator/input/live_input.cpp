@@ -7,8 +7,8 @@
 #include <simulator/base/architecture.h>
 
 #include <chrono>
-#include <opencv4/opencv2/imgproc.hpp>
-#include <opencv4/opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 
 LiveInput::LiveInput(int rows, int cols, int camera_index) {
     this->rows_ = rows;

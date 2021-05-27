@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_MEMORY_H
 #define SIMULATOR_MEMORY_H
 
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 #include "simulator/base/component.h"
 #include "simulator/base/config.h"
 

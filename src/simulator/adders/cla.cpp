@@ -3,7 +3,7 @@
 //
 #include "simulator/adders/cla.h"
 #include <rttr/registration>
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 
 
 /*https://www.researchgate.net/publication/283818559_A_comparative_study_of_high_speed_CMOS_adders_using_Microwind_and_FPGA

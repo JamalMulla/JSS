@@ -5,8 +5,8 @@
 #ifndef SIMULATOR_PIXEL_H
 #define SIMULATOR_PIXEL_H
 
-#include <opencv4/opencv2/core/mat.hpp>
-#include <opencv4/opencv2/videoio.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/videoio.hpp>
 
 #include "config.h"
 #include "simulator/base/component.h"

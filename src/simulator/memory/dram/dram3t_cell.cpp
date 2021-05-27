@@ -4,7 +4,7 @@
 
 #include "simulator/memory/dram3t_cell.h"
 
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 
 #include "simulator/base/config.h"
 

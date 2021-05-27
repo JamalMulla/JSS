@@ -5,7 +5,7 @@
 #include "../../include/simulator/buses/analogue_bus.h"
 
 #include <catch2/catch.hpp>
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 
 #include "../../include/simulator/registers/analogue_register.h"
 #include "../../include/simulator/util/utility.h"

@@ -9,7 +9,7 @@
 
 #include "simulator/base/component.h"
 #include "simulator/base/config.h"
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 
 class Dram : public Component {
     RTTR_ENABLE(Component);

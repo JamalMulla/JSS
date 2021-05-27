@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_SCAMP5_H
 #define SIMULATOR_SCAMP5_H
 
-#include <opencv4/opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <rttr/type>
 
 #include "news_t.h"
