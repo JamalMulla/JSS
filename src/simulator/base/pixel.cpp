@@ -8,7 +8,7 @@
 #include <simulator/input/live_input.h>
 #include <simulator/input/video_input.h>
 
-#include <opencv4/opencv2/imgproc.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include <rttr/registration>
 #include <utility>

@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_DIGITAL_REGISTER_H
 #define SIMULATOR_DIGITAL_REGISTER_H
 
-#include <opencv4/opencv2/core/mat.hpp>
+#include <opencv2/core/mat.hpp>
 #include <rttr/type>
 #include "register.h"
 #include "simulator/memory/dram3t_cell.h"

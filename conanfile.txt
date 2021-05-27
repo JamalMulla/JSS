@@ -1,7 +1,8 @@
 [requires]
+zlib/1.2.11
 nlohmann_json/3.9.1
 uwebsockets/18.3.0
-catch2/2.13.4
+catch2/2.13.6
 rttr/0.9.6
 
 [generators]
@@ -9,5 +10,5 @@ cmake
 
 [options]
 rttr:with_rtti=True
-
+zlib:minizip=False
 

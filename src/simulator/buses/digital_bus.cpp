@@ -4,7 +4,7 @@
 
 #include "simulator/buses/digital_bus.h"
 
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 
 void DigitalBus::OR(DigitalRegister &d, DigitalRegister &d0,
                     DigitalRegister &d1) {

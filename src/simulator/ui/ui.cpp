@@ -9,7 +9,7 @@
 #include <filesystem>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <opencv4/opencv2/imgcodecs.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <string>
 #include <thread>
 #include <vector>

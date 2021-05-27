@@ -8,7 +8,7 @@
 #include <simulator/adc/adc.h>
 #include <simulator/alu/alu.h>
 
-#include <opencv4/opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <rttr/type>
 
 #include "simulator/base/architecture.h"

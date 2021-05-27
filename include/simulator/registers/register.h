@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_REGISTER_H
 #define SIMULATOR_REGISTER_H
 
-#include <opencv4/opencv2/core/mat.hpp>
+#include <opencv2/core/mat.hpp>
 
 #include "simulator/base/component.h"
 #include "simulator/metrics/cycle_counter.h"

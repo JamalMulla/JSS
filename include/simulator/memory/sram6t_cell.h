@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_SRAM6T_CELL_H
 #define SIMULATOR_SRAM6T_CELL_H
 
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 
 #include "simulator/base/config.h"
 #include "simulator/memory/memory.h"

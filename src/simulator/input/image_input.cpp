@@ -8,8 +8,8 @@
 #include <simulator/util/utility.h>
 
 #include <cmath>
-#include <opencv4/opencv2/imgcodecs.hpp>
-#include <opencv4/opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 ImageInput::ImageInput(int rows, int cols, const std::string &path)
     : path_(path) {
