@@ -80,3 +80,8 @@ fabric.properties
 /.vs/
 /.idea/
 /Testing/
+
+# Python
+/venv/
+__pycache__/
+

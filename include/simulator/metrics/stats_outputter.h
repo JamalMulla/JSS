@@ -12,6 +12,7 @@ using json = nlohmann::ordered_json;
 
 /*Interface for outputting of metrics*/
 class StatsOutputter {
+    RTTR_ENABLE();
 #ifdef TRACK_STATISTICS
 virtual void print_stats(const CycleCounter& counter) = 0;
 //    virtual void write_stats(const CycleCounter& counter, json& j) = 0;

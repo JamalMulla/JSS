@@ -14,6 +14,7 @@ class ImageInput : public InputSource {
    public:
     ImageInput(int rows, int cols, const std::string& path);
     void read(Register& reg) override;
+    cv::Mat read() override;
     void reset() override;
     double last_frame_time() override;
 };

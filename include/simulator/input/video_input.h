@@ -14,6 +14,7 @@ class VideoInput : public LiveInput {
    public:
     VideoInput(int rows, int cols, const std::string& path);
     void read(Register& reg) override;
+    cv::Mat read() override;
 };
 
 #endif  // SIMULATOR_VIDEO_INPUT_H

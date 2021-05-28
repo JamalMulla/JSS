@@ -9,7 +9,7 @@
 #include <filesystem>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <opencv4/opencv2/imgcodecs.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <string>
 #include <thread>
 #include <vector>
@@ -20,6 +20,11 @@
 #include "simulator/util/utility.h"
 
 using json = nlohmann::ordered_json;
+
+UI::UI() {
+    std::thread server_t(&UI::server_run, this);
+    server_t.detach();
+}
 
 std::string file_path(const char *path) {
     std::string path_s = path;
@@ -77,31 +82,14 @@ void UI::server_run() {
                 })
         .run();
 
-    this->has_started = false;
     std::cerr << "Could not start server" << std::endl;
 }
 
-void UI::start() {
-    if (!this->has_started) {
-        this->has_started = true;
-        std::thread server_t(&UI::server_run, this);
-        server_t.detach();
-    }
-}
-
 void UI::send_string(const std::string &data) const {
-    if (!this->has_started) {
-        std::cerr << "UI hasn't been started. Call start() first" << std::endl;
-        return;
-    }
     for (auto &ws: wss) { ws->send(data, uWS::OpCode::TEXT); }
 }
 
 void UI::display_reg(const std::shared_ptr<Register>& reg) {
-    if (!this->has_started) {
-        std::cerr << "UI hasn't been started. Call start() first" << std::endl;
-        return;
-    }
     if (wss.empty()) {
         return;
     }
@@ -120,7 +108,5 @@ RTTR_REGISTRATION {
     using namespace rttr;
 
     registration::class_<UI>("UI")
-        .constructor<>()
-        .method("display_reg", &UI::display_reg)
-        .method("start", &UI::start);
+        .method("display_reg", &UI::display_reg);
 };

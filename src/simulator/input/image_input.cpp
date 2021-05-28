@@ -8,8 +8,8 @@
 #include <simulator/util/utility.h>
 
 #include <cmath>
-#include <opencv4/opencv2/imgcodecs.hpp>
-#include <opencv4/opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 ImageInput::ImageInput(int rows, int cols, const std::string &path)
     : path_(path) {
@@ -31,6 +31,10 @@ ImageInput::ImageInput(int rows, int cols, const std::string &path)
 }
 
 void ImageInput::read(Register &reg) {
+    reg.write(this->read());
+}
+
+cv::Mat ImageInput::read() {
     auto TIME_START = std::chrono::high_resolution_clock::now();
     cv::Mat img = cv::imread(this->path_, cv::IMREAD_GRAYSCALE);
 
@@ -45,10 +49,10 @@ void ImageInput::read(Register &reg) {
 
     auto TIME_END = std::chrono::high_resolution_clock::now();
     long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            TIME_END - TIME_START)
-                            .count();
+        TIME_END - TIME_START)
+        .count();
     time_taken = time_in_nano * 1e-9;
-    reg.write(this->frame);
+    return this->frame;
 }
 
 void ImageInput::reset() { this->frame.setTo(0); }

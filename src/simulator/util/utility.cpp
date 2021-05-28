@@ -4,18 +4,11 @@
 
 #include "simulator/util/utility.h"
 
-#include <opencv4/opencv2/highgui.hpp>
+#include <opencv2/highgui.hpp>
 
 void utility::remap_register(Register &reg, cv::Mat &dst) {
     reg.read().convertTo(dst, CV_8U, 255.0 / (reg.max_val - reg.min_val),
                           -reg.min_val * 255.0 / (reg.max_val - reg.min_val));
-//    double minVal, maxVal;
-//    cv::minMaxLoc(reg.value(), &minVal, &maxVal);
-//    if(maxVal == minVal) {
-//        minVal = 0;
-//    }
-//    reg.value().convertTo(dst, CV_8U, 255.0 / (maxVal - minVal),
-//                  -minVal * 255.0 / (maxVal - minVal));
 }
 
 void utility::remap_mat(cv::Mat &src, cv::Mat &dst) {
@@ -56,6 +49,11 @@ std::string utility::opencv_type_to_str(int type) {
     r += (chans + '0');
 
     return r;
+}
+
+void utility::NOT_IMPLEMENTED() {
+    std::cerr << "This function has not been implemented" << std::endl;
+    exit(EXIT_FAILURE);
 }
 
 //    int e1 = cv::getTickCount();

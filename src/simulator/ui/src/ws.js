@@ -13,7 +13,11 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         ws.onmessage = (message) => {
             var msg = JSON.parse(message.data);
-            document.getElementById(msg.reg).src = "data:image/jpeg;base64," + msg.data;
+            var reg = document.getElementById(msg.reg);
+            if (reg !== null) {
+                reg.src = "data:image/jpeg;base64," + msg.data;
+            }
+
         };
         ws.onclose = () => {
             document.getElementById("indicator").style.backgroundColor = "red";
@@ -30,4 +34,34 @@ document.addEventListener("DOMContentLoaded", function () {
     start();
     setInterval(check, 100);
 
+
+    // const labels = [
+    //     'January',
+    //     'February',
+    //     'March',
+    //     'April',
+    //     'May',
+    //     'June',
+    // ];
+    // const data = {
+    //     labels: labels,
+    //     datasets: [{
+    //         label: 'My First dataset',
+    //         backgroundColor: 'rgb(255, 99, 132)',
+    //         borderColor: 'rgb(255, 99, 132)',
+    //         data: [0, 10, 5, 2, 20, 30, 45],
+    //     }]
+    // };
+    // const config = {
+    //     type: 'line',
+    //     data,
+    //     options: {}
+    // };
+    // var ctx = document.getElementById('myChart')
+    // var myChart = new Chart(
+    //     ctx,
+    //     config
+    // );
+
 });
+

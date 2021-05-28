@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_MEMORY_H
 #define SIMULATOR_MEMORY_H
 
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 #include "simulator/base/component.h"
 #include "simulator/base/config.h"
 
@@ -16,16 +16,10 @@ enum MemoryType {
 };
 
 class Memory : public Component {
-   protected:
-    int rows_;
-    int cols_;
-    int row_stride_ = 1;
-    int col_stride_ = 1;
-    cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
-
-    void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
    public:
-    Memory(int rows, int cols, int row_stride, int col_stride);
+    Memory() = default;
+    virtual void init() = 0;
+
 #ifdef TRACK_STATISTICS
     virtual void read(const cv::_InputOutputArray &mask) = 0;
     virtual void read() = 0;

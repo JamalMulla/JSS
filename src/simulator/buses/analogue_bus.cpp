@@ -4,9 +4,9 @@
 
 #include "simulator/buses/analogue_bus.h"
 
-#include <opencv4/opencv2/core.hpp>
-#include <opencv4/opencv2/imgproc.hpp>
-#include <opencv4/opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 
 void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {
     // a = 0 + error
@@ -16,37 +16,55 @@ void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       DigitalRegister &FLAG) {
     // a = -a0 + error
-    cv::bitwise_not(a0.read(), a.read(), FLAG.read());
-    cv::add(a.read(), 1, a.read(), FLAG.read()); //todo counts
+    cv::Mat &src = a0.read();
+    cv::Mat &dst = a.read();
+    cv::Mat &mask = FLAG.read();
+    cv::bitwise_not(src, dst, mask);
+    cv::add(dst, 1, dst, mask); //todo counts
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, DigitalRegister &FLAG) {
     // a = -(a0 + a1) + error
-    cv::add(a0.read(), a1.read(), scratch, FLAG.read());
-    cv::bitwise_not(scratch, a.read(), FLAG.read());
-    cv::add(a.read(), 1, a.read(), FLAG.read());
+    cv::Mat &src_1 = a0.read();
+    cv::Mat &src_2 = a1.read();
+    cv::Mat &dst = a.read();
+    cv::Mat &mask = FLAG.read();
+    cv::add(src_1, src_2, scratch, mask);
+    cv::bitwise_not(scratch, dst, mask);
+    cv::add(dst, 1, dst, mask);
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, AnalogueRegister &a2,
                       DigitalRegister &FLAG) {
     // a = -(a0 + a1 + a2) + error
-    cv::add(a0.read(), a1.read(), scratch, FLAG.read());
-    cv::add(scratch, a2.read(), scratch, FLAG.read());
-    cv::bitwise_not(scratch, a.read(), FLAG.read());
-    cv::add(a.read(), 1, a.read(), FLAG.read());
+    cv::Mat &src_1 = a0.read();
+    cv::Mat &src_2 = a1.read();
+    cv::Mat &src_3 = a2.read();
+    cv::Mat &dst = a.read();
+    cv::Mat &mask = FLAG.read();
+    cv::add(src_1, src_2, scratch, mask);
+    cv::add(scratch, src_3, scratch, mask);
+    cv::bitwise_not(scratch, dst, mask);
+    cv::add(dst, 1, dst, mask);
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, AnalogueRegister &a2,
                       AnalogueRegister &a3, DigitalRegister &FLAG) {
     // a = -(a0 + a1 + a2 + a3) + error
-    cv::add(a0.read(), a1.read(), scratch, FLAG.read());
-    cv::add(scratch, a2.read(), scratch, FLAG.read());
-    cv::add(scratch, a3.read(), scratch, FLAG.read());
-    cv::bitwise_not(scratch, a.read(), FLAG.read());
-    cv::add(a.read(), 1, a.read(), FLAG.read());
+    cv::Mat &src_1 = a0.read();
+    cv::Mat &src_2 = a1.read();
+    cv::Mat &src_3 = a2.read();
+    cv::Mat &src_4 = a3.read();
+    cv::Mat &dst = a.read();
+    cv::Mat &mask = FLAG.read();
+    cv::add(src_1, src_2, scratch, mask);
+    cv::add(scratch, src_3, scratch, mask);
+    cv::add(scratch, src_4, scratch, mask);
+    cv::bitwise_not(scratch, dst, mask);
+    cv::add(dst, 1, dst, mask);
 }
 
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,

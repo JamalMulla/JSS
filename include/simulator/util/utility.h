@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_UTILITY_H
 #define SIMULATOR_UTILITY_H
 
-#include <opencv4/opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <string>
 
 #include "simulator/registers/register.h"
@@ -24,6 +24,7 @@ void on_mouse_mat(int event, int x, int y, int, void* src);
 void remap_register(Register& reg, cv::Mat& dst);
 void remap_mat(cv::Mat& src, cv::Mat& dst);
 int normalise(int value, int old_low, int old_high, int new_low, int new_high);
+void NOT_IMPLEMENTED();
 
 // Type
 std::string opencv_type_to_str(int type);

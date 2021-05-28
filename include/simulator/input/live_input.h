@@ -5,7 +5,7 @@
 #ifndef SIMULATOR_LIVE_INPUT_H
 #define SIMULATOR_LIVE_INPUT_H
 
-#include <opencv4/opencv2/videoio.hpp>
+#include <opencv2/videoio.hpp>
 
 #include "input_source.h"
 
@@ -15,10 +15,11 @@ class LiveInput : public InputSource {
     std::unique_ptr<cv::Size> size;
 
    public:
-    LiveInput(int rows, int cols);
-    LiveInput();
+    LiveInput(int rows, int cols, int camera_index = 0);
+    LiveInput() = default;
 
     void read(Register& reg) override;
+    cv::Mat read() override;
     void reset() override;
     double last_frame_time() override;
 };
