@@ -16,55 +16,48 @@ void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       DigitalRegister &FLAG) {
     // a = -a0 + error
-    cv::Mat &src = a0.read();
-    cv::Mat &dst = a.read();
-    cv::Mat &mask = FLAG.read();
-    cv::bitwise_not(src, dst, mask);
-    cv::add(dst, 1, dst, mask); //todo counts
+    cv::subtract(0, a0.read(), a.read(), FLAG.read());
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, DigitalRegister &FLAG) {
     // a = -(a0 + a1) + error
-    cv::Mat &src_1 = a0.read();
-    cv::Mat &src_2 = a1.read();
-    cv::Mat &dst = a.read();
-    cv::Mat &mask = FLAG.read();
+    cv::UMat& src_1 = a0.read();
+    cv::UMat& src_2 = a1.read();
+    cv::UMat& dst = a.read();
+    cv::UMat& mask = FLAG.read();
     cv::add(src_1, src_2, scratch, mask);
-    cv::bitwise_not(scratch, dst, mask);
-    cv::add(dst, 1, dst, mask);
+    cv::subtract(0, scratch, dst, mask);
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, AnalogueRegister &a2,
                       DigitalRegister &FLAG) {
     // a = -(a0 + a1 + a2) + error
-    cv::Mat &src_1 = a0.read();
-    cv::Mat &src_2 = a1.read();
-    cv::Mat &src_3 = a2.read();
-    cv::Mat &dst = a.read();
-    cv::Mat &mask = FLAG.read();
+    cv::UMat& src_1 = a0.read();
+    cv::UMat& src_2 = a1.read();
+    cv::UMat& src_3 = a2.read();
+    cv::UMat& dst = a.read();
+    cv::UMat& mask = FLAG.read();
     cv::add(src_1, src_2, scratch, mask);
     cv::add(scratch, src_3, scratch, mask);
-    cv::bitwise_not(scratch, dst, mask);
-    cv::add(dst, 1, dst, mask);
+    cv::subtract(0, scratch, dst, mask);
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, AnalogueRegister &a2,
                       AnalogueRegister &a3, DigitalRegister &FLAG) {
     // a = -(a0 + a1 + a2 + a3) + error
-    cv::Mat &src_1 = a0.read();
-    cv::Mat &src_2 = a1.read();
-    cv::Mat &src_3 = a2.read();
-    cv::Mat &src_4 = a3.read();
-    cv::Mat &dst = a.read();
-    cv::Mat &mask = FLAG.read();
+    cv::UMat& src_1 = a0.read();
+    cv::UMat& src_2 = a1.read();
+    cv::UMat& src_3 = a2.read();
+    cv::UMat& src_4 = a3.read();
+    cv::UMat& dst = a.read();
+    cv::UMat& mask = FLAG.read();
     cv::add(src_1, src_2, scratch, mask);
     cv::add(scratch, src_3, scratch, mask);
     cv::add(scratch, src_4, scratch, mask);
-    cv::bitwise_not(scratch, dst, mask);
-    cv::add(dst, 1, dst, mask);
+    cv::subtract(0, scratch, dst, mask);
 }
 
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
@@ -78,8 +71,7 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
                        AnalogueRegister &a0, DigitalRegister &FLAG) {
     // a,b = -0.5*a0 + error + noise
     cv::multiply(a0.read(), 0.5, scratch);
-    cv::bitwise_not(scratch, scratch, FLAG.read());
-    cv::add(scratch, 1, scratch, FLAG.read());
+    cv::subtract(0, scratch, scratch, FLAG.read());
     a.write(scratch, FLAG.read());
     b.write(scratch, FLAG.read());
 }
@@ -90,8 +82,7 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
     // a,b = -0.5*(a0 + a1) + error + noise
     cv::add(a0.read(), a1.read(), scratch, FLAG.read());
     cv::multiply(scratch, 0.5, scratch);
-    cv::bitwise_not(scratch, scratch, FLAG.read());
-    cv::add(scratch, 1, scratch, FLAG.read());
+    cv::subtract(0, scratch, scratch, FLAG.read());
     a.write(scratch, FLAG.read());
     b.write(scratch, FLAG.read());
 }
@@ -101,8 +92,7 @@ void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b,
                        DigitalRegister &FLAG) {
     // a,b,c = -0.33*a0 + error + noise
     cv::multiply(0.333, a0.read(), scratch);
-    cv::bitwise_not(scratch, scratch, FLAG.read());
-    cv::add(scratch, 1, scratch, FLAG.read());
+    cv::subtract(0, scratch, scratch, FLAG.read());
     a.write(scratch, FLAG.read());
     b.write(scratch, FLAG.read());
     c.write(scratch, FLAG.read());
@@ -365,7 +355,7 @@ void AnalogueBus::scan(uint8_t *dst, AnalogueRegister &src, uint8_t row_start,
     int buf_index = 0;
     for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
         for(int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
-            dst[buf_index++] = src.read().at<uint8_t>(row, col);
+            dst[buf_index++] = src.read().getMat(cv::ACCESS_READ).at<uint8_t>(row, col);
         }
     }
 }

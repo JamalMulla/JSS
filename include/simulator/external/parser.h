@@ -37,6 +37,8 @@ class Parser {
     void set_property(const rttr::type& arch_type, const rttr::variant& arch, const std::string& name, rttr::variant value);
     rttr::variant create_instance(const std::string& arch_name, json arch_props);
     void parse_config(std::ifstream& config, std::ifstream& program);
+
+    void setup_processing(bool use_gpu);
 };
 
 #endif  //SIMULATOR_PARSER_H

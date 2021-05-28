@@ -28,7 +28,7 @@ class Component : public StatsOutputter {
     int row_stride_ = 1;
     int col_stride_ = 1;
     std::shared_ptr<Config> config_;
-    cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
+    cv::UMat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
 
    public:
     void calc_internal_mask();
@@ -50,9 +50,9 @@ class Component : public StatsOutputter {
     double dynamic_power_;  // in Watts
     double width_; // in Micrometres
     double height_; // in Mircometres
-    cv::Mat array_transistor_count_;
-    cv::Mat array_static_energy_;
-    cv::Mat array_dynamic_energy_;
+    cv::UMat array_transistor_count_;
+    cv::UMat array_static_energy_;
+    cv::UMat array_dynamic_energy_;
    public:
     /* Update component with how much time has passed for operation. Used for updating static power. */
     virtual void update_static(double time) = 0;

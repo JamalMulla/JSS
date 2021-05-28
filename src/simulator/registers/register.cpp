@@ -8,24 +8,31 @@
 
 
 void Register::init() {
-    this->value_ = cv::Mat(rows_, cols_, type_, cv::Scalar(0));
+    this->value_ = cv::UMat(rows_, cols_, type_, cv::Scalar(0));
 }
 
-cv::Mat &Register::read() {
+cv::UMat& Register::read() {
 #ifdef TRACK_STATISTICS
     this->inc_read();
 #endif
     return this->value_;
 }
 
-void Register::write(cv::Mat &data) {
+void Register::write(cv::UMat& data) {
     data.copyTo(this->value_);
 #ifdef TRACK_STATISTICS
     this->inc_write();
 #endif
 }
 
-void Register::write(const cv::Mat &data) {
+void Register::write(const cv::UMat& data) {
+    data.copyTo(this->value_);
+#ifdef TRACK_STATISTICS
+    this->inc_write();
+#endif
+}
+
+void Register::write(const cv::Mat& data) {
     data.copyTo(this->value_);
 #ifdef TRACK_STATISTICS
     this->inc_write();
@@ -36,7 +43,14 @@ void Register::write(Register &data) {
     this->write(data.read());
 }
 
-void Register::write(cv::Mat &data, cv::Mat &mask) {
+void Register::write(cv::UMat& data, cv::UMat &mask) {
+    data.copyTo(this->value_, mask);
+#ifdef TRACK_STATISTICS
+    this->inc_write(mask);
+#endif
+}
+
+void Register::write(cv::UMat& data, cv::Mat &mask) {
     data.copyTo(this->value_, mask);
 #ifdef TRACK_STATISTICS
     this->inc_write(mask);
@@ -54,7 +68,7 @@ void Register::write(int data) {
 #endif
 }
 
-void Register::write(int data, cv::Mat &mask) {
+void Register::write(int data, cv::UMat &mask) {
     this->value_.setTo(data, mask);
 #ifdef TRACK_STATISTICS
     this->inc_write(mask);

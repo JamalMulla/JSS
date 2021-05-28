@@ -81,7 +81,7 @@ void SCAMP5RMALT::motion() {
 
 void SCAMP5RMALT::get_image(AREG y, AREG h) {
     // y := full-range image, h := negative half-range image, and reset *PIX
-    cv::Mat image = this->pe->get_pixel()->read();
+    cv::Mat image = this->pe->get_pixel()->read().getMat(cv::ACCESS_READ);
 
     for (int row = 0; row < this->rows_; ++row) {
         for (int col = 0; col < this->cols_; ++col) {

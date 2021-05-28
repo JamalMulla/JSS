@@ -30,6 +30,18 @@ DigitalRegister::DigitalRegister(int rows, int cols, int row_stride, int col_str
     this->max_val = 1;
 }
 
+DigitalRegister::DigitalRegister(const cv::UMat &data, int row_stride, int col_stride) {
+    this->rows_ = data.rows;
+    this->cols_ = data.cols;
+    this->row_stride_ = row_stride;
+    this->col_stride_ = col_stride;
+    this->type_ = CV_8U;
+    Register::init();
+    this->min_val = 0;
+    this->max_val = 1;
+    this->write(data);
+}
+
 DigitalRegister::DigitalRegister(const cv::Mat &data, int row_stride, int col_stride) {
     this->rows_ = data.rows;
     this->cols_ = data.cols;
@@ -48,10 +60,10 @@ DigitalRegister &DigitalRegister::operator()(const std::string &name) {
 }
 
 void DigitalRegister::set_mask(const std::shared_ptr<DigitalRegister>& mask) {
-    this->mask_ = std::make_shared<cv::Mat>(mask->read());
+    this->mask_ = std::make_shared<cv::UMat>(mask->read());
 }
 
-cv::Mat& DigitalRegister::get_mask() {
+cv::UMat& DigitalRegister::get_mask() {
     return *mask_;
 }
 

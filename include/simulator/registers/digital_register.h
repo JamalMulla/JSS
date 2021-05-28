@@ -12,17 +12,18 @@
 
 class DigitalRegister : public Register {
     RTTR_ENABLE(Register);
-    std::shared_ptr<cv::Mat> mask_ = std::make_shared<cv::Mat>(cv::noArray().getMat_());
+    std::shared_ptr<cv::UMat> mask_ = std::make_shared<cv::UMat>(cv::noArray().getUMat());
 
    public:
     DigitalRegister(int rows, int columns, const std::shared_ptr<Config>& config, int row_stride = 1, int col_stride = 1, MemoryType memory_type = MemoryType::DRAM3T);
     DigitalRegister(int rows, int cols, int row_stride = 1, int col_stride = 1);
+    DigitalRegister(const cv::UMat& data, int row_stride = 1, int col_stride = 1);
     DigitalRegister(const cv::Mat& data, int row_stride = 1, int col_stride = 1);
 
     DigitalRegister& operator()(const std::string& name);
 
     void set_mask(const std::shared_ptr<DigitalRegister>& mask);
-    cv::Mat& get_mask();
+    cv::UMat& get_mask();
     void set();
     void clear();
 

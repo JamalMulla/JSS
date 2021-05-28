@@ -17,11 +17,11 @@ VideoInput::VideoInput(int rows, int cols, const std::string &path) {
         exit(1);
     }
     this->size = std::make_unique<cv::Size>(cols, rows);
-    this->frame = cv::Mat(rows, cols, MAT_TYPE);
+    this->frame = cv::UMat(rows, cols, MAT_TYPE);
     this->frame.setTo(0);
 }
 
-cv::Mat VideoInput::read() {
+cv::UMat& VideoInput::read() {
     LiveInput::read();
     frame_count++;
     if(frame_count == this->capture->get(cv::CAP_PROP_FRAME_COUNT)) {

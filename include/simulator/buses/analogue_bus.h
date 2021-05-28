@@ -12,7 +12,7 @@
 
 class AnalogueBus {
    private:
-    cv::Mat scratch;
+    cv::UMat scratch;
 
    public:
     // Analogue Register Transfer

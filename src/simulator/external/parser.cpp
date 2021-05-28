@@ -4,6 +4,7 @@
 
 #include "simulator/external/parser.h"
 
+#include <opencv2/core/ocl.hpp>
 #include <rttr/enumeration.h>
 #include <rttr/type.h>
 #include <simulator/registers/analogue_register.h>
@@ -320,6 +321,14 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
 
 void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     json c = json::parse(config);
+
+
+    bool use_gpu = false;
+    if (c.contains("use_gpu")) {
+        use_gpu = c["use_gpu"].get<bool>();
+    }
+    setup_processing(use_gpu);
+
     std::vector<rttr::enumeration> enums = get_enums();  // all registered enums
 
     // Create architecture by using builder
@@ -414,4 +423,40 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     // Clean up and call destructors.
 //    arch_builder_type.destroy(arch_builder);
     arch.get_type().destroy(arch);
+}
+
+
+void Parser::setup_processing(bool use_gpu) {
+    if (!use_gpu) {
+        std::cout << "Processing on CPU" << std::endl;
+        cv::ocl::setUseOpenCL(false);
+    } else {
+        cv::ocl::setUseOpenCL(true);
+
+        if (!cv::ocl::haveOpenCL())
+        {
+            std::cout << "OpenCL is not available" << std::endl;
+            return;
+        }
+
+        cv::ocl::Context context;
+        if (!context.create(cv::ocl::Device::TYPE_GPU))
+        {
+            std::cout << "Failed to create GPU Context" << std::endl;
+            //return;
+        }
+
+        std::cout << context.ndevices() << " GPU device(s) detected." << std::endl;
+        for (size_t i = 0; i < context.ndevices(); i++)
+        {
+            cv::ocl::Device device = context.device(i);
+            std::cout << "name:              " << device.name() << std::endl;
+            std::cout << "available:         " << device.available() << std::endl;
+            std::cout << "imageSupport:      " << device.imageSupport() << std::endl;
+            std::cout << "OpenCL_C_Version:  " << device.OpenCL_C_Version() << std::endl;
+            std::cout << std::endl;
+        }
+        std::cout << "Processing on GPU" << std::endl;
+    }
+
 }

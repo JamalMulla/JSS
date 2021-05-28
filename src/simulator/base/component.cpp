@@ -6,14 +6,12 @@
 #include <utility>
 
 void Component::calc_internal_mask() {
+    cv::Mat im = this->internal_mask.getMat(cv::ACCESS_WRITE);
     for (int row = 0; row < rows_; row += row_stride_) {
         for (int col = 0; col < cols_; col += col_stride_) {
-            this->internal_mask.at<uint8_t>(row, col) = 1;
+            im.at<uint8_t>(row, col) = 1;
         }
     }
-#ifdef TRACK_STATISTICS
-    array_transistor_count_.setTo(transistor_count_, this->internal_mask);
-#endif
 }
 
 void Component::set_process_node(int process_node) {
@@ -43,15 +41,24 @@ void Component::set_config(std::shared_ptr<Config> config) {
 #ifdef TRACK_STATISTICS
 
 cv::Mat Component::get_static_energy_array() {
-    return this->array_static_energy_;
+#ifdef TRACK_STATISTICS
+    array_static_energy_.copyTo(array_static_energy_, this->internal_mask);
+#endif
+    return this->array_static_energy_.getMat(cv::ACCESS_READ);
 }
 
 cv::Mat Component::get_dynamic_energy_array() {
-    return this->array_dynamic_energy_;
+#ifdef TRACK_STATISTICS
+    array_dynamic_energy_.copyTo(array_dynamic_energy_, this->internal_mask);
+#endif
+    return this->array_dynamic_energy_.getMat(cv::ACCESS_READ);
 }
 
 cv::Mat Component::get_transistor_count_array() {
-    return this->array_transistor_count_;
+#ifdef TRACK_STATISTICS
+    array_transistor_count_.setTo(transistor_count_, this->internal_mask);
+#endif
+    return this->array_transistor_count_.getMat(cv::ACCESS_READ);
 }
 
 int Component::get_transistor_count() {

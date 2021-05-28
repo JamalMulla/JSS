@@ -1089,7 +1089,7 @@ void SCAMP5::scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations,
 uint8_t SCAMP5::scamp5_read_areg(const std::shared_ptr<AREG>& areg, uint8_t r, uint8_t c) {
     // read a single pixel
     // TODO check that the value is properly mapped to uint8_t from CV_16U
-    return areg->read().at<uint8_t>(r, c);
+    return areg->read().getMat(cv::ACCESS_READ).at<uint8_t>(r, c);
 }
 
 uint32_t SCAMP5::scamp5_global_sum_16(const std::shared_ptr<AREG>& areg, uint8_t *result16v) {
@@ -1167,7 +1167,7 @@ uint8_t SCAMP5::scamp5_global_sum_sparse(const std::shared_ptr<AREG>& areg, uint
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                sum += areg->read().at<uint8_t>(row_index, col_index);
+                sum += areg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index);
             }
         }
     }
@@ -1197,7 +1197,7 @@ int SCAMP5::scamp5_global_or(const std::shared_ptr<DREG>& dreg, uint8_t r, uint8
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                val |= dreg->read().at<uint8_t>(row_index, col_index);
+                val |= dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index);
             }
         }
     }
@@ -1245,7 +1245,7 @@ void SCAMP5::scamp5_flood(const std::shared_ptr<DREG>& dreg_target, const std::s
     cv::copyMakeBorder(dreg_mask->read(), mask, 1, 1, 1, 1,
                        cv::BORDER_REPLICATE);
 
-    dreg_mask->read() = 1 - dreg_mask->read();
+    cv::subtract(dreg_mask->read(), 1, dreg_mask->read());
 
     for(auto &seed: seeds) {
         cv::floodFill(dreg_mask->read(), mask, seed, cv::Scalar(1), nullptr,
@@ -1256,7 +1256,7 @@ void SCAMP5::scamp5_flood(const std::shared_ptr<DREG>& dreg_target, const std::s
 void SCAMP5::scamp5_load_point(const std::shared_ptr<DREG>& dr, uint8_t r, uint8_t c) {
     // set a single pixel on a DREG image to 1, the rest to 0
     dr->read().setTo(0);
-    dr->read().at<uint8_t>(r, c) = 1;
+    dr->read().getMat(cv::ACCESS_READ).at<uint8_t>(r, c) = 1;
 }
 
 void SCAMP5::scamp5_load_rect(const std::shared_ptr<DREG>& dr, uint8_t r0, uint8_t c0, uint8_t r1,
@@ -1300,7 +1300,7 @@ void SCAMP5::scamp5_load_pattern(const std::shared_ptr<DREG>& dr, uint8_t r, uin
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index * r_mask) == r_f) && ((col_index * c_mask) == c_f)) {
-                dr->read().at<uint8_t>(row_index, col_index) = 1;
+                dr->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
@@ -1331,7 +1331,7 @@ void SCAMP5::scamp5_select_col(uint8_t c) {
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(col_index == c) {
-                SELECT->read().at<uint8_t>(row_index, col_index) = 1;
+                SELECT->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
@@ -1342,7 +1342,7 @@ void SCAMP5::scamp5_select_row(uint8_t r) {
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(row_index == r) {
-                SELECT->read().at<uint8_t>(row_index, col_index) = 1;
+                SELECT->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
@@ -1368,7 +1368,7 @@ void SCAMP5::scamp5_draw_end() {
 
 void SCAMP5::scamp5_draw_pixel(uint8_t r, uint8_t c) {
     // draw a point, wrap around if it's outside the border
-    scratch->read().at<uint8_t>(r % this->rows_, c % this->cols_) = 1;
+    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(r % this->rows_, c % this->cols_) = 1;
 }
 
 bool SCAMP5::scamp5_draw_point(int r, int c) {
@@ -1377,7 +1377,7 @@ bool SCAMP5::scamp5_draw_point(int r, int c) {
     if(r >= this->rows_ || c >= this->cols_) {
         return false;
     }
-    scratch->read().at<uint8_t>(r, c) = 1;
+    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(r, c) = 1;
     return true;
 }
 
@@ -1421,10 +1421,10 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
     int x = 0;
     int y = radius;
 
-    scratch->read().at<uint8_t>(y0 + radius, x0) = 1;
-    scratch->read().at<uint8_t>(y0 - radius, x0) = 1;
-    scratch->read().at<uint8_t>(y0, x0 + radius) = 1;
-    scratch->read().at<uint8_t>(y0, x0 - radius) = 1;
+    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + radius, x0) = 1;
+    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - radius, x0) = 1;
+    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0, x0 + radius) = 1;
+    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0, x0 - radius) = 1;
 
     while(x < y) {
         if(f >= 0) {
@@ -1437,21 +1437,21 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
         ddf_x += 2;
         f += ddf_x;
 
-        scratch->read().at<uint8_t>(y0 + y, x0 + x) = 1;
-        scratch->read().at<uint8_t>(y0 + y, x0 - x) = 1;
-        scratch->read().at<uint8_t>(y0 - y, x0 + x) = 1;
-        scratch->read().at<uint8_t>(y0 - y, x0 - x) = 1;
-        scratch->read().at<uint8_t>(y0 + x, x0 + y) = 1;
-        scratch->read().at<uint8_t>(y0 + x, x0 - y) = 1;
-        scratch->read().at<uint8_t>(y0 - x, x0 + y) = 1;
-        scratch->read().at<uint8_t>(y0 - x, x0 - y) = 1;
+        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + y, x0 + x) = 1;
+        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + y, x0 - x) = 1;
+        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - y, x0 + x) = 1;
+        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - y, x0 - x) = 1;
+        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + x, x0 + y) = 1;
+        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + x, x0 - y) = 1;
+        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - x, x0 + y) = 1;
+        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - x, x0 - y) = 1;
     }
 }
 
 void SCAMP5::scamp5_draw_negate() {
     // do a binary inversion of the DREG image.
     // TODO abstraction
-    scratch->read() = 1 - scratch->read();
+    cv::subtract(scratch->read(), 1, scratch->read());
 }
 
 // Image Readout
@@ -1477,7 +1477,7 @@ void SCAMP5::scamp5_scan_areg_8x8(const std::shared_ptr<AREG>& areg, uint8_t *re
     int rs = this->rows_ / 8;
     for(int col = 0; col < this->cols_; col += cs) {
         for(int row = 0; row < this->rows_; row += rs) {
-            result8x8[buf_index++] = areg->read().at<uint8_t>(row, col);
+            result8x8[buf_index++] = areg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row, col);
         }
     }
 }
@@ -1502,14 +1502,14 @@ void SCAMP5::scamp5_scan_dreg(const std::shared_ptr<DREG>& dreg, uint8_t *mem, u
     for(uint32_t row_index = r0; row_index <= r1; row_index++) {
         // Read 8 values at a time to make up a byte
         for(int col_index = 0; col_index < this->cols_; col_index += 8) {
-            uint8_t b0 = dreg->read().at<uint8_t>(row_index, col_index);
-            uint8_t b1 = dreg->read().at<uint8_t>(row_index, col_index + 1);
-            uint8_t b2 = dreg->read().at<uint8_t>(row_index, col_index + 2);
-            uint8_t b3 = dreg->read().at<uint8_t>(row_index, col_index + 3);
-            uint8_t b4 = dreg->read().at<uint8_t>(row_index, col_index + 4);
-            uint8_t b5 = dreg->read().at<uint8_t>(row_index, col_index + 5);
-            uint8_t b6 = dreg->read().at<uint8_t>(row_index, col_index + 6);
-            uint8_t b7 = dreg->read().at<uint8_t>(row_index, col_index + 7);
+            uint8_t b0 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index);
+            uint8_t b1 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 1);
+            uint8_t b2 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 2);
+            uint8_t b3 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 3);
+            uint8_t b4 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 4);
+            uint8_t b5 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 5);
+            uint8_t b6 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 6);
+            uint8_t b7 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 7);
             uint8_t value = (b0 << 7) | (b1 << 6) | (b2 << 5) | (b3 << 4) |
                             (b4 << 3) | (b5 << 2) | (b6 << 1) | (b7 << 0);
             mem[buf_index++] = value;
@@ -1548,7 +1548,7 @@ void SCAMP5::scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *buff
     int buf_index = 0;
     for(int col = c0; col < c1; col += cs) {
         for(int row = r0; row < r1; row += rs) {
-            if(dreg->read().at<uint8_t>(row, col) > 0) {
+            if(dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row, col) > 0) {
                 if(buf_index == 2 * max_num)
                     return;
                 buffer[buf_index++] = col;

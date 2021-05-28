@@ -13,7 +13,7 @@
 LiveInput::LiveInput(int rows, int cols, int camera_index) {
     this->rows_ = rows;
     this->cols_ = cols;
-    std::cout << "Using camera: " << camera_index << "\n";
+    std::cout << "Using camera index: " << camera_index << "\n";
     this->capture = std::make_unique<cv::VideoCapture>(camera_index);
     if(!this->capture->isOpened()) {
         std::cerr << "Could not open camera" << std::endl;
@@ -21,11 +21,11 @@ LiveInput::LiveInput(int rows, int cols, int camera_index) {
     }
 
     this->size = std::make_unique<cv::Size>(cols, rows);
-    this->frame = cv::Mat(rows, cols, MAT_TYPE);
+    this->frame = cv::UMat(rows, cols, MAT_TYPE);
     this->frame.setTo(0);
 }
 
-cv::Mat LiveInput::read() {
+cv::UMat& LiveInput::read() {
 #ifdef USE_RUNTIME_CHECKS
     if(this->capture == nullptr) {
         std::cerr << "No video capture defined" << std::endl;
@@ -34,6 +34,7 @@ cv::Mat LiveInput::read() {
     cv::Mat temp(rows_, cols_, CV_32S);
     auto TIME_START = std::chrono::high_resolution_clock::now();
     *this->capture >> temp;
+
 #ifdef USE_RUNTIME_CHECKS
     if(temp.empty()) {
         std::cerr << "ERROR! blank frame grabbed" << std::endl;

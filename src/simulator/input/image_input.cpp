@@ -26,7 +26,7 @@ ImageInput::ImageInput(int rows, int cols, const std::string &path)
     std::string t_s = utility::opencv_type_to_str(img.type());
     std::cout << "Image is of type: " << t_s << std::endl;
 
-    this->frame = cv::Mat(rows, cols, MAT_TYPE);
+    this->frame = cv::UMat(rows, cols, MAT_TYPE);
     this->frame.setTo(0);
 }
 
@@ -34,7 +34,7 @@ void ImageInput::read(Register &reg) {
     reg.write(this->read());
 }
 
-cv::Mat ImageInput::read() {
+cv::UMat& ImageInput::read() {
     auto TIME_START = std::chrono::high_resolution_clock::now();
     cv::Mat img = cv::imread(this->path_, cv::IMREAD_GRAYSCALE);
 

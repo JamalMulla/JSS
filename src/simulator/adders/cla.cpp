@@ -12,7 +12,7 @@
 /*Bits refers to the number of bits in the two inputs and the output. So an 8-bit adders takes in two 8-bit values and outputs an 8-bit value*/
 
 void CarryLookAheadAdder::init() {
-    internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
+    internal_mask = cv::UMat(rows_, cols_, CV_8U, cv::Scalar(0));
 #ifdef TRACK_STATISTICS
     cycle_count_ = 1;
     transistor_count_ = calc_transistor_count();
@@ -21,10 +21,10 @@ void CarryLookAheadAdder::init() {
     width_ = calc_width();
     height_ = calc_height();
     time_ = this->cycle_count_ * (1.0 / config_->get_clock_rate());
-    array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
-    array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
-    array_dynamic_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
-    scratch  = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
+    array_transistor_count_ = cv::UMat(rows_, cols_, CV_32S, cv::Scalar(0));
+    array_static_energy_ = cv::UMat(rows_, cols_, CV_64F, cv::Scalar(0));
+    array_dynamic_energy_ = cv::UMat(rows_, cols_, CV_64F, cv::Scalar(0));
+    scratch  = cv::UMat(rows_, cols_, CV_8U, cv::Scalar(0));
 #endif
     this->calc_internal_mask();
 }

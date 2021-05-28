@@ -46,6 +46,7 @@ The main fields are explained here:
 
 | Field name | Required | Default | Description |
 | ------------- | ------------- | ------------- | ------------- |
+| use_gpu | false | false | Whether to use GPU for processing or CPU. If set and no GPU is available will default to CPU |
 | architecture  | true | N/A | The name of the architecture that is being simulated. The architecture must be registered and should be a subclass of the `Architecture` class. See `SCAMP5.cpp` for an example architecture |
 | frames | false | 1000 | The number of frames to run the program for. A negative number is interpreted as infinite, i.e. run forever|
 | frame_time | false | true | Prints the amount of time in ms to process each frame from beginning to end to stdout|

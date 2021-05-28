@@ -32,10 +32,10 @@ void Pixel::init() {
     dynamic_power_ = calc_dynamic();
     width_ = calc_width();
     height_ = calc_height();
-    internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
-    array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
-    array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
-    array_dynamic_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
+    internal_mask = cv::UMat(rows_, cols_, CV_8U, cv::Scalar(0));
+    array_transistor_count_ = cv::UMat(rows_, cols_, CV_32S, cv::Scalar(0));
+    array_static_energy_ = cv::UMat(rows_, cols_, CV_64F, cv::Scalar(0));
+    array_dynamic_energy_ = cv::UMat(rows_, cols_, CV_64F, cv::Scalar(0));
 
     this->calc_internal_mask();
 #endif
@@ -68,8 +68,8 @@ void Pixel::set_src(Source src) {
 
 void Pixel::reset() { input_source->reset(); }
 
-cv::Mat Pixel::read() {
-    cv::Mat m = input_source->read();
+cv::UMat& Pixel::read() {
+    cv::UMat& m = input_source->read();
 #ifdef TRACK_STATISTICS
     double seconds = this->input_source->last_frame_time();
     cycle_count_ = seconds * this->config_->get_clock_rate();

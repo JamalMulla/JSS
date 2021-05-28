@@ -4,7 +4,6 @@
 
 #include <simulator/external/parser.h>
 #include <fstream>
-#include "scamp5/analognet2/analog_main.h"
 
 int main(int argc, char **argv) {
 

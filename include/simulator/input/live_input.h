@@ -19,7 +19,7 @@ class LiveInput : public InputSource {
     LiveInput() = default;
 
     void read(Register& reg) override;
-    cv::Mat read() override;
+    cv::UMat& read() override;
     void reset() override;
     double last_frame_time() override;
 };

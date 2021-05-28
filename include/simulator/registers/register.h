@@ -20,7 +20,7 @@ class Register : public Component {
     int type_;
 
    private:
-    cv::Mat value_;
+    cv::UMat value_;
 
    public:
     std::string name_;
@@ -55,14 +55,16 @@ class Register : public Component {
     void set_memory(MemoryType memory_type);
     void set_type(int type);
 
-    cv::Mat& read();
-    void write(cv::Mat& data);
+    cv::UMat& read();
+    void write(cv::UMat& data);
+    void write(const cv::UMat& data);
     void write(const cv::Mat& data);
-    void write(cv::Mat& data, cv::Mat& mask);
+    void write(cv::UMat& data, cv::UMat& mask);
+    void write(cv::UMat& data, cv::Mat& mask);
     void write(Register& data);
     void write(Register& data, Register& mask);
     void write(int data);
-    void write(int data, cv::Mat& mask);
+    void write(int data, cv::UMat& mask);
     void write(int data, Register& mask);
 
 };

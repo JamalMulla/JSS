@@ -35,7 +35,7 @@ class Pixel : public Component {
 
     void reset();
     void read(Register& reg);
-    cv::Mat read();
+    cv::UMat& read();
     double last_frame_time();
 #ifdef TRACK_STATISTICS
     int calc_transistor_count() override;
