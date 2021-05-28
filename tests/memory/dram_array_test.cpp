@@ -24,11 +24,11 @@ TEST_CASE("can write and read") {
     }
 
     SECTION("read/write single bytes") {
-        dram->write_byte(0, 0, 8, -69); // array 0, row 0, start_col 8
-        dram->write_byte(0, 1, 0, 20); // array 0, row 1, start_col 0
-        REQUIRE(dram->read_byte(0, 1, 0) == 20);
-        REQUIRE(dram->read_byte(0, 0, 8) == -69);
-        REQUIRE(dram->read_byte(0, 1, 1) == 10);
+        dram->write_signed_byte(0, 0, 8, -69); // array 0, row 0, start_col 8
+        dram->write_signed_byte(0, 1, 0, 20); // array 0, row 1, start_col 0
+        REQUIRE(dram->read_signed_byte(0, 1, 0) == 20);
+        REQUIRE(dram->read_signed_byte(0, 0, 8) == -69);
+        REQUIRE(dram->read_signed_byte(0, 1, 1) == 10);
     }
 
     SECTION("some test") {

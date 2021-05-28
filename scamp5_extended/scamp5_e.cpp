@@ -471,8 +471,8 @@ void SCAMP5E::histogram(const std::shared_ptr<AREG>& src) {
                     int m_row = s.at<int16_t>(r, c);  // intensity is used as index
                     int m_col = 0;
 
-                    int value = this->dram_->read_byte(block, m_row, m_col);
-                    this->dram_->write_byte(block, m_row, m_col, value + 1);
+                    int value = this->dram_->read_signed_byte(block, m_row, m_col);
+                    this->dram_->write_signed_byte(block, m_row, m_col, value + 1);
                 }
             }
             block++;
@@ -491,7 +491,7 @@ void SCAMP5E::histogram(const std::shared_ptr<AREG>& src) {
     for (int i = 0; i < block; i++) {
         int combined = 0;
         for (int b = 0; b < cells; b++) {  //todo parameterise properly
-            int i1 = this->dram_->read_byte(b, i, 0);
+            int i1 = this->dram_->read_signed_byte(b, i, 0);
             combined += i1;
         }
 
@@ -563,11 +563,11 @@ void SCAMP5E::hog(const std::shared_ptr<AREG>& src) {
                     double v2 = ceil(((double)(angle - (b1 * bucket_size)) / bucket_size) * magnitude);
                     double v1 = ceil(magnitude - v2);
 
-                    int value = this->dram_->read_byte(block, b1, m_col);
-                    this->dram_->write_byte(block, b1, m_col, value + v1);
+                    int value = this->dram_->read_signed_byte(block, b1, m_col);
+                    this->dram_->write_signed_byte(block, b1, m_col, value + v1);
 
-                    int value2 = this->dram_->read_byte(block, b2, m_col);
-                    this->dram_->write_byte(block, b2, m_col, value2 + v2);
+                    int value2 = this->dram_->read_signed_byte(block, b2, m_col);
+                    this->dram_->write_signed_byte(block, b2, m_col, value2 + v2);
                 }
             }
             block++;
@@ -578,7 +578,7 @@ void SCAMP5E::hog(const std::shared_ptr<AREG>& src) {
     for (int b = 0; b < block; b++) {
         std::cout << "B:" << b;
         for (int i = 0; i < 10; i++) {  //todo parameterise properly
-            int i1 = this->dram_->read_byte(b, i, 0);
+            int i1 = this->dram_->read_signed_byte(b, i, 0);
             std::cout << ", Bin: " << i * 20 << ", Count: " << i1 << " |";
         }
         std::cout << std::endl;

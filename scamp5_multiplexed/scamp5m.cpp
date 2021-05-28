@@ -30,7 +30,6 @@ void SCAMP5M::init() {
     // array for that row and col
 
     this->SET(FLAG);
-    //    init_viola();
     classifier = read_viola_classifier("/home/jm1417/Simulator/scamp5_multiplexed/class.txt");
 }
 
@@ -53,9 +52,9 @@ void SCAMP5M::get_image(AREG y) {
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
                     int16_t v = image.at<int16_t>(r, c);
-                    dram->write_byte(patch, elem, PIX, v / 2);
-                    dram->write_byte(patch, elem, NEWS, -v / 2);
-                    dram->write_byte(patch, elem, y, v / 2);
+                    dram->write_signed_byte(patch, elem, PIX, v / 2);
+                    dram->write_signed_byte(patch, elem, NEWS, -v / 2);
+                    dram->write_signed_byte(patch, elem, y, v / 2);
                     elem++;
                 }
             }
@@ -82,10 +81,10 @@ void SCAMP5M::get_image(AREG y, AREG h) {
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
                     int16_t v = image.at<int16_t>(r, c);
-                    dram->write_byte(patch, elem, PIX, v / 2);
-                    dram->write_byte(patch, elem, NEWS, -v / 2);
-                    dram->write_byte(patch, elem, h, -v / 2);
-                    dram->write_byte(patch, elem, y, v);
+                    dram->write_signed_byte(patch, elem, PIX, v / 2);
+                    dram->write_signed_byte(patch, elem, NEWS, -v / 2);
+                    dram->write_signed_byte(patch, elem, h, -v / 2);
+                    dram->write_signed_byte(patch, elem, y, v);
                     elem++;
                 }
             }
@@ -110,7 +109,7 @@ void SCAMP5M::where(AREG a) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int val = this->dram->read_byte(patch, elem, a);
+                    int val = this->dram->read_signed_byte(patch, elem, a);
                     this->alu->execute(val, 0, ALU::CMP);
                     if (!this->alu->N) {
                         this->dram->write_bit(patch, elem, FLAG, true);
@@ -139,8 +138,8 @@ void SCAMP5M::where(AREG a0, AREG a1) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int a0_val = this->dram->read_byte(patch, elem, a0);
-                    int a1_val = this->dram->read_byte(patch, elem, a1);
+                    int a0_val = this->dram->read_signed_byte(patch, elem, a0);
+                    int a1_val = this->dram->read_signed_byte(patch, elem, a1);
                     int res = this->alu->execute(a0_val, a1_val, ALU::ADD);
                     this->alu->execute(res, 0, ALU::CMP);
                     this->dram->write_bit(patch, elem, FLAG, !this->alu->N ? true : false);
@@ -166,9 +165,9 @@ void SCAMP5M::where(AREG a0, AREG a1, AREG a2) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int a0_val = this->dram->read_byte(patch, elem, a0);
-                    int a1_val = this->dram->read_byte(patch, elem, a1);
-                    int a2_val = this->dram->read_byte(patch, elem, a2);
+                    int a0_val = this->dram->read_signed_byte(patch, elem, a0);
+                    int a1_val = this->dram->read_signed_byte(patch, elem, a1);
+                    int a2_val = this->dram->read_signed_byte(patch, elem, a2);
                     int middle = this->alu->execute(a0_val, a1_val, ALU::ADD);
                     int res = this->alu->execute(middle, a2_val, ALU::ADD);
                     this->alu->execute(res, 0, ALU::CMP);
@@ -216,10 +215,10 @@ void SCAMP5M::mov(AREG y, AREG x0) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int x0_val = this->dram->read_byte(patch, elem, x0);
+                    int x0_val = this->dram->read_signed_byte(patch, elem, x0);
                     int neg_x0 = this->alu->execute(0, x0_val, ALU::SUB);
-                    this->dram->write_byte(patch, elem, NEWS, neg_x0);
-                    this->dram->write_byte(patch, elem, y, x0_val);
+                    this->dram->write_signed_byte(patch, elem, NEWS, neg_x0);
+                    this->dram->write_signed_byte(patch, elem, y, x0_val);
                     elem++;
                 }
             }
@@ -241,8 +240,8 @@ void SCAMP5M::res(AREG a) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    this->dram->write_byte(patch, elem, NEWS, 0);
-                    this->dram->write_byte(patch, elem, a, 0);
+                    this->dram->write_signed_byte(patch, elem, NEWS, 0);
+                    this->dram->write_signed_byte(patch, elem, a, 0);
                     elem++;
                 }
             }
@@ -263,9 +262,9 @@ void SCAMP5M::res(AREG a, AREG b) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    this->dram->write_byte(patch, elem, NEWS, 0);
-                    this->dram->write_byte(patch, elem, a, 0);
-                    this->dram->write_byte(patch, elem, b, 0);
+                    this->dram->write_signed_byte(patch, elem, NEWS, 0);
+                    this->dram->write_signed_byte(patch, elem, a, 0);
+                    this->dram->write_signed_byte(patch, elem, b, 0);
                     elem++;
                 }
             }
@@ -286,11 +285,11 @@ void SCAMP5M::add(AREG y, AREG x0, AREG x1) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int x0_val = this->dram->read_byte(patch, elem, x0);
-                    int x1_val = this->dram->read_byte(patch, elem, x1);
+                    int x0_val = this->dram->read_signed_byte(patch, elem, x0);
+                    int x1_val = this->dram->read_signed_byte(patch, elem, x1);
                     int sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
-                    this->dram->write_byte(patch, elem, NEWS, -sum);
-                    this->dram->write_byte(patch, elem, y, sum);
+                    this->dram->write_signed_byte(patch, elem, NEWS, -sum);
+                    this->dram->write_signed_byte(patch, elem, y, sum);
                     elem++;
                 }
             }
@@ -312,13 +311,13 @@ void SCAMP5M::add(AREG y, AREG x0, AREG x1, AREG x2) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int x0_val = this->dram->read_byte(patch, elem, x0);
-                    int x1_val = this->dram->read_byte(patch, elem, x1);
-                    int x2_val = this->dram->read_byte(patch, elem, x2);
+                    int x0_val = this->dram->read_signed_byte(patch, elem, x0);
+                    int x1_val = this->dram->read_signed_byte(patch, elem, x1);
+                    int x2_val = this->dram->read_signed_byte(patch, elem, x2);
                     int middle = this->alu->execute(x0_val, x1_val, ALU::ADD);
                     int sum = this->alu->execute(middle, x2_val, ALU::ADD);
-                    this->dram->write_byte(patch, elem, NEWS, -sum);
-                    this->dram->write_byte(patch, elem, y, sum);
+                    this->dram->write_signed_byte(patch, elem, NEWS, -sum);
+                    this->dram->write_signed_byte(patch, elem, y, sum);
                     elem++;
                 }
             }
@@ -340,11 +339,11 @@ void SCAMP5M::sub(AREG y, AREG x0, AREG x1) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int x0_val = this->dram->read_byte(patch, elem, x0);
-                    int x1_val = this->dram->read_byte(patch, elem, x1);
+                    int x0_val = this->dram->read_signed_byte(patch, elem, x0);
+                    int x1_val = this->dram->read_signed_byte(patch, elem, x1);
                     int sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
-                    this->dram->write_byte(patch, elem, NEWS, -x0_val);
-                    this->dram->write_byte(patch, elem, y, sub);
+                    this->dram->write_signed_byte(patch, elem, NEWS, -x0_val);
+                    this->dram->write_signed_byte(patch, elem, y, sub);
                     elem++;
                 }
             }
@@ -366,10 +365,10 @@ void SCAMP5M::neg(AREG y, AREG x0) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int x0_val = this->dram->read_byte(patch, elem, x0);
+                    int x0_val = this->dram->read_signed_byte(patch, elem, x0);
                     int neg = this->alu->execute(0, x0_val, ALU::SUB);
-                    this->dram->write_byte(patch, elem, NEWS, 0);
-                    this->dram->write_byte(patch, elem, y, neg);
+                    this->dram->write_signed_byte(patch, elem, NEWS, 0);
+                    this->dram->write_signed_byte(patch, elem, y, neg);
                     elem++;
                 }
             }
@@ -392,10 +391,10 @@ void SCAMP5M::abs(AREG y, AREG x0) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int x0_val = this->dram->read_byte(patch, elem, x0);
+                    int x0_val = this->dram->read_signed_byte(patch, elem, x0);
                     int neg = this->alu->execute(0, x0_val, ALU::SUB);
-                    this->dram->write_byte(patch, elem, NEWS, neg);
-                    this->dram->write_byte(patch, elem, y, neg);
+                    this->dram->write_signed_byte(patch, elem, NEWS, neg);
+                    this->dram->write_signed_byte(patch, elem, y, neg);
                     elem++;
                 }
             }
@@ -411,11 +410,11 @@ void SCAMP5M::abs(AREG y, AREG x0) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int news = this->dram->read_byte(patch, elem, NEWS);
+                    int news = this->dram->read_signed_byte(patch, elem, NEWS);
                     int neg = this->alu->execute(0, news, ALU::SUB);
                     bool f = this->dram->read_bit(patch, elem, FLAG);  //mask
                     if (f) {
-                        this->dram->write_byte(patch, elem, y, neg);
+                        this->dram->write_signed_byte(patch, elem, y, neg);
                     }
                     elem++;
                 }
@@ -439,17 +438,17 @@ void SCAMP5M::div(AREG y0, AREG y1, AREG y2) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int y1_val = this->dram->read_byte(patch, elem, y1);
-                    int y2_val = this->dram->read_byte(patch, elem, y2);
+                    int y1_val = this->dram->read_signed_byte(patch, elem, y1);
+                    int y2_val = this->dram->read_signed_byte(patch, elem, y2);
                     int add = this->alu->execute(y1_val, y2_val, ALU::ADD);
                     int neg = this->alu->execute(0, add, ALU::SUB);
-                    this->dram->write_byte(patch, elem, NEWS, neg);
+                    this->dram->write_signed_byte(patch, elem, NEWS, neg);
 
                     int half_y2 = this->alu->execute(y2_val, 2, ALU::DIV);
-                    this->dram->write_byte(patch, elem, y0, half_y2);
+                    this->dram->write_signed_byte(patch, elem, y0, half_y2);
 
                     int neg_half_y2 = this->alu->execute(0, half_y2, ALU::SUB);
-                    this->dram->write_byte(patch, elem, y1, neg_half_y2);
+                    this->dram->write_signed_byte(patch, elem, y1, neg_half_y2);
                     elem++;
                 }
             }
@@ -471,19 +470,19 @@ void SCAMP5M::div(AREG y0, AREG y1, AREG y2, AREG x0) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int y1_val = this->dram->read_byte(patch, elem, y1);
-                    int x0_val = this->dram->read_byte(patch, elem, x0);
-                    this->dram->write_byte(patch, elem, y2, x0_val);
+                    int y1_val = this->dram->read_signed_byte(patch, elem, y1);
+                    int x0_val = this->dram->read_signed_byte(patch, elem, x0);
+                    this->dram->write_signed_byte(patch, elem, y2, x0_val);
 
                     int add = this->alu->execute(x0_val, y1_val, ALU::ADD);
                     int neg = this->alu->execute(0, add, ALU::SUB);
-                    this->dram->write_byte(patch, elem, NEWS, neg);
+                    this->dram->write_signed_byte(patch, elem, NEWS, neg);
 
                     int half_x0 = this->alu->execute(x0_val, 2, ALU::DIV);
-                    this->dram->write_byte(patch, elem, y0, half_x0);
+                    this->dram->write_signed_byte(patch, elem, y0, half_x0);
 
                     int neg_half_x0 = this->alu->execute(0, half_x0, ALU::SUB);
-                    this->dram->write_byte(patch, elem, y1, neg_half_x0);
+                    this->dram->write_signed_byte(patch, elem, y1, neg_half_x0);
                     elem++;
                 }
             }
@@ -506,19 +505,19 @@ void SCAMP5M::diva(AREG y0, AREG y1, AREG y2) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int y0_val = this->dram->read_byte(patch, elem, y0);
-                    int y1_val = this->dram->read_byte(patch, elem, y1);
+                    int y0_val = this->dram->read_signed_byte(patch, elem, y0);
+                    int y1_val = this->dram->read_signed_byte(patch, elem, y1);
 
                     int add = this->alu->execute(y0_val, y1_val, ALU::ADD);
                     int neg = this->alu->execute(0, add, ALU::SUB);
-                    this->dram->write_byte(patch, elem, NEWS, neg);
+                    this->dram->write_signed_byte(patch, elem, NEWS, neg);
 
                     int half_y0 = this->alu->execute(y0_val, 2, ALU::DIV);
-                    this->dram->write_byte(patch, elem, y0, half_y0);
+                    this->dram->write_signed_byte(patch, elem, y0, half_y0);
 
                     int neg_half_y0 = this->alu->execute(0, half_y0, ALU::SUB);
-                    this->dram->write_byte(patch, elem, y1, neg_half_y0);
-                    this->dram->write_byte(patch, elem, y2, neg_half_y0);
+                    this->dram->write_signed_byte(patch, elem, y1, neg_half_y0);
+                    this->dram->write_signed_byte(patch, elem, y2, neg_half_y0);
                     elem++;
                 }
             }
@@ -540,11 +539,11 @@ void SCAMP5M::divq(AREG y0, AREG x0) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int x0_val = this->dram->read_byte(patch, elem, x0);
+                    int x0_val = this->dram->read_signed_byte(patch, elem, x0);
                     int half_x0 = this->alu->execute(x0_val, 2, ALU::DIV);
                     int neg = this->alu->execute(0, half_x0, ALU::SUB);
-                    this->dram->write_byte(patch, elem, NEWS, neg);
-                    this->dram->write_byte(patch, elem, y0, half_x0);
+                    this->dram->write_signed_byte(patch, elem, NEWS, neg);
+                    this->dram->write_signed_byte(patch, elem, y0, half_x0);
                     elem++;
                 }
             }
@@ -574,28 +573,28 @@ void SCAMP5M::movx(AREG y, AREG x0, news_t dir) {
                         case east: {
                             int dram_row_select = col - 1;  // TOP_RIGHT origin means it's -1
                             if (dram_row_select >= 0) {
-                                x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                                x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
                             }
                             break;
                         }
                         case west: {
                             int dram_row_select = col + 1;  // TOP_RIGHT origin means it's +1
                             if (dram_row_select < this->cols_) {
-                                x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                                x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
                             }
                             break;
                         };
                         case north: {
                             int dram_array_select = row - 1;  // TOP_RIGHT origin means it's -1
                             if (dram_array_select < this->rows_) {
-                                x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                                x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
                             }
                             break;
                         };
                         case south: {
                             int dram_array_select = row + 1;  // TOP_RIGHT origin means it's +1
                             if (dram_array_select >= 0) {
-                                x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                                x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
                             }
                             break;
                         };
@@ -605,8 +604,8 @@ void SCAMP5M::movx(AREG y, AREG x0, news_t dir) {
                         };
                     }
                     int neg = this->alu->execute(0, x0_val, ALU::SUB);
-                    this->dram->write_byte(row, col, y, x0_val);
-                    this->dram->write_byte(row, col, NEWS, neg);
+                    this->dram->write_signed_byte(row, col, y, x0_val);
+                    this->dram->write_signed_byte(row, col, NEWS, neg);
                     elem++;
                 }
             }
@@ -635,28 +634,28 @@ void SCAMP5M::mov2x(AREG y, AREG x0, news_t dir, news_t dir2) {
                 case east: {
                     dram_row_select = col - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_row_select < 0) {
-                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                        x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
                     }
                     break;
                 }
                 case west: {
                     dram_row_select = col + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
+                        x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
                     }
                     break;
                 };
                 case north: {
                     dram_array_select = row - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_) {
-                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
                     }
                     break;
                 };
                 case south: {
                     dram_array_select = row + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0) {
-                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
                     }
                     break;
                 };
@@ -666,34 +665,34 @@ void SCAMP5M::mov2x(AREG y, AREG x0, news_t dir, news_t dir2) {
                 };
             }
             int neg = this->alu->execute(0, x0_val, ALU::SUB);
-            this->dram->write_byte(row, col, NEWS, neg);
+            this->dram->write_signed_byte(row, col, NEWS, neg);
 
             switch (dir2) {
                 case east: {
                     dram_row_select = col - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select >= 0) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 }
                 case west: {
                     dram_row_select = col + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 };
                 case north: {
                     dram_array_select = row - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_ && dram_row_select >= 0 && dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 };
                 case south: {
                     dram_array_select = row + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_row_select >= 0 && dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 };
@@ -702,7 +701,7 @@ void SCAMP5M::mov2x(AREG y, AREG x0, news_t dir, news_t dir2) {
                     break;
                 };
             }
-            this->dram->write_byte(row, col, y, x0_val);
+            this->dram->write_signed_byte(row, col, y, x0_val);
         }
     }
     alu->update_dynamic(num_pixels);
@@ -724,8 +723,8 @@ void SCAMP5M::addx(AREG y, AREG x0, AREG x1, news_t dir) {
                 case east: {
                     int dram_row_select = col - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_row_select >= 0) {
-                        int x0_val = this->dram->read_byte(row, dram_row_select, x0);
-                        int x1_val = this->dram->read_byte(row, dram_row_select, x1);
+                        int x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
+                        int x1_val = this->dram->read_signed_byte(row, dram_row_select, x1);
                         sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
                     }
                     break;
@@ -733,8 +732,8 @@ void SCAMP5M::addx(AREG y, AREG x0, AREG x1, news_t dir) {
                 case west: {
                     int dram_row_select = col + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_row_select < this->cols_) {
-                        int x0_val = this->dram->read_byte(row, dram_row_select, x0);
-                        int x1_val = this->dram->read_byte(row, dram_row_select, x1);
+                        int x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
+                        int x1_val = this->dram->read_signed_byte(row, dram_row_select, x1);
                         sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
                     }
                     break;
@@ -742,8 +741,8 @@ void SCAMP5M::addx(AREG y, AREG x0, AREG x1, news_t dir) {
                 case north: {
                     int dram_array_select = row - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_) {
-                        int x0_val = this->dram->read_byte(dram_array_select, col, x0);
-                        int x1_val = this->dram->read_byte(dram_array_select, col, x1);
+                        int x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
+                        int x1_val = this->dram->read_signed_byte(dram_array_select, col, x1);
                         sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
                     }
                     break;
@@ -751,8 +750,8 @@ void SCAMP5M::addx(AREG y, AREG x0, AREG x1, news_t dir) {
                 case south: {
                     int dram_array_select = row + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0) {
-                        int x0_val = this->dram->read_byte(dram_array_select, col, x0);
-                        int x1_val = this->dram->read_byte(dram_array_select, col, x1);
+                        int x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
+                        int x1_val = this->dram->read_signed_byte(dram_array_select, col, x1);
                         sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
                     }
                     break;
@@ -763,8 +762,8 @@ void SCAMP5M::addx(AREG y, AREG x0, AREG x1, news_t dir) {
                 };
             }
             int neg = this->alu->execute(0, sum, ALU::SUB);
-            this->dram->write_byte(row, col, y, sum);
-            this->dram->write_byte(row, col, NEWS, neg);
+            this->dram->write_signed_byte(row, col, y, sum);
+            this->dram->write_signed_byte(row, col, NEWS, neg);
         }
     }
     alu->update_dynamic(num_pixels * 2);
@@ -789,8 +788,8 @@ void SCAMP5M::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     dram_row_select = col - 1;  // TOP_RIGHT origin means it's -1
                     dram_array_select = row;
                     if (dram_row_select < 0) {
-                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
-                        x1_val = this->dram->read_byte(row, dram_row_select, x1);
+                        x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
+                        x1_val = this->dram->read_signed_byte(row, dram_row_select, x1);
                     }
                     break;
                 }
@@ -798,8 +797,8 @@ void SCAMP5M::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     dram_row_select = col + 1;  // TOP_RIGHT origin means it's +1
                     dram_array_select = row;
                     if (dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
-                        x1_val = this->dram->read_byte(row, dram_row_select, x1);
+                        x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
+                        x1_val = this->dram->read_signed_byte(row, dram_row_select, x1);
                     }
                     break;
                 };
@@ -807,8 +806,8 @@ void SCAMP5M::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     dram_array_select = row - 1;  // TOP_RIGHT origin means it's -1
                     dram_row_select = col;
                     if (dram_array_select < this->rows_) {
-                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
-                        x1_val = this->dram->read_byte(dram_array_select, col, x1);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
+                        x1_val = this->dram->read_signed_byte(dram_array_select, col, x1);
                     }
                     break;
                 };
@@ -816,8 +815,8 @@ void SCAMP5M::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     dram_array_select = row + 1;  // TOP_RIGHT origin means it's +1
                     dram_array_select = col;
                     if (dram_array_select >= 0) {
-                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
-                        x1_val = this->dram->read_byte(dram_array_select, col, x1);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
+                        x1_val = this->dram->read_signed_byte(dram_array_select, col, x1);
                     }
                     break;
                 };
@@ -828,38 +827,38 @@ void SCAMP5M::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
             }
             int sum = this->alu->execute(x0_val, x1_val, ALU::ADD);
             int neg = this->alu->execute(0, sum, ALU::SUB);
-            this->dram->write_byte(row, col, NEWS, neg);
+            this->dram->write_signed_byte(row, col, NEWS, neg);
 
             switch (dir2) {
                 case east: {
                     dram_row_select = dram_row_select - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select >= 0) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
-                        x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
+                        x1_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x1);
                     }
                     break;
                 }
                 case west: {
                     dram_row_select = dram_row_select + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
-                        x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
+                        x1_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x1);
                     }
                     break;
                 };
                 case north: {
                     dram_array_select = dram_array_select - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_ && dram_row_select >= 0 && dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
-                        x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
+                        x1_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x1);
                     }
                     break;
                 };
                 case south: {
                     dram_array_select = dram_array_select + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_row_select >= 0 && dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
-                        x1_val = this->dram->read_byte(dram_array_select, dram_row_select, x1);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
+                        x1_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x1);
                     }
                     break;
                 };
@@ -868,7 +867,7 @@ void SCAMP5M::add2x(AREG y, AREG x0, AREG x1, news_t dir, news_t dir2) {
                     break;
                 };
             }
-            this->dram->write_byte(row, col, y, this->alu->execute(x0_val, x1_val, ALU::ADD));
+            this->dram->write_signed_byte(row, col, y, this->alu->execute(x0_val, x1_val, ALU::ADD));
         }
     }
     alu->update_dynamic(num_pixels * 3);
@@ -889,8 +888,8 @@ void SCAMP5M::subx(AREG y, AREG x0, news_t dir, AREG x1) {
                 case east: {
                     int dram_row_select = col - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_row_select >= 0) {
-                        int x0_val = this->dram->read_byte(row, dram_row_select, x0);
-                        int x1_val = this->dram->read_byte(row, col, x1);
+                        int x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
+                        int x1_val = this->dram->read_signed_byte(row, col, x1);
                         sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
                     }
                     break;
@@ -898,8 +897,8 @@ void SCAMP5M::subx(AREG y, AREG x0, news_t dir, AREG x1) {
                 case west: {
                     int dram_row_select = col + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_row_select < this->cols_) {
-                        int x0_val = this->dram->read_byte(row, dram_row_select, x0);
-                        int x1_val = this->dram->read_byte(row, col, x1);
+                        int x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
+                        int x1_val = this->dram->read_signed_byte(row, col, x1);
                         sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
                     }
                     break;
@@ -907,8 +906,8 @@ void SCAMP5M::subx(AREG y, AREG x0, news_t dir, AREG x1) {
                 case north: {
                     int dram_array_select = row - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_) {
-                        int x0_val = this->dram->read_byte(dram_array_select, col, x0);
-                        int x1_val = this->dram->read_byte(row, col, x1);
+                        int x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
+                        int x1_val = this->dram->read_signed_byte(row, col, x1);
                         sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
                     }
                     break;
@@ -916,8 +915,8 @@ void SCAMP5M::subx(AREG y, AREG x0, news_t dir, AREG x1) {
                 case south: {
                     int dram_array_select = row + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0) {
-                        int x0_val = this->dram->read_byte(dram_array_select, col, x0);
-                        int x1_val = this->dram->read_byte(row, col, x1);
+                        int x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
+                        int x1_val = this->dram->read_signed_byte(row, col, x1);
                         sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
                     }
                     break;
@@ -928,8 +927,8 @@ void SCAMP5M::subx(AREG y, AREG x0, news_t dir, AREG x1) {
                 };
             }
             int neg = this->alu->execute(0, sub, ALU::SUB);
-            this->dram->write_byte(row, col, y, sub);
-            this->dram->write_byte(row, col, NEWS, neg);
+            this->dram->write_signed_byte(row, col, y, sub);
+            this->dram->write_signed_byte(row, col, NEWS, neg);
         }
     }
     alu->update_dynamic(num_pixels * 2);
@@ -954,8 +953,8 @@ void SCAMP5M::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
                     dram_row_select = col - 1;  // TOP_RIGHT origin means it's -1
                     dram_array_select = row;
                     if (dram_row_select < 0) {
-                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
-                        x1_val = this->dram->read_byte(row, col, x1);
+                        x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
+                        x1_val = this->dram->read_signed_byte(row, col, x1);
                     }
                     break;
                 }
@@ -963,8 +962,8 @@ void SCAMP5M::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
                     dram_row_select = col + 1;  // TOP_RIGHT origin means it's +1
                     dram_array_select = row;
                     if (dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(row, dram_row_select, x0);
-                        x1_val = this->dram->read_byte(row, col, x1);
+                        x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
+                        x1_val = this->dram->read_signed_byte(row, col, x1);
                     }
                     break;
                 };
@@ -972,8 +971,8 @@ void SCAMP5M::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
                     dram_array_select = row - 1;  // TOP_RIGHT origin means it's -1
                     dram_row_select = col;
                     if (dram_array_select < this->rows_) {
-                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
-                        x1_val = this->dram->read_byte(row, col, x1);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
+                        x1_val = this->dram->read_signed_byte(row, col, x1);
                     }
                     break;
                 };
@@ -981,8 +980,8 @@ void SCAMP5M::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
                     dram_array_select = row + 1;  // TOP_RIGHT origin means it's +1
                     dram_row_select = col;
                     if (dram_array_select >= 0) {
-                        x0_val = this->dram->read_byte(dram_array_select, col, x0);
-                        x1_val = this->dram->read_byte(row, col, x1);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
+                        x1_val = this->dram->read_signed_byte(row, col, x1);
                     }
                     break;
                 };
@@ -993,34 +992,34 @@ void SCAMP5M::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
             }
             int sub = this->alu->execute(x0_val, x1_val, ALU::SUB);
             int neg = this->alu->execute(0, sub, ALU::SUB);
-            this->dram->write_byte(row, col, NEWS, neg);
+            this->dram->write_signed_byte(row, col, NEWS, neg);
 
             switch (dir2) {
                 case east: {
                     dram_row_select = dram_row_select - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select >= 0) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 }
                 case west: {
                     dram_row_select = dram_row_select + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_array_select < this->rows_ && dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 };
                 case north: {
                     dram_array_select = dram_array_select - 1;  // TOP_RIGHT origin means it's -1
                     if (dram_array_select < this->rows_ && dram_row_select >= 0 && dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 };
                 case south: {
                     dram_array_select = dram_array_select + 1;  // TOP_RIGHT origin means it's +1
                     if (dram_array_select >= 0 && dram_row_select >= 0 && dram_row_select < this->cols_) {
-                        x0_val = this->dram->read_byte(dram_array_select, dram_row_select, x0);
+                        x0_val = this->dram->read_signed_byte(dram_array_select, dram_row_select, x0);
                     }
                     break;
                 };
@@ -1029,7 +1028,7 @@ void SCAMP5M::sub2x(AREG y, AREG x0, news_t dir, news_t dir2, AREG x1) {
                     break;
                 };
             }
-            this->dram->write_byte(row, col, y, this->alu->execute(x0_val, x1_val, ALU::SUB));
+            this->dram->write_signed_byte(row, col, y, this->alu->execute(x0_val, x1_val, ALU::SUB));
         }
     }
     alu->update_dynamic(num_pixels * 3);
@@ -1731,9 +1730,9 @@ void SCAMP5M::scamp5_in(AREG areg, int16_t value, AREG temp) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    this->dram->write_byte(patch, elem, IN, value);
-                    this->dram->write_byte(patch, elem, temp, -value);
-                    this->dram->write_byte(patch, elem, areg, value);
+                    this->dram->write_signed_byte(patch, elem, IN, value);
+                    this->dram->write_signed_byte(patch, elem, temp, -value);
+                    this->dram->write_signed_byte(patch, elem, areg, value);
                     elem++;
                 }
             }
@@ -1758,9 +1757,9 @@ void SCAMP5M::scamp5_load_in(AREG areg, int8_t value, AREG temp) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    this->dram->write_byte(patch, elem, IN, value);
-                    this->dram->write_byte(patch, elem, temp, -value);
-                    this->dram->write_byte(patch, elem, areg, value);
+                    this->dram->write_signed_byte(patch, elem, IN, value);
+                    this->dram->write_signed_byte(patch, elem, temp, -value);
+                    this->dram->write_signed_byte(patch, elem, areg, value);
                     elem++;
                 }
             }
@@ -1785,7 +1784,7 @@ void SCAMP5M::scamp5_load_in(int8_t value) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    this->dram->write_byte(patch, elem, IN, value);
+                    this->dram->write_signed_byte(patch, elem, IN, value);
                     elem++;
                 }
             }
@@ -1808,9 +1807,9 @@ void SCAMP5M::scamp5_load_dac(AREG areg, uint16_t value, AREG temp) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    this->dram->write_byte(patch, elem, IN, value);
-                    this->dram->write_byte(patch, elem, temp, -value);
-                    this->dram->write_byte(patch, elem, areg, value);
+                    this->dram->write_signed_byte(patch, elem, IN, value);
+                    this->dram->write_signed_byte(patch, elem, temp, -value);
+                    this->dram->write_signed_byte(patch, elem, areg, value);
                     elem++;
                 }
             }
@@ -1840,7 +1839,7 @@ void SCAMP5M::scamp5_load_dac(uint16_t value) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    this->dram->write_byte(patch, elem, IN, value);
+                    this->dram->write_signed_byte(patch, elem, IN, value);
                     elem++;
                 }
             }
@@ -1857,7 +1856,7 @@ uint8_t SCAMP5M::scamp5_read_areg(AREG areg, uint8_t r, uint8_t c) {
     // TODO check that the value is properly mapped to uint8_t
     dram->update_dynamic(8);
     this->update_cycles(8);
-    return this->dram->read_byte(r, c, areg);
+    return this->dram->read_signed_byte(r, c, areg);
 }
 
 int SCAMP5M::scamp5_global_or(DREG dreg, uint8_t r, uint8_t c, uint8_t rx,
@@ -2100,7 +2099,7 @@ void SCAMP5M::scamp5_scan_areg(AREG areg, uint8_t *buffer, uint8_t r0,
     int buf_index = 0;
     for (int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
         for (int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
-            buffer[buf_index++] = this->dram->read_byte(row, col, areg);
+            buffer[buf_index++] = this->dram->read_signed_byte(row, col, areg);
         }
     }
     dram->update_dynamic(num_pixels * 8);
@@ -2118,7 +2117,7 @@ void SCAMP5M::scamp5_scan_areg_8x8(AREG areg, uint8_t *result8x8) {
     int rs = this->rows_ / 8;
     for (int col = 0; col < this->cols_; col += cs) {
         for (int row = 0; row < this->rows_; row += rs) {
-            result8x8[buf_index++] = this->dram->read_byte(row, col, areg);
+            result8x8[buf_index++] = this->dram->read_signed_byte(row, col, areg);
         }
     }
     dram->update_dynamic(num_pixels * 8);
@@ -2139,7 +2138,7 @@ void SCAMP5M::scamp5_scan_dreg(DREG dreg, uint8_t *mem, uint8_t r0,
     for (uint32_t row_index = r0; row_index <= r1; row_index++) {
         // Read 8 values at a time to make up a byte
         for (int col_index = 0; col_index < this->cols_; col_index += 8) {
-            this->dram->read_byte(row_index, col_index, dreg);
+            this->dram->read_signed_byte(row_index, col_index, dreg);
             uint8_t b0 = this->dram->read_bit(row_index, col_index, dreg);
             uint8_t b1 = this->dram->read_bit(row_index, col_index + 1, dreg);
             uint8_t b2 = this->dram->read_bit(row_index, col_index + 2, dreg);
@@ -2220,10 +2219,10 @@ void SCAMP5M::display() {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    val_a.at<int16_t>(r, c) = this->dram->read_byte(patch, elem, A);
-                    val_b.at<int16_t>(r, c) = this->dram->read_byte(patch, elem, B);
-                    val_c.at<int16_t>(r, c) = this->dram->read_byte(patch, elem, C);
-                    val_d.at<int16_t>(r, c) = this->dram->read_byte(patch, elem, D);
+                    val_a.at<int16_t>(r, c) = this->dram->read_signed_byte(patch, elem, A);
+                    val_b.at<int16_t>(r, c) = this->dram->read_signed_byte(patch, elem, B);
+                    val_c.at<int16_t>(r, c) = this->dram->read_signed_byte(patch, elem, C);
+                    val_d.at<int16_t>(r, c) = this->dram->read_signed_byte(patch, elem, D);
                     val_r5.at<uint8_t>(r, c) = this->dram->read_bit(patch, elem, R5);
                     elem++;
                 }
@@ -2253,17 +2252,8 @@ void SCAMP5M::display() {
     UI::get_instance().display_reg(r5r);
 }
 
-void SCAMP5M::init_viola() {
-    cv::samples::addSamplesDataSearchPath("/home/jm1417/Simulator/scamp5_multiplexed");
-    std::string face_cascade_name = cv::samples::findFile("haarcascade_frontalface_default.xml");
-//    if (!classifier_.load(face_cascade_name)) {
-//        std::cout << "--(!)Error loading face cascade\n";
-//        exit(EXIT_FAILURE);
-//    };
-}
-
 std::shared_ptr<VjClassifier> SCAMP5M::read_viola_classifier(const std::string &classifier_path) {
-    int stages = 20; // number of stages
+    int stages = 25; // number of stages
     /*total number of weak classifiers (one node each)*/
     int total_nodes = 2913;
     int i, j, k, l;
@@ -2449,12 +2439,21 @@ std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image>& src, std:
          * compute a new integral and squared integral image
          ***************************************************/
         vj_integral_image(img1, sum1, sqsum);
-        cv::Mat sum1v = this->readout(D);
-        cv::imshow("Sum", sum1v);
-        double minVal, maxVal;
-        cv::minMaxLoc(sum1v, &minVal, &maxVal);
-//        std::cout << minVal << " " << maxVal << std::endl;
-        cv::waitKey(1);
+//        for (int y = 0; y < sum1->height; ++y) {
+//            for (int x = 0; x < sum1->width; ++x) {
+//                std::cout << this->dram->read_signed_int(y, x, sum1->reg) << " ";
+//            }
+//        }
+//        std::cout << "----------------------------\n";
+//        exit(EXIT_FAILURE);
+
+//        cv::Mat sum1v = this->readout(D);
+
+//        cv::imshow("Sum", sum1v);
+//        double minVal, maxVal;
+//        cv::minMaxLoc(sum1v, &minVal, &maxVal);
+////        std::cout << minVal << " " << maxVal << std::endl;
+//        cv::waitKey(1);
 
         /* sets images for haar classifier cascade */
         /**************************************************
@@ -2516,8 +2515,8 @@ void SCAMP5M::vj_set_image_for_cascade(std::shared_ptr<VjClassifier> classifier,
     classifier->sp3 = sum->width * (equRect.height - 1) + equRect.width - 1;
     classifier->sqp0 = 0;
     classifier->sqp1 = equRect.width - 1;
-    classifier->sqp2 = sum->width * (equRect.height - 1);
-    classifier->sqp3 = sum->width * (equRect.height - 1) + equRect.width - 1;
+    classifier->sqp2 = sqsum->width * (equRect.height - 1);
+    classifier->sqp3 = sqsum->width * (equRect.height - 1) + equRect.width - 1;
 
     /****************************************
      * Load the index of the four corners
@@ -2558,6 +2557,7 @@ void SCAMP5M::vj_set_image_for_cascade(std::shared_ptr<VjClassifier> classifier,
             w_index += 3;
         } /* end of j loop */
     } /* end i loop */
+
 }
 
 
@@ -2588,6 +2588,7 @@ void SCAMP5M::vj_scale_invoke(std::shared_ptr<VjClassifier> classifier, std::sha
      *********************************************/
     for (x = 0; x < x2; x += step)
         for (y = 0; y < y2; y += step) {
+//            std::cout << "x: " << x << " y: " << y << "\n";
             p.x = x;
             p.y = y;
 
@@ -2614,6 +2615,7 @@ int SCAMP5M::run_vj_classifier(std::shared_ptr<VjClassifier> classifier, std::sh
     int r_index = 0;
     int stage_sum;
 
+//    std::cout << sum_val->size() << std::endl;
     p_offset = pt.y * (classifier->sum_img->width) + pt.x;
     pq_offset = pt.y * (classifier->sqsum_img->width) + pt.x;
 
@@ -2677,9 +2679,12 @@ inline int SCAMP5M::evalWeakClassifier(std::shared_ptr<VjClassifier> classifier,
     /* the node threshold is multiplied by the standard deviation of the image */
     int t = classifier->tree_thresh_array_->at(tree_index) * variance_norm_factor;
 
+    int i = classifier->scaled_rectangles_array_->at(r_index + 2);
+    int index = i + p_offset;
+//    std::cout << i << ", " << p_offset << std::endl;
     int sum = (sum_val->at(classifier->scaled_rectangles_array_->at(r_index) + p_offset)
                - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 1) + p_offset)
-               - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 2) + p_offset)
+               - sum_val->at(index)
                + sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 3) + p_offset))
               * classifier->weights_array_->at(w_index);
 
@@ -2710,7 +2715,7 @@ std::shared_ptr<std::vector<int>> SCAMP5M::vj_readout(AREG src) {
 
     for (int row = 0; row < rows_; row++) {
         for (int col = 0; col < cols_; col++) {
-            out->push_back(this->dram->read_int(row, col, src));
+            out->push_back(this->dram->read_signed_int(row, col, src));
         }
     }
 
@@ -2737,8 +2742,8 @@ void SCAMP5M::vj_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> s
         rat = 0;
         for (int j = 0; j < w2; j++) {
             x = (rat >> 16);
-            int val = this->dram->read_int(y, x, src->reg);
-            this->dram->write_int(i, j, dst->reg, val);
+            int val = this->dram->read_signed_int(y, x, src->reg);
+            this->dram->write_signed_int(i, j, dst->reg, val);
             rat += x_ratio;
         }
     }
@@ -2746,18 +2751,41 @@ void SCAMP5M::vj_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> s
 
 void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Image> sum_image, std::shared_ptr<Image> sqrsum_image) {
     // uses NEWS and F as temps
-
     int height = src->height;
     int width = src->width;
 
-    std::shared_ptr<Image> sum_temp = std::make_shared<Image>(width, height, NEWS, 1);
-    std::shared_ptr<Image> sqsum_temp = std::make_shared<Image>(width, height, F, 1);
+
+//    std::shared_ptr<Image> sum_temp = std::make_shared<Image>(width, height, NEWS, 1);
+//    std::shared_ptr<Image> sqsum_temp = std::make_shared<Image>(width, height, F, 1);
+
+    int x, y, s, sq, t, tq;
+    unsigned char it;
+    for (y = 0; y < height; y++) {
+        s = 0;
+        sq = 0;
+        /* loop over the number of columns */
+        for (x = 0; x < width; x++) {
+            it = this->dram->read_signed_int(y, x, src->reg);
+            /* sum of the current row (integer)*/
+            s += it;
+            sq += it * it;
+
+            t = s;
+            tq = sq;
+            if (y != 0) {
+                t += this->dram->read_signed_int(y - 1, x, sum_image->reg);
+                tq += this->dram->read_signed_int(y - 1, x, sqrsum_image->reg);
+            }
+            this->dram->write_signed_int(y, x, sum_image->reg, t);
+            this->dram->write_signed_int(y, x, sqrsum_image->reg, tq);
+        }
+    }
 
 //    for (int row = 0; row < rows_; row += row_stride_) {
 //        for (int col = 0; col < cols_; col += col_stride_) {
 //            for (int r = row; r < row + row_stride_; r++) {
 //                for (int c = col; c < col + col_stride_; c++) {
-//                    int i = this->dram->read_byte(patch, index(r-row, c-col, cols_), src) + 128;
+//                    int i = this->dram->read_signed_byte(patch, index(r-row, c-col, cols_), src) + 128;
 //                    std::cout << i << ",";
 //                }
 //            }
@@ -2767,18 +2795,18 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 //    }
 
     //sum up each row in parallel
-    for (int row = 0; row < height; row ++) {
-        int sum = 0;
-        int sqsum = 0;
-        for (int col = 0; col < width; col ++) {
-            int i = this->dram->read_int(row, col, src->reg);
-            sum = this->alu->execute(sum, i, ALU::ADD);
-            int sq = this->alu->execute(i, i, ALU::MUL);
-            sqsum = this->alu->execute(sq, sqsum, ALU::ADD);
-            this->dram->write_int(row, col, sum_temp->reg, sum);
-            this->dram->write_int(row, col, sqsum_temp->reg, sq);
-        }
-    }
+//    for (int row = 0; row < height; row ++) {
+//        int sum = 0;
+//        int sqsum = 0;
+//        for (int col = 0; col < width; col ++) {
+//            int i = this->dram->read_signed_int(row, col, src->reg);
+//            sum = this->alu->execute(sum, i, ALU::ADD);
+//            int sq = this->alu->execute(i, i, ALU::MUL);
+//            sqsum = this->alu->execute(sq, sqsum, ALU::ADD);
+//            this->dram->write_signed_int(row, col, sum_temp->reg, sum);
+//            this->dram->write_signed_int(row, col, sqsum_temp->reg, sq);
+//        }
+//    }
 
 //    std::cout << "Row sums-------------" << std::endl;
 //    patch = 0;
@@ -2786,7 +2814,7 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 //        for (int col = 0; col < cols_; col += col_stride_) {
 //            for (int r = row; r < row + row_stride_; r++) {
 //                for (int c = col; c < col + col_stride_; c++) {
-//                    int i = this->dram->read_int(patch, index(r-row, c-col, cols_), F);
+//                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), F);
 //                    std::cout << i << ",";
 //                }
 //            }
@@ -2795,8 +2823,8 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 //        std::cout << "\n";
 //    }
 
-    vj_transpose(sum_image, sum_temp);
-    vj_transpose(sqrsum_image, sqsum_temp);
+//    vj_transpose(sum_image, sum_temp);
+//    vj_transpose(sqrsum_image, sqsum_temp);
 //
 //    std::cout << "Transpose -------------" << std::endl;
 //    patch = 0;
@@ -2804,7 +2832,7 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 //        for (int col = 0; col < cols_; col += col_stride_) {
 //            for (int r = row; r < row + row_stride_; r++) {
 //                for (int c = col; c < col + col_stride_; c++) {
-//                    int i = this->dram->read_int(patch, index(r-row, c-col, cols_), sqrsum_image);
+//                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), sqrsum_image);
 //                    std::cout << i << ",";
 //                }
 //            }
@@ -2815,19 +2843,19 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 
     //sum up each row in parallel (now comtains cols)
 
-    for (int row = 0; row < height; row ++) {
-        int sum = 0;
-        int sqsum = 0;
-        for (int col = 0; col < width; col ++) {
-            int i = this->dram->read_int(row, col, sum_image->reg);
-            sum = this->alu->execute(sum, i, ALU::ADD);
-            this->dram->write_int(row, col, sum_temp->reg, sum);
-
-            int j = this->dram->read_int(row, col, sqrsum_image->reg);
-            sqsum = this->alu->execute(sqsum, j, ALU::ADD);
-            this->dram->write_int(row, col, sqsum_temp->reg, sqsum);
-        }
-    }
+//    for (int row = 0; row < height; row ++) {
+//        int sum = 0;
+//        int sqsum = 0;
+//        for (int col = 0; col < width; col ++) {
+//            int i = this->dram->read_signed_int(row, col, sum_image->reg);
+//            sum = this->alu->execute(sum, i, ALU::ADD);
+//            this->dram->write_signed_int(row, col, sum_temp->reg, sum);
+//
+//            int j = this->dram->read_signed_int(row, col, sqrsum_image->reg);
+//            sqsum = this->alu->execute(sqsum, j, ALU::ADD);
+//            this->dram->write_signed_int(row, col, sqsum_temp->reg, sqsum);
+//        }
+//    }
 
 //    std::cout << "Sum cols -------------" << std::endl;
 //    patch = 0;
@@ -2835,7 +2863,7 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 //        for (int col = 0; col < cols_; col += col_stride_) {
 //            for (int r = row; r < row + row_stride_; r++) {
 //                for (int c = col; c < col + col_stride_; c++) {
-//                    int i = this->dram->read_int(patch, index(r-row, c-col, cols_), F);
+//                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), F);
 //                    std::cout << i << ",";
 //                }
 //            }
@@ -2845,8 +2873,8 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 //    }
 
 
-    vj_transpose(sum_image, sum_temp);
-    vj_transpose(sqrsum_image, sqsum_temp);
+//    vj_transpose(sum_image, sum_temp);
+//    vj_transpose(sqrsum_image, sqsum_temp);
 
 //    std::cout << "Final sums -------------" << std::endl;
 //    patch = 0;
@@ -2854,7 +2882,7 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 //        for (int col = 0; col < cols_; col += col_stride_) {
 //            for (int r = row; r < row + row_stride_; r++) {
 //                for (int c = col; c < col + col_stride_; c++) {
-//                    int i = this->dram->read_int(patch, index(r-row, c-col, cols_), sum_image->reg);
+//                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), sum_image->reg);
 //                    std::cout << i << ",";
 //                }
 //            }
@@ -2868,8 +2896,8 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
 void SCAMP5M::vj_transpose(std::shared_ptr<Image> dst, std::shared_ptr<Image> src) {
     for (int row = 0; row < src->height; row ++) {
         for (int col = 0; col < src->width; col ++) {
-            int i = this->dram->read_int(col, row, src->reg);
-            this->dram->write_int(row, col, dst->reg, i);
+            int i = this->dram->read_signed_int(col, row, src->reg);
+            this->dram->write_signed_int(row, col, dst->reg, i);
         }
     }
 }
@@ -2879,24 +2907,24 @@ cv::Mat SCAMP5M::readout(AREG areg) {
     cv::Mat val = cv::Mat::zeros(cv::Size(rows_, cols_), CV_8U);
     for (int row = 0; row < rows_; row ++) {
         for (int col = 0; col < cols_; col++) {
-            int i = this->dram->read_int(row, col, areg);
-//            val.at<uint8_t>(row, col) = i + 128;
+            int i = this->dram->read_signed_int(row, col, areg);
+            val.at<uint8_t>(row, col) = i ;
         }
     }
     return val;
 }
 
 void SCAMP5M::viola_jones(AREG areg) {
-//    cv::Mat val = cv::Mat::zeros(cv::Size(rows_, cols_), CV_8U);
-//    for (int row = 0; row < rows_; row ++) {
-//        for (int col = 0; col < cols_; col++) {
-//            int i = this->dram->read_byte(row, col, areg);
-//            this->dram->write_byte(row, col, areg, i+128);
-//            val.at<uint8_t>(row, col) = i+128;
-//        }
-//    }
+    cv::Mat val = cv::Mat::zeros(cv::Size(rows_, cols_), CV_8U);
+    for (int row = 0; row < rows_; row ++) {
+        for (int col = 0; col < cols_; col++) {
+            int i = this->dram->read_signed_byte(row, col, areg);
+            this->dram->write_signed_int(row, col, areg, i + 128);
+            val.at<uint8_t>(row, col) = i+128;
+        }
+    }
 
-    cv::Mat val = this->readout(A);
+//    cv::Mat val = this->readout(A);
 
     Size minSize = {20, 20};
     Size maxSize = {0, 0};
@@ -2973,11 +3001,11 @@ void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
 
                     for (int k = 0; k < 8; ++k) {
                         int coefficient = DCT[r - row][k];
-                        int val = this->dram->read_byte(patch, index(k, c - col, 8), src);
+                        int val = this->dram->read_signed_byte(patch, index(k, c - col, 8), src);
                         int mult = this->alu->execute(coefficient, val, ALU::MUL);
                         sum = this->alu->execute(sum, mult, ALU::ADD);
                     }
-                    this->dram->write_int(patch, index(r - row, c - col, 8), dst, sum);
+                    this->dram->write_signed_int(patch, index(r - row, c - col, 8), dst, sum);
 
                 }
             }
@@ -2994,11 +3022,11 @@ void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
 
                     for (int k = 0; k < 8; ++k) {
                         int coefficient = DCT_transpose[k][c - col];
-                        int val = this->dram->read_int(patch, index(r - row, k, 8), dst);
+                        int val = this->dram->read_signed_int(patch, index(r - row, k, 8), dst);
                         int mult = this->alu->execute(coefficient, val, ALU::MUL);
                         sum = this->alu->execute(sum, mult, ALU::ADD);
                     }
-                    this->dram->write_int(patch, index(r - row, c - col, 8), NEWS, sum);
+                    this->dram->write_signed_int(patch, index(r - row, c - col, 8), NEWS, sum);
                 }
             }
             patch++;
@@ -3012,10 +3040,10 @@ void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
             int elem = 0;
             for (int r = row; r < row + row_stride_; r++) {
                 for (int c = col; c < col + col_stride_; c++) {
-                    int val = this->dram->read_int(patch, elem, NEWS);
+                    int val = this->dram->read_signed_int(patch, elem, NEWS);
                     val = this->alu->execute(val, sf, ALU::DIV);
                     val = this->alu->execute(val, Q50[r - row][c - col], ALU::DIV);
-                    this->dram->write_int(patch, elem, dst, val);
+                    this->dram->write_signed_int(patch, elem, dst, val);
                     elem++;
                 }
             }
@@ -3111,11 +3139,11 @@ void SCAMP5M::print_stats(json &config, const std::string &output_path) {
 //                    double v2 = ceil(((double)(angle - (b1 * bucket_size)) / bucket_size) * magnitude);
 //                    double v1 = ceil(magnitude - v2);
 //
-//                    int value = this->dram_->read_byte(block, b1, m_col);
-//                    this->dram_->write_byte(block, b1, m_col, value + v1);
+//                    int value = this->dram_->read_signed_byte(block, b1, m_col);
+//                    this->dram_->write_signed_byte(block, b1, m_col, value + v1);
 //
-//                    int value2 = this->dram_->read_byte(block, b2, m_col);
-//                    this->dram_->write_byte(block, b2, m_col, value2 + v2);
+//                    int value2 = this->dram_->read_signed_byte(block, b2, m_col);
+//                    this->dram_->write_signed_byte(block, b2, m_col, value2 + v2);
 //                }
 //            }
 //            block++;
@@ -3126,7 +3154,7 @@ void SCAMP5M::print_stats(json &config, const std::string &output_path) {
 //    for (int b = 0; b < block; b++) {
 //        std::cout << "B:" << b;
 //        for (int i = 0; i < 10; i++) {  //todo parameterise properly
-//            int i1 = this->dram_->read_byte(b, i, 0);
+//            int i1 = this->dram_->read_signed_byte(b, i, 0);
 //            std::cout << ", Bin: " << i * 20 << ", Count: " << i1 << " |";
 //        }
 //        std::cout << std::endl;
