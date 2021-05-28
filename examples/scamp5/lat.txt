@@ -1,0 +1,28 @@
+// local adaptive thresholding. 
+// works decently with 512x512 resolution images of say book pages
+get_image(A, D)
+div(B, C, A); 
+diva(B, C, D); 
+diva(B, C, D); 
+diva(B, C, D); 
+diva(B, C, D); 
+diva(B, C, D); 
+movx(C, B, south); 
+movx(D, B, north); 
+add(C, C, B, D); 
+mov2x(D, C, south, south); 
+mov2x(C, C, north, north); 
+add(B, D, B, C); 
+movx(D, B, west); 
+movx(C, B, east); 
+add(D, B, D, C); 
+mov2x(C, D, west, west); 
+mov2x(D, D, east, east); 
+add(B, B, C, D); 
+sub(C, A, B);
+scamp5_in(B, 35);
+add(C, C, B);
+where(C);	// where C > 0
+    MOV(R5, FLAG);
+all();
+

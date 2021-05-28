@@ -35,20 +35,21 @@ class SCAMP5E : public SCAMP5 {
     SCAMP5E() = default;
     void init();
     rttr::variant bitorder_converter(json &j);
+    void print_stats(json &config, const std::string &output_path);
 
     // Superpixel methods
     void set_bitorder(Bitorder bitorder);
 
     void superpixel_positions_from_bitorder(position_map &locations);
     void superpixel_shift_patterns_from_bitorder(int bank, const std::shared_ptr<DREG>&RNORTH,
-                                                 const std::shared_ptr<DREG>&RSOUTH, const std::shared_ptr<DREG>&REAST, std::shared_ptr<DREG>RWEST,
+                                                 const std::shared_ptr<DREG>&RSOUTH, const std::shared_ptr<DREG>&REAST, const std::shared_ptr<DREG>&RWEST,
                                                  bool shift_left);
     void superpixel_shift_block(const std::shared_ptr<DREG>&dst, const std::shared_ptr<DREG>&src,
                                 const std::shared_ptr<DREG>&RNORTH,
-                                const std::shared_ptr<DREG>&RSOUTH, std::shared_ptr<DREG>REAST,
+                                const std::shared_ptr<DREG>&RSOUTH, const std::shared_ptr<DREG>&REAST,
                                 const std::shared_ptr<DREG>&RWEST);
-    void superpixel_adc(const std::shared_ptr<DREG>&dst, int bank, std::shared_ptr<AREG>src);
-    void superpixel_dac(std::shared_ptr<AREG>dst, int bank, const std::shared_ptr<DREG>&src);
+    void superpixel_adc(const std::shared_ptr<DREG>&dst, int bank, const std::shared_ptr<AREG>&src);
+    void superpixel_dac(const std::shared_ptr<AREG>&dst, int bank, const std::shared_ptr<DREG>&src);
     void superpixel_in(const std::shared_ptr<DREG>&dst, int bank, int value);
     void superpixel_shift(const std::shared_ptr<DREG>&dst, int bank, const std::shared_ptr<DREG>&src, int shift_left);
     void superpixel_shift_right(const std::shared_ptr<DREG>&dst, int bank, const std::shared_ptr<DREG>&src);
@@ -60,6 +61,7 @@ class SCAMP5E : public SCAMP5 {
     // Histogramming
     void histogram(const std::shared_ptr<AREG>& src);
     void hog(const std::shared_ptr<AREG>& src);
+
 };
 
 

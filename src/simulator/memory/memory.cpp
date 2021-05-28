@@ -8,35 +8,28 @@
 #include <simulator/memory/si_cell.h>
 #include <simulator/memory/sram6t_cell.h>
 
-Memory::Memory(int rows, int cols, int row_stride, int col_stride) :
-    rows_(rows),
-    cols_(cols),
-    row_stride_(row_stride),
-    col_stride_(col_stride),
-    internal_mask(rows, cols, CV_8U, cv::Scalar(0))
-{
-    this->fun_internal_mask(rows, cols, row_stride, col_stride);
-}
-
 std::shared_ptr<Memory> Memory::construct(MemoryType memory_type, int rows, int cols, int row_stride, int col_stride, const std::shared_ptr<Config>& config) {
+    std::shared_ptr<Memory> memory;
     switch(memory_type) {
         case DRAM3T: {
-            return std::make_shared<Dram3tCell>(rows, cols, row_stride, col_stride, config);
+            memory = std::make_shared<Dram3tCell>();
+            break;
         }
         case SRAM6T: {
-            return std::make_shared<Sram6tCell>(rows, cols, row_stride, col_stride, config);
+            memory = std::make_shared<Sram6tCell>();
+            break;
         }
         case S2I: {
-            return std::make_shared<SiCell>(rows, cols, row_stride, col_stride, config);
+            memory = std::make_shared<SiCell>();
+            break;
         };
     }
-}
-
-void Memory::fun_internal_mask(int rows, int cols, int row_stride, int col_stride) {
-    for (int row = 0; row < rows; row += row_stride) {
-        for (int col = 0; col < cols; col += col_stride) {
-            this->internal_mask.at<uint8_t>(row, col) = 1;
-        }
-    }
+    memory->set_rows(rows);
+    memory->set_cols(cols);
+    memory->set_row_stride(row_stride);
+    memory->set_col_stride(col_stride);
+    memory->set_config(config);
+    memory->init();
+    return memory;
 }
 

@@ -41,8 +41,8 @@ rttr::variant Parser::get_arg(rttr::instance class_obj, const std::string& arg) 
     // Try to get/convert the argument. If nothing else works then will be treated as string
     // Tried in this order:
     // 1. Class property that has been registered
-    // 2. Enum value of one of the given enum types
-    // 3. Cache
+    // 2. Cache
+    // 3. Enum value of one of the given enum types
     // 4. Integer
     // 5. Float
     // 6. String
@@ -54,16 +54,16 @@ rttr::variant Parser::get_arg(rttr::instance class_obj, const std::string& arg) 
         return arg_val;
     }
 
+    if (cache.find(arg) != cache.end()) {
+        // found in cache
+        return cache[arg];
+    }
+
     for (rttr::enumeration& e: enums_) {
         arg_val = e.name_to_value(arg);
         if (arg_val.is_valid()) {
             return arg_val;
         }
-    }
-
-    if (cache.find(arg) != cache.end()) {
-        // found in cache
-        return cache[arg];
     }
 
     char* p = nullptr;
@@ -126,13 +126,9 @@ rttr::method Parser::get_method(const rttr::type& class_type, std::vector<rttr::
         }
     }
 
-    //    std::string types;
-    //    for (auto& t : arg_types) {
-    //        types += t.get_name().to_string() = ", ";
-    //    }
-
-    std::cerr << "Method \"" << instr << "\" not found with given argument types. It may not have been registered or you may have passed arguments with incorrect types" << std::endl;
-    exit(EXIT_FAILURE);
+    std::cerr << "Method \"" << instr << "\" not found with given argument types. It may not have been registered or you may have passed arguments with incorrect types. Continuing" << std::endl;
+    return instr_method;
+//    exit(EXIT_FAILURE);
 }
 
 std::vector<rttr::enumeration> Parser::get_enums() {
@@ -192,7 +188,9 @@ Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream&
         }
 
         rttr::method instr_method = get_method(class_type, args, arg_types, instr);
-        instructionArgs.emplace_back(instr_method, args);
+        if (instr_method.is_valid()) {
+            instructionArgs.emplace_back(instr_method, args);
+        }
     }
     return instructionArgs;
 }
@@ -259,6 +257,7 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
                 std::cerr << "Could not inherit property " << name << " as it does not exist in the cache" << std::endl;
                 exit(EXIT_FAILURE);
             }
+//            std::cout << arch_name << "->" << name << "=" << val->second.convert<std::string>() << std::endl;
             set_property(class_type, class_obj, name, val->second);
         }
     }
@@ -327,6 +326,10 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     std::string arch_name = c["architecture"];
     json arch_props = c[arch_name];
     rttr::variant arch = create_instance(arch_name, arch_props);
+    if (arch_props.empty()) {
+        std::cerr << "No architecture definition found for \"" << arch_name << "\"" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     // UI
     bool ui_enabled = false;
@@ -335,7 +338,7 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     }
 
     std::vector<std::shared_ptr<Register>> regs_to_display;
-    UI ui;
+    UI& ui = UI::get_instance();
     if (ui_enabled) {
         if (c.contains("ui_registers_to_display")) {
             json regs = c["ui_registers_to_display"];
@@ -348,7 +351,6 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
                 regs_to_display.push_back(arg.get_value<std::shared_ptr<Register> >());
             }
         }
-        ui.start();
     }
 
     Instructions instructions = Parser::parse_instructions(arch, program);
@@ -375,7 +377,7 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 
         if (frame_time) {
             int e2 = cv::getTickCount();
-            std::cout << ((e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
+            std::cout << ((double)(e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
         }
 
         if (ui_enabled) {
@@ -398,8 +400,13 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     }
 
     // Stats
-    if (c["with_stats"] && c["with_stats"] == true) {
-        if (!arch.extract_wrapped_value().get_type().invoke("print_stats", arch, {}).is_valid()) {
+    if (c.contains("with_stats") && c["with_stats"] == true) {
+        std::vector<rttr::argument> args;
+        args.emplace_back(c);
+        if (c.contains("output_filename")){
+            args.emplace_back(c["output_filename"].get<std::string>());
+        }
+        if (!arch.extract_wrapped_value().get_type().invoke("print_stats", arch, args).is_valid()) {
             std::cerr << "Could not print stats for run. Has a \"print_stats\" method been registered?" << std::endl;
         }
     }

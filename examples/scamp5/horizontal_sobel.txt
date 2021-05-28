@@ -3,3 +3,4 @@ movx(B, A, west);
 addx(A, B, A, east);
 addx(B, B, A, south);
 sub2x(A, B, north, north, B);
+display();

@@ -5,17 +5,12 @@
 #ifndef SIMULATOR_SCAMP5_H
 #define SIMULATOR_SCAMP5_H
 
-#include <opencv4/opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <rttr/type>
 
+#include "news_t.h"
 #include "simulator/base/architecture.h"
-#include "simulator/base/processing_element.h"
-
-enum news_t { east = 1,
-              west = 2,
-              north = 4,
-              south = 8,
-              alldir = 15 };
+#include "simulator/pe/processing_element.h"
 
 typedef AnalogueRegister AREG;
 typedef DigitalRegister DREG;
@@ -50,7 +45,6 @@ class SCAMP5 : public Architecture {
 
     SCAMP5() = default;
     void init();
-    rttr::variant components_converter(json& j);
     rttr::variant config_converter(json& j);
     void set_rows(int rows);
     void set_cols(int cols);
@@ -380,29 +374,9 @@ class SCAMP5 : public Architecture {
     void scamp5_scan_boundingbox(const std::shared_ptr<DREG>& dr, uint8_t* vec4v);
 
     // Simulator specific methods
-    void print_stats();
-    RTTR_ENABLE();
+    void print_stats(json &config, const std::string &output_path);
+    RTTR_ENABLE(Architecture);
 };
 
-//class SCAMP5::builder {
-//    RTTR_ENABLE();
-//
-//   private:
-//    int rows_ = 256;
-//    int cols_ = 256;
-//    Origin origin_ = Origin::TOP_LEFT;
-//    Config config_;
-//    std::unordered_map<std::string, std::shared_ptr<Component>> components_;
-//
-//   public:
-//    builder& with_rows(int rows);
-//    builder& with_cols(int cols);
-//    builder& with_origin(Origin origin);
-//    builder& with_config(Config config);
-//    builder& with_components(std::unordered_map<std::string, std::shared_ptr<Component>> components);
-//    builder& with_analogue_registers();
-//
-//    SCAMP5 build();
-//};
 
 #endif  // SIMULATOR_SCAMP5_H

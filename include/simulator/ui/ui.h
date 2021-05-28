@@ -18,7 +18,7 @@ class Register;
 
 class UI {
    private:
-    bool has_started = false;
+    UI();
     std::set<uWS::WebSocket<false, true> *> wss;
 
     /* Middleware to fill out content-type */
@@ -49,7 +49,12 @@ class UI {
     void server_run();
 
    public:
-    void start();
+
+    static UI& get_instance(){
+        static UI instance;
+        return instance;
+    }
+
     void send_string(const std::string &data) const;
     void display_reg(const std::shared_ptr<Register>& reg);
 };

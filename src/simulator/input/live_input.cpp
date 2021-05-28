@@ -7,15 +7,14 @@
 #include <simulator/base/architecture.h>
 
 #include <chrono>
-#include <opencv4/opencv2/imgproc.hpp>
-#include <opencv4/opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 
-LiveInput::LiveInput() = default;
-
-LiveInput::LiveInput(int rows, int cols) {
+LiveInput::LiveInput(int rows, int cols, int camera_index) {
     this->rows_ = rows;
     this->cols_ = cols;
-    this->capture = std::make_unique<cv::VideoCapture>(0);
+    std::cout << "Using camera: " << camera_index << "\n";
+    this->capture = std::make_unique<cv::VideoCapture>(camera_index);
     if(!this->capture->isOpened()) {
         std::cerr << "Could not open camera" << std::endl;
         exit(1);
@@ -26,7 +25,7 @@ LiveInput::LiveInput(int rows, int cols) {
     this->frame.setTo(0);
 }
 
-void LiveInput::read(Register &reg) {
+cv::Mat LiveInput::read() {
 #ifdef USE_RUNTIME_CHECKS
     if(this->capture == nullptr) {
         std::cerr << "No video capture defined" << std::endl;
@@ -49,12 +48,16 @@ void LiveInput::read(Register &reg) {
     cv::resize(cropFrame, cropFrame, *this->size);
     cropFrame.convertTo(temp, MAT_TYPE, 1, -128);
     cv::add(this->frame, temp, this->frame);
-    reg.write(this->frame);
     auto TIME_END = std::chrono::high_resolution_clock::now();
     long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                            TIME_END - TIME_START)
-                            .count();
+        TIME_END - TIME_START)
+        .count();
     time_taken = time_in_nano * 1e-9;
+    return this->frame;
+}
+
+void LiveInput::read(Register &reg) {
+    reg.write(this->read());
 }
 
 void LiveInput::reset() { this->frame.setTo(0); }

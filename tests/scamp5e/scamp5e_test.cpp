@@ -13,6 +13,7 @@ SCAMP5E setup(int rows, int cols, Bitorder bitorder, Origin origin) {
 
     std::shared_ptr<Config> config = std::make_shared<Config>(1e7);
     std::shared_ptr<Pixel> pixel = std::make_shared<Pixel>(rows, cols, 1, 1, LIVE, "", config);
+    pixel->init();
 
     std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers;
     analogue_registers["PIX"] = std::make_shared<AnalogueRegister>(rows, cols, config);
@@ -52,12 +53,15 @@ SCAMP5E setup(int rows, int cols, Bitorder bitorder, Origin origin) {
     pe->set_analogue_registers(analogue_registers);
     pe->set_digital_registers(digital_registers);
 
+    std::shared_ptr<Dram> dram = std::make_shared<Dram>();
+
     SCAMP5E s = SCAMP5E();
     s.set_rows(rows);
     s.set_cols(cols);
     s.set_origin(origin);
     s.set_bitorder(std::move(bitorder));
     s.add_component("pe", pe);
+    s.add_component("dram", dram);
     s.init();
 
     return s;
@@ -216,6 +220,42 @@ TEST_CASE("shift patterns are generated correctly for arbitrary bitorders and di
         REQUIRE(utility::mats_are_equal(RSOUTH->read(), expected_s));
         REQUIRE(utility::mats_are_equal(RWEST->read(), expected_w));
     }
+
+    SECTION("2-bank 8-bit bitorder") {
+        int rows = 4;
+        int cols = 4;
+        int bank = 1;
+
+        Bitorder bitorder = {
+            {{1, 8, 0, 0},
+            {2, 7, 0, 0},
+            {3, 6, 0, 0},
+            {4, 5, 0, 0}},
+            {{0, 0, 1, 8},
+            {0, 0, 2, 7},
+            {0, 0, 3, 6},
+            {0, 0, 4, 5}}};
+
+        SCAMP5E s = setup(rows, cols, bitorder, TOP_RIGHT);
+
+        std::shared_ptr<DigitalRegister> RNORTH = std::make_shared<DigitalRegister>((cv::Mat)cv::Mat::zeros(cv::Size(cols, rows), CV_8U));
+        std::shared_ptr<DigitalRegister> REAST = std::make_shared<DigitalRegister>((cv::Mat)cv::Mat::zeros(cv::Size(cols, rows), CV_8U));
+        std::shared_ptr<DigitalRegister> RSOUTH = std::make_shared<DigitalRegister>((cv::Mat)cv::Mat::zeros(cv::Size(cols, rows), CV_8U));
+        std::shared_ptr<DigitalRegister> RWEST = std::make_shared<DigitalRegister>((cv::Mat)cv::Mat::zeros(cv::Size(cols, rows), CV_8U));
+
+        s.superpixel_shift_patterns_from_bitorder(bank, RNORTH, RSOUTH, REAST, RWEST, true);
+        auto expected_n = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0);
+        auto expected_s = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0);
+        auto expected_e = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+        auto expected_w = (cv::Mat)(cv::Mat_<uint8_t>(rows, cols) << 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+        REQUIRE(utility::mats_are_equal(RNORTH->read(), expected_n));
+        REQUIRE(utility::mats_are_equal(REAST->read(), expected_e));
+        REQUIRE(utility::mats_are_equal(RSOUTH->read(), expected_s));
+        REQUIRE(utility::mats_are_equal(RWEST->read(), expected_w));
+
+
+    }
 }
 
 TEST_CASE("images can be converted to digital superpixel format") {
@@ -341,6 +381,7 @@ TEST_CASE("2 bank superpixel images can be added") {
                               0, 0, 0, 0,
                               0, 1, 0, 0,
                               0, 1, 0, 0);
+    std::cout << out->read() << std::endl;
     REQUIRE(utility::mats_are_equal(out->read(), expected));
 }
 

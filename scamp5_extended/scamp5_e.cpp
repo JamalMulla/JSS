@@ -4,6 +4,8 @@
 
 #include "scamp5_e.h"
 
+#include <filesystem>
+#include <fstream>
 #include <rttr/registration>
 
 void SCAMP5E::init() {
@@ -55,7 +57,7 @@ void SCAMP5E::superpixel_positions_from_bitorder(position_map& locations) {
     }
 }
 
-void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, const std::shared_ptr<DREG>& REAST, std::shared_ptr<DREG> RWEST, bool shift_left) {
+void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, const std::shared_ptr<DREG>& REAST, const std::shared_ptr<DREG>& RWEST, bool shift_left) {
     size_t rows = bitorder_[0].size();
     size_t cols = bitorder_[0][0].size();
     DigitalRegister R_NORTH(rows, cols);
@@ -85,18 +87,34 @@ void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::share
 
             if (current == north + 1) {
                 // bigger than north
-                (shift_left ? R_SOUTH : R_NORTH).read().at<uint8_t>(row - (shift_left ? 0 : 1), col) = 1;
+                if (shift_left) {
+                    R_SOUTH.read().at<uint8_t>(row - 0, col) = 1;
+                } else {
+                    R_NORTH.read().at<uint8_t>(row - 1, col) = 1;
+                }
             } else if (current == north - 1) {
                 // smaller than north
-                (shift_left ? R_NORTH : R_SOUTH).read().at<uint8_t>(row - (shift_left ? 1 : 0), col) = 1;
+                if (shift_left) {
+                    R_NORTH.read().at<uint8_t>(row - 1, col) = 1;
+                } else {
+                    R_SOUTH.read().at<uint8_t>(row, col) = 1;
+                }
             }
 
             if (current == west + 1) {
                 // bigger than west
-                (shift_left ? R_EAST : R_WEST).read().at<uint8_t>(row, col - (shift_left ? 0 : 1)) = 1;
+                if (shift_left) {
+                    R_EAST.read().at<uint8_t>(row, col) = 1;
+                } else {
+                    R_WEST.read().at<uint8_t>(row, col - 1) = 1;
+                }
             } else if (current == west - 1) {
                 // smaller than west
-                (shift_left ? R_WEST : R_EAST).read().at<uint8_t>(row, col - (shift_left ? 1 : 0)) = 1;
+                if (shift_left) {
+                    R_WEST.read().at<uint8_t>(row, col - 1) = 1;
+                } else {
+                    R_EAST.read().at<uint8_t>(row, col) = 1;
+                }
             }
         }
     }
@@ -134,7 +152,7 @@ void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::share
     }
 }
 
-void SCAMP5E::superpixel_shift_block(const std::shared_ptr<DREG>& dst, const std::shared_ptr<DREG>& src, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, std::shared_ptr<DREG> REAST, const std::shared_ptr<DREG>& RWEST) {
+void SCAMP5E::superpixel_shift_block(const std::shared_ptr<DREG>& dst, const std::shared_ptr<DREG>& src, const std::shared_ptr<DREG>& RNORTH, const std::shared_ptr<DREG>& RSOUTH, const std::shared_ptr<DREG>& REAST, const std::shared_ptr<DREG>& RWEST) {
     int rows = src->read().rows;
     int cols = src->read().cols;
     DigitalRegister east = DigitalRegister(rows, cols);
@@ -161,7 +179,7 @@ void SCAMP5E::superpixel_shift_block(const std::shared_ptr<DREG>& dst, const std
     OR(dst, east_ptr, north_ptr, south_ptr, west_ptr);
 }
 
-void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, std::shared_ptr<AREG> src) {
+void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, const std::shared_ptr<AREG>& src) {
     // Converts an analogue image to a digital superpixel format
     // Values will always be put in bank 0
     position_map locations;
@@ -189,7 +207,7 @@ void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, std::sh
     });
 }
 
-void SCAMP5E::superpixel_dac(std::shared_ptr<AREG> dst, int bank, const std::shared_ptr<DREG>& src) {
+void SCAMP5E::superpixel_dac(const std::shared_ptr<AREG>& dst, int bank, const std::shared_ptr<DREG>& src) {
     position_map locations;
     this->superpixel_positions_from_bitorder(locations);
     // Converts digital superpixel format image to an analogue image
@@ -430,6 +448,7 @@ void SCAMP5E::superpixel_sub(const std::shared_ptr<DREG>& dst, int bank, const s
 //}
 
 void SCAMP5E::superpixel_movx(const std::shared_ptr<DREG>& dst, std::shared_ptr<DREG> src, news_t dir) {
+    // moves entire array
     for (int i = 0; i < superpixel_size_; ++i) {
         DNEWS(dst, src, dir, 0);
         src = dst;
@@ -449,12 +468,11 @@ void SCAMP5E::histogram(const std::shared_ptr<AREG>& src) {
         for (int col = 0; col < cols_; col += blocksize) {
             for (int r = row; r < row + blocksize; r++) {
                 for (int c = col; c < col + blocksize; c++) {
-                    int m_row = s.at<int16_t>(r, c) + 128;  // intensity is used as index
-                    // need to shift by 128 to get a 0-255 range
+                    int m_row = s.at<int16_t>(r, c);  // intensity is used as index
                     int m_col = 0;
 
-                    int value = this->dram_->read(block, m_row, m_col);
-                    this->dram_->write(block, m_row, m_col, value + 1);
+                    int value = this->dram_->read_signed_byte(block, m_row, m_col);
+                    this->dram_->write_signed_byte(block, m_row, m_col, value + 1);
                 }
             }
             block++;
@@ -473,7 +491,7 @@ void SCAMP5E::histogram(const std::shared_ptr<AREG>& src) {
     for (int i = 0; i < block; i++) {
         int combined = 0;
         for (int b = 0; b < cells; b++) {  //todo parameterise properly
-            int i1 = this->dram_->read(b, i, 0);
+            int i1 = this->dram_->read_signed_byte(b, i, 0);
             combined += i1;
         }
 
@@ -545,11 +563,11 @@ void SCAMP5E::hog(const std::shared_ptr<AREG>& src) {
                     double v2 = ceil(((double)(angle - (b1 * bucket_size)) / bucket_size) * magnitude);
                     double v1 = ceil(magnitude - v2);
 
-                    int value = this->dram_->read(block, b1, m_col);
-                    this->dram_->write(block, b1, m_col, value + v1);
+                    int value = this->dram_->read_signed_byte(block, b1, m_col);
+                    this->dram_->write_signed_byte(block, b1, m_col, value + v1);
 
-                    int value2 = this->dram_->read(block, b2, m_col);
-                    this->dram_->write(block, b2, m_col, value2 + v2);
+                    int value2 = this->dram_->read_signed_byte(block, b2, m_col);
+                    this->dram_->write_signed_byte(block, b2, m_col, value2 + v2);
                 }
             }
             block++;
@@ -560,7 +578,7 @@ void SCAMP5E::hog(const std::shared_ptr<AREG>& src) {
     for (int b = 0; b < block; b++) {
         std::cout << "B:" << b;
         for (int i = 0; i < 10; i++) {  //todo parameterise properly
-            int i1 = this->dram_->read(b, i, 0);
+            int i1 = this->dram_->read_signed_byte(b, i, 0);
             std::cout << ", Bin: " << i * 20 << ", Count: " << i1 << " |";
         }
         std::cout << std::endl;
@@ -583,6 +601,40 @@ rttr::variant SCAMP5E::bitorder_converter(json& j) {
     return rttr::variant();
 }
 
+//move to base class
+void SCAMP5E::print_stats(json &config, const std::string &output_path) {
+    // TODO move
+#ifdef TRACK_STATISTICS
+    this->update_static();  //move
+    int num_pes = rows_ * cols_ / (row_stride_ * col_stride_);
+    std::cout << "Number of PEs: " << num_pes << std::endl;
+    Architecture::print_stats(rows_, cols_);
+
+    json j;
+    j["Config"] = config;
+    j["Number of PEs"] = num_pes;
+    this->write_stats(rows_, cols_, j);
+    //    std::cout << std::setw(2) << j << std::endl;
+    std::ofstream file_out;
+    const auto p1 = std::chrono::system_clock::now();
+    std::string epoch = std::to_string(std::chrono::duration_cast<std::chrono::seconds>(p1.time_since_epoch()).count());
+
+    std::string out = std::filesystem::current_path().string() + "/" + epoch + ".json";
+
+    if (!output_path.empty()) {
+        out = std::filesystem::current_path().string() + "/" + output_path + ".json";
+    }
+
+    std::cout << "Saved to " << out << std::endl;
+    file_out.open(out);
+    file_out << std::setw(2) << j;
+    file_out.close();
+#endif
+#ifndef TRACK_STATISTICS
+    std::cerr << "Simulator has not been compiled with statistic tracking support. Recompile with -DTRACK_STATISTICS=ON" << std::endl;
+#endif
+}
+
 RTTR_REGISTRATION {
     using namespace rttr;
 
@@ -601,5 +653,6 @@ RTTR_REGISTRATION {
         .method("superpixel_sub", &SCAMP5E::superpixel_sub)
         .method("superpixel_movx", &SCAMP5E::superpixel_movx)
         .method("histogram", &SCAMP5E::histogram)
-        .method("hog", &SCAMP5E::hog);
+        .method("hog", &SCAMP5E::hog)
+        .method("print_stats", &SCAMP5E::print_stats)(default_arguments(std::string()));
 };

@@ -7,7 +7,7 @@
 
 #include <simulator/registers/analogue_register.h>
 
-#include <opencv4/opencv2/videoio.hpp>
+#include <opencv2/videoio.hpp>
 
 enum Source { LIVE, VIDEO, IMAGE };
 
@@ -19,6 +19,7 @@ class InputSource {
 
    public:
     virtual void read(Register& reg) = 0;
+    virtual cv::Mat read() = 0;
     virtual void reset() = 0;
     virtual double last_frame_time() = 0;
 

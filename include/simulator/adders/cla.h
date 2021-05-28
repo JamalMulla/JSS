@@ -8,42 +8,36 @@
 #include "simulator/base/component.h"
 #include "simulator/base/config.h"
 #include "simulator/registers/digital_register.h"
-#include <opencv4/opencv2/core.hpp>
+#include <opencv2/core.hpp>
 
 class CarryLookAheadAdder : public Component {
+    RTTR_ENABLE(Component);
    private:
-    int rows_;
-    int cols_;
-    int row_stride_ = 1;
-    int col_stride_ = 1;
+    int bits_;
     int cycle_count_;
-    int transistor_count_;
-    double static_power_;  // in Watts
-    double dynamic_power_;  // in Watts for an addition
     double time_; // time in seconds for an addition
-    cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
-    cv::Mat array_transistor_count_;
-    cv::Mat array_static_energy_;
-    cv::Mat array_dynamic_energy_;
-    int fun_transistor(int bits, Config& config);
-    double fun_static(int bits, Config& config);
-    double fun_dynamic(int bits, Config& config);
-    void fun_internal_mask(int rows, int cols, int row_stride, int col_stride);
+#ifdef TRACK_STATISTICS
+    int calc_transistor_count() override;
+    double calc_static() override;
+    double calc_dynamic() override;
+    double calc_width() override;
+    double calc_height() override;
+#endif
     cv::Mat scratch;
 
    public:
-    CarryLookAheadAdder(int rows, int cols, int row_stride, int col_stride, int bits, Config& config);
+    CarryLookAheadAdder() = default;
+    void init();
+
+    void set_bits(int bits);
+
+    int add(int src1, int src2);
 #ifdef TRACK_STATISTICS
     void update_static(double time) override;
     int get_cycle_count() override;
-    cv::Mat get_static_energy() override;
-    cv::Mat get_dynamic_energy() override;
-    cv::Mat get_transistor_count() override;
     void print_stats(const CycleCounter &counter) override;
     void inc_add();
 #endif
-
-    int add(int src1, int src2);
 };
 
 #endif  //SIMULATOR_CLA_H
