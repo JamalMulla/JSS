@@ -65,6 +65,22 @@ void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::share
     DigitalRegister R_EAST(rows, cols);
     DigitalRegister R_WEST(rows, cols);
 
+    cv::Mat rs;
+    cv::Mat rn;
+    cv::Mat re;
+    cv::Mat rw;
+#ifdef USE_CUDA
+    R_SOUTH.read().download(rs);
+    R_NORTH.read().download(rn);
+    R_EAST.read().download(re);
+    R_WEST.read().download(rw);
+#else
+    rs = R_SOUTH.read().getMat(cv::ACCESS_WRITE);
+    rn = R_NORTH.read().getMat(cv::ACCESS_WRITE);
+    re = R_EAST.read().getMat(cv::ACCESS_WRITE);
+    rw = R_WEST.read().getMat(cv::ACCESS_WRITE);
+#endif
+
     for (size_t row = 0; row < rows; row++) {
         for (size_t col = 0; col < cols; col++) {
             int north;
@@ -88,36 +104,43 @@ void SCAMP5E::superpixel_shift_patterns_from_bitorder(int bank, const std::share
             if (current == north + 1) {
                 // bigger than north
                 if (shift_left) {
-                    R_SOUTH.read().getMat(cv::ACCESS_WRITE).at<uint8_t>(row - 0, col) = 1;
+                    rs.at<uint8_t>(row - 0, col) = 1;
                 } else {
-                    R_NORTH.read().getMat(cv::ACCESS_WRITE).at<uint8_t>(row - 1, col) = 1;
+                    rn.at<uint8_t>(row - 1, col) = 1;
                 }
             } else if (current == north - 1) {
                 // smaller than north
                 if (shift_left) {
-                    R_NORTH.read().getMat(cv::ACCESS_WRITE).at<uint8_t>(row - 1, col) = 1;
+                    rn.at<uint8_t>(row - 1, col) = 1;
                 } else {
-                    R_SOUTH.read().getMat(cv::ACCESS_WRITE).at<uint8_t>(row, col) = 1;
+                    rs.at<uint8_t>(row, col) = 1;
                 }
             }
 
             if (current == west + 1) {
                 // bigger than west
                 if (shift_left) {
-                    R_EAST.read().getMat(cv::ACCESS_WRITE).at<uint8_t>(row, col) = 1;
+                    re.at<uint8_t>(row, col) = 1;
                 } else {
-                    R_WEST.read().getMat(cv::ACCESS_WRITE).at<uint8_t>(row, col - 1) = 1;
+                    rw.at<uint8_t>(row, col - 1) = 1;
                 }
             } else if (current == west - 1) {
                 // smaller than west
                 if (shift_left) {
-                    R_WEST.read().getMat(cv::ACCESS_WRITE).at<uint8_t>(row, col - 1) = 1;
+                    rw.at<uint8_t>(row, col - 1) = 1;
                 } else {
-                    R_EAST.read().getMat(cv::ACCESS_WRITE).at<uint8_t>(row, col) = 1;
+                    re.at<uint8_t>(row, col) = 1;
                 }
             }
         }
     }
+
+#ifdef USE_CUDA
+    R_NORTH.read().upload(rn);
+    R_SOUTH.read().upload(rs);
+    R_EAST.read().upload(re);
+    R_WEST.read().upload(rw);
+#endif
 
     switch (origin_) {
         case BOTTOM_LEFT: {
@@ -185,8 +208,16 @@ void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, const s
     position_map locations;
     this->superpixel_positions_from_bitorder(locations);
 
-    cv::UMat& d = dst->read();
-    cv::UMat& sr = src->read();
+    cv::Mat d;
+    cv::Mat sr;
+#ifdef USE_CUDA
+    dst->read().download(d);
+    src->read().download(sr);
+#else
+    d = dst->read().getMat(cv::ACCESS_WRITE);
+    sr = src->read().getMat(cv::ACCESS_RW);
+#endif
+
     parallel_for_(cv::Range(0, sr.rows * sr.cols), [&](const cv::Range& range) {
         for (int r = range.start; r < range.end; r++) {
             int row = r / sr.cols;
@@ -201,10 +232,14 @@ void SCAMP5E::superpixel_adc(const std::shared_ptr<DREG>& dst, int bank, const s
             for (int i = 0; i < bits_in_bank_; i++) {
                 int bit = (s >> i) & 1;  // LSB to MSB
                 cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
-                d.getMat(cv::ACCESS_WRITE).at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bit;
+                d.at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bit;
             }
         }
     });
+#ifdef USE_CUDA
+    dst->read().upload(d);
+    src->read().upload(sr);
+#endif
 }
 
 void SCAMP5E::superpixel_dac(const std::shared_ptr<AREG>& dst, int bank, const std::shared_ptr<DREG>& src) {
@@ -212,12 +247,19 @@ void SCAMP5E::superpixel_dac(const std::shared_ptr<AREG>& dst, int bank, const s
     this->superpixel_positions_from_bitorder(locations);
     // Converts digital superpixel format image to an analogue image
 
-    cv::UMat& d = dst->read();
-    cv::UMat& s = src->read();
-    parallel_for_(cv::Range(0, s.rows * s.cols), [&](const cv::Range& range) {
+    cv::Mat d;
+    cv::Mat sr;
+#ifdef USE_CUDA
+    dst->read().download(d);
+    src->read().download(sr);
+#else
+    d = dst->read().getMat(cv::ACCESS_WRITE);
+    sr = src->read().getMat(cv::ACCESS_RW);
+#endif
+    parallel_for_(cv::Range(0, sr.rows * sr.cols), [&](const cv::Range& range) {
         for (int r = range.start; r < range.end; r++) {
-            int row = r / s.cols;
-            int col = r % s.cols;
+            int row = r / sr.cols;
+            int col = r % sr.cols;
 
             if (row % superpixel_size_ != 0) continue;  // Step size is superpixel_size_
             if (col % superpixel_size_ != 0) continue;
@@ -226,12 +268,16 @@ void SCAMP5E::superpixel_dac(const std::shared_ptr<AREG>& dst, int bank, const s
             int8_t value = 0;
             for (int i = 0; i < bits_in_bank_; i++) {
                 cv::Point relative_pos = locations.at({bank, i + 1});  // bitorder starts at 1 not 0
-                int bit = s.getMat(cv::ACCESS_READ).at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
+                int bit = sr.at<uint8_t>(relative_pos.y + row, relative_pos.x + col);
                 value |= bit << i;  // LSB to MSB
             }
             d(cv::Rect(col, row, superpixel_size_, superpixel_size_)) = value;
         }
     });
+#ifdef USE_CUDA
+    dst->read().upload(d);
+    src->read().upload(sr);
+#endif
 }
 
 void SCAMP5E::superpixel_in(const std::shared_ptr<DREG>& dst, int bank, int value) {
@@ -245,12 +291,19 @@ void SCAMP5E::superpixel_in(const std::shared_ptr<DREG>& dst, int bank, int valu
         bits[i] = bit;
     }
 
-    cv::UMat& d = dst->read();
+    cv::Mat d;
+
+#ifdef USE_CUDA
+    dst->read().download(d);
+#else
+    d = dst->read().getMat(cv::ACCESS_WRITE);
+#endif
+
     for (int col = 0; col < d.cols; col += superpixel_size_) {
         for (int row = 0; row < d.rows; row += superpixel_size_) {
             for (int i = 0; i < bits_in_bank_; i++) {
                 cv::Point relative_pos = locations.at({bank, i + 1});
-                d.getMat(cv::ACCESS_WRITE).at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bits[i];
+                d.at<uint8_t>(relative_pos.y + row, relative_pos.x + col) = bits[i];
             }
         }
     }
@@ -264,22 +317,45 @@ void SCAMP5E::superpixel_shift(const std::shared_ptr<DREG>& dst, int bank, const
     std::shared_ptr<DREG> RSOUTH = std::make_shared<DREG>(superpixel_size_, superpixel_size_);
     std::shared_ptr<DREG> REAST = std::make_shared<DREG>(superpixel_size_, superpixel_size_);
     std::shared_ptr<DREG> RWEST = std::make_shared<DREG>(superpixel_size_, superpixel_size_);
+
+    cv::Mat rs;
+    cv::Mat rn;
+    cv::Mat re;
+    cv::Mat rw;
+#ifdef USE_CUDA
+    RSOUTH->read().download(rs);
+    RNORTH->read().download(rn);
+    REAST->read().download(re);
+    RWEST->read().download(rw);
+#else
+    rs = RSOUTH->read().getMat(cv::ACCESS_READ);
+    rn = RNORTH.read().getMat(cv::ACCESS_READ);
+    re = REAST.read().getMat(cv::ACCESS_READ);
+    rw = RWEST.read().getMat(cv::ACCESS_READ);
+#endif
+
+
     superpixel_shift_patterns_from_bitorder(bank, RNORTH, RSOUTH, REAST, RWEST,shift_left);
 
     // TODO non-square superpixels?
     int num_of_repeats_y = rows / superpixel_size_;
     int num_of_repeats_x = cols / superpixel_size_;
-    std::shared_ptr<DREG> R_NORTH = std::make_shared<DREG>(cv::repeat(RNORTH->read().getMat(cv::ACCESS_READ), num_of_repeats_y, num_of_repeats_x));
-    std::shared_ptr<DREG> R_SOUTH = std::make_shared<DREG>(cv::repeat(RSOUTH->read().getMat(cv::ACCESS_READ), num_of_repeats_y, num_of_repeats_x));
-    std::shared_ptr<DREG> R_EAST = std::make_shared<DREG>(cv::repeat(REAST->read().getMat(cv::ACCESS_READ), num_of_repeats_y, num_of_repeats_x));
-    std::shared_ptr<DREG> R_WEST = std::make_shared<DREG>(cv::repeat(RWEST->read().getMat(cv::ACCESS_READ), num_of_repeats_y, num_of_repeats_x));
+    std::shared_ptr<DREG> R_NORTH = std::make_shared<DREG>(cv::repeat(rn, num_of_repeats_y, num_of_repeats_x));
+    std::shared_ptr<DREG> R_SOUTH = std::make_shared<DREG>(cv::repeat(rs, num_of_repeats_y, num_of_repeats_x));
+    std::shared_ptr<DREG> R_EAST = std::make_shared<DREG>(cv::repeat(re, num_of_repeats_y, num_of_repeats_x));
+    std::shared_ptr<DREG> R_WEST = std::make_shared<DREG>(cv::repeat(rw, num_of_repeats_y, num_of_repeats_x));
     superpixel_shift_block(dst, src, R_NORTH, R_SOUTH, R_EAST, R_WEST);
 
     if (bitorder_.size() > 1) {
         // only need to preserve other banks if we have more than 1 bank
         DigitalRegister block_mask = DigitalRegister(superpixel_size_, superpixel_size_);
 
-        cv::Mat bm = block_mask.read().getMat(cv::ACCESS_RW);
+        cv::Mat bm;
+#ifdef USE_CUDA
+        block_mask.read().download(bm);
+#else
+        bm = block_mask.read().getMat(cv::ACCESS_RW);
+#endif
         for (size_t b = 0; b < bitorder_.size(); b++) {
             for (size_t row = 0; row < superpixel_size_; row++) {
                 for (size_t col = 0; col < superpixel_size_; col++) {
@@ -293,12 +369,19 @@ void SCAMP5E::superpixel_shift(const std::shared_ptr<DREG>& dst, int bank, const
             }
         }
 
+#ifdef USE_CUDA
+        block_mask.read().upload(bm);
+#endif
+
         std::shared_ptr<DREG> mask = std::make_shared<DREG>(cv::repeat(bm, num_of_repeats_y, num_of_repeats_x));
         std::shared_ptr<DREG> and_ = std::make_shared<DREG>(rows, cols);
 
         AND(and_, mask, src);
         OR(dst, and_, dst);
+
+
     }
+
 }
 
 void SCAMP5E::superpixel_shift_right(const std::shared_ptr<DREG>& dst, int bank, const std::shared_ptr<DREG>& src) {
@@ -462,7 +545,13 @@ void SCAMP5E::histogram(const std::shared_ptr<AREG>& src) {
     this->dram_.reset();
     int blocksize = 8;
     int block = 0;
-    cv::Mat s = src->read().getMat(cv::ACCESS_READ);
+
+    cv::Mat s;
+#ifdef USE_CUDA
+    src->read().download(s);
+#else
+    s = src->read().getMat(cv::ACCESS_READ);
+#endif
 
     for (int row = 0; row < rows_; row += blocksize) {
         for (int col = 0; col < cols_; col += blocksize) {

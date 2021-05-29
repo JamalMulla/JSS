@@ -31,7 +31,11 @@ AnalogueRegister::AnalogueRegister(int rows, int cols, int row_stride, int col_s
     this->max_val = 127;
 }
 
+#ifdef USE_CUDA
+AnalogueRegister::AnalogueRegister(const cv::cuda::GpuMat &data, int row_stride, int col_stride) {
+#else
 AnalogueRegister::AnalogueRegister(const cv::UMat &data, int row_stride, int col_stride) {
+#endif
     this->rows_ = data.rows;
     this->cols_ = data.cols;
     this->row_stride_ = row_stride;

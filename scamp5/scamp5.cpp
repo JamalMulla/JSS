@@ -1089,7 +1089,13 @@ void SCAMP5::scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations,
 uint8_t SCAMP5::scamp5_read_areg(const std::shared_ptr<AREG>& areg, uint8_t r, uint8_t c) {
     // read a single pixel
     // TODO check that the value is properly mapped to uint8_t from CV_16U
-    return areg->read().getMat(cv::ACCESS_READ).at<uint8_t>(r, c);
+    cv::Mat m;
+#ifdef USE_CUDA
+    areg->read().download(m);
+#else
+    m = areg->read().getMat(cv::ACCESS_READ);
+#endif
+    return m.at<uint8_t>(r, c);
 }
 
 uint32_t SCAMP5::scamp5_global_sum_16(const std::shared_ptr<AREG>& areg, uint8_t *result16v) {
@@ -1164,10 +1170,17 @@ uint8_t SCAMP5::scamp5_global_sum_sparse(const std::shared_ptr<AREG>& areg, uint
 
     uint8_t sum = 0;
 
+    cv::Mat m;
+#ifdef USE_CUDA
+    areg->read().download(m);
+#else
+    m = areg->read().getMat(cv::ACCESS_READ);
+#endif
+
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                sum += areg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index);
+                sum += m.at<uint8_t>(row_index, col_index);
             }
         }
     }
@@ -1192,12 +1205,19 @@ int SCAMP5::scamp5_global_or(const std::shared_ptr<DREG>& dreg, uint8_t r, uint8
     unsigned int r_f = r & r_mask;
     unsigned int c_f = c & c_mask;
 
+    cv::Mat m;
+#ifdef USE_CUDA
+    dreg->read().download(m);
+#else
+    m = dreg->read().getMat(cv::ACCESS_READ);
+#endif
+
     uint8_t val = 0;
 
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                val |= dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index);
+                val |= m.at<uint8_t>(row_index, col_index);
             }
         }
     }
@@ -1256,7 +1276,15 @@ void SCAMP5::scamp5_flood(const std::shared_ptr<DREG>& dreg_target, const std::s
 void SCAMP5::scamp5_load_point(const std::shared_ptr<DREG>& dr, uint8_t r, uint8_t c) {
     // set a single pixel on a DREG image to 1, the rest to 0
     dr->read().setTo(0);
+#ifdef USE_CUDA
+    cv::Mat m;
+    dr->read().download(m);
+    m.at<uint8_t>(r, c) = 1;
+    dr->read().upload(m);
+#else
     dr->read().getMat(cv::ACCESS_READ).at<uint8_t>(r, c) = 1;
+#endif
+
 }
 
 void SCAMP5::scamp5_load_rect(const std::shared_ptr<DREG>& dr, uint8_t r0, uint8_t c0, uint8_t r1,
@@ -1297,13 +1325,24 @@ void SCAMP5::scamp5_load_pattern(const std::shared_ptr<DREG>& dr, uint8_t r, uin
     unsigned int r_f = r * r_mask;
     unsigned int c_f = c * c_mask;
 
-    for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
-        for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
+    cv::Mat m;
+#ifdef USE_CUDA
+    dr->read().download(m);
+#else
+    m = dr->read().getMat(cv::ACCESS_WRITE);
+#endif
+
+    for(int row_index = 0; row_index < this->cols_; row_index++) {
+        for(int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index * r_mask) == r_f) && ((col_index * c_mask) == c_f)) {
-                dr->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index) = 1;
+                m.at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
+
+#ifdef USE_CUDA
+    dr->read().upload(m);
+#endif
 }
 
 void SCAMP5::scamp5_select_point(uint8_t r, uint8_t c) {
@@ -1328,24 +1367,42 @@ void SCAMP5::scamp5_select_pattern(uint8_t r, uint8_t c, uint8_t rx,
 
 void SCAMP5::scamp5_select_col(uint8_t c) {
     // select column
+    cv::Mat m;
+#ifdef USE_CUDA
+    SELECT->read().download(m);
+#else
+    m = SELECT->read().getMat(cv::ACCESS_WRITE);
+#endif
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(col_index == c) {
-                SELECT->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index) = 1;
+                m.at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
+#ifdef USE_CUDA
+    SELECT->read().upload(m);
+#endif
 }
 
 void SCAMP5::scamp5_select_row(uint8_t r) {
     // select row
+    cv::Mat m;
+#ifdef USE_CUDA
+    SELECT->read().download(m);
+#else
+    m = SELECT->read().getMat(cv::ACCESS_WRITE);
+#endif
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(row_index == r) {
-                SELECT->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index) = 1;
+                m.at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
+#ifdef USE_CUDA
+    SELECT->read().upload(m);
+#endif
 }
 
 void SCAMP5::scamp5_select_colx(uint8_t cx) {
@@ -1368,7 +1425,17 @@ void SCAMP5::scamp5_draw_end() {
 
 void SCAMP5::scamp5_draw_pixel(uint8_t r, uint8_t c) {
     // draw a point, wrap around if it's outside the border
-    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(r % this->rows_, c % this->cols_) = 1;
+    cv::Mat m;
+#ifdef USE_CUDA
+    scratch->read().download(m);
+#else
+    m = scratch->read().getMat(cv::ACCESS_WRITE);
+#endif
+    m.at<uint8_t>(r % this->rows_, c % this->cols_) = 1;
+
+#ifdef USE_CUDA
+    scratch->read().upload(m);
+#endif
 }
 
 bool SCAMP5::scamp5_draw_point(int r, int c) {
@@ -1377,7 +1444,16 @@ bool SCAMP5::scamp5_draw_point(int r, int c) {
     if(r >= this->rows_ || c >= this->cols_) {
         return false;
     }
-    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(r, c) = 1;
+    cv::Mat m;
+#ifdef USE_CUDA
+    scratch->read().download(m);
+#else
+    m = scratch->read().getMat(cv::ACCESS_WRITE);
+#endif
+    m.at<uint8_t>(r, c) = 1;
+#ifdef USE_CUDA
+    scratch->read().upload(m);
+#endif
     return true;
 }
 
@@ -1421,10 +1497,17 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
     int x = 0;
     int y = radius;
 
-    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + radius, x0) = 1;
-    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - radius, x0) = 1;
-    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0, x0 + radius) = 1;
-    scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0, x0 - radius) = 1;
+    cv::Mat m;
+#ifdef USE_CUDA
+    scratch->read().download(m);
+#else
+    m = scratch->read().getMat(cv::ACCESS_WRITE);
+#endif
+
+    m.at<uint8_t>(y0 + radius, x0) = 1;
+    m.at<uint8_t>(y0 - radius, x0) = 1;
+    m.at<uint8_t>(y0, x0 + radius) = 1;
+    m.at<uint8_t>(y0, x0 - radius) = 1;
 
     while(x < y) {
         if(f >= 0) {
@@ -1437,15 +1520,18 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
         ddf_x += 2;
         f += ddf_x;
 
-        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + y, x0 + x) = 1;
-        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + y, x0 - x) = 1;
-        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - y, x0 + x) = 1;
-        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - y, x0 - x) = 1;
-        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + x, x0 + y) = 1;
-        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 + x, x0 - y) = 1;
-        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - x, x0 + y) = 1;
-        scratch->read().getMat(cv::ACCESS_WRITE).at<uint8_t>(y0 - x, x0 - y) = 1;
+        m.at<uint8_t>(y0 + y, x0 + x) = 1;
+        m.at<uint8_t>(y0 + y, x0 - x) = 1;
+        m.at<uint8_t>(y0 - y, x0 + x) = 1;
+        m.at<uint8_t>(y0 - y, x0 - x) = 1;
+        m.at<uint8_t>(y0 + x, x0 + y) = 1;
+        m.at<uint8_t>(y0 + x, x0 - y) = 1;
+        m.at<uint8_t>(y0 - x, x0 + y) = 1;
+        m.at<uint8_t>(y0 - x, x0 - y) = 1;
     }
+#ifdef USE_CUDA
+    scratch->read().upload(m);
+#endif
 }
 
 void SCAMP5::scamp5_draw_negate() {
@@ -1475,11 +1561,21 @@ void SCAMP5::scamp5_scan_areg_8x8(const std::shared_ptr<AREG>& areg, uint8_t *re
     int buf_index = 0;
     int cs = this->cols_ / 8;
     int rs = this->rows_ / 8;
+
+    cv::Mat m;
+#ifdef USE_CUDA
+    areg->read().download(m);
+#else
+    m = areg->read().getMat(cv::ACCESS_READ);
+#endif
     for(int col = 0; col < this->cols_; col += cs) {
         for(int row = 0; row < this->rows_; row += rs) {
-            result8x8[buf_index++] = areg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row, col);
+            result8x8[buf_index++] = m.at<uint8_t>(row, col);
         }
     }
+#ifdef USE_CUDA
+    areg->read().upload(m);
+#endif
 }
 
 void SCAMP5::scamp5_scan_areg_mean_8x8(const std::shared_ptr<AREG>& areg, uint8_t *result8x8) {
@@ -1496,20 +1592,27 @@ void SCAMP5::scamp5_scan_dreg(const std::shared_ptr<DREG>& dreg, uint8_t *mem, u
     // r1 - last row index
     // The size of the buffer need to be a least 32 times the number of rows to
     // scan. Thus, a full DREG image requires a buffer of 8192 bytes.
-    // TODO check if it should be (row, col) or (col, row)
     // TODO check impl
+
+    cv::Mat m;
+#ifdef USE_CUDA
+    dreg->read().download(m);
+#else
+    m = dreg->read().getMat(cv::ACCESS_READ);
+#endif
+
     int buf_index = 0;
     for(uint32_t row_index = r0; row_index <= r1; row_index++) {
         // Read 8 values at a time to make up a byte
         for(int col_index = 0; col_index < this->cols_; col_index += 8) {
-            uint8_t b0 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index);
-            uint8_t b1 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 1);
-            uint8_t b2 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 2);
-            uint8_t b3 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 3);
-            uint8_t b4 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 4);
-            uint8_t b5 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 5);
-            uint8_t b6 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 6);
-            uint8_t b7 = dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row_index, col_index + 7);
+            uint8_t b0 = m.at<uint8_t>(row_index, col_index);
+            uint8_t b1 = m.at<uint8_t>(row_index, col_index + 1);
+            uint8_t b2 = m.at<uint8_t>(row_index, col_index + 2);
+            uint8_t b3 = m.at<uint8_t>(row_index, col_index + 3);
+            uint8_t b4 = m.at<uint8_t>(row_index, col_index + 4);
+            uint8_t b5 = m.at<uint8_t>(row_index, col_index + 5);
+            uint8_t b6 = m.at<uint8_t>(row_index, col_index + 6);
+            uint8_t b7 = m.at<uint8_t>(row_index, col_index + 7);
             uint8_t value = (b0 << 7) | (b1 << 6) | (b2 << 5) | (b3 << 4) |
                             (b4 << 3) | (b5 << 2) | (b6 << 1) | (b7 << 0);
             mem[buf_index++] = value;
@@ -1544,11 +1647,17 @@ void SCAMP5::scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *mem,
 void SCAMP5::scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *buffer, uint16_t max_num,
                                 uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1,
                                 uint8_t rs, uint8_t cs) {
+    cv::Mat m;
+#ifdef USE_CUDA
+    dreg->read().download(m);
+#else
+    m = dreg->read().getMat(cv::ACCESS_WRITE);
+#endif
     // assuming 0,0 in top left
     int buf_index = 0;
     for(int col = c0; col < c1; col += cs) {
         for(int row = r0; row < r1; row += rs) {
-            if(dreg->read().getMat(cv::ACCESS_READ).at<uint8_t>(row, col) > 0) {
+            if(m.at<uint8_t>(row, col) > 0) {
                 if(buf_index == 2 * max_num)
                     return;
                 buffer[buf_index++] = col;

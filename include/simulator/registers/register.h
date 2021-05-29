@@ -6,12 +6,12 @@
 #define SIMULATOR_REGISTER_H
 
 #include <opencv2/core/mat.hpp>
+#include <opencv2/opencv.hpp>
+#include <rttr/type>
 
 #include "simulator/base/component.h"
-#include "simulator/metrics/cycle_counter.h"
 #include "simulator/memory/memory.h"
-
-#include <rttr/type>
+#include "simulator/metrics/cycle_counter.h"
 
 class Register : public Component {
     RTTR_ENABLE();
@@ -20,7 +20,11 @@ class Register : public Component {
     int type_;
 
    private:
+#ifdef USE_CUDA
+    cv::cuda::GpuMat value_;
+#else
     cv::UMat value_;
+#endif
 
    public:
     std::string name_;
@@ -55,16 +59,40 @@ class Register : public Component {
     void set_memory(MemoryType memory_type);
     void set_type(int type);
 
+#ifdef USE_CUDA
+    cv::cuda::GpuMat& read();
+#else
     cv::UMat& read();
+#endif
+#ifdef USE_CUDA
+    void write(cv::cuda::GpuMat& data);
+#else
     void write(cv::UMat& data);
+#endif
+#ifdef USE_CUDA
+    void write(const cv::cuda::GpuMat& data);
+#else
     void write(const cv::UMat& data);
+#endif
     void write(const cv::Mat& data);
+#ifdef USE_CUDA
+    void write(cv::cuda::GpuMat& data, cv::cuda::GpuMat& mask);
+#else
     void write(cv::UMat& data, cv::UMat& mask);
+#endif
+#ifdef USE_CUDA
+    void write(cv::cuda::GpuMat& data, cv::Mat& mask);
+#else
     void write(cv::UMat& data, cv::Mat& mask);
+#endif
     void write(Register& data);
     void write(Register& data, Register& mask);
     void write(int data);
+#ifdef USE_CUDA
+    void write(int data, cv::cuda::GpuMat& mask);
+#else
     void write(int data, cv::UMat& mask);
+#endif
     void write(int data, Register& mask);
 
 };

@@ -35,7 +35,11 @@ class Pixel : public Component {
 
     void reset();
     void read(Register& reg);
+#ifdef USE_CUDA
+    cv::cuda::GpuMat& read();
+#else
     cv::UMat& read();
+#endif
     double last_frame_time();
 #ifdef TRACK_STATISTICS
     int calc_transistor_count() override;

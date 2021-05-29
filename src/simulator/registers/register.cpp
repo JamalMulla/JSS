@@ -8,29 +8,46 @@
 
 
 void Register::init() {
+#ifdef USE_CUDA
+    this->value_ = cv::cuda::GpuMat(rows_, cols_, type_, cv::Scalar(0));
+#else
     this->value_ = cv::UMat(rows_, cols_, type_, cv::Scalar(0));
+#endif
 }
 
+#ifdef USE_CUDA
+cv::cuda::GpuMat& Register::read() {
+#else
 cv::UMat& Register::read() {
+#endif
 #ifdef TRACK_STATISTICS
     this->inc_read();
 #endif
     return this->value_;
 }
 
+#ifdef USE_CUDA
+void Register::write(cv::cuda::GpuMat& data) {
+#else
 void Register::write(cv::UMat& data) {
+#endif
     data.copyTo(this->value_);
 #ifdef TRACK_STATISTICS
     this->inc_write();
 #endif
 }
 
+#ifdef USE_CUDA
+void Register::write(const cv::cuda::GpuMat& data) {
+#else
 void Register::write(const cv::UMat& data) {
+#endif
     data.copyTo(this->value_);
 #ifdef TRACK_STATISTICS
     this->inc_write();
 #endif
 }
+
 
 void Register::write(const cv::Mat& data) {
     data.copyTo(this->value_);
@@ -43,14 +60,22 @@ void Register::write(Register &data) {
     this->write(data.read());
 }
 
+#ifdef USE_CUDA
+void Register::write(cv::cuda::GpuMat& data, cv::cuda::GpuMat &mask) {
+#else
 void Register::write(cv::UMat& data, cv::UMat &mask) {
+#endif
     data.copyTo(this->value_, mask);
 #ifdef TRACK_STATISTICS
     this->inc_write(mask);
 #endif
 }
 
+#ifdef USE_CUDA
+void Register::write(cv::cuda::GpuMat& data, cv::Mat &mask) {
+#else
 void Register::write(cv::UMat& data, cv::Mat &mask) {
+#endif
     data.copyTo(this->value_, mask);
 #ifdef TRACK_STATISTICS
     this->inc_write(mask);
@@ -68,7 +93,11 @@ void Register::write(int data) {
 #endif
 }
 
+#ifdef USE_CUDA
+void Register::write(int data, cv::cuda::GpuMat &mask) {
+#else
 void Register::write(int data, cv::UMat &mask) {
+#endif
     this->value_.setTo(data, mask);
 #ifdef TRACK_STATISTICS
     this->inc_write(mask);

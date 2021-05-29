@@ -1,7 +1,7 @@
 {
 	"architecture": "SCAMP5",
     "frames": 10,
-	"use_gpu": true,
+	"use_opencl": true,
     "frame_time": true,
 	"with_stats": true,
 	"ui_enabled": true,

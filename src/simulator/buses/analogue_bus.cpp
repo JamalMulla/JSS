@@ -22,42 +22,27 @@ void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, DigitalRegister &FLAG) {
     // a = -(a0 + a1) + error
-    cv::UMat& src_1 = a0.read();
-    cv::UMat& src_2 = a1.read();
-    cv::UMat& dst = a.read();
-    cv::UMat& mask = FLAG.read();
-    cv::add(src_1, src_2, scratch, mask);
-    cv::subtract(0, scratch, dst, mask);
+    cv::add(a0.read(), a1.read(), scratch, FLAG.read());
+    cv::subtract(0, scratch, a.read(), FLAG.read());
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, AnalogueRegister &a2,
                       DigitalRegister &FLAG) {
     // a = -(a0 + a1 + a2) + error
-    cv::UMat& src_1 = a0.read();
-    cv::UMat& src_2 = a1.read();
-    cv::UMat& src_3 = a2.read();
-    cv::UMat& dst = a.read();
-    cv::UMat& mask = FLAG.read();
-    cv::add(src_1, src_2, scratch, mask);
-    cv::add(scratch, src_3, scratch, mask);
-    cv::subtract(0, scratch, dst, mask);
+    cv::add(a0.read(), a1.read(), scratch, FLAG.read());
+    cv::add(scratch, a2.read(), scratch, FLAG.read());
+    cv::subtract(0, scratch, a.read(), FLAG.read());
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, AnalogueRegister &a2,
                       AnalogueRegister &a3, DigitalRegister &FLAG) {
     // a = -(a0 + a1 + a2 + a3) + error
-    cv::UMat& src_1 = a0.read();
-    cv::UMat& src_2 = a1.read();
-    cv::UMat& src_3 = a2.read();
-    cv::UMat& src_4 = a3.read();
-    cv::UMat& dst = a.read();
-    cv::UMat& mask = FLAG.read();
-    cv::add(src_1, src_2, scratch, mask);
-    cv::add(scratch, src_3, scratch, mask);
-    cv::add(scratch, src_4, scratch, mask);
-    cv::subtract(0, scratch, dst, mask);
+    cv::add( a0.read(), a1.read(), scratch, FLAG.read());
+    cv::add(scratch, a2.read(), scratch, FLAG.read());
+    cv::add(scratch, a3.read(), scratch, FLAG.read());
+    cv::subtract(0, scratch,  a.read(), FLAG.read());
 }
 
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
@@ -353,9 +338,16 @@ void AnalogueBus::scan(uint8_t *dst, AnalogueRegister &src, uint8_t row_start,
                      row_step, col_step);
 
     int buf_index = 0;
+    cv::Mat m;
+#ifdef USE_CUDA
+    src.read().download(m);
+#else
+    m = src.read().getMat(cv::ACCESS_READ)
+#endif
+
     for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
         for(int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
-            dst[buf_index++] = src.read().getMat(cv::ACCESS_READ).at<uint8_t>(row, col);
+            dst[buf_index++] = m.at<uint8_t>(row, col);
         }
     }
 }

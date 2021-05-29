@@ -25,8 +25,11 @@ ImageInput::ImageInput(int rows, int cols, const std::string &path)
 
     std::string t_s = utility::opencv_type_to_str(img.type());
     std::cout << "Image is of type: " << t_s << std::endl;
-
+#ifdef USE_CUDA
+    this->frame = cv::cuda::GpuMat(rows, cols, MAT_TYPE);
+#else
     this->frame = cv::UMat(rows, cols, MAT_TYPE);
+#endif
     this->frame.setTo(0);
 }
 
@@ -34,7 +37,11 @@ void ImageInput::read(Register &reg) {
     reg.write(this->read());
 }
 
+#ifdef USE_CUDA
+cv::cuda::GpuMat& ImageInput::read() {
+#else
 cv::UMat& ImageInput::read() {
+#endif
     auto TIME_START = std::chrono::high_resolution_clock::now();
     cv::Mat img = cv::imread(this->path_, cv::IMREAD_GRAYSCALE);
 

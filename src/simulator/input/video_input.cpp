@@ -17,11 +17,19 @@ VideoInput::VideoInput(int rows, int cols, const std::string &path) {
         exit(1);
     }
     this->size = std::make_unique<cv::Size>(cols, rows);
+#ifdef USE_CUDA
+    this->frame = cv::cuda::GpuMat(rows, cols, MAT_TYPE);
+#else
     this->frame = cv::UMat(rows, cols, MAT_TYPE);
+#endif
     this->frame.setTo(0);
 }
 
+#ifdef USE_CUDA
+cv::cuda::GpuMat& VideoInput::read() {
+#else
 cv::UMat& VideoInput::read() {
+#endif
     LiveInput::read();
     frame_count++;
     if(frame_count == this->capture->get(cv::CAP_PROP_FRAME_COUNT)) {

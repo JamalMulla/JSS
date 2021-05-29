@@ -43,7 +43,12 @@ void SCAMP5M::rpix() {
 
 void SCAMP5M::get_image(AREG y) {
     // y := half-range image, and reset pixel
-    cv::Mat image = this->pe->get_pixel()->read().getMat(cv::ACCESS_READ);
+    cv::Mat image;
+#ifdef USE_CUDA
+    this->pe->get_pixel()->read().download(image);
+#else
+    image = this->pe->get_pixel()->read().getMat(cv::ACCESS_READ);
+#endif
 
     int patch = 0;
     for (int row = 0; row < rows_; row += row_stride_) {
@@ -72,7 +77,12 @@ void SCAMP5M::get_image(AREG y) {
 
 void SCAMP5M::get_image(AREG y, AREG h) {
     // y := full-range image, h := negative half-range image, and reset *PIX
-    cv::Mat image = this->pe->get_pixel()->read().getMat(cv::ACCESS_READ);
+    cv::Mat image;
+#ifdef USE_CUDA
+    this->pe->get_pixel()->read().download(image);
+#else
+    image = this->pe->get_pixel()->read().getMat(cv::ACCESS_READ);
+#endif
 
     int patch = 0;
     for (int row = 0; row < rows_; row += row_stride_) {

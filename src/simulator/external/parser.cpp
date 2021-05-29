@@ -322,12 +322,7 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
 void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     json c = json::parse(config);
 
-
-    bool use_gpu = false;
-    if (c.contains("use_gpu")) {
-        use_gpu = c["use_gpu"].get<bool>();
-    }
-    setup_processing(use_gpu);
+    setup_processing(c);
 
     std::vector<rttr::enumeration> enums = get_enums();  // all registered enums
 
@@ -426,8 +421,14 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 }
 
 
-void Parser::setup_processing(bool use_gpu) {
-    if (!use_gpu) {
+void Parser::setup_processing(json& j) {
+
+    bool use_opencl = false;
+    if (j.contains("use_opencl")) {
+        use_opencl = j["use_opencl"].get<bool>();
+    }
+
+    if (!use_opencl) {
         std::cout << "Processing on CPU" << std::endl;
         cv::ocl::setUseOpenCL(false);
     } else {
@@ -456,7 +457,7 @@ void Parser::setup_processing(bool use_gpu) {
             std::cout << "OpenCL_C_Version:  " << device.OpenCL_C_Version() << std::endl;
             std::cout << std::endl;
         }
-        std::cout << "Processing on GPU" << std::endl;
+        std::cout << "Processing on GPU using OpenCL" << std::endl;
     }
 
 }

@@ -21,11 +21,19 @@ LiveInput::LiveInput(int rows, int cols, int camera_index) {
     }
 
     this->size = std::make_unique<cv::Size>(cols, rows);
+#ifdef USE_CUDA
+    this->frame = cv::cuda::GpuMat(rows, cols, MAT_TYPE);
+#else
     this->frame = cv::UMat(rows, cols, MAT_TYPE);
+#endif
     this->frame.setTo(0);
 }
 
+#ifdef USE_CUDA
+cv::cuda::GpuMat& LiveInput::read() {
+#else
 cv::UMat& LiveInput::read() {
+#endif
 #ifdef USE_RUNTIME_CHECKS
     if(this->capture == nullptr) {
         std::cerr << "No video capture defined" << std::endl;

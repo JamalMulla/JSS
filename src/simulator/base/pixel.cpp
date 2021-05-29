@@ -68,14 +68,17 @@ void Pixel::set_src(Source src) {
 
 void Pixel::reset() { input_source->reset(); }
 
+#ifdef USE_CUDA
+cv::cuda::GpuMat& Pixel::read() {
+#else
 cv::UMat& Pixel::read() {
-    cv::UMat& m = input_source->read();
+#endif
 #ifdef TRACK_STATISTICS
     double seconds = this->input_source->last_frame_time();
     cycle_count_ = seconds * this->config_->get_clock_rate();
     cv::add(this->array_dynamic_energy_, this->dynamic_power_, this->array_dynamic_energy_, this->internal_mask);
 #endif
-    return m;
+    return input_source->read();;
 }
 
 void Pixel::read(Register& reg) {
