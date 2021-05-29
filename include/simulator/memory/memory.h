@@ -23,7 +23,11 @@ class Memory : public Component {
     double dynamic_read_power_;  // in Watts for a read
     double dynamic_write_power_;  // in Watts for a read
     double time_; // time in seconds for a read/write
+#ifdef USE_CUDA
+    cv::cuda::GpuMat scratch;
+#else
     cv::UMat scratch;
+#endif
 
    public:
     Memory() = default;

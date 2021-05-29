@@ -329,9 +329,9 @@ void SCAMP5E::superpixel_shift(const std::shared_ptr<DREG>& dst, int bank, const
     RWEST->read().download(rw);
 #else
     rs = RSOUTH->read().getMat(cv::ACCESS_READ);
-    rn = RNORTH.read().getMat(cv::ACCESS_READ);
-    re = REAST.read().getMat(cv::ACCESS_READ);
-    rw = RWEST.read().getMat(cv::ACCESS_READ);
+    rn = RNORTH->read().getMat(cv::ACCESS_READ);
+    re = REAST->read().getMat(cv::ACCESS_READ);
+    rw = RWEST->read().getMat(cv::ACCESS_READ);
 #endif
 
 

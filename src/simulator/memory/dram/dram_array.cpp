@@ -8,17 +8,8 @@
 
 void Dram::init() {
 #ifdef TRACK_STATISTICS
-    transistor_count_ = calc_transistor_count();
-    static_power_ = calc_static();
-    dynamic_power_ = calc_dynamic();
-    width_ = calc_width();
-    height_ = calc_height();
     time_ = this->cycle_count_ * (1.0 / config_->get_clock_rate());
-    internal_mask = cv::UMat(rows_, cols_, CV_8U, cv::Scalar(0));
-    array_transistor_count_ = cv::UMat(rows_, cols_, CV_32S, cv::Scalar(0));
-    array_static_energy_ = cv::UMat(rows_, cols_, CV_64F, cv::Scalar(0));
-    array_dynamic_energy_ = cv::UMat(rows_, cols_, CV_64F, cv::Scalar(0));
-    this->calc_internal_mask();
+    Component::init();
 #endif
     // dims = (arrays x rows_in_array x cols_in_row)
     int sizes[] = {((rows_ * cols_) / (row_stride_ * col_stride_)), array_rows_, array_cols_};

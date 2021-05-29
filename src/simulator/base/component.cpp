@@ -5,13 +5,43 @@
 #include <cmath>
 #include <utility>
 
+void Component::init() {
+#ifdef TRACK_STATISTICS
+    transistor_count_ = calc_transistor_count();
+    static_power_ = calc_static();
+    dynamic_power_ = calc_dynamic();
+    width_ = calc_width();
+    height_ = calc_height();
+#ifdef USE_CUDA
+    internal_mask = cv::cuda::GpuMat(rows_, cols_, CV_8U, cv::Scalar(0));
+    array_transistor_count_ = cv::cuda::GpuMat(rows_, cols_, CV_32S, cv::Scalar(0));
+    array_static_energy_ = cv::UMat(rows_, cols_, CV_64F, cv::Scalar(0));
+    array_dynamic_energy_ = cv::UMat(rows_, cols_, CV_64F, cv::Scalar(0));
+#else
+    internal_mask = cv::UMat(rows_, cols_, CV_8U, cv::Scalar(0));
+    array_transistor_count_ = cv::UMat(rows_, cols_, CV_32S, cv::Scalar(0));
+    array_static_energy_ = cv::UMat(rows_, cols_, CV_64F, cv::Scalar(0));
+    array_dynamic_energy_ = cv::UMat(rows_, cols_, CV_64F, cv::Scalar(0));
+#endif
+    this->calc_internal_mask();
+#endif
+}
+
 void Component::calc_internal_mask() {
-    cv::Mat im = this->internal_mask.getMat(cv::ACCESS_WRITE);
+    cv::Mat im;
+#ifdef USE_CUDA
+    this->internal_mask.download(im);
+#else
+    im = this->internal_mask.getMat(cv::ACCESS_WRITE);
+#endif
     for (int row = 0; row < rows_; row += row_stride_) {
         for (int col = 0; col < cols_; col += col_stride_) {
             im.at<uint8_t>(row, col) = 1;
         }
     }
+#ifdef USE_CUDA
+    this->internal_mask.upload(im);
+#endif
 }
 
 void Component::set_process_node(int process_node) {
@@ -58,7 +88,13 @@ cv::Mat Component::get_transistor_count_array() {
 #ifdef TRACK_STATISTICS
     array_transistor_count_.setTo(transistor_count_, this->internal_mask);
 #endif
+#ifdef USE_CUDA
+    cv::Mat m;
+    this->array_transistor_count_.download(m);
+    return m;
+#else
     return this->array_transistor_count_.getMat(cv::ACCESS_READ);
+#endif
 }
 
 int Component::get_transistor_count() {
@@ -71,6 +107,22 @@ double Component::get_width() {
 
 double Component::get_height() {
     return this->height_;
+}
+
+double Component::scale_speed(double base) {
+    double sf = 7.6 - 0.961 * log(5.531 * config_->get_clock_rate() - 104.456);
+    return base * sf;
+}
+
+double Component::scale_width(double base) {
+    // Scale with process node
+    double sf = (double) config_->get_process_node() / this->process_node_;
+    return base * sf;
+}
+
+double Component::scale_height(double base) {
+    double sf = (double) config_->get_process_node() / this->process_node_;
+    return base * sf;
 }
 
 int Component::calc_transistor_count() {
@@ -91,22 +143,6 @@ double Component::calc_width() {
 
 double Component::calc_height() {
     return 0;
-}
-
-double Component::scale_speed(double base) {
-    double sf = 7.6 - 0.961 * log(5.531 * config_->get_clock_rate() - 104.456);
-    return base * sf;
-}
-
-double Component::scale_width(double base) {
-    // Scale with process node
-    double sf = (double) config_->get_process_node() / this->process_node_;
-    return base * sf;
-}
-
-double Component::scale_height(double base) {
-    double sf = (double) config_->get_process_node() / this->process_node_;
-    return base * sf;
 }
 
 #endif

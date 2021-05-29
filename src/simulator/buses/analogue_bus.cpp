@@ -6,6 +6,7 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/cudaarithm.hpp>
 #include <opencv2/opencv.hpp>
 
 void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {
@@ -16,33 +17,55 @@ void AnalogueBus::bus(AnalogueRegister &a, DigitalRegister &FLAG) {
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       DigitalRegister &FLAG) {
     // a = -a0 + error
+#ifdef USE_CUDA
+    cv::cuda::subtract(0, a0.read(), a.read(), FLAG.read());
+#else
     cv::subtract(0, a0.read(), a.read(), FLAG.read());
+#endif
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, DigitalRegister &FLAG) {
     // a = -(a0 + a1) + error
+#ifdef USE_CUDA
+    cv::cuda::add(a0.read(), a1.read(), scratch, FLAG.read());
+    cv::cuda::subtract(0, scratch, a.read(), FLAG.read());
+#else
     cv::add(a0.read(), a1.read(), scratch, FLAG.read());
     cv::subtract(0, scratch, a.read(), FLAG.read());
+#endif
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, AnalogueRegister &a2,
                       DigitalRegister &FLAG) {
     // a = -(a0 + a1 + a2) + error
+#ifdef USE_CUDA
+    cv::cuda::add(a0.read(), a1.read(), scratch, FLAG.read());
+    cv::cuda::add(scratch, a2.read(), scratch, FLAG.read());
+    cv::cuda::subtract(0, scratch, a.read(), FLAG.read());
+#else
     cv::add(a0.read(), a1.read(), scratch, FLAG.read());
     cv::add(scratch, a2.read(), scratch, FLAG.read());
     cv::subtract(0, scratch, a.read(), FLAG.read());
+#endif
 }
 
 void AnalogueBus::bus(AnalogueRegister &a, AnalogueRegister &a0,
                       AnalogueRegister &a1, AnalogueRegister &a2,
                       AnalogueRegister &a3, DigitalRegister &FLAG) {
     // a = -(a0 + a1 + a2 + a3) + error
+#ifdef USE_CUDA
+    cv::cuda::add( a0.read(), a1.read(), scratch, FLAG.read());
+    cv::cuda::add(scratch, a2.read(), scratch, FLAG.read());
+    cv::cuda::add(scratch, a3.read(), scratch, FLAG.read());
+    cv::cuda::subtract(0, scratch,  a.read(), FLAG.read());
+#else
     cv::add( a0.read(), a1.read(), scratch, FLAG.read());
     cv::add(scratch, a2.read(), scratch, FLAG.read());
     cv::add(scratch, a3.read(), scratch, FLAG.read());
     cv::subtract(0, scratch,  a.read(), FLAG.read());
+#endif
 }
 
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
@@ -55,8 +78,13 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
 void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
                        AnalogueRegister &a0, DigitalRegister &FLAG) {
     // a,b = -0.5*a0 + error + noise
+#ifdef USE_CUDA
+    cv::cuda::multiply(a0.read(), 0.5, scratch);
+    cv::cuda::subtract(0, scratch, scratch, FLAG.read());
+#else
     cv::multiply(a0.read(), 0.5, scratch);
     cv::subtract(0, scratch, scratch, FLAG.read());
+#endif
     a.write(scratch, FLAG.read());
     b.write(scratch, FLAG.read());
 }
@@ -65,9 +93,15 @@ void AnalogueBus::bus2(AnalogueRegister &a, AnalogueRegister &b,
                        AnalogueRegister &a0, AnalogueRegister &a1,
                        DigitalRegister &FLAG) {
     // a,b = -0.5*(a0 + a1) + error + noise
+#ifdef USE_CUDA
+    cv::cuda::add(a0.read(), a1.read(), scratch, FLAG.read());
+    cv::cuda::multiply(scratch, 0.5, scratch);
+    cv::cuda::subtract(0, scratch, scratch, FLAG.read());
+#else
     cv::add(a0.read(), a1.read(), scratch, FLAG.read());
     cv::multiply(scratch, 0.5, scratch);
     cv::subtract(0, scratch, scratch, FLAG.read());
+#endif
     a.write(scratch, FLAG.read());
     b.write(scratch, FLAG.read());
 }
@@ -76,8 +110,13 @@ void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b,
                        AnalogueRegister &c, AnalogueRegister &a0,
                        DigitalRegister &FLAG) {
     // a,b,c = -0.33*a0 + error + noise
+#ifdef USE_CUDA
+    cv::cuda::multiply(0.333, a0.read(), scratch);
+    cv::cuda::subtract(0, scratch, scratch, FLAG.read());
+#else
     cv::multiply(0.333, a0.read(), scratch);
     cv::subtract(0, scratch, scratch, FLAG.read());
+#endif
     a.write(scratch, FLAG.read());
     b.write(scratch, FLAG.read());
     c.write(scratch, FLAG.read());
@@ -86,7 +125,11 @@ void AnalogueBus::bus3(AnalogueRegister &a, AnalogueRegister &b,
 void AnalogueBus::conditional_positive_set(DigitalRegister &b,
                                            AnalogueRegister &a) {
     // b := 1 if a > 0
+#ifdef USE_CUDA
+    cv::cuda::threshold(a.read(), b.read(), 0, 1, cv::THRESH_BINARY);
+#else
     cv::threshold(a.read(), b.read(), 0, 1, cv::THRESH_BINARY);
+#endif
     b.read().convertTo(b.read(), CV_8U);
 }
 
@@ -94,8 +137,13 @@ void AnalogueBus::conditional_positive_set(DigitalRegister &b,
                                            AnalogueRegister &a0,
                                            AnalogueRegister &a1) {
     // b := 1 if (a0 + a1) > 0.
+#ifdef USE_CUDA
+    cv::cuda::add(a0.read(), a1.read(), scratch);
+    cv::cuda::threshold(scratch, b.read(), 0, 1, cv::THRESH_BINARY);
+#else
     cv::add(a0.read(), a1.read(), scratch);
     cv::threshold(scratch, b.read(), 0, 1, cv::THRESH_BINARY);
+#endif
     b.read().convertTo(b.read(), CV_8U);
 }
 
@@ -104,9 +152,15 @@ void AnalogueBus::conditional_positive_set(DigitalRegister &b,
                                            AnalogueRegister &a1,
                                            AnalogueRegister &a2) {
     // b := 1 if (a0 + a1 + a2) > 0.
+#ifdef USE_CUDA
+    cv::cuda::add(a0.read(), a1.read(), scratch);
+    cv::cuda::add(scratch, a2.read(), scratch);
+    cv::cuda::threshold(scratch, b.read(), 0, 1, cv::THRESH_BINARY);
+#else
     cv::add(a0.read(), a1.read(), scratch);
     cv::add(scratch, a2.read(), scratch);
-    threshold(scratch, b.read(), 0, 1, cv::THRESH_BINARY);
+    cv::threshold(scratch, b.read(), 0, 1, cv::THRESH_BINARY);
+#endif
     b.read().convertTo(b.read(), CV_8U);
 }
 
@@ -342,7 +396,7 @@ void AnalogueBus::scan(uint8_t *dst, AnalogueRegister &src, uint8_t row_start,
 #ifdef USE_CUDA
     src.read().download(m);
 #else
-    m = src.read().getMat(cv::ACCESS_READ)
+    m = src.read().getMat(cv::ACCESS_READ);
 #endif
 
     for(int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {

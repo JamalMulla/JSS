@@ -54,6 +54,7 @@ class Register : public Component {
     double get_width() override;
     double get_height() override;
     int get_transistor_count() override;
+
 #endif
 
     void set_memory(MemoryType memory_type);

@@ -422,7 +422,11 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 
 
 void Parser::setup_processing(json& j) {
-
+#ifdef USE_CUDA
+    // no OpenCL processing if we're using CUDA
+    cv::ocl::setUseOpenCL(false);
+    return;
+#else
     bool use_opencl = false;
     if (j.contains("use_opencl")) {
         use_opencl = j["use_opencl"].get<bool>();
@@ -459,5 +463,5 @@ void Parser::setup_processing(json& j) {
         }
         std::cout << "Processing on GPU using OpenCL" << std::endl;
     }
-
+#endif
 }

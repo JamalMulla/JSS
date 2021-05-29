@@ -13,6 +13,7 @@ void Register::init() {
 #else
     this->value_ = cv::UMat(rows_, cols_, type_, cv::Scalar(0));
 #endif
+    Component::init();
 }
 
 #ifdef USE_CUDA
@@ -47,7 +48,6 @@ void Register::write(const cv::UMat& data) {
     this->inc_write();
 #endif
 }
-
 
 void Register::write(const cv::Mat& data) {
     data.copyTo(this->value_);
@@ -200,6 +200,7 @@ int Register::get_transistor_count() {
         return this->memory_->get_transistor_count();
     }
 }
+
 
 #endif
 

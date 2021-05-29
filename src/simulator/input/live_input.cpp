@@ -52,11 +52,17 @@ cv::UMat& LiveInput::read() {
 
     int width = temp.cols;
     int height = temp.rows;
-    cv::Mat cropFrame =
-        temp(cv::Rect((width - height) / 2, 0, height - 1, height - 1));
+    cv::Mat cropFrame = temp(cv::Rect((width - height) / 2, 0, height - 1, height - 1));
     cv::resize(cropFrame, cropFrame, *this->size);
     cropFrame.convertTo(temp, MAT_TYPE, 1, -128);
+#ifdef USE_CUDA
+    cv::Mat a;
+    this->frame.download(a);
+    cv::add(a, temp, a);
+    this->frame.upload(a);
+#else
     cv::add(this->frame, temp, this->frame);
+#endif
     auto TIME_END = std::chrono::high_resolution_clock::now();
     long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(
         TIME_END - TIME_START)
