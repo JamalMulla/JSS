@@ -7,7 +7,15 @@
 #include <opencv2/highgui.hpp>
 
 void utility::remap_register(Register &reg, cv::Mat &dst) {
-    reg.read().convertTo(dst, CV_8U, 255.0 / (reg.max_val - reg.min_val),
+
+    cv::UMat m;
+#ifdef USE_CUDA
+    reg.read().download(m);
+#else
+    m = reg.read();
+#endif
+
+    m.convertTo(dst, CV_8U, 255.0 / (reg.max_val - reg.min_val),
                           -reg.min_val * 255.0 / (reg.max_val - reg.min_val));
 }
 

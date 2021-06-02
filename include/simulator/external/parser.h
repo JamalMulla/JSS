@@ -22,6 +22,8 @@ class Parser {
     Parser();
     std::vector<rttr::enumeration> enums_;
     ParserCache cache;
+    int repeat_ = 1; // Number of times to repeat each instruction. Useful for performance testing
+
 
    public:
     static Parser& get_instance(){

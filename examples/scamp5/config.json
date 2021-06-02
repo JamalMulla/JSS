@@ -1,6 +1,8 @@
 {
 	"architecture": "SCAMP5",
-	"frames": 1,
+	"frames": 1000,
+	"use_opencl" : false,
+	"instr_rep" : 1,
 	"frame_time": true,
 	"with_stats": true,
 	"ui_enabled": true,

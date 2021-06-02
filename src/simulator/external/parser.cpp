@@ -199,16 +199,19 @@ Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream&
 void Parser::execute_instructions(const Instructions& parsed, rttr::instance instance) {
     for (auto& [method, args]: parsed) {
         rttr::variant res;
-        switch (args.size()) {
-            case 0: res = method.invoke(instance); break;
-            case 1: res = method.invoke(instance, args[0]); break;
-            case 2: res = method.invoke(instance, args[0], args[1]); break;
-            case 3: res = method.invoke(instance, args[0], args[1], args[2]); break;
-            case 4: res = method.invoke(instance, args[0], args[1], args[2], args[3]); break;
-            case 5: res = method.invoke(instance, args[0], args[1], args[2], args[3], args[4]); break;
-            case 6: res = method.invoke(instance, args[0], args[1], args[2], args[3], args[4], args[5]); break;
-            default: std::cerr << "Too many arguments in method " << method.get_name() << " invocation" << std::endl;
+        for (int i = 0; i < repeat_; i++) {
+            switch (args.size()) {
+                case 0: res = method.invoke(instance); break;
+                case 1: res = method.invoke(instance, args[0]); break;
+                case 2: res = method.invoke(instance, args[0], args[1]); break;
+                case 3: res = method.invoke(instance, args[0], args[1], args[2]); break;
+                case 4: res = method.invoke(instance, args[0], args[1], args[2], args[3]); break;
+                case 5: res = method.invoke(instance, args[0], args[1], args[2], args[3], args[4]); break;
+                case 6: res = method.invoke(instance, args[0], args[1], args[2], args[3], args[4], args[5]); break;
+                default: std::cerr << "Too many arguments in method " << method.get_name() << " invocation" << std::endl;
+            }
         }
+
         if (!res.is_valid()) {
             std::cerr << "Could not execute method \"" << method.get_name() << "\""
                       << " with " << args.size() << " arguments" << std::endl;
@@ -422,6 +425,11 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 
 
 void Parser::setup_processing(json& j) {
+
+    if (j.contains("instr_rep")) {
+        repeat_ = j["instr_rep"].get<int>();
+    }
+
 #ifdef USE_CUDA
     // no OpenCL processing if we're using CUDA
     cv::ocl::setUseOpenCL(false);

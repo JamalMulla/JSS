@@ -38,6 +38,7 @@ void Memory::print_stats(const CycleCounter& counter) {
 }
 
 cv::Mat Memory::get_dynamic_energy_array() {
+    // add all the accesses with no masks
     cv::add(this->array_dynamic_energy_, read_count_ * this->dynamic_read_power_ * time_, this->array_dynamic_energy_, internal_mask);
     cv::add(this->array_dynamic_energy_, write_count_ * this->dynamic_write_power_ * time_, this->array_dynamic_energy_, internal_mask);
 
