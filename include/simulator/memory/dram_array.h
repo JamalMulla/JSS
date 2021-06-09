@@ -42,7 +42,7 @@ class Dram : public Component {
 
     void print_row(int array, int row);
 
-    void reset();
+    void reset_val();
 
     void update_dynamic(int count);
 

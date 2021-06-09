@@ -19,14 +19,14 @@
 
 enum AREG {
     PIX = 0,
-    IN = 32,
-    NEWS = 64,
-    A = 96,
-    B = 128,
-    C = 160,
-    D = 192,
-    E = 224,
-    F = 256
+    IN = 8,
+    NEWS = 16,
+    A = 24,
+    B = 32,
+    C = 40,
+    D = 48,
+    E = 56,
+    F = 64
 };
 
 enum DREG {
@@ -336,8 +336,11 @@ class SCAMP5M : public Architecture {
     void init_viola();
     std::shared_ptr<VjClassifier> read_viola_classifier(const std::string& classifier_path);
     std::vector<cv::Rect> vj_detect(const std::shared_ptr<Image>& src, std::shared_ptr<VjClassifier> classifier, Size minSize, Size maxSize, float scaleFactor, int minNeighbors);
+    void downsample(AREG dst, AREG src, float sf);
+    void vj_horizontal_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> src);
     void vj_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> src);
     void vj_scale_invoke(std::shared_ptr<VjClassifier> classifier, std::shared_ptr<std::vector<int>> sum_val, std::shared_ptr<std::vector<int>>  sqsum_val, float _factor, int sum_row, int sum_col, std::vector<cv::Rect> &_vec);
+    void integral_image();
     void vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Image> sum_image, std::shared_ptr<Image> sqrsum_image);
     void vj_transpose(std::shared_ptr<Image> dst, std::shared_ptr<Image> src);
     void vj_set_image_for_cascade(std::shared_ptr<VjClassifier> classifier, std::shared_ptr<Image> sum, std::shared_ptr<Image> sqsum);

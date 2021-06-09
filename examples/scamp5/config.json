@@ -1,10 +1,10 @@
 {
 	"architecture": "SCAMP5",
-	"frames": 1000,
+	"frames": 100,
 	"use_opencl" : false,
 	"instr_rep" : 1,
 	"frame_time": true,
-	"with_stats": true,
+	"with_stats": false,
 	"ui_enabled": true,
 	"ui_registers_to_display" : ["A", "B", "C", "D", "E", "R5", "R6", "R7", "R12"],
 	"SCAMP5": {

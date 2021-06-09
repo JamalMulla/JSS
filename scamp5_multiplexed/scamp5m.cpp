@@ -30,7 +30,7 @@ void SCAMP5M::init() {
     // array for that row and col
 
     this->SET(FLAG);
-    classifier = read_viola_classifier("/home/jm1417/Simulator/scamp5_multiplexed/class.txt");
+    //    classifier = read_viola_classifier("/home/jm1417/Simulator/scamp5_multiplexed/class.txt");
 }
 
 void SCAMP5M::nop() { this->update_cycles(1); }
@@ -572,54 +572,46 @@ void SCAMP5M::movx(AREG y, AREG x0, news_t dir) {
     PlaneParams p;
     get_dir_params(p, dir, 0, 0, this->rows_, this->cols_, 1, 1);
 
-    int patch = 0;
-    for (int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
-        for (int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
-            int elem = 0;
-            for (int r = row; r < row + row_stride_; r++) {
-                for (int c = col; c < col + col_stride_; c++) {
-                    int x0_val = 0;
-                    switch (dir) {
-                        case east: {
-                            int dram_row_select = col - 1;  // TOP_RIGHT origin means it's -1
-                            if (dram_row_select >= 0) {
-                                x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
-                            }
-                            break;
-                        }
-                        case west: {
-                            int dram_row_select = col + 1;  // TOP_RIGHT origin means it's +1
-                            if (dram_row_select < this->cols_) {
-                                x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
-                            }
-                            break;
-                        };
-                        case north: {
-                            int dram_array_select = row - 1;  // TOP_RIGHT origin means it's -1
-                            if (dram_array_select < this->rows_) {
-                                x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
-                            }
-                            break;
-                        };
-                        case south: {
-                            int dram_array_select = row + 1;  // TOP_RIGHT origin means it's +1
-                            if (dram_array_select >= 0) {
-                                x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
-                            }
-                            break;
-                        };
-                        case alldir: {
-                            std::cerr << "Unhandled direction" << std::endl;
-                            break;
-                        };
+    for (int col = p.col_start; p.col_op(col, p.col_end); col += p.col_step) {
+        for (int row = p.row_start; p.row_op(row, p.row_end); row += p.row_step) {
+            int x0_val = 0;
+            switch (dir) {
+                case east: {
+                    int dram_row_select = col - 1;  // TOP_RIGHT origin means it's -1
+                    if (dram_row_select >= 0) {
+                        x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
                     }
-                    int neg = this->alu->execute(0, x0_val, ALU::SUB);
-                    this->dram->write_signed_byte(row, col, y, x0_val);
-                    this->dram->write_signed_byte(row, col, NEWS, neg);
-                    elem++;
+                    break;
                 }
+                case west: {
+                    int dram_row_select = col + 1;  // TOP_RIGHT origin means it's +1
+                    if (dram_row_select < this->cols_) {
+                        x0_val = this->dram->read_signed_byte(row, dram_row_select, x0);
+                    }
+                    break;
+                };
+                case north: {
+                    int dram_array_select = row - 1;  // TOP_RIGHT origin means it's -1
+                    if (dram_array_select < this->rows_) {
+                        x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
+                    }
+                    break;
+                };
+                case south: {
+                    int dram_array_select = row + 1;  // TOP_RIGHT origin means it's +1
+                    if (dram_array_select >= 0) {
+                        x0_val = this->dram->read_signed_byte(dram_array_select, col, x0);
+                    }
+                    break;
+                };
+                case alldir: {
+                    std::cerr << "Unhandled direction" << std::endl;
+                    break;
+                };
             }
-            patch++;
+            int neg = this->alu->execute(0, x0_val, ALU::SUB);
+            this->dram->write_signed_byte(row, col, y, x0_val);
+            this->dram->write_signed_byte(row, col, NEWS, neg);
         }
     }
 
@@ -2263,7 +2255,7 @@ void SCAMP5M::display() {
 }
 
 std::shared_ptr<VjClassifier> SCAMP5M::read_viola_classifier(const std::string &classifier_path) {
-    int stages = 25; // number of stages
+    int stages = 25;  // number of stages
     /*total number of weak classifiers (one node each)*/
     int total_nodes = 2913;
     int i, j, k, l;
@@ -2276,20 +2268,19 @@ std::shared_ptr<VjClassifier> SCAMP5M::read_viola_classifier(const std::string &
 
     std::vector<int> stages_array {9, 16, 27, 32, 52, 53, 62, 72, 83, 91, 99, 115, 127, 135, 136, 137, 159, 155, 169, 196, 197, 181, 199, 211, 200};
 
-
     /* TODO: use matrices where appropriate */
     /***********************************************
      * Allocate a lot of array structures
      * Note that, to increase parallelism,
      * some arrays need to be splitted or duplicated
      **********************************************/
-    std::shared_ptr<std::vector<int> > rectangles_array = std::make_shared<std::vector<int> >(total_nodes * 12);
-    std::shared_ptr<std::vector<int> > scaled_rectangles_array = std::make_shared<std::vector<int> >(total_nodes * 12);
-    std::shared_ptr<std::vector<int> > weights_array = std::make_shared<std::vector<int> >(total_nodes * 3);
-    std::shared_ptr<std::vector<int> > alpha1_array = std::make_shared<std::vector<int> >(total_nodes);
-    std::shared_ptr<std::vector<int> > alpha2_array = std::make_shared<std::vector<int> >(total_nodes);
-    std::shared_ptr<std::vector<int> > tree_thresh_array = std::make_shared<std::vector<int> >(total_nodes);
-    std::shared_ptr<std::vector<int> > stages_thresh_array = std::make_shared<std::vector<int> >(stages);
+    std::shared_ptr<std::vector<int>> rectangles_array = std::make_shared<std::vector<int>>(total_nodes * 12);
+    std::shared_ptr<std::vector<int>> scaled_rectangles_array = std::make_shared<std::vector<int>>(total_nodes * 12);
+    std::shared_ptr<std::vector<int>> weights_array = std::make_shared<std::vector<int>>(total_nodes * 3);
+    std::shared_ptr<std::vector<int>> alpha1_array = std::make_shared<std::vector<int>>(total_nodes);
+    std::shared_ptr<std::vector<int>> alpha2_array = std::make_shared<std::vector<int>>(total_nodes);
+    std::shared_ptr<std::vector<int>> tree_thresh_array = std::make_shared<std::vector<int>>(total_nodes);
+    std::shared_ptr<std::vector<int>> stages_thresh_array = std::make_shared<std::vector<int>>(stages);
     FILE *fp = fopen(classifier_path.data(), "r");
 
     /******************************************
@@ -2317,9 +2308,9 @@ std::shared_ptr<VjClassifier> SCAMP5M::read_viola_classifier(const std::string &
      * 18: alpha 2 of the filter
      ******************************************/
     /* loop over n of stages */
-    for (i = 0; i < stages; i++) {    /* loop over n of trees */
-        for (j = 0; j < stages_array[i]; j++) {    /* loop over n of rectangular features */
-            for (k = 0; k < 3; k++) {    /* loop over the n of vertices */
+    for (i = 0; i < stages; i++) { /* loop over n of trees */
+        for (j = 0; j < stages_array[i]; j++) { /* loop over n of rectangular features */
+            for (k = 0; k < 3; k++) { /* loop over the n of vertices */
                 for (l = 0; l < 4; l++) {
                     if (fgets(mystring, 12, fp) != nullptr)
                         rectangles_array->at(r_index) = atoi(mystring);
@@ -2375,17 +2366,16 @@ std::shared_ptr<VjClassifier> SCAMP5M::read_viola_classifier(const std::string &
 }
 
 inline int int_round(float value) {
-    return (int) (value + (value >= 0 ? 0.5 : -0.5));
+    return (int)(value + (value >= 0 ? 0.5 : -0.5));
 }
 
-std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image>& src, std::shared_ptr<VjClassifier> classifier, Size minSize, Size maxSize, float scaleFactor, int minNeighbors) {
+std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image> &src, std::shared_ptr<VjClassifier> classifier, Size minSize, Size maxSize, float scaleFactor, int minNeighbors) {
     /* group overlaping windows */
     const float GROUP_EPS = 0.4f;
 
     // C for img1
     // D for sum
     // E for sqsum
-
 
     std::shared_ptr<Image> img1 = std::make_shared<Image>(src->width, src->height, C, 1);
     std::shared_ptr<Image> sum1 = std::make_shared<Image>(src->width, src->height, D, 1);
@@ -2424,7 +2414,6 @@ std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image>& src, std:
         if (winSize.width < minSize.width || winSize.height < minSize.height)
             continue;
 
-
         img1->width = sz.width;
         img1->height = sz.height;
 
@@ -2439,9 +2428,9 @@ std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image>& src, std:
          * downsampling using nearest neighbor
          **************************************/
         vj_downsample(img1, src);
-//        cv::Mat img1v = this->readout(C);
-//        cv::imshow("Scaled", img1v);
-//        cv::waitKey(1);
+        //        cv::Mat img1v = this->readout(C);
+        //        cv::imshow("Scaled", img1v);
+        //        cv::waitKey(1);
 
         /***************************************************
          * Compute-intensive step:
@@ -2449,21 +2438,21 @@ std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image>& src, std:
          * compute a new integral and squared integral image
          ***************************************************/
         vj_integral_image(img1, sum1, sqsum);
-//        for (int y = 0; y < sum1->height; ++y) {
-//            for (int x = 0; x < sum1->width; ++x) {
-//                std::cout << this->dram->read_signed_int(y, x, sum1->reg) << " ";
-//            }
-//        }
-//        std::cout << "----------------------------\n";
-//        exit(EXIT_FAILURE);
+        //        for (int y = 0; y < sum1->height; ++y) {
+        //            for (int x = 0; x < sum1->width; ++x) {
+        //                std::cout << this->dram->read_signed_int(y, x, sum1->reg) << " ";
+        //            }
+        //        }
+        //        std::cout << "----------------------------\n";
+        //        exit(EXIT_FAILURE);
 
-//        cv::Mat sum1v = this->readout(D);
+        //        cv::Mat sum1v = this->readout(D);
 
-//        cv::imshow("Sum", sum1v);
-//        double minVal, maxVal;
-//        cv::minMaxLoc(sum1v, &minVal, &maxVal);
-////        std::cout << minVal << " " << maxVal << std::endl;
-//        cv::waitKey(1);
+        //        cv::imshow("Sum", sum1v);
+        //        double minVal, maxVal;
+        //        cv::minMaxLoc(sum1v, &minVal, &maxVal);
+        ////        std::cout << minVal << " " << maxVal << std::endl;
+        //        cv::waitKey(1);
 
         /* sets images for haar classifier cascade */
         /**************************************************
@@ -2489,7 +2478,7 @@ std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image>& src, std:
         std::shared_ptr<std::vector<int>> sqsum_val = vj_readout(E);
 
         vj_scale_invoke(classifier, sum_val, sqsum_val, factor, sum1->height, sum1->width,
-                           allCandidates);
+                        allCandidates);
     } /* end of the factor loop, finish all scales in pyramid*/
 
     if (minNeighbors != 0) {
@@ -2500,7 +2489,6 @@ std::vector<cv::Rect> SCAMP5M::vj_detect(const std::shared_ptr<Image>& src, std:
         std::cout << "Found face" << std::endl;
     }
     return allCandidates;
-
 }
 
 void SCAMP5M::vj_set_image_for_cascade(std::shared_ptr<VjClassifier> classifier, std::shared_ptr<Image> sum, std::shared_ptr<Image> sqsum) {
@@ -2567,12 +2555,9 @@ void SCAMP5M::vj_set_image_for_cascade(std::shared_ptr<VjClassifier> classifier,
             w_index += 3;
         } /* end of j loop */
     } /* end i loop */
-
 }
 
-
-void SCAMP5M::vj_scale_invoke(std::shared_ptr<VjClassifier> classifier, std::shared_ptr<std::vector<int>> sum_val, std::shared_ptr<std::vector<int>> sqsum_val, float _factor, int sum_row, int sum_col, std::vector<cv::Rect>& allCandidates) {
-
+void SCAMP5M::vj_scale_invoke(std::shared_ptr<VjClassifier> classifier, std::shared_ptr<std::vector<int>> sum_val, std::shared_ptr<std::vector<int>> sqsum_val, float _factor, int sum_row, int sum_col, std::vector<cv::Rect> &allCandidates) {
     float factor = _factor;
     Point p;
     int result;
@@ -2598,7 +2583,7 @@ void SCAMP5M::vj_scale_invoke(std::shared_ptr<VjClassifier> classifier, std::sha
      *********************************************/
     for (x = 0; x < x2; x += step)
         for (y = 0; y < y2; y += step) {
-//            std::cout << "x: " << x << " y: " << y << "\n";
+            //            std::cout << "x: " << x << " y: " << y << "\n";
             p.x = x;
             p.y = y;
 
@@ -2625,7 +2610,7 @@ int SCAMP5M::run_vj_classifier(std::shared_ptr<VjClassifier> classifier, std::sh
     int r_index = 0;
     int stage_sum;
 
-//    std::cout << sum_val->size() << std::endl;
+    //    std::cout << sum_val->size() << std::endl;
     p_offset = pt.y * (classifier->sum_img->width) + pt.x;
     pq_offset = pt.y * (classifier->sqsum_img->width) + pt.x;
 
@@ -2655,7 +2640,6 @@ int SCAMP5M::run_vj_classifier(std::shared_ptr<VjClassifier> classifier, std::sh
      * send the shifted window through cascade filter.
      *************************************************/
     for (i = start_stage; i < classifier->stages; i++) {
-
         stage_sum = 0;
 
         for (j = 0; j < classifier->stages_array_->at(i); j++) {
@@ -2685,32 +2669,18 @@ int SCAMP5M::run_vj_classifier(std::shared_ptr<VjClassifier> classifier, std::sh
 }
 
 inline int SCAMP5M::evalWeakClassifier(std::shared_ptr<VjClassifier> classifier, std::shared_ptr<std::vector<int>> sum_val, int variance_norm_factor, int p_offset, int tree_index, int w_index, int r_index) {
-
     /* the node threshold is multiplied by the standard deviation of the image */
     int t = classifier->tree_thresh_array_->at(tree_index) * variance_norm_factor;
 
     int i = classifier->scaled_rectangles_array_->at(r_index + 2);
     int index = i + p_offset;
-//    std::cout << i << ", " << p_offset << std::endl;
-    int sum = (sum_val->at(classifier->scaled_rectangles_array_->at(r_index) + p_offset)
-               - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 1) + p_offset)
-               - sum_val->at(index)
-               + sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 3) + p_offset))
-              * classifier->weights_array_->at(w_index);
+    //    std::cout << i << ", " << p_offset << std::endl;
+    int sum = (sum_val->at(classifier->scaled_rectangles_array_->at(r_index) + p_offset) - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 1) + p_offset) - sum_val->at(index) + sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 3) + p_offset)) * classifier->weights_array_->at(w_index);
 
-
-    sum += (sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 4) + p_offset)
-            - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 5) + p_offset)
-            - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 6) + p_offset)
-            + sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 7) + p_offset))
-           * classifier->weights_array_->at(w_index + 1);
+    sum += (sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 4) + p_offset) - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 5) + p_offset) - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 6) + p_offset) + sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 7) + p_offset)) * classifier->weights_array_->at(w_index + 1);
 
     if ((classifier->scaled_rectangles_array_->at(r_index + 8) != -1))
-        sum += (sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 8) + p_offset)
-                - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 9)+ p_offset)
-                - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 10) + p_offset)
-                + sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 11) + p_offset))
-               * classifier->weights_array_->at(w_index + 2);
+        sum += (sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 8) + p_offset) - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 9) + p_offset) - sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 10) + p_offset) + sum_val->at(classifier->scaled_rectangles_array_->at(r_index + 11) + p_offset)) * classifier->weights_array_->at(w_index + 2);
 
     if (sum >= t)
         return classifier->alpha2_array_->at(tree_index);
@@ -2732,31 +2702,68 @@ std::shared_ptr<std::vector<int>> SCAMP5M::vj_readout(AREG src) {
     return out;
 }
 
-void SCAMP5M::vj_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> src) {
-    // nearest neighbour downsampling
+void SCAMP5M::downsample(AREG dst, AREG src, float sf) {
+    std::shared_ptr<Image> dst_img = std::make_shared<Image>(this->rows_ * sf, this->cols_ * sf, dst, 1);
+    std::shared_ptr<Image> src_img = std::make_shared<Image>(this->rows_, this->cols_, src, 1);
 
-    int y;
-    int x;
+    vj_downsample(dst_img, src_img);
+}
+
+void SCAMP5M::vj_horizontal_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> src) {
     int w1 = src->width;
     int h1 = src->height;
     int w2 = dst->width;
     int h2 = dst->height;
 
-    int rat = 0;
+    std::cout << w1 << " " << h1 << " " << w2 << " " << h2 << std::endl;
 
-    int x_ratio = (int) ((w1 << 16) / w2) + 1;
-    int y_ratio = (int) ((h1 << 16) / h2) + 1;
+    for (int row = 0; row < h2; ++row) {
+        for (int col = 0; col < w2; ++col) {
+            int src_x = (int)((float)col / (float)w2 * (float)w1);
+            src_x = std::min(src_x, w1 - 1);
 
-    for (int i = 0; i < h2; i++) {
-        y = ((i * y_ratio) >> 16);
-        rat = 0;
-        for (int j = 0; j < w2; j++) {
-            x = (rat >> 16);
-            int val = this->dram->read_signed_int(y, x, src->reg);
-            this->dram->write_signed_int(i, j, dst->reg, val);
-            rat += x_ratio;
+            int val = this->dram->read_signed_byte(row, src_x, src->reg);
+            this->dram->write_signed_byte(row, col, dst->reg, val);
         }
     }
+
+    // only go through
+    this->update_cycles(w2 * 18);
+    dram->update_dynamic(w2 * 16);
+    alu->update_dynamic(w2 * 2);
+}
+
+void SCAMP5M::vj_downsample(std::shared_ptr<Image> dst, std::shared_ptr<Image> src) {
+    // nearest neighbour downsampling
+
+    std::shared_ptr<Image> tmp = std::make_shared<Image>(src->height, dst->width, E, 1);
+    std::shared_ptr<Image> tmp2 = std::make_shared<Image>(src->height, dst->width, F, 1);
+
+    vj_horizontal_downsample(tmp2, src);
+    vj_transpose(tmp, tmp2);
+    vj_horizontal_downsample(tmp2, tmp);
+    vj_transpose(dst, tmp2);
+}
+
+void SCAMP5M::integral_image() {
+    // first summation
+
+    this->update_cycles(cols_ * 66);
+    dram->update_dynamic(cols_ * 64);
+    alu->update_dynamic(cols_ * 2);
+
+    // first transpose
+    this->update_cycles(rows_ * cols_ * 64);
+    dram->update_dynamic(rows_ * cols_ * 64);
+
+    // second summation
+    this->update_cycles(cols_ * 66);
+    dram->update_dynamic(cols_ * 64);
+    alu->update_dynamic(cols_ * 2);
+
+    // second transpose
+    this->update_cycles(rows_ * cols_ * 64);
+    dram->update_dynamic(rows_ * cols_ * 64);
 }
 
 void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Image> sum_image, std::shared_ptr<Image> sqrsum_image) {
@@ -2764,9 +2771,8 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
     int height = src->height;
     int width = src->width;
 
-
-//    std::shared_ptr<Image> sum_temp = std::make_shared<Image>(width, height, NEWS, 1);
-//    std::shared_ptr<Image> sqsum_temp = std::make_shared<Image>(width, height, F, 1);
+    //    std::shared_ptr<Image> sum_temp = std::make_shared<Image>(width, height, NEWS, 1);
+    //    std::shared_ptr<Image> sqsum_temp = std::make_shared<Image>(width, height, F, 1);
 
     int x, y, s, sq, t, tq;
     unsigned char it;
@@ -2791,134 +2797,134 @@ void SCAMP5M::vj_integral_image(std::shared_ptr<Image> src, std::shared_ptr<Imag
         }
     }
 
-//    for (int row = 0; row < rows_; row += row_stride_) {
-//        for (int col = 0; col < cols_; col += col_stride_) {
-//            for (int r = row; r < row + row_stride_; r++) {
-//                for (int c = col; c < col + col_stride_; c++) {
-//                    int i = this->dram->read_signed_byte(patch, index(r-row, c-col, cols_), src) + 128;
-//                    std::cout << i << ",";
-//                }
-//            }
-//            patch++;
-//        }
-//        std::cout << "\n";
-//    }
+    //    for (int row = 0; row < rows_; row += row_stride_) {
+    //        for (int col = 0; col < cols_; col += col_stride_) {
+    //            for (int r = row; r < row + row_stride_; r++) {
+    //                for (int c = col; c < col + col_stride_; c++) {
+    //                    int i = this->dram->read_signed_byte(patch, index(r-row, c-col, cols_), src) + 128;
+    //                    std::cout << i << ",";
+    //                }
+    //            }
+    //            patch++;
+    //        }
+    //        std::cout << "\n";
+    //    }
 
     //sum up each row in parallel
-//    for (int row = 0; row < height; row ++) {
-//        int sum = 0;
-//        int sqsum = 0;
-//        for (int col = 0; col < width; col ++) {
-//            int i = this->dram->read_signed_int(row, col, src->reg);
-//            sum = this->alu->execute(sum, i, ALU::ADD);
-//            int sq = this->alu->execute(i, i, ALU::MUL);
-//            sqsum = this->alu->execute(sq, sqsum, ALU::ADD);
-//            this->dram->write_signed_int(row, col, sum_temp->reg, sum);
-//            this->dram->write_signed_int(row, col, sqsum_temp->reg, sq);
-//        }
-//    }
+    //    for (int row = 0; row < height; row ++) {
+    //        int sum = 0;
+    //        int sqsum = 0;
+    //        for (int col = 0; col < width; col ++) {
+    //            int i = this->dram->read_signed_int(row, col, src->reg);
+    //            sum = this->alu->execute(sum, i, ALU::ADD);
+    //            int sq = this->alu->execute(i, i, ALU::MUL);
+    //            sqsum = this->alu->execute(sq, sqsum, ALU::ADD);
+    //            this->dram->write_signed_int(row, col, sum_temp->reg, sum);
+    //            this->dram->write_signed_int(row, col, sqsum_temp->reg, sq);
+    //        }
+    //    }
 
-//    std::cout << "Row sums-------------" << std::endl;
-//    patch = 0;
-//    for (int row = 0; row < rows_; row += row_stride_) {
-//        for (int col = 0; col < cols_; col += col_stride_) {
-//            for (int r = row; r < row + row_stride_; r++) {
-//                for (int c = col; c < col + col_stride_; c++) {
-//                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), F);
-//                    std::cout << i << ",";
-//                }
-//            }
-//            patch++;
-//        }
-//        std::cout << "\n";
-//    }
+    //    std::cout << "Row sums-------------" << std::endl;
+    //    patch = 0;
+    //    for (int row = 0; row < rows_; row += row_stride_) {
+    //        for (int col = 0; col < cols_; col += col_stride_) {
+    //            for (int r = row; r < row + row_stride_; r++) {
+    //                for (int c = col; c < col + col_stride_; c++) {
+    //                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), F);
+    //                    std::cout << i << ",";
+    //                }
+    //            }
+    //            patch++;
+    //        }
+    //        std::cout << "\n";
+    //    }
 
-//    vj_transpose(sum_image, sum_temp);
-//    vj_transpose(sqrsum_image, sqsum_temp);
-//
-//    std::cout << "Transpose -------------" << std::endl;
-//    patch = 0;
-//    for (int row = 0; row < rows_; row += row_stride_) {
-//        for (int col = 0; col < cols_; col += col_stride_) {
-//            for (int r = row; r < row + row_stride_; r++) {
-//                for (int c = col; c < col + col_stride_; c++) {
-//                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), sqrsum_image);
-//                    std::cout << i << ",";
-//                }
-//            }
-//            patch++;
-//        }
-//        std::cout << "\n";
-//    }
+    //    vj_transpose(sum_image, sum_temp);
+    //    vj_transpose(sqrsum_image, sqsum_temp);
+    //
+    //    std::cout << "Transpose -------------" << std::endl;
+    //    patch = 0;
+    //    for (int row = 0; row < rows_; row += row_stride_) {
+    //        for (int col = 0; col < cols_; col += col_stride_) {
+    //            for (int r = row; r < row + row_stride_; r++) {
+    //                for (int c = col; c < col + col_stride_; c++) {
+    //                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), sqrsum_image);
+    //                    std::cout << i << ",";
+    //                }
+    //            }
+    //            patch++;
+    //        }
+    //        std::cout << "\n";
+    //    }
 
     //sum up each row in parallel (now comtains cols)
 
-//    for (int row = 0; row < height; row ++) {
-//        int sum = 0;
-//        int sqsum = 0;
-//        for (int col = 0; col < width; col ++) {
-//            int i = this->dram->read_signed_int(row, col, sum_image->reg);
-//            sum = this->alu->execute(sum, i, ALU::ADD);
-//            this->dram->write_signed_int(row, col, sum_temp->reg, sum);
-//
-//            int j = this->dram->read_signed_int(row, col, sqrsum_image->reg);
-//            sqsum = this->alu->execute(sqsum, j, ALU::ADD);
-//            this->dram->write_signed_int(row, col, sqsum_temp->reg, sqsum);
-//        }
-//    }
+    //    for (int row = 0; row < height; row ++) {
+    //        int sum = 0;
+    //        int sqsum = 0;
+    //        for (int col = 0; col < width; col ++) {
+    //            int i = this->dram->read_signed_int(row, col, sum_image->reg);
+    //            sum = this->alu->execute(sum, i, ALU::ADD);
+    //            this->dram->write_signed_int(row, col, sum_temp->reg, sum);
+    //
+    //            int j = this->dram->read_signed_int(row, col, sqrsum_image->reg);
+    //            sqsum = this->alu->execute(sqsum, j, ALU::ADD);
+    //            this->dram->write_signed_int(row, col, sqsum_temp->reg, sqsum);
+    //        }
+    //    }
 
-//    std::cout << "Sum cols -------------" << std::endl;
-//    patch = 0;
-//    for (int row = 0; row < rows_; row += row_stride_) {
-//        for (int col = 0; col < cols_; col += col_stride_) {
-//            for (int r = row; r < row + row_stride_; r++) {
-//                for (int c = col; c < col + col_stride_; c++) {
-//                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), F);
-//                    std::cout << i << ",";
-//                }
-//            }
-//            patch++;
-//        }
-//        std::cout << "\n";
-//    }
+    //    std::cout << "Sum cols -------------" << std::endl;
+    //    patch = 0;
+    //    for (int row = 0; row < rows_; row += row_stride_) {
+    //        for (int col = 0; col < cols_; col += col_stride_) {
+    //            for (int r = row; r < row + row_stride_; r++) {
+    //                for (int c = col; c < col + col_stride_; c++) {
+    //                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), F);
+    //                    std::cout << i << ",";
+    //                }
+    //            }
+    //            patch++;
+    //        }
+    //        std::cout << "\n";
+    //    }
 
+    //    vj_transpose(sum_image, sum_temp);
+    //    vj_transpose(sqrsum_image, sqsum_temp);
 
-//    vj_transpose(sum_image, sum_temp);
-//    vj_transpose(sqrsum_image, sqsum_temp);
-
-//    std::cout << "Final sums -------------" << std::endl;
-//    patch = 0;
-//    for (int row = 0; row < rows_; row += row_stride_) {
-//        for (int col = 0; col < cols_; col += col_stride_) {
-//            for (int r = row; r < row + row_stride_; r++) {
-//                for (int c = col; c < col + col_stride_; c++) {
-//                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), sum_image->reg);
-//                    std::cout << i << ",";
-//                }
-//            }
-//            patch++;
-//        }
-//        std::cout << "\n";
-//    }
-
+    //    std::cout << "Final sums -------------" << std::endl;
+    //    patch = 0;
+    //    for (int row = 0; row < rows_; row += row_stride_) {
+    //        for (int col = 0; col < cols_; col += col_stride_) {
+    //            for (int r = row; r < row + row_stride_; r++) {
+    //                for (int c = col; c < col + col_stride_; c++) {
+    //                    int i = this->dram->read_signed_int(patch, index(r-row, c-col, cols_), sum_image->reg);
+    //                    std::cout << i << ",";
+    //                }
+    //            }
+    //            patch++;
+    //        }
+    //        std::cout << "\n";
+    //    }
 }
 
 void SCAMP5M::vj_transpose(std::shared_ptr<Image> dst, std::shared_ptr<Image> src) {
-    for (int row = 0; row < src->height; row ++) {
-        for (int col = 0; col < src->width; col ++) {
-            int i = this->dram->read_signed_int(col, row, src->reg);
-            this->dram->write_signed_int(row, col, dst->reg, i);
+    for (int row = 0; row < src->height; row++) {
+        for (int col = 0; col < src->width; col++) {
+            int i = this->dram->read_signed_byte(col, row, src->reg);
+            this->dram->write_signed_byte(row, col, dst->reg, i);
         }
     }
+    this->update_cycles(num_pixels * 16);
+    dram->update_dynamic(num_pixels * 16);
 }
 
 //todo write proper tests until this vj stuff works
 cv::Mat SCAMP5M::readout(AREG areg) {
     cv::Mat val = cv::Mat::zeros(cv::Size(rows_, cols_), CV_8U);
-    for (int row = 0; row < rows_; row ++) {
+    for (int row = 0; row < rows_; row++) {
         for (int col = 0; col < cols_; col++) {
             int i = this->dram->read_signed_int(row, col, areg);
-            val.at<uint8_t>(row, col) = i ;
+            val.at<uint8_t>(row, col) = i;
         }
     }
     return val;
@@ -2926,15 +2932,15 @@ cv::Mat SCAMP5M::readout(AREG areg) {
 
 void SCAMP5M::viola_jones(AREG areg) {
     cv::Mat val = cv::Mat::zeros(cv::Size(rows_, cols_), CV_8U);
-    for (int row = 0; row < rows_; row ++) {
+    for (int row = 0; row < rows_; row++) {
         for (int col = 0; col < cols_; col++) {
             int i = this->dram->read_signed_byte(row, col, areg);
             this->dram->write_signed_int(row, col, areg, i + 128);
-            val.at<uint8_t>(row, col) = i+128;
+            val.at<uint8_t>(row, col) = i + 128;
         }
     }
 
-//    cv::Mat val = this->readout(A);
+    //    cv::Mat val = this->readout(A);
 
     Size minSize = {20, 20};
     Size maxSize = {0, 0};
@@ -2952,12 +2958,12 @@ void SCAMP5M::viola_jones(AREG areg) {
     for (auto &face: faces) {
         cv::Point center(face.x + face.width / 2, face.y + face.height / 2);
         cv::rectangle(val, face, cv::Scalar(255, 0, 255));
-//        ellipse(val, center, cv::Size(face.width / 2, face.height / 2), 0, 0, 360, cv::Scalar(255, 0, 255), 4);
+        //        ellipse(val, center, cv::Size(face.width / 2, face.height / 2), 0, 0, 360, cv::Scalar(255, 0, 255), 4);
     }
 
     double minVal, maxVal;
-//    cv::minMaxLoc(val, &minVal, &maxVal);
-//    std::cout << minVal << " " << maxVal << std::endl;
+    //    cv::minMaxLoc(val, &minVal, &maxVal);
+    //    std::cout << minVal << " " << maxVal << std::endl;
     cv::imshow("later", val);
     cv::waitKey(1);
 }
@@ -2998,7 +3004,6 @@ void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
                                        {49, 64, 78, 87, 103, 121, 120, 101},
                                        {72, 92, 95, 98, 112, 100, 103, 99}};
 
-
     int sf = 32 * 32;
 
     // left multiply with DCT
@@ -3016,7 +3021,6 @@ void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
                         sum = this->alu->execute(sum, mult, ALU::ADD);
                     }
                     this->dram->write_signed_int(patch, index(r - row, c - col, 8), dst, sum);
-
                 }
             }
             patch++;
@@ -3060,7 +3064,6 @@ void SCAMP5M::jpeg_compression(AREG dst, AREG src) {
             patch++;
         }
     }
-
 }
 
 //move to base class
@@ -3348,5 +3351,7 @@ RTTR_REGISTRATION {
         .method("vj_transpose", &SCAMP5M::vj_transpose)
         .method("vj_integral_image", &SCAMP5M::vj_integral_image)
         .method("vj_readout", &SCAMP5M::vj_readout)
-        .method("jpeg_compression", &SCAMP5M::jpeg_compression);
+        .method("downsample", &SCAMP5M::downsample)
+        .method("jpeg_compression", &SCAMP5M::jpeg_compression)
+        .method("integral_image", &SCAMP5M::integral_image);
 }

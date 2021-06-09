@@ -106,7 +106,7 @@ void Dram::print_row(int array, int row) {
     std::cout << std::endl;
 }
 
-void Dram::reset() {
+void Dram::reset_val() {
     data = 0;
 }
 
@@ -142,11 +142,13 @@ double Dram::calc_dynamic() {
 }
 
 double Dram::calc_width() {
-    return array_cols_ / 15;
+    // say 2/bit + some extra for other circuitry
+    return array_cols_ * 2 + 10;
 }
 
 double Dram::calc_height() {
-    return array_rows_ / 15;
+    // say 2/row + some extra for other circuitry
+    return array_rows_ * 2 +  10;
 }
 
 void Dram::update_static(double time) {

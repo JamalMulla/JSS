@@ -1,4 +1,4 @@
-get_image(A, D);
+//get_image(A, D);
 neg(C, A);
 subx(B, A, south, C);
 subx(D, A, north, C);
@@ -8,4 +8,4 @@ addx(C, C, A, north);
 addx(B, B, D, east);
 sub2x(A, B, west, west, B);
 sub2x(B, C, south, south, C);
-display()
+//display()

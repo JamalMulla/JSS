@@ -6,7 +6,7 @@
 
 #include <simulator/memory/sram6t_cell.h>
 #include <simulator/util/utility.h>
-
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -15,6 +15,14 @@
 #include <utility>
 
 #include "simulator/external/parser.h"
+
+
+using Clock = std::chrono::steady_clock;
+using std::chrono::time_point;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::nanoseconds;
+using namespace std::literals::chrono_literals;
 
 void SCAMP5::init() {
     // Registers used often in instructions
@@ -54,6 +62,11 @@ void SCAMP5::init() {
     intermediate_a = std::make_shared<AREG>(this->rows_, this->cols_);
     intermediate_a2 = std::make_shared<AREG>(this->rows_, this->cols_);
     intermediate_d = std::make_shared<DREG>(this->rows_, this->cols_);
+
+    east_ptr_scratch = std::make_shared<DREG>(this->rows_, this->cols_);
+    west_ptr_scratch = std::make_shared<DREG>(this->rows_, this->cols_);
+    north_ptr_scratch = std::make_shared<DREG>(this->rows_, this->cols_);
+    south_ptr_scratch = std::make_shared<DREG>(this->rows_, this->cols_);
 }
 
 void SCAMP5::nop() { this->update_cycles(1); }
@@ -83,6 +96,16 @@ void SCAMP5::get_image(const std::shared_ptr<AREG>& y, const std::shared_ptr<ARE
     this->rpix();
     this->nop();
     this->bus(y, h, NEWS, PIX);
+}
+
+void SCAMP5::downsample(const std::shared_ptr<AREG>& dst, const std::shared_ptr<AREG>& src) {
+    cv::setNumThreads(1);
+    time_point<Clock> start = Clock::now();
+    cv::resize(src->read(), dst->read(), cv::Size(), 0.5, 0.5, cv::INTER_NEAREST);
+    time_point<Clock> end = Clock::now();
+    nanoseconds diff = duration_cast<nanoseconds>(end - start);
+    std::cout << diff.count() << " ns to downsample" << std::endl;
+
 }
 
 void SCAMP5::respix() {
@@ -793,6 +816,7 @@ void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
     // 	d0, d1, d2, d3 := 0
+
     d0->write(0, d0->get_mask());
     d1->write(0, d1->get_mask());
     d2->write(0, d2->get_mask());
@@ -826,53 +850,36 @@ void SCAMP5::REFRESH(const std::shared_ptr<DREG>& Rl) {
 void SCAMP5::DNEWS0(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0) {
     // d := d0_dir, direction selected by R1, R2, R3, R4
     // Reads 0 from the edge
-    DREG east = DREG(this->rows_, this->cols_);
-    DREG north = DREG(this->rows_, this->cols_);
-    DREG west = DREG(this->rows_, this->cols_);
-    DREG south = DREG(this->rows_, this->cols_);
 
-    this->pe->local_read_bus.get_east(east, *d0, 1, 0, this->origin_);
-    this->pe->local_read_bus.get_north(north, *d0, 1, 0, this->origin_);
-    this->pe->local_read_bus.get_west(west, *d0, 1, 0, this->origin_);
-    this->pe->local_read_bus.get_south(south, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_east(*east_ptr_scratch, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_north(*north_ptr_scratch, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_west(*west_ptr_scratch, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_south(*south_ptr_scratch, *d0, 1, 0, this->origin_);
 
-    std::shared_ptr<DREG> east_ptr = std::make_shared<DREG>(east);
-    std::shared_ptr<DREG> west_ptr = std::make_shared<DREG>(west);
-    std::shared_ptr<DREG> north_ptr = std::make_shared<DREG>(north);
-    std::shared_ptr<DREG> south_ptr = std::make_shared<DREG>(south);
+    AND(east_ptr_scratch, east_ptr_scratch, RE);
+    AND(north_ptr_scratch, north_ptr_scratch, RN);
+    AND(west_ptr_scratch, west_ptr_scratch, RW);
+    AND(south_ptr_scratch, south_ptr_scratch, RS);
 
-    AND(east_ptr, east_ptr, RE);
-    AND(north_ptr, north_ptr, RN);
-    AND(west_ptr, west_ptr, RW);
-    AND(south_ptr, south_ptr, RS);
-
-    OR(d, east_ptr, north_ptr, south_ptr, west_ptr);
+    OR(d, east_ptr_scratch, north_ptr_scratch, south_ptr_scratch, west_ptr_scratch);
 }
 
 void SCAMP5::DNEWS1(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0) {
     // d := d0_dir, direction selected by R1, R2, R3, R4
     // Reads 1 from the edge
-    DREG east = DREG(this->rows_, this->cols_);
-    DREG north = DREG(this->rows_, this->cols_);
-    DREG west = DREG(this->rows_, this->cols_);
-    DREG south = DREG(this->rows_, this->cols_);
 
-    this->pe->local_read_bus.get_east(east, *d0, 1, 1, this->origin_);
-    this->pe->local_read_bus.get_north(north, *d0, 1, 1, this->origin_);
-    this->pe->local_read_bus.get_west(west, *d0, 1, 1, this->origin_);
-    this->pe->local_read_bus.get_south(south, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_east(*east_ptr_scratch, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_north(*north_ptr_scratch, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_west(*west_ptr_scratch, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_south(*north_ptr_scratch, *d0, 1, 1, this->origin_);
 
-    std::shared_ptr<DREG> east_ptr = std::make_shared<DREG>(east);
-    std::shared_ptr<DREG> west_ptr = std::make_shared<DREG>(west);
-    std::shared_ptr<DREG> north_ptr = std::make_shared<DREG>(north);
-    std::shared_ptr<DREG> south_ptr = std::make_shared<DREG>(south);
+    AND(east_ptr_scratch, east_ptr_scratch, RE);
+    AND(north_ptr_scratch, north_ptr_scratch, RN);
+    AND(west_ptr_scratch, west_ptr_scratch, RW);
+    AND(south_ptr_scratch, south_ptr_scratch, RS);
 
-    AND(east_ptr, east_ptr, RE);
-    AND(north_ptr, north_ptr, RN);
-    AND(west_ptr, west_ptr, RW);
-    AND(south_ptr, south_ptr, RS);
+    OR(d, east_ptr_scratch, north_ptr_scratch, south_ptr_scratch, west_ptr_scratch);
 
-    OR(d, east_ptr, north_ptr, south_ptr, west_ptr);
 }
 
 void SCAMP5::DNEWS(const std::shared_ptr<DREG>& Ra, const std::shared_ptr<DREG>& Rx, int dir, bool boundary) {
@@ -1817,7 +1824,7 @@ RTTR_REGISTRATION {
         .method("NOR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5::NOR))
         .method("NOR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5::NOR))
         .method("NOR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5::NOR))
-        .method("NOR", select_overload<void(const std::shared_ptr<DREG>&)>(&SCAMP5::NOT))
+        .method("NOT", select_overload<void(const std::shared_ptr<DREG>&)>(&SCAMP5::NOT))
         .method("OR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5::OR))
         .method("NOR", select_overload<void(const std::shared_ptr<DREG>&, const std::shared_ptr<DREG>&)>(&SCAMP5::NOR))
         .method("AND", &SCAMP5::AND)
@@ -1896,5 +1903,6 @@ RTTR_REGISTRATION {
         .method("scamp5_scan_events", select_overload<void(const std::shared_ptr<DREG>&, uint8_t*, uint16_t, uint8_t, uint8_t)>(&SCAMP5::scamp5_scan_events))(default_arguments((uint16_t)1000, (uint8_t)0, (uint8_t)0))
         .method("scamp5_scan_events", select_overload<void(const std::shared_ptr<DREG>&, uint8_t*, uint16_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t)>(&SCAMP5::scamp5_scan_events))
         .method("scamp5_scan_boundingbox", &SCAMP5::scamp5_scan_boundingbox)
-        .method("print_stats", &SCAMP5::print_stats)(default_arguments(std::string()));
+        .method("print_stats", &SCAMP5::print_stats)(default_arguments(std::string()))
+        .method("downsample", &SCAMP5::downsample);
 }

@@ -105,6 +105,7 @@ void Architecture::print_stats(int rows, int cols) {
     std::cout << "Architecture static power: " << static_power << " W\n";
     std::cout << "Architecture dynamic energy: " << dynamic_energy << " J\n";
     std::cout << "Architecture dynamic power: " << dynamic_power << " W\n";
+    std::cout << "Architecture total energy: " << static_energy + dynamic_energy << " J\n";
     std::cout << "Architecture total power: " << static_power + dynamic_power << " W\n";
     double width = 0;
     for (auto& [_, component] : components_) {

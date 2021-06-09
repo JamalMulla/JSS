@@ -23,7 +23,7 @@ class Component : public StatsOutputter {
     std::shared_ptr<PackNode> fit;
 
    protected:
-    int process_node_ = -1; // process node in nm that the other metrics are defined in terms of.
+    int process_node_ = 180; // process node in nm that the other metrics are defined in terms of.
     int rows_; // rows of the whole plane
     int cols_; // cols of the whole plane
     int row_stride_ = 1;

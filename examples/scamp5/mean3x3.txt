@@ -1,0 +1,18 @@
+//get_image(A, D);
+div(C, D, A);
+diva(C, D, E);
+diva(C, D, E);
+diva(C, D, E);
+diva(C, D, E);
+diva(C, D, E);
+movx(D, C, south);
+movx(E, C, north);
+add(A, D, C, E);
+add(B, D, C, E);
+add(C, D, C, E);
+add(B, A, B, C);
+add(A, B, A);
+add(B, A, B);
+movx(A, B, east);
+movx(C, B, west);
+add(B, B, C, A);

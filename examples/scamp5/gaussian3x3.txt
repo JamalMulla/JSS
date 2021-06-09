@@ -1,4 +1,4 @@
-get_image(A, D);
+//get_image(A, D);
 divq(C, A);
 divq(A, C);
 divq(C, A);

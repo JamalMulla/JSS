@@ -17,7 +17,14 @@
 #include <rttr/registration>
 #include <sstream>
 #include <utility>
+#include <chrono>
 #include <vector>
+
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::microseconds;
+using std::chrono::milliseconds;
 
 Parser::Parser() {
     enums_ = get_enums();
@@ -377,14 +384,22 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 
     bool loop = frames < 0;
 
-    int i = 0;
-    while (loop || i < frames) {
-        int e1 = cv::getTickCount();
-        Parser::execute_instructions(instructions, arch);
+    cv::TickMeter tm;
 
+    int i = 0;
+    double current_frame_time_avg = 0;
+    while (loop || i < frames) {
+        i++;
+//        auto t1 = high_resolution_clock::now();
+            tm.start();
+        Parser::execute_instructions(instructions, arch);
         if (frame_time) {
-            int e2 = cv::getTickCount();
-            std::cout << ((double)(e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
+//            auto t2 = high_resolution_clock::now();
+//            duration<double, std::micro> ms_double = t2 - t1;
+//            std::cout << ms_double.count() << " microseconds\n";
+            tm.stop();
+            std::cout << tm.getTimeMicro() << " microseconds (avg)\n";
+            tm.reset();
         }
 
         if (ui_enabled) {
@@ -402,7 +417,6 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
                 std::cout << "Frame: " << i << std::endl;
             }
         }
-        i++;
 
     }
 
@@ -432,6 +446,7 @@ void Parser::setup_processing(json& j) {
 
 #ifdef USE_CUDA
     // no OpenCL processing if we're using CUDA
+    std::cout << "Processing on GPU using CUDA" << std::endl;
     cv::ocl::setUseOpenCL(false);
     return;
 #else

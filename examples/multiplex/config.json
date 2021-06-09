@@ -1,6 +1,7 @@
 {
     "architecture": "SCAMP5M",
-    "frames": 25,
+    "frames": 1,
+    "with_opencl": true,
     "with_stats": true,
     "ui_enabled": true,
     "output_filename": "",
@@ -9,7 +10,7 @@
         "rows": 256,
         "cols": 256,
         "row_stride": 1,
-        "col_stride": 1,
+        "col_stride": 256,
         "origin": "TOP_RIGHT",
         "config": {
             "clock_rate": 10000000
@@ -39,8 +40,8 @@
                 ],
                 "_component": "Dram",
                 "_name": "dram",
-                "array_rows": 500,
-                "array_cols": 32
+                "array_rows": 256,
+                "array_cols": 90
             },
             {
                 "_inherit": [

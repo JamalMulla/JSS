@@ -1,5 +1,5 @@
 // 3x3 box filter
-get_image(A, D)
+//get_image(A, D)
 diva(A, B, C);
 diva(A, B, C);
 diva(A, B, C);

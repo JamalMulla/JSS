@@ -1,0 +1,3 @@
+//get_image(A, D);
+downsample(B, A, 0.5);
+//display()

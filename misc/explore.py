@@ -36,13 +36,13 @@ def execute(config):
     out, err = process.communicate()
 
 def mutate(config):
-    row_strides = [8, 16, 64, 256]
-    col_strides = [8, 16, 64, 256]
+    row_strides = [128, 256]
+    col_strides = [128, 256]
     rows        = [64, 128, 256]
     cols        = [64, 128, 256]
     clock_rates = [10000000]
-    array_rows  = [256, 350, 500]
-    array_cols  = [8, 16, 32]
+    array_rows  = [128, 256]
+    array_cols  = [90, 100]
 
     possibilities = list(itertools.product(row_strides,col_strides,rows, cols, clock_rates, array_rows, array_cols))
     print("Combinations:", len(possibilities))
