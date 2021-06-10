@@ -398,7 +398,7 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 //            duration<double, std::micro> ms_double = t2 - t1;
 //            std::cout << ms_double.count() << " microseconds\n";
             tm.stop();
-            std::cout << tm.getTimeMicro() << " microseconds (avg)\n";
+            std::cout << tm.getTimeMilli() << " ms\n";
             tm.reset();
         }
 

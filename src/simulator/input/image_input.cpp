@@ -42,6 +42,7 @@ cv::cuda::GpuMat& ImageInput::read() {
 #else
 cv::UMat& ImageInput::read() {
 #endif
+    cv::Mat temp(rows_, cols_, CV_32S);
     auto TIME_START = std::chrono::high_resolution_clock::now();
     cv::Mat img = cv::imread(this->path_, cv::IMREAD_GRAYSCALE);
 
@@ -52,7 +53,13 @@ cv::UMat& ImageInput::read() {
 
     cv::resize(img, img, {cols_, rows_});
 
-    img.convertTo(this->frame, MAT_TYPE, 1, -128);
+    img.convertTo(temp, MAT_TYPE, 1, -128);
+
+#ifdef USE_CUDA
+    this->frame.upload(temp);
+#else
+    temp.copyTo(this->frame);
+#endif
 
     auto TIME_END = std::chrono::high_resolution_clock::now();
     long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(
