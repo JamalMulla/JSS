@@ -1,10 +1,12 @@
 {
 	"architecture": "SCAMP5",
-    "frames": 1,
-    "frame_time": true,
-	"with_stats": true,
+	"frames": 10000,
+	"use_opencl" : false,
+	"instr_rep" : 1,
+	"frame_time": true,
+	"with_stats": false,
 	"ui_enabled": true,
-    "ui_registers_to_display" : ["A", "B", "C", "D", "E", "R5", "R6", "R7", "R12"],
+	"ui_registers_to_display" : ["A", "B", "C", "D", "E", "R5", "R6", "R7", "R12"],
 	"SCAMP5": {
 		"rows": 256,
 		"cols": 256,
@@ -13,19 +15,19 @@
 		"origin" : "TOP_RIGHT",
 		"config": {
 			"process_node" : 180,
-            "clock_rate" : 1e7
+			"clock_rate" : 1e7
 		},
 		"components" : [
-            {
-                "_inherit" : ["config", "rows", "cols", "row_stride", "col_stride"],
-                "_component" : "ProcessingElement",
-                "_name" : "pe",
-                "analogue_registers" : ["PIX", "IN", "NEWS", "A", "B", "C", "D", "E", "F"],
-                "digital_registers" : ["FLAG", "SELECT", "RECT", "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", {"name" : "R12", "mask" :  "R0"}],
-                "pixel" : {
+			{
+				"_inherit" : ["config", "rows", "cols", "row_stride", "col_stride"],
+				"_component" : "ProcessingElement",
+				"_name" : "pe",
+				"analogue_registers" : ["PIX", "IN", "NEWS", "A", "B", "C", "D", "E", "F"],
+				"digital_registers" : ["FLAG", "SELECT", "RECT", "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", {"name" : "R12", "mask" :  "R0"}],
+				"pixel" : {
 					"camera_index" : 0,
-                    "input_source" : "LIVE"
-                }
+					"input_source" : "LIVE"
+				}
 			}
 		]
 	}

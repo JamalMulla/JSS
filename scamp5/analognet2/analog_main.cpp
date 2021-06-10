@@ -23,6 +23,63 @@
 #include "conv_instructions.h"
 #include "fc_weights.h"
 
+
+SCAMP5 setup() {
+    int rows = 256;
+    int cols = 256;
+
+    std::shared_ptr<Config> config = std::make_shared<Config>(1e7);
+    std::shared_ptr<Pixel> pixel = std::make_shared<Pixel>(rows, cols, 1, 1, LIVE, "", config);
+
+    std::unordered_map<std::string, std::shared_ptr<AnalogueRegister>> analogue_registers;
+    analogue_registers["PIX"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["IN"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["NEWS"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["A"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["B"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["C"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["D"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["E"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+    analogue_registers["F"] = std::make_shared<AnalogueRegister>(rows, cols, config);
+
+    std::unordered_map<std::string, std::shared_ptr<DigitalRegister>> digital_registers;
+    digital_registers["FLAG"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["SELECT"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["RECT"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R0"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R1"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R2"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R3"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R4"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R5"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R6"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R7"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R8"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R9"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R10"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R11"] = std::make_shared<DigitalRegister>(rows, cols, config);
+    digital_registers["R12"] = std::make_shared<DigitalRegister>(rows, cols, config);
+
+
+    std::shared_ptr<ProcessingElement> pe = std::make_shared<ProcessingElement>();
+    pe->set_rows(rows);
+    pe->set_cols(cols);
+    pe->set_config(config);
+    pe->set_pixel(pixel);
+    pe->set_analogue_registers(analogue_registers);
+    pe->set_digital_registers(digital_registers);
+
+    SCAMP5 s = SCAMP5();
+    s.set_rows(rows);
+    s.set_cols(cols);
+    s.set_origin(Origin::TOP_RIGHT);
+    s.add_component("pe", pe);
+    s.init();
+
+    return s;
+}
+
+
 // Given SCAN_SIZE coordinates,
 // group them into 12 bins, filling the count array
 // central division, with overlaping bins
@@ -86,8 +143,11 @@ void update(UI& ui, const std::vector<std::shared_ptr<Register>>& reg) {
 }
 
 int analog_main() {
-    SCAMP5 s = SCAMP5();
+    std::cout << "started"<< std::endl;
+    SCAMP5 s = setup();
+    std::cout << "setup" << std::endl;
     UI ui = UI::get_instance();
+    std::cout << "got ui" << std::endl;
 
     int threshold_value;
     int t1_value, t2_value, t3_value;
@@ -159,6 +219,7 @@ int analog_main() {
     int index = 0;
     // Frame Loop
     while(1) {
+        int e1 = cv::getTickCount();
         //        vs_process_message();
         std::fill(std::begin(coordinates), std::end(coordinates), 0);
         std::fill(std::begin(conv_outputs), std::end(conv_outputs), 0);
@@ -276,6 +337,9 @@ int analog_main() {
             if(fc2_result[i] > fc2_result[max_index])
                 max_index = i;
         }
+        int e2 = cv::getTickCount();
+        double frame_ms = ((double)(e2 - e1) / cv::getTickFrequency()) * 1000;
+        std::cout << frame_ms << " ms" << std::endl;
         std::cout << "Predicted: " << (int)max_index << std::endl;
 
         //        if ((int) max_index == 9) {

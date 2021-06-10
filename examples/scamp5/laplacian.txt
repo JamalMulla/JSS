@@ -1,0 +1,11 @@
+//get_image(A, D);
+movx(F, A, north);
+neg(B, A);
+subx(D, F, south, B);
+sub(C, D, B);
+add(D, D, C);
+subx(E, B, south, F);
+addx(A, B, E, west);
+mov2x(B, A, east, east);
+add(C, C, D, E);
+add(A, C, A, B);

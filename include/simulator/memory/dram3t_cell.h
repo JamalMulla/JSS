@@ -12,39 +12,27 @@
 
 class Dram3tCell : public Memory {
     RTTR_ENABLE(Memory);
+
    private:
-    int read_count_ = 0;
-    int write_count_ = 0;
 #ifdef TRACK_STATISTICS
-    int cycle_count_ = 2;  // TODO find proper numbers for cycle counts
-    double dynamic_read_power_;  // in Watts for a read
-    double dynamic_write_power_;  // in Watts for a read
-    double time_; // time in seconds for read/write
+    int cycle_count_ = 2;  // TODO calc proper numbers for cycle counts
     double refresh_time_ = 0.064;  // In S
     int calc_transistor_count() override;
     double calc_static() override;
     double calc_dynamic() override;
     double calc_width() override;
     double calc_height() override;
-    double calc_dynamic_read();
-    double calc_dynamic_write();
-    cv::Mat scratch;
+    double calc_dynamic_read() override;
+    double calc_dynamic_write() override;
+    cv::UMat scratch;
 #endif
 
-public:
-
+   public:
     Dram3tCell() = default;
     void init();
 
 #ifdef TRACK_STATISTICS
-    cv::Mat get_dynamic_energy_array() override;
-    void update_static(double time) override;
     int get_cycle_count() override;
-    void read(const cv::_InputOutputArray& mask) override;
-    void read() override;
-    void write(const cv::_InputOutputArray& mask) override;
-    void write() override;
-    void print_stats(const CycleCounter& counter) override;
 //    void write_stats(const CycleCounter& counter, json& j) override;
 #endif
 };

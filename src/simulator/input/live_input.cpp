@@ -13,7 +13,7 @@
 LiveInput::LiveInput(int rows, int cols, int camera_index) {
     this->rows_ = rows;
     this->cols_ = cols;
-    std::cout << "Using camera: " << camera_index << "\n";
+    std::cout << "Using camera index: " << camera_index << "\n";
     this->capture = std::make_unique<cv::VideoCapture>(camera_index);
     if(!this->capture->isOpened()) {
         std::cerr << "Could not open camera" << std::endl;
@@ -21,11 +21,19 @@ LiveInput::LiveInput(int rows, int cols, int camera_index) {
     }
 
     this->size = std::make_unique<cv::Size>(cols, rows);
-    this->frame = cv::Mat(rows, cols, MAT_TYPE);
+#ifdef USE_CUDA
+    this->frame = cv::cuda::GpuMat(rows, cols, MAT_TYPE);
+#else
+    this->frame = cv::UMat(rows, cols, MAT_TYPE);
+#endif
     this->frame.setTo(0);
 }
 
-cv::Mat LiveInput::read() {
+#ifdef USE_CUDA
+cv::cuda::GpuMat& LiveInput::read() {
+#else
+cv::UMat& LiveInput::read() {
+#endif
 #ifdef USE_RUNTIME_CHECKS
     if(this->capture == nullptr) {
         std::cerr << "No video capture defined" << std::endl;
@@ -34,6 +42,7 @@ cv::Mat LiveInput::read() {
     cv::Mat temp(rows_, cols_, CV_32S);
     auto TIME_START = std::chrono::high_resolution_clock::now();
     *this->capture >> temp;
+
 #ifdef USE_RUNTIME_CHECKS
     if(temp.empty()) {
         std::cerr << "ERROR! blank frame grabbed" << std::endl;
@@ -43,11 +52,17 @@ cv::Mat LiveInput::read() {
 
     int width = temp.cols;
     int height = temp.rows;
-    cv::Mat cropFrame =
-        temp(cv::Rect((width - height) / 2, 0, height - 1, height - 1));
+    cv::Mat cropFrame = temp(cv::Rect((width - height) / 2, 0, height - 1, height - 1));
     cv::resize(cropFrame, cropFrame, *this->size);
     cropFrame.convertTo(temp, MAT_TYPE, 1, -128);
+#ifdef USE_CUDA
+    cv::Mat a;
+    this->frame.download(a);
+    cv::add(a, temp, a);
+    this->frame.upload(a);
+#else
     cv::add(this->frame, temp, this->frame);
+#endif
     auto TIME_END = std::chrono::high_resolution_clock::now();
     long time_in_nano = std::chrono::duration_cast<std::chrono::nanoseconds>(
         TIME_END - TIME_START)

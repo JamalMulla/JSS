@@ -6,7 +6,7 @@
 
 #include <simulator/memory/sram6t_cell.h>
 #include <simulator/util/utility.h>
-
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -15,6 +15,14 @@
 #include <utility>
 
 #include "simulator/external/parser.h"
+
+
+using Clock = std::chrono::steady_clock;
+using std::chrono::time_point;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::nanoseconds;
+using namespace std::literals::chrono_literals;
 
 void SCAMP5::init() {
     // Registers used often in instructions
@@ -54,6 +62,11 @@ void SCAMP5::init() {
     intermediate_a = std::make_shared<AREG>(this->rows_, this->cols_);
     intermediate_a2 = std::make_shared<AREG>(this->rows_, this->cols_);
     intermediate_d = std::make_shared<DREG>(this->rows_, this->cols_);
+
+    east_ptr_scratch = std::make_shared<DREG>(this->rows_, this->cols_);
+    west_ptr_scratch = std::make_shared<DREG>(this->rows_, this->cols_);
+    north_ptr_scratch = std::make_shared<DREG>(this->rows_, this->cols_);
+    south_ptr_scratch = std::make_shared<DREG>(this->rows_, this->cols_);
 }
 
 void SCAMP5::nop() { this->update_cycles(1); }
@@ -83,6 +96,16 @@ void SCAMP5::get_image(const std::shared_ptr<AREG>& y, const std::shared_ptr<ARE
     this->rpix();
     this->nop();
     this->bus(y, h, NEWS, PIX);
+}
+
+void SCAMP5::downsample(const std::shared_ptr<AREG>& dst, const std::shared_ptr<AREG>& src) {
+    cv::setNumThreads(1);
+    time_point<Clock> start = Clock::now();
+    cv::resize(src->read(), dst->read(), cv::Size(), 0.5, 0.5, cv::INTER_NEAREST);
+    time_point<Clock> end = Clock::now();
+    nanoseconds diff = duration_cast<nanoseconds>(end - start);
+    std::cout << diff.count() << " ns to downsample" << std::endl;
+
 }
 
 void SCAMP5::respix() {
@@ -716,87 +739,256 @@ void SCAMP5::XOR(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>& R
 
 void SCAMP5::WHERE(const std::shared_ptr<DREG>& d) {
     // FLAG := d.
+#ifdef USE_CUDA
+    if (FLAG->get_mask().empty()) {
+        this->FLAG->write(d->read());
+    } else {
+        this->FLAG->write(d->read(), FLAG->get_mask());
+    }
+#else
     this->FLAG->write(d->read(), FLAG->get_mask());
+#endif
     this->update_cycles(2);  // 1 read, 1 write
 }
 
 void SCAMP5::WHERE(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
     // FLAG := d0 OR d1.
     this->OR(intermediate_d, d0, d1);
+#ifdef USE_CUDA
+    if (FLAG->get_mask().empty()) {
+        this->FLAG->write(intermediate_d->read());
+    } else {
+        this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
+    }
+#else
     this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
+#endif
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::WHERE(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
     // FLAG := d0 OR d1 OR d2.
     this->OR(intermediate_d, d0, d1, d2);
+#ifdef USE_CUDA
+    if (FLAG->get_mask().empty()) {
+        this->FLAG->write(intermediate_d->read());
+    } else {
+        this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
+    }
+#else
     this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
+#endif
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::ALL() {
     // FLAG := 1, same as all.
+#ifdef USE_CUDA
+    if (FLAG->get_mask().empty()) {
+        this->FLAG->write(1);
+    } else {
+        this->FLAG->write(1, FLAG->get_mask());
+    }
+#else
     this->FLAG->write(1, FLAG->get_mask());
+#endif
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0) {
     // d0 := 1
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(1);
+    } else {
+        d0->write(1, d0->get_mask());
+    }
+#else
     d0->write(1, d0->get_mask());
+#endif
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
     // d0, d1 := 1
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(1);
+    } else {
+        d0->write(1, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(1);
+    } else {
+        d1->write(1, d1->get_mask());
+    }
+#else
     d0->write(1, d0->get_mask());
     d1->write(1, d1->get_mask());
+#endif
     this->update_cycles(2);  // 2 writes
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
     // 	d0, d1, d2 := 1
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(1);
+    } else {
+        d0->write(1, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(1);
+    } else {
+        d1->write(1, d1->get_mask());
+    }
+
+    if (d2->get_mask().empty()) {
+        d2->write(1);
+    } else {
+        d2->write(1, d2->get_mask());
+    }
+#else
     d0->write(1, d0->get_mask());
     d1->write(1, d1->get_mask());
     d2->write(1, d2->get_mask());
+#endif
     this->update_cycles(3);  // 3 writes
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
     // d0, d1, d2, d3 := 1
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(1);
+    } else {
+        d0->write(1, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(1);
+    } else {
+        d1->write(1, d1->get_mask());
+    }
+
+    if (d2->get_mask().empty()) {
+        d2->write(1);
+    } else {
+        d2->write(1, d2->get_mask());
+    }
+
+    if (d3->get_mask().empty()) {
+        d3->write(1);
+    } else {
+        d3->write(1, d3->get_mask());
+    }
+#else
     d0->write(1, d0->get_mask());
     d1->write(1, d1->get_mask());
     d2->write(1, d2->get_mask());
     d3->write(1, d3->get_mask());
+#endif
     this->update_cycles(4);  // 4 writes
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0) {
     // d0 := 0
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(0);
+    } else {
+        d0->write(0, d0->get_mask());
+    }
+#else
     d0->write(0, d0->get_mask());
+#endif
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
     // d0, d1 := 0
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(0);
+    } else {
+        d0->write(0, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(0);
+    } else {
+        d1->write(0, d1->get_mask());
+    }
+#else
     d0->write(0, d0->get_mask());
     d1->write(0, d1->get_mask());
+#endif
+
     this->update_cycles(2);  // 2 writes
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
     // d0, d1, d2 := 0
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(0);
+    } else {
+        d0->write(0, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(0);
+    } else {
+        d1->write(0, d1->get_mask());
+    }
+
+    if (d2->get_mask().empty()) {
+        d2->write(0);
+    } else {
+        d2->write(0, d2->get_mask());
+    }
+#else
     d0->write(0, d0->get_mask());
     d1->write(0, d1->get_mask());
     d2->write(0, d2->get_mask());
+#endif
     this->update_cycles(3);  // 3 writes
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
     // 	d0, d1, d2, d3 := 0
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(0);
+    } else {
+        d0->write(0, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(0);
+    } else {
+        d1->write(0, d1->get_mask());
+    }
+
+    if (d2->get_mask().empty()) {
+        d2->write(0);
+    } else {
+        d2->write(0, d2->get_mask());
+    }
+
+    if (d3->get_mask().empty()) {
+        d3->write(0);
+    } else {
+        d3->write(0, d3->get_mask());
+    }
+#else
     d0->write(0, d0->get_mask());
     d1->write(0, d1->get_mask());
     d2->write(0, d2->get_mask());
     d3->write(0, d3->get_mask());
+#endif
     this->update_cycles(4);  // 4 writes
 }
 
@@ -826,53 +1018,36 @@ void SCAMP5::REFRESH(const std::shared_ptr<DREG>& Rl) {
 void SCAMP5::DNEWS0(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0) {
     // d := d0_dir, direction selected by R1, R2, R3, R4
     // Reads 0 from the edge
-    DREG east = DREG(this->rows_, this->cols_);
-    DREG north = DREG(this->rows_, this->cols_);
-    DREG west = DREG(this->rows_, this->cols_);
-    DREG south = DREG(this->rows_, this->cols_);
 
-    this->pe->local_read_bus.get_east(east, *d0, 1, 0, this->origin_);
-    this->pe->local_read_bus.get_north(north, *d0, 1, 0, this->origin_);
-    this->pe->local_read_bus.get_west(west, *d0, 1, 0, this->origin_);
-    this->pe->local_read_bus.get_south(south, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_east(*east_ptr_scratch, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_north(*north_ptr_scratch, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_west(*west_ptr_scratch, *d0, 1, 0, this->origin_);
+    this->pe->local_read_bus.get_south(*south_ptr_scratch, *d0, 1, 0, this->origin_);
 
-    std::shared_ptr<DREG> east_ptr = std::make_shared<DREG>(east);
-    std::shared_ptr<DREG> west_ptr = std::make_shared<DREG>(west);
-    std::shared_ptr<DREG> north_ptr = std::make_shared<DREG>(north);
-    std::shared_ptr<DREG> south_ptr = std::make_shared<DREG>(south);
+    AND(east_ptr_scratch, east_ptr_scratch, RE);
+    AND(north_ptr_scratch, north_ptr_scratch, RN);
+    AND(west_ptr_scratch, west_ptr_scratch, RW);
+    AND(south_ptr_scratch, south_ptr_scratch, RS);
 
-    AND(east_ptr, east_ptr, RE);
-    AND(north_ptr, north_ptr, RN);
-    AND(west_ptr, west_ptr, RW);
-    AND(south_ptr, south_ptr, RS);
-
-    OR(d, east_ptr, north_ptr, south_ptr, west_ptr);
+    OR(d, east_ptr_scratch, north_ptr_scratch, south_ptr_scratch, west_ptr_scratch);
 }
 
 void SCAMP5::DNEWS1(const std::shared_ptr<DREG>& d, const std::shared_ptr<DREG>& d0) {
     // d := d0_dir, direction selected by R1, R2, R3, R4
     // Reads 1 from the edge
-    DREG east = DREG(this->rows_, this->cols_);
-    DREG north = DREG(this->rows_, this->cols_);
-    DREG west = DREG(this->rows_, this->cols_);
-    DREG south = DREG(this->rows_, this->cols_);
 
-    this->pe->local_read_bus.get_east(east, *d0, 1, 1, this->origin_);
-    this->pe->local_read_bus.get_north(north, *d0, 1, 1, this->origin_);
-    this->pe->local_read_bus.get_west(west, *d0, 1, 1, this->origin_);
-    this->pe->local_read_bus.get_south(south, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_east(*east_ptr_scratch, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_north(*north_ptr_scratch, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_west(*west_ptr_scratch, *d0, 1, 1, this->origin_);
+    this->pe->local_read_bus.get_south(*north_ptr_scratch, *d0, 1, 1, this->origin_);
 
-    std::shared_ptr<DREG> east_ptr = std::make_shared<DREG>(east);
-    std::shared_ptr<DREG> west_ptr = std::make_shared<DREG>(west);
-    std::shared_ptr<DREG> north_ptr = std::make_shared<DREG>(north);
-    std::shared_ptr<DREG> south_ptr = std::make_shared<DREG>(south);
+    AND(east_ptr_scratch, east_ptr_scratch, RE);
+    AND(north_ptr_scratch, north_ptr_scratch, RN);
+    AND(west_ptr_scratch, west_ptr_scratch, RW);
+    AND(south_ptr_scratch, south_ptr_scratch, RS);
 
-    AND(east_ptr, east_ptr, RE);
-    AND(north_ptr, north_ptr, RN);
-    AND(west_ptr, west_ptr, RW);
-    AND(south_ptr, south_ptr, RS);
+    OR(d, east_ptr_scratch, north_ptr_scratch, south_ptr_scratch, west_ptr_scratch);
 
-    OR(d, east_ptr, north_ptr, south_ptr, west_ptr);
 }
 
 void SCAMP5::DNEWS(const std::shared_ptr<DREG>& Ra, const std::shared_ptr<DREG>& Rx, int dir, bool boundary) {
@@ -1089,7 +1264,13 @@ void SCAMP5::scamp5_diffuse(const std::shared_ptr<AREG>& target, int iterations,
 uint8_t SCAMP5::scamp5_read_areg(const std::shared_ptr<AREG>& areg, uint8_t r, uint8_t c) {
     // read a single pixel
     // TODO check that the value is properly mapped to uint8_t from CV_16U
-    return areg->read().at<uint8_t>(r, c);
+    cv::Mat m;
+#ifdef USE_CUDA
+    areg->read().download(m);
+#else
+    m = areg->read().getMat(cv::ACCESS_READ);
+#endif
+    return m.at<uint8_t>(r, c);
 }
 
 uint32_t SCAMP5::scamp5_global_sum_16(const std::shared_ptr<AREG>& areg, uint8_t *result16v) {
@@ -1164,10 +1345,17 @@ uint8_t SCAMP5::scamp5_global_sum_sparse(const std::shared_ptr<AREG>& areg, uint
 
     uint8_t sum = 0;
 
+    cv::Mat m;
+#ifdef USE_CUDA
+    areg->read().download(m);
+#else
+    m = areg->read().getMat(cv::ACCESS_READ);
+#endif
+
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                sum += areg->read().at<uint8_t>(row_index, col_index);
+                sum += m.at<uint8_t>(row_index, col_index);
             }
         }
     }
@@ -1192,12 +1380,19 @@ int SCAMP5::scamp5_global_or(const std::shared_ptr<DREG>& dreg, uint8_t r, uint8
     unsigned int r_f = r & r_mask;
     unsigned int c_f = c & c_mask;
 
+    cv::Mat m;
+#ifdef USE_CUDA
+    dreg->read().download(m);
+#else
+    m = dreg->read().getMat(cv::ACCESS_READ);
+#endif
+
     uint8_t val = 0;
 
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index & r_mask) == r_f) && ((col_index & c_mask) == c_f)) {
-                val |= dreg->read().at<uint8_t>(row_index, col_index);
+                val |= m.at<uint8_t>(row_index, col_index);
             }
         }
     }
@@ -1245,7 +1440,7 @@ void SCAMP5::scamp5_flood(const std::shared_ptr<DREG>& dreg_target, const std::s
     cv::copyMakeBorder(dreg_mask->read(), mask, 1, 1, 1, 1,
                        cv::BORDER_REPLICATE);
 
-    dreg_mask->read() = 1 - dreg_mask->read();
+    cv::subtract(dreg_mask->read(), 1, dreg_mask->read());
 
     for(auto &seed: seeds) {
         cv::floodFill(dreg_mask->read(), mask, seed, cv::Scalar(1), nullptr,
@@ -1256,7 +1451,15 @@ void SCAMP5::scamp5_flood(const std::shared_ptr<DREG>& dreg_target, const std::s
 void SCAMP5::scamp5_load_point(const std::shared_ptr<DREG>& dr, uint8_t r, uint8_t c) {
     // set a single pixel on a DREG image to 1, the rest to 0
     dr->read().setTo(0);
-    dr->read().at<uint8_t>(r, c) = 1;
+#ifdef USE_CUDA
+    cv::Mat m;
+    dr->read().download(m);
+    m.at<uint8_t>(r, c) = 1;
+    dr->read().upload(m);
+#else
+    dr->read().getMat(cv::ACCESS_READ).at<uint8_t>(r, c) = 1;
+#endif
+
 }
 
 void SCAMP5::scamp5_load_rect(const std::shared_ptr<DREG>& dr, uint8_t r0, uint8_t c0, uint8_t r1,
@@ -1297,13 +1500,24 @@ void SCAMP5::scamp5_load_pattern(const std::shared_ptr<DREG>& dr, uint8_t r, uin
     unsigned int r_f = r * r_mask;
     unsigned int c_f = c * c_mask;
 
-    for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
-        for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
+    cv::Mat m;
+#ifdef USE_CUDA
+    dr->read().download(m);
+#else
+    m = dr->read().getMat(cv::ACCESS_WRITE);
+#endif
+
+    for(int row_index = 0; row_index < this->cols_; row_index++) {
+        for(int col_index = 0; col_index < this->rows_; col_index++) {
             if(((row_index * r_mask) == r_f) && ((col_index * c_mask) == c_f)) {
-                dr->read().at<uint8_t>(row_index, col_index) = 1;
+                m.at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
+
+#ifdef USE_CUDA
+    dr->read().upload(m);
+#endif
 }
 
 void SCAMP5::scamp5_select_point(uint8_t r, uint8_t c) {
@@ -1328,24 +1542,42 @@ void SCAMP5::scamp5_select_pattern(uint8_t r, uint8_t c, uint8_t rx,
 
 void SCAMP5::scamp5_select_col(uint8_t c) {
     // select column
+    cv::Mat m;
+#ifdef USE_CUDA
+    SELECT->read().download(m);
+#else
+    m = SELECT->read().getMat(cv::ACCESS_WRITE);
+#endif
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(col_index == c) {
-                SELECT->read().at<uint8_t>(row_index, col_index) = 1;
+                m.at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
+#ifdef USE_CUDA
+    SELECT->read().upload(m);
+#endif
 }
 
 void SCAMP5::scamp5_select_row(uint8_t r) {
     // select row
+    cv::Mat m;
+#ifdef USE_CUDA
+    SELECT->read().download(m);
+#else
+    m = SELECT->read().getMat(cv::ACCESS_WRITE);
+#endif
     for(unsigned int row_index = 0; row_index < this->cols_; row_index++) {
         for(unsigned int col_index = 0; col_index < this->rows_; col_index++) {
             if(row_index == r) {
-                SELECT->read().at<uint8_t>(row_index, col_index) = 1;
+                m.at<uint8_t>(row_index, col_index) = 1;
             }
         }
     }
+#ifdef USE_CUDA
+    SELECT->read().upload(m);
+#endif
 }
 
 void SCAMP5::scamp5_select_colx(uint8_t cx) {
@@ -1368,7 +1600,17 @@ void SCAMP5::scamp5_draw_end() {
 
 void SCAMP5::scamp5_draw_pixel(uint8_t r, uint8_t c) {
     // draw a point, wrap around if it's outside the border
-    scratch->read().at<uint8_t>(r % this->rows_, c % this->cols_) = 1;
+    cv::Mat m;
+#ifdef USE_CUDA
+    scratch->read().download(m);
+#else
+    m = scratch->read().getMat(cv::ACCESS_WRITE);
+#endif
+    m.at<uint8_t>(r % this->rows_, c % this->cols_) = 1;
+
+#ifdef USE_CUDA
+    scratch->read().upload(m);
+#endif
 }
 
 bool SCAMP5::scamp5_draw_point(int r, int c) {
@@ -1377,7 +1619,16 @@ bool SCAMP5::scamp5_draw_point(int r, int c) {
     if(r >= this->rows_ || c >= this->cols_) {
         return false;
     }
-    scratch->read().at<uint8_t>(r, c) = 1;
+    cv::Mat m;
+#ifdef USE_CUDA
+    scratch->read().download(m);
+#else
+    m = scratch->read().getMat(cv::ACCESS_WRITE);
+#endif
+    m.at<uint8_t>(r, c) = 1;
+#ifdef USE_CUDA
+    scratch->read().upload(m);
+#endif
     return true;
 }
 
@@ -1421,10 +1672,17 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
     int x = 0;
     int y = radius;
 
-    scratch->read().at<uint8_t>(y0 + radius, x0) = 1;
-    scratch->read().at<uint8_t>(y0 - radius, x0) = 1;
-    scratch->read().at<uint8_t>(y0, x0 + radius) = 1;
-    scratch->read().at<uint8_t>(y0, x0 - radius) = 1;
+    cv::Mat m;
+#ifdef USE_CUDA
+    scratch->read().download(m);
+#else
+    m = scratch->read().getMat(cv::ACCESS_WRITE);
+#endif
+
+    m.at<uint8_t>(y0 + radius, x0) = 1;
+    m.at<uint8_t>(y0 - radius, x0) = 1;
+    m.at<uint8_t>(y0, x0 + radius) = 1;
+    m.at<uint8_t>(y0, x0 - radius) = 1;
 
     while(x < y) {
         if(f >= 0) {
@@ -1437,21 +1695,24 @@ void SCAMP5::scamp5_draw_circle(int x0, int y0, int radius, bool repeat) {
         ddf_x += 2;
         f += ddf_x;
 
-        scratch->read().at<uint8_t>(y0 + y, x0 + x) = 1;
-        scratch->read().at<uint8_t>(y0 + y, x0 - x) = 1;
-        scratch->read().at<uint8_t>(y0 - y, x0 + x) = 1;
-        scratch->read().at<uint8_t>(y0 - y, x0 - x) = 1;
-        scratch->read().at<uint8_t>(y0 + x, x0 + y) = 1;
-        scratch->read().at<uint8_t>(y0 + x, x0 - y) = 1;
-        scratch->read().at<uint8_t>(y0 - x, x0 + y) = 1;
-        scratch->read().at<uint8_t>(y0 - x, x0 - y) = 1;
+        m.at<uint8_t>(y0 + y, x0 + x) = 1;
+        m.at<uint8_t>(y0 + y, x0 - x) = 1;
+        m.at<uint8_t>(y0 - y, x0 + x) = 1;
+        m.at<uint8_t>(y0 - y, x0 - x) = 1;
+        m.at<uint8_t>(y0 + x, x0 + y) = 1;
+        m.at<uint8_t>(y0 + x, x0 - y) = 1;
+        m.at<uint8_t>(y0 - x, x0 + y) = 1;
+        m.at<uint8_t>(y0 - x, x0 - y) = 1;
     }
+#ifdef USE_CUDA
+    scratch->read().upload(m);
+#endif
 }
 
 void SCAMP5::scamp5_draw_negate() {
     // do a binary inversion of the DREG image.
     // TODO abstraction
-    scratch->read() = 1 - scratch->read();
+    cv::subtract(scratch->read(), 1, scratch->read());
 }
 
 // Image Readout
@@ -1475,11 +1736,21 @@ void SCAMP5::scamp5_scan_areg_8x8(const std::shared_ptr<AREG>& areg, uint8_t *re
     int buf_index = 0;
     int cs = this->cols_ / 8;
     int rs = this->rows_ / 8;
+
+    cv::Mat m;
+#ifdef USE_CUDA
+    areg->read().download(m);
+#else
+    m = areg->read().getMat(cv::ACCESS_READ);
+#endif
     for(int col = 0; col < this->cols_; col += cs) {
         for(int row = 0; row < this->rows_; row += rs) {
-            result8x8[buf_index++] = areg->read().at<uint8_t>(row, col);
+            result8x8[buf_index++] = m.at<uint8_t>(row, col);
         }
     }
+#ifdef USE_CUDA
+    areg->read().upload(m);
+#endif
 }
 
 void SCAMP5::scamp5_scan_areg_mean_8x8(const std::shared_ptr<AREG>& areg, uint8_t *result8x8) {
@@ -1496,20 +1767,27 @@ void SCAMP5::scamp5_scan_dreg(const std::shared_ptr<DREG>& dreg, uint8_t *mem, u
     // r1 - last row index
     // The size of the buffer need to be a least 32 times the number of rows to
     // scan. Thus, a full DREG image requires a buffer of 8192 bytes.
-    // TODO check if it should be (row, col) or (col, row)
     // TODO check impl
+
+    cv::Mat m;
+#ifdef USE_CUDA
+    dreg->read().download(m);
+#else
+    m = dreg->read().getMat(cv::ACCESS_READ);
+#endif
+
     int buf_index = 0;
     for(uint32_t row_index = r0; row_index <= r1; row_index++) {
         // Read 8 values at a time to make up a byte
         for(int col_index = 0; col_index < this->cols_; col_index += 8) {
-            uint8_t b0 = dreg->read().at<uint8_t>(row_index, col_index);
-            uint8_t b1 = dreg->read().at<uint8_t>(row_index, col_index + 1);
-            uint8_t b2 = dreg->read().at<uint8_t>(row_index, col_index + 2);
-            uint8_t b3 = dreg->read().at<uint8_t>(row_index, col_index + 3);
-            uint8_t b4 = dreg->read().at<uint8_t>(row_index, col_index + 4);
-            uint8_t b5 = dreg->read().at<uint8_t>(row_index, col_index + 5);
-            uint8_t b6 = dreg->read().at<uint8_t>(row_index, col_index + 6);
-            uint8_t b7 = dreg->read().at<uint8_t>(row_index, col_index + 7);
+            uint8_t b0 = m.at<uint8_t>(row_index, col_index);
+            uint8_t b1 = m.at<uint8_t>(row_index, col_index + 1);
+            uint8_t b2 = m.at<uint8_t>(row_index, col_index + 2);
+            uint8_t b3 = m.at<uint8_t>(row_index, col_index + 3);
+            uint8_t b4 = m.at<uint8_t>(row_index, col_index + 4);
+            uint8_t b5 = m.at<uint8_t>(row_index, col_index + 5);
+            uint8_t b6 = m.at<uint8_t>(row_index, col_index + 6);
+            uint8_t b7 = m.at<uint8_t>(row_index, col_index + 7);
             uint8_t value = (b0 << 7) | (b1 << 6) | (b2 << 5) | (b3 << 4) |
                             (b4 << 3) | (b5 << 2) | (b6 << 1) | (b7 << 0);
             mem[buf_index++] = value;
@@ -1544,11 +1822,17 @@ void SCAMP5::scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *mem,
 void SCAMP5::scamp5_scan_events(const std::shared_ptr<DREG>& dreg, uint8_t *buffer, uint16_t max_num,
                                 uint8_t r0, uint8_t c0, uint8_t r1, uint8_t c1,
                                 uint8_t rs, uint8_t cs) {
+    cv::Mat m;
+#ifdef USE_CUDA
+    dreg->read().download(m);
+#else
+    m = dreg->read().getMat(cv::ACCESS_WRITE);
+#endif
     // assuming 0,0 in top left
     int buf_index = 0;
     for(int col = c0; col < c1; col += cs) {
         for(int row = r0; row < r1; row += rs) {
-            if(dreg->read().at<uint8_t>(row, col) > 0) {
+            if(m.at<uint8_t>(row, col) > 0) {
                 if(buf_index == 2 * max_num)
                     return;
                 buffer[buf_index++] = col;
@@ -1787,5 +2071,6 @@ RTTR_REGISTRATION {
         .method("scamp5_scan_events", select_overload<void(const std::shared_ptr<DREG>&, uint8_t*, uint16_t, uint8_t, uint8_t)>(&SCAMP5::scamp5_scan_events))(default_arguments((uint16_t)1000, (uint8_t)0, (uint8_t)0))
         .method("scamp5_scan_events", select_overload<void(const std::shared_ptr<DREG>&, uint8_t*, uint16_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t, uint8_t)>(&SCAMP5::scamp5_scan_events))
         .method("scamp5_scan_boundingbox", &SCAMP5::scamp5_scan_boundingbox)
-        .method("print_stats", &SCAMP5::print_stats)(default_arguments(std::string()));
+        .method("print_stats", &SCAMP5::print_stats)(default_arguments(std::string()))
+        .method("downsample", &SCAMP5::downsample);
 }

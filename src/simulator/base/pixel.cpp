@@ -12,6 +12,7 @@
 
 #include <rttr/registration>
 #include <utility>
+#include "simulator/base/opencv_wrappers.h"
 
 Pixel::Pixel(int rows, int cols, int row_stride, int col_stride, Source src, const std::string& path, std::shared_ptr<Config> config)
 {
@@ -27,17 +28,7 @@ Pixel::Pixel(int rows, int cols, int row_stride, int col_stride, Source src, con
 void Pixel::init() {
 #ifdef TRACK_STATISTICS
     process_node_ = 180;
-    transistor_count_ = calc_transistor_count();
-    static_power_ = calc_static();
-    dynamic_power_ = calc_dynamic();
-    width_ = calc_width();
-    height_ = calc_height();
-    internal_mask = cv::Mat(rows_, cols_, CV_8U, cv::Scalar(0));
-    array_transistor_count_ = cv::Mat(rows_, cols_, CV_32S, cv::Scalar(0));
-    array_static_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
-    array_dynamic_energy_ = cv::Mat(rows_, cols_, CV_64F, cv::Scalar(0));
-
-    this->calc_internal_mask();
+    Component::init();
 #endif
 }
 
@@ -68,14 +59,17 @@ void Pixel::set_src(Source src) {
 
 void Pixel::reset() { input_source->reset(); }
 
-cv::Mat Pixel::read() {
-    cv::Mat m = input_source->read();
+#ifdef USE_CUDA
+cv::cuda::GpuMat& Pixel::read() {
+#else
+cv::UMat& Pixel::read() {
+#endif
 #ifdef TRACK_STATISTICS
     double seconds = this->input_source->last_frame_time();
     cycle_count_ = seconds * this->config_->get_clock_rate();
-    cv::add(this->array_dynamic_energy_, this->dynamic_power_, this->array_dynamic_energy_, this->internal_mask);
+    ocv_wrappers::arith::add(this->array_dynamic_energy_, this->dynamic_power_, this->array_dynamic_energy_, this->internal_mask);
 #endif
-    return m;
+    return input_source->read();
 }
 
 void Pixel::read(Register& reg) {
@@ -83,7 +77,7 @@ void Pixel::read(Register& reg) {
 #ifdef TRACK_STATISTICS
     double seconds = this->input_source->last_frame_time();
     cycle_count_ = seconds * this->config_->get_clock_rate();
-    cv::add(this->array_dynamic_energy_, this->dynamic_power_, this->array_dynamic_energy_, this->internal_mask);
+    ocv_wrappers::arith::add(this->array_dynamic_energy_, this->dynamic_power_, this->array_dynamic_energy_, this->internal_mask);
 #endif
 }
 
@@ -98,7 +92,7 @@ int Pixel::get_cycle_count() {
 }
 
 void Pixel::update_static(double time) {
-    cv::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
+    ocv_wrappers::arith::add(this->array_static_energy_, this->static_power_ * time, this->array_static_energy_, this->internal_mask);
 }
 
 void Pixel::print_stats(const CycleCounter& counter) {

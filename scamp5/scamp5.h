@@ -43,6 +43,11 @@ class SCAMP5 : public Architecture {
     std::shared_ptr<DREG> intermediate_d;
     std::shared_ptr<DREG> scratch = nullptr;
 
+    std::shared_ptr<DREG> east_ptr_scratch;
+    std::shared_ptr<DREG> west_ptr_scratch;
+    std::shared_ptr<DREG> north_ptr_scratch;
+    std::shared_ptr<DREG> south_ptr_scratch;
+
     SCAMP5() = default;
     void init();
     rttr::variant config_converter(json& j);
@@ -99,6 +104,7 @@ class SCAMP5 : public Architecture {
     void get_image(const std::shared_ptr<AREG>& y);
 
     void get_image(const std::shared_ptr<AREG>& y, const std::shared_ptr<AREG>& h);
+    void downsample(const std::shared_ptr<AREG>& dst, const std::shared_ptr<AREG>& src);
 
     void respix();
 

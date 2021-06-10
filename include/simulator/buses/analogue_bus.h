@@ -12,7 +12,11 @@
 
 class AnalogueBus {
    private:
-    cv::Mat scratch;
+#ifdef USE_CUDA
+    cv::cuda::GpuMat scratch;
+#else
+    cv::UMat scratch;
+#endif
 
    public:
     // Analogue Register Transfer

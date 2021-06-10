@@ -23,7 +23,7 @@ class CarryLookAheadAdder : public Component {
     double calc_width() override;
     double calc_height() override;
 #endif
-    cv::Mat scratch;
+    cv::UMat scratch;
 
    public:
     CarryLookAheadAdder() = default;

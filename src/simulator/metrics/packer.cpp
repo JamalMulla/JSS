@@ -61,6 +61,8 @@ std::shared_ptr<PackNode> Packer::split_node(std::shared_ptr<PackNode> node, dou
 }
 
 std::shared_ptr<PackNode> Packer::pack(std::vector<std::shared_ptr<Component>>& components) {
+#ifdef TRACK_STATISTICS
+
     if (components.empty()) {
         return std::make_shared<PackNode>();
     }
@@ -84,4 +86,5 @@ std::shared_ptr<PackNode> Packer::pack(std::vector<std::shared_ptr<Component>>& 
     }
 
     return this->root_;
+#endif
 }

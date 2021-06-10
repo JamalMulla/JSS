@@ -22,6 +22,8 @@ class Parser {
     Parser();
     std::vector<rttr::enumeration> enums_;
     ParserCache cache;
+    int repeat_ = 1; // Number of times to repeat each instruction. Useful for performance testing
+
 
    public:
     static Parser& get_instance(){
@@ -37,6 +39,8 @@ class Parser {
     void set_property(const rttr::type& arch_type, const rttr::variant& arch, const std::string& name, rttr::variant value);
     rttr::variant create_instance(const std::string& arch_name, json arch_props);
     void parse_config(std::ifstream& config, std::ifstream& program);
+
+    void setup_processing(json& j);
 };
 
 #endif  //SIMULATOR_PARSER_H

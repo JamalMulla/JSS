@@ -45,10 +45,16 @@ void on_mouse_reg(int event, int x, int y, int, void* reg) {
     if(event != cv::EVENT_MOUSEMOVE)
         return;
     auto* dr = static_cast<Register*>(reg);
+    cv::Mat m;
+#ifdef USE_CUDA
+    dr->read().download(m);
+#else
+    m = dr->read().getMat(cv::ACCESS_READ);
+#endif
     if(y < 0 || x < 0 || y > dr->read().rows || x > dr->read().cols)
         return;
     std::cout << "(" << x << ", " << y << ") ......  "
-              << (int) dr->read().at<interpret_type>(y, x) << '\n';
+              << (int) m.at<interpret_type>(y, x) << '\n';
 }
 
 template<typename interpret_type>

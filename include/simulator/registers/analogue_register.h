@@ -14,6 +14,11 @@ class AnalogueRegister : public Register {
     AnalogueRegister(int rows, int cols, const std::shared_ptr<Config>& config, int row_stride = 1, int col_stride = 1, MemoryType memory = MemoryType::S2I);
     AnalogueRegister(int rows, int cols, int row_stride = 1, int col_stride = 1);
     AnalogueRegister(const cv::Mat& data, int row_stride = 1, int col_stride = 1);
+#ifdef USE_CUDA
+    AnalogueRegister(const cv::cuda::GpuMat& data, int row_stride = 1, int col_stride = 1);
+#else
+    AnalogueRegister(const cv::UMat& data, int row_stride = 1, int col_stride = 1);
+#endif
 
     AnalogueRegister& operator()(const std::string& name);
 

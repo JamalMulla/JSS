@@ -19,7 +19,11 @@ class LiveInput : public InputSource {
     LiveInput() = default;
 
     void read(Register& reg) override;
-    cv::Mat read() override;
+#ifdef USE_CUDA
+    cv::cuda::GpuMat& read() override;
+#else
+    cv::UMat& read() override;
+#endif
     void reset() override;
     double last_frame_time() override;
 };

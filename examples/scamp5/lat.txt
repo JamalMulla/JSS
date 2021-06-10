@@ -1,6 +1,6 @@
 // local adaptive thresholding. 
 // works decently with 512x512 resolution images of say book pages
-get_image(A, D)
+//get_image(A, D)
 div(B, C, A); 
 diva(B, C, D); 
 diva(B, C, D); 

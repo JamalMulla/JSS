@@ -30,6 +30,22 @@ DigitalRegister::DigitalRegister(int rows, int cols, int row_stride, int col_str
     this->max_val = 1;
 }
 
+#ifdef USE_CUDA
+DigitalRegister::DigitalRegister(const cv::cuda::GpuMat &data, int row_stride, int col_stride) {
+#else
+DigitalRegister::DigitalRegister(const cv::UMat &data, int row_stride, int col_stride) {
+#endif
+    this->rows_ = data.rows;
+    this->cols_ = data.cols;
+    this->row_stride_ = row_stride;
+    this->col_stride_ = col_stride;
+    this->type_ = CV_8U;
+    Register::init();
+    this->min_val = 0;
+    this->max_val = 1;
+    this->write(data);
+}
+
 DigitalRegister::DigitalRegister(const cv::Mat &data, int row_stride, int col_stride) {
     this->rows_ = data.rows;
     this->cols_ = data.cols;
@@ -48,10 +64,18 @@ DigitalRegister &DigitalRegister::operator()(const std::string &name) {
 }
 
 void DigitalRegister::set_mask(const std::shared_ptr<DigitalRegister>& mask) {
-    this->mask_ = std::make_shared<cv::Mat>(mask->read());
+#ifdef USE_CUDA
+    this->mask_ = std::make_shared<cv::cuda::GpuMat>(mask->read());
+#else
+    this->mask_ = std::make_shared<cv::UMat>(mask->read());
+#endif
 }
 
-cv::Mat& DigitalRegister::get_mask() {
+#ifdef USE_CUDA
+cv::cuda::GpuMat& DigitalRegister::get_mask() {
+#else
+cv::UMat& DigitalRegister::get_mask() {
+#endif
     return *mask_;
 }
 

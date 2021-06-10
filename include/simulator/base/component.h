@@ -7,6 +7,7 @@
 
 #include <nlohmann/json.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/core/cuda.hpp>
 #include <rttr/registration>
 #include <memory>
 
@@ -22,15 +23,20 @@ class Component : public StatsOutputter {
     std::shared_ptr<PackNode> fit;
 
    protected:
-    int process_node_ = -1; // process node in nm that the other metrics are defined in terms of. for example
+    int process_node_ = 180; // process node in nm that the other metrics are defined in terms of.
     int rows_; // rows of the whole plane
     int cols_; // cols of the whole plane
     int row_stride_ = 1;
     int col_stride_ = 1;
     std::shared_ptr<Config> config_;
-    cv::Mat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
+#ifdef USE_CUDA
+    cv::cuda::GpuMat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
+#else
+    cv::UMat internal_mask;  // Used to keep track of components in array when stride is not 1, i.e. spaces between components
+#endif
 
    public:
+    void init();
     void calc_internal_mask();
 
     /*Setters*/
@@ -50,12 +56,17 @@ class Component : public StatsOutputter {
     double dynamic_power_;  // in Watts
     double width_; // in Micrometres
     double height_; // in Mircometres
-    cv::Mat array_transistor_count_;
-    cv::Mat array_static_energy_;
-    cv::Mat array_dynamic_energy_;
+    cv::UMat array_static_energy_;
+    cv::UMat array_dynamic_energy_; // No GPUMat for these two as float ops are not always supported on GPUs but int ops usually are
+#ifdef USE_CUDA
+    cv::cuda::GpuMat array_transistor_count_;
+#else
+    cv::UMat array_transistor_count_;
+#endif
    public:
     /* Update component with how much time has passed for operation. Used for updating static power. */
     virtual void update_static(double time) = 0;
+
     /* Returns the total amount of static energy use */
     virtual cv::Mat get_static_energy_array();
     /* Returns the total amount of dynamic energy use */

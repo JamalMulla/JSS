@@ -1,4 +1,4 @@
-get_image(A, D);
+//get_image(A, D);
 div(E, C, A);
 diva(E, C, B);
 diva(E, C, B);

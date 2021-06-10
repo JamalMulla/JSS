@@ -4,6 +4,7 @@
 
 #include "simulator/external/parser.h"
 
+#include <opencv2/core/ocl.hpp>
 #include <rttr/enumeration.h>
 #include <rttr/type.h>
 #include <simulator/registers/analogue_register.h>
@@ -16,7 +17,14 @@
 #include <rttr/registration>
 #include <sstream>
 #include <utility>
+#include <chrono>
 #include <vector>
+
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::microseconds;
+using std::chrono::milliseconds;
 
 Parser::Parser() {
     enums_ = get_enums();
@@ -198,16 +206,19 @@ Instructions Parser::parse_instructions(rttr::instance class_obj, std::ifstream&
 void Parser::execute_instructions(const Instructions& parsed, rttr::instance instance) {
     for (auto& [method, args]: parsed) {
         rttr::variant res;
-        switch (args.size()) {
-            case 0: res = method.invoke(instance); break;
-            case 1: res = method.invoke(instance, args[0]); break;
-            case 2: res = method.invoke(instance, args[0], args[1]); break;
-            case 3: res = method.invoke(instance, args[0], args[1], args[2]); break;
-            case 4: res = method.invoke(instance, args[0], args[1], args[2], args[3]); break;
-            case 5: res = method.invoke(instance, args[0], args[1], args[2], args[3], args[4]); break;
-            case 6: res = method.invoke(instance, args[0], args[1], args[2], args[3], args[4], args[5]); break;
-            default: std::cerr << "Too many arguments in method " << method.get_name() << " invocation" << std::endl;
+        for (int i = 0; i < repeat_; i++) {
+            switch (args.size()) {
+                case 0: res = method.invoke(instance); break;
+                case 1: res = method.invoke(instance, args[0]); break;
+                case 2: res = method.invoke(instance, args[0], args[1]); break;
+                case 3: res = method.invoke(instance, args[0], args[1], args[2]); break;
+                case 4: res = method.invoke(instance, args[0], args[1], args[2], args[3]); break;
+                case 5: res = method.invoke(instance, args[0], args[1], args[2], args[3], args[4]); break;
+                case 6: res = method.invoke(instance, args[0], args[1], args[2], args[3], args[4], args[5]); break;
+                default: std::cerr << "Too many arguments in method " << method.get_name() << " invocation" << std::endl;
+            }
         }
+
         if (!res.is_valid()) {
             std::cerr << "Could not execute method \"" << method.get_name() << "\""
                       << " with " << args.size() << " arguments" << std::endl;
@@ -320,6 +331,9 @@ rttr::variant Parser::create_instance(const std::string& arch_name, json arch_pr
 
 void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     json c = json::parse(config);
+
+    setup_processing(c);
+
     std::vector<rttr::enumeration> enums = get_enums();  // all registered enums
 
     // Create architecture by using builder
@@ -370,14 +384,22 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
 
     bool loop = frames < 0;
 
-    int i = 0;
-    while (loop || i < frames) {
-        int e1 = cv::getTickCount();
-        Parser::execute_instructions(instructions, arch);
+    cv::TickMeter tm;
 
+    int i = 0;
+    double current_frame_time_avg = 0;
+    while (loop || i < frames) {
+        i++;
+//        auto t1 = high_resolution_clock::now();
+            tm.start();
+        Parser::execute_instructions(instructions, arch);
         if (frame_time) {
-            int e2 = cv::getTickCount();
-            std::cout << ((double)(e2 - e1) / cv::getTickFrequency()) * 1000 << " ms" << std::endl;
+//            auto t2 = high_resolution_clock::now();
+//            duration<double, std::micro> ms_double = t2 - t1;
+//            std::cout << ms_double.count() << " microseconds\n";
+            tm.stop();
+            std::cout << tm.getTimeMilli() << " ms\n";
+            tm.reset();
         }
 
         if (ui_enabled) {
@@ -395,7 +417,6 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
                 std::cout << "Frame: " << i << std::endl;
             }
         }
-        i++;
 
     }
 
@@ -414,4 +435,56 @@ void Parser::parse_config(std::ifstream& config, std::ifstream& program) {
     // Clean up and call destructors.
 //    arch_builder_type.destroy(arch_builder);
     arch.get_type().destroy(arch);
+}
+
+
+void Parser::setup_processing(json& j) {
+
+    if (j.contains("instr_rep")) {
+        repeat_ = j["instr_rep"].get<int>();
+    }
+
+#ifdef USE_CUDA
+    // no OpenCL processing if we're using CUDA
+    std::cout << "Processing on GPU using CUDA" << std::endl;
+    cv::ocl::setUseOpenCL(false);
+    return;
+#else
+    bool use_opencl = false;
+    if (j.contains("use_opencl")) {
+        use_opencl = j["use_opencl"].get<bool>();
+    }
+
+    if (!use_opencl) {
+        std::cout << "Processing on CPU" << std::endl;
+        cv::ocl::setUseOpenCL(false);
+    } else {
+        cv::ocl::setUseOpenCL(true);
+
+        if (!cv::ocl::haveOpenCL())
+        {
+            std::cout << "OpenCL is not available" << std::endl;
+            return;
+        }
+
+        cv::ocl::Context context;
+        if (!context.create(cv::ocl::Device::TYPE_GPU))
+        {
+            std::cout << "Failed to create GPU Context" << std::endl;
+            //return;
+        }
+
+        std::cout << context.ndevices() << " GPU device(s) detected." << std::endl;
+        for (size_t i = 0; i < context.ndevices(); i++)
+        {
+            cv::ocl::Device device = context.device(i);
+            std::cout << "name:              " << device.name() << std::endl;
+            std::cout << "available:         " << device.available() << std::endl;
+            std::cout << "imageSupport:      " << device.imageSupport() << std::endl;
+            std::cout << "OpenCL_C_Version:  " << device.OpenCL_C_Version() << std::endl;
+            std::cout << std::endl;
+        }
+        std::cout << "Processing on GPU using OpenCL" << std::endl;
+    }
+#endif
 }
