@@ -739,88 +739,256 @@ void SCAMP5::XOR(const std::shared_ptr<DREG>& Rl, const std::shared_ptr<DREG>& R
 
 void SCAMP5::WHERE(const std::shared_ptr<DREG>& d) {
     // FLAG := d.
+#ifdef USE_CUDA
+    if (FLAG->get_mask().empty()) {
+        this->FLAG->write(d->read());
+    } else {
+        this->FLAG->write(d->read(), FLAG->get_mask());
+    }
+#else
     this->FLAG->write(d->read(), FLAG->get_mask());
+#endif
     this->update_cycles(2);  // 1 read, 1 write
 }
 
 void SCAMP5::WHERE(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
     // FLAG := d0 OR d1.
     this->OR(intermediate_d, d0, d1);
+#ifdef USE_CUDA
+    if (FLAG->get_mask().empty()) {
+        this->FLAG->write(intermediate_d->read());
+    } else {
+        this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
+    }
+#else
     this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
+#endif
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::WHERE(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
     // FLAG := d0 OR d1 OR d2.
     this->OR(intermediate_d, d0, d1, d2);
+#ifdef USE_CUDA
+    if (FLAG->get_mask().empty()) {
+        this->FLAG->write(intermediate_d->read());
+    } else {
+        this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
+    }
+#else
     this->FLAG->write(intermediate_d->read(), FLAG->get_mask());
+#endif
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::ALL() {
     // FLAG := 1, same as all.
+#ifdef USE_CUDA
+    if (FLAG->get_mask().empty()) {
+        this->FLAG->write(1);
+    } else {
+        this->FLAG->write(1, FLAG->get_mask());
+    }
+#else
     this->FLAG->write(1, FLAG->get_mask());
+#endif
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0) {
     // d0 := 1
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(1);
+    } else {
+        d0->write(1, d0->get_mask());
+    }
+#else
     d0->write(1, d0->get_mask());
+#endif
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
     // d0, d1 := 1
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(1);
+    } else {
+        d0->write(1, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(1);
+    } else {
+        d1->write(1, d1->get_mask());
+    }
+#else
     d0->write(1, d0->get_mask());
     d1->write(1, d1->get_mask());
+#endif
     this->update_cycles(2);  // 2 writes
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
     // 	d0, d1, d2 := 1
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(1);
+    } else {
+        d0->write(1, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(1);
+    } else {
+        d1->write(1, d1->get_mask());
+    }
+
+    if (d2->get_mask().empty()) {
+        d2->write(1);
+    } else {
+        d2->write(1, d2->get_mask());
+    }
+#else
     d0->write(1, d0->get_mask());
     d1->write(1, d1->get_mask());
     d2->write(1, d2->get_mask());
+#endif
     this->update_cycles(3);  // 3 writes
 }
 
 void SCAMP5::SET(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
     // d0, d1, d2, d3 := 1
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(1);
+    } else {
+        d0->write(1, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(1);
+    } else {
+        d1->write(1, d1->get_mask());
+    }
+
+    if (d2->get_mask().empty()) {
+        d2->write(1);
+    } else {
+        d2->write(1, d2->get_mask());
+    }
+
+    if (d3->get_mask().empty()) {
+        d3->write(1);
+    } else {
+        d3->write(1, d3->get_mask());
+    }
+#else
     d0->write(1, d0->get_mask());
     d1->write(1, d1->get_mask());
     d2->write(1, d2->get_mask());
     d3->write(1, d3->get_mask());
+#endif
     this->update_cycles(4);  // 4 writes
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0) {
     // d0 := 0
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(0);
+    } else {
+        d0->write(0, d0->get_mask());
+    }
+#else
     d0->write(0, d0->get_mask());
+#endif
     this->update_cycles(1);  // 1 write
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1) {
     // d0, d1 := 0
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(0);
+    } else {
+        d0->write(0, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(0);
+    } else {
+        d1->write(0, d1->get_mask());
+    }
+#else
     d0->write(0, d0->get_mask());
     d1->write(0, d1->get_mask());
+#endif
+
     this->update_cycles(2);  // 2 writes
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2) {
     // d0, d1, d2 := 0
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(0);
+    } else {
+        d0->write(0, d0->get_mask());
+    }
+
+    if (d1->get_mask().empty()) {
+        d1->write(0);
+    } else {
+        d1->write(0, d1->get_mask());
+    }
+
+    if (d2->get_mask().empty()) {
+        d2->write(0);
+    } else {
+        d2->write(0, d2->get_mask());
+    }
+#else
     d0->write(0, d0->get_mask());
     d1->write(0, d1->get_mask());
     d2->write(0, d2->get_mask());
+#endif
     this->update_cycles(3);  // 3 writes
 }
 
 void SCAMP5::CLR(const std::shared_ptr<DREG>& d0, const std::shared_ptr<DREG>& d1, const std::shared_ptr<DREG>& d2, const std::shared_ptr<DREG>& d3) {
     // 	d0, d1, d2, d3 := 0
+#ifdef USE_CUDA
+    if (d0->get_mask().empty()) {
+        d0->write(0);
+    } else {
+        d0->write(0, d0->get_mask());
+    }
 
+    if (d1->get_mask().empty()) {
+        d1->write(0);
+    } else {
+        d1->write(0, d1->get_mask());
+    }
+
+    if (d2->get_mask().empty()) {
+        d2->write(0);
+    } else {
+        d2->write(0, d2->get_mask());
+    }
+
+    if (d3->get_mask().empty()) {
+        d3->write(0);
+    } else {
+        d3->write(0, d3->get_mask());
+    }
+#else
     d0->write(0, d0->get_mask());
     d1->write(0, d1->get_mask());
     d2->write(0, d2->get_mask());
     d3->write(0, d3->get_mask());
+#endif
     this->update_cycles(4);  // 4 writes
 }
 
